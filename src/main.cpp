@@ -23,6 +23,7 @@ long intervalWiFi = 6000;             // Variabile per l'intervallo di tempo tra
 #include "esp_wps.h"
 #include <ArduinoOTA.h>
 #include "utilities.h"
+#include <esp_task_wdt.h>
 
 /*
   Change the definition of the WPS mode
@@ -38,20 +39,31 @@ long intervalWiFi = 6000;             // Variabile per l'intervallo di tempo tra
 
 static esp_wps_config_t config;
 
-volatile int count;
-int totalInterrupts;
+volatile int count0;
+volatile int count1;
 
 #define LED_PIN 2
 
-hw_timer_t * timer = NULL;
-portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
+hw_timer_t * timer0 = NULL;
+portMUX_TYPE timerMux0 = portMUX_INITIALIZER_UNLOCKED;
+
+hw_timer_t * timer1 = NULL;
+portMUX_TYPE timerMux1 = portMUX_INITIALIZER_UNLOCKED;
 
 // Code with critica section
 void IRAM_ATTR onTimer0() {
-   portENTER_CRITICAL_ISR(&timerMux);
-   count++;
-   portEXIT_CRITICAL_ISR(&timerMux);
+   portENTER_CRITICAL_ISR(&timerMux0);
+   count0++;
+   portEXIT_CRITICAL_ISR(&timerMux0);
 }
+
+void IRAM_ATTR onTimer1() {
+   portENTER_CRITICAL_ISR(&timerMux1);
+   count1++;
+   portEXIT_CRITICAL_ISR(&timerMux1);
+}
+
+#define WDT_TIMEOUT 3
 
 void wpsInitConfig()
 {
@@ -79,37 +91,36 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
   switch (event)
   {
   case SYSTEM_EVENT_STA_START:
-    Serial.println("Station Mode Started");
+    debugMsg("Station Mode Started");
     break;
   case SYSTEM_EVENT_STA_GOT_IP:
-    Serial.println("Connected to :" + String(WiFi.SSID()));
-    Serial.print("Got IP: ");
-    Serial.println(WiFi.localIP());
+    debugMsg("Connected to :" + String(WiFi.SSID()));
+    debugMsg("Got IP: " + WiFi.localIP());
     break;
   case SYSTEM_EVENT_STA_DISCONNECTED:
-    Serial.println("Disconnected from station, attempting reconnection");
+    debugMsg("Disconnected from station, attempting reconnection");
     WiFi.reconnect();
     break;
   case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
-    Serial.println("WPS Successfull, stopping WPS and connecting to: " + String(WiFi.SSID()));
+    debugMsg("WPS Successfull, stopping WPS and connecting to: " + String(WiFi.SSID()));
     esp_wifi_wps_disable();
     delay(10);
     WiFi.begin();
     break;
   case SYSTEM_EVENT_STA_WPS_ER_FAILED:
-    Serial.println("WPS Failed, retrying");
+    debugMsg("WPS Failed, retrying");
     esp_wifi_wps_disable();
     esp_wifi_wps_enable(&config);
     esp_wifi_wps_start(0);
     break;
   case SYSTEM_EVENT_STA_WPS_ER_TIMEOUT:
-    Serial.println("WPS Timedout, retrying");
+    debugMsg("WPS Timedout, retrying");
     esp_wifi_wps_disable();
     esp_wifi_wps_enable(&config);
     esp_wifi_wps_start(0);
     break;
   case SYSTEM_EVENT_STA_WPS_ER_PIN:
-    Serial.println("WPS_PIN = " + wpspin2string(info.sta_er_pin.pin_code));
+    debugMsg("WPS_PIN = " + wpspin2string(info.sta_er_pin.pin_code));
     break;
   default:
     break;
@@ -140,10 +151,10 @@ void setupOTA()
           type = "filesystem";
 
         // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-        Serial.println("Start updating " + type);
+        debugMsg("Start updating " + type);
       })
       .onEnd([]() {
-        Serial.println("\nEnd");
+        debugMsg("\nEnd");
       })
       .onProgress([](unsigned int progress, unsigned int total) {
         Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
@@ -151,18 +162,18 @@ void setupOTA()
       .onError([](ota_error_t error) {
         Serial.printf("Error[%u]: ", error);
         if (error == OTA_AUTH_ERROR)
-          Serial.println("Auth Failed");
+          debugMsg("Auth Failed");
         else if (error == OTA_BEGIN_ERROR)
-          Serial.println("Begin Failed");
+          debugMsg("Begin Failed");
         else if (error == OTA_CONNECT_ERROR)
-          Serial.println("Connect Failed");
+          debugMsg("Connect Failed");
         else if (error == OTA_RECEIVE_ERROR)
-          Serial.println("Receive Failed");
+          debugMsg("Receive Failed");
         else if (error == OTA_END_ERROR)
-          Serial.println("End Failed");
+          debugMsg("End Failed");
       });
 
-  Serial.println("Start up OTA: " + ArduinoOTA.getHostname());
+  debugMsg("Start up OTA: " + ArduinoOTA.getHostname());
   ArduinoOTA.begin();
 }
 
@@ -171,8 +182,8 @@ void setup()
   Serial.begin(115200);
   delay(10);
 
-  Serial.println();
-  Serial.println("Starting WiFi");
+  debugMsg("");
+  debugMsg("Starting WiFi");
 
   WiFi.begin();
 
@@ -197,7 +208,7 @@ void setup()
     WiFi.onEvent(WiFiEvent);
     WiFi.mode(WIFI_MODE_STA);
 
-    Serial.println("Starting WPS");
+    debugMsg("Starting WPS");
 
     wpsInitConfig();
     esp_wifi_wps_enable(&config);
@@ -205,40 +216,42 @@ void setup()
   }
   else
   {
-    Serial.println();
-    Serial.print("Connesso a: ");
-    Serial.println(WiFi.SSID());
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
+    debugMsg("");
+    debugMsg("Connesso a: " + WiFi.SSID());
+    debugMsg("IP Address: " + WiFi.localIP());
+    debugMsg("MAC Address: " + WiFi.macAddress());
+    debugMsg("Host name: " + String(WiFi.getHostname()));
   }
 
-  debugMsg("Start up mDNS" );
+  debugMsg("Start up mDNS");
 
-  if(!MDNS.begin("esp32")) {
-      Serial.println("Error starting mDNS");
+  if(!MDNS.begin(WiFi.getHostname())) {
+      debugMsg("Error starting mDNS");
       return;
   }
-  MDNS.addService("http","tcp",80);
+
+  debugMsg("Start up OTA");
 
   setupOTA();
 
-  debugMsg("Start up SPIFFS" );
+  debugMsg("Start up SPIFFS");
 
   // Initialize SPIFFS
   if(!SPIFFS.begin(true)){
-    Serial.println("An Error has occurred while mounting SPIFFS");
+    debugMsg("An Error has occurred while mounting SPIFFS");
     return;
   }
 
   debugMsg("Start up WebServer" );
 
-  // server.serveStatic("/", SPIFFS, "/web/");
-  server.on("/", HTTP_GET, mainHandler);
-  server.on("/style.css", HTTP_GET, cssHandler);
+  server.serveStatic("/", SPIFFS, "/web/").setDefaultFile("index.html");
+  // server.on("/", HTTP_GET, mainHandler);
+  // server.on("/style.css", HTTP_GET, cssHandler);
+  server.on("/api/getConfig", HTTP_GET, getConfigHandler);
   
-  server.on("/hello", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "Hello World");
-  });
+/*  server.on("/hello", HTTP_GET, [](AsyncWebServerRequest *request){
+/    request->send(200, "text/plain", "Hello World");
+/  }); */
 
   server.begin();
 
@@ -262,16 +275,25 @@ void setup()
   unsigned long nowMillis = millis();
   ntpAsync.getTimeFromNTP(nowMillis);
 
-  debugMsg("Start up Timer" );
+  debugMsg("Start up Timers" );
   
   // Configure LED output
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
 
-  timer = timerBegin(0, 80, true);
-  timerAttachInterrupt(timer, &onTimer0, true);
-  timerAlarmWrite(timer, 1000, true);
-  timerAlarmEnable(timer);
+  timer0 = timerBegin(0, 80, true);
+  timerAttachInterrupt(timer0, &onTimer0, true);
+  timerAlarmWrite(timer0, 1000, true);
+  timerAlarmEnable(timer0);
+
+  timer1 = timerBegin(1, 80, true);
+  timerAttachInterrupt(timer1, &onTimer1, true);
+  timerAlarmWrite(timer1, 33333, true);
+  timerAlarmEnable(timer1);
+
+  debugMsg("Configuring WDT...");
+  esp_task_wdt_init(WDT_TIMEOUT, true);
+  esp_task_wdt_add(NULL);
 }
 
 
@@ -282,8 +304,11 @@ void performOncePerSecondProcessing() {
   if (ntpAsync.getNextUpdate(nowMillis) < 0) {
     ntpAsync.getTimeFromNTP(nowMillis);
   }  
-  debugMsg("count: " + String(count));
+  debugMsg("count: " + String(count0));
+  debugMsg("count: " + String(count1));
   digitalWrite(LED_PIN, second() % 2 == 0);
+
+  esp_task_wdt_reset();
 }
 
 // ************************************************************

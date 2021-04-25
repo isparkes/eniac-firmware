@@ -6,6 +6,9 @@
 
 #include <ESPAsyncWebServer.h>
 
+#include "AsyncJson.h"
+#include "ArduinoJson.h"
+
 #include "SPIFFS.h"
 
 AsyncWebServer server(80);
@@ -72,4 +75,16 @@ void mainHandler(AsyncWebServerRequest *request) {
 void cssHandler(AsyncWebServerRequest *request) {
 	debugMsg("Got css request");
 	request->send(SPIFFS, "/web/style.css");
+}
+
+void getConfigHandler(AsyncWebServerRequest *request) {
+  debugMsg("Got api GET request");
+  
+  AsyncJsonResponse * response = new AsyncJsonResponse();
+  response->addHeader("Server", "ESP Async Web Server");
+  JsonObject& root = response->getRoot();
+  root["heap"] = ESP.getFreeHeap();
+  root["ssid"] = WiFi.SSID();
+  response->setLength();
+  request->send(response);
 }
