@@ -218,7 +218,7 @@ void setup()
   {
     debugMsg("");
     debugMsg("Connesso a: " + WiFi.SSID());
-    debugMsg("IP Address: " + WiFi.localIP());
+    debugMsg("IP Address: " + WiFi.localIP().toString());
     debugMsg("MAC Address: " + WiFi.macAddress());
     debugMsg("Host name: " + String(WiFi.getHostname()));
   }
@@ -304,8 +304,8 @@ void performOncePerSecondProcessing() {
   if (ntpAsync.getNextUpdate(nowMillis) < 0) {
     ntpAsync.getTimeFromNTP(nowMillis);
   }  
-  debugMsg("count: " + String(count0));
-  debugMsg("count: " + String(count1));
+  // debugMsg("count: " + String(count0));
+  // debugMsg("count: " + String(count1));
   digitalWrite(LED_PIN, second() % 2 == 0);
 
   esp_task_wdt_reset();

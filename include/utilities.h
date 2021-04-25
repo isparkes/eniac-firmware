@@ -77,12 +77,41 @@ void cssHandler(AsyncWebServerRequest *request) {
 	request->send(SPIFFS, "/web/style.css");
 }
 
+String timeToReadableString(int y, int m, int d, int h, int mi, int s) {
+  char buf1[20];
+  sprintf(buf1, "%04d:%02d:%02d %02d:%02d:%02d", y, m, d, h, mi, s);
+  return String(buf1);
+}
+
+String timeStringToReadableString(String timeString){
+  char* ptr = strtok((char *)timeString.c_str(), ",");
+  int y = atoi(ptr);
+  ptr = strtok(NULL, ",");
+  int m = atoi(ptr);
+  ptr = strtok(NULL, ",");
+  int d = atoi(ptr);
+  ptr = strtok(NULL, ",");
+  int h = atoi(ptr);
+  ptr = strtok(NULL, ",");
+  int mi = atoi(ptr);
+  ptr = strtok(NULL, ",");
+  int s = atoi(ptr);
+  return timeToReadableString(y,m,d,h,mi,s);
+}
+
 void getConfigHandler(AsyncWebServerRequest *request) {
   debugMsg("Got api GET request");
   
   AsyncJsonResponse * response = new AsyncJsonResponse();
   response->addHeader("Server", "ESP Async Web Server");
   JsonObject& root = response->getRoot();
+  root["ip"] = WiFi.localIP().toString();
+  root["mac"] = WiFi.macAddress();
+  root["ntp-pool"] = ntpAsync.getTZS();
+  String clockUrl = "http://" + String(WiFi.getHostname()) + ".local";
+  clockUrl.toLowerCase();
+  root["clock-url"] = clockUrl;
+  root["last-ntp-time"] = timeStringToReadableString(ntpAsync.getLastTimeFromServer());
   root["heap"] = ESP.getFreeHeap();
   root["ssid"] = WiFi.SSID();
   response->setLength();
