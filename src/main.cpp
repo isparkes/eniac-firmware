@@ -331,7 +331,7 @@ void setup()
   spiffsStorage.setDebugOutput(true);
   spiffsStorage.getStatsFromSpiffs(&current_stats);
 
-  debugMsg("Current uptime: " + String(current_stats.uptimeMins));
+  // debugMsg("Current uptime: " + String(current_stats.uptimeMins));
 
   debugMsg("Start up WDT...");
   esp_task_wdt_init(WDT_TIMEOUT, true);
@@ -427,6 +427,10 @@ void loop()
       triggeredThisSec = false;
     }
   }
+
+  // Touch sensor
+  #define TOUCH_THRESHOLD 20
+  oled.setXStatus(touchRead(4) > TOUCH_THRESHOLD);
 
   // -------------------------------------------------------------------------------
   

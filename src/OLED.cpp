@@ -104,6 +104,27 @@ void OLED::setBlankStatus(bool newStatus)
   _display->display();
 }
 
+void OLED::setXStatus(bool newStatus)
+{
+  xStatus = newStatus;
+  drawXInd();
+  _display->display();
+}
+
+void OLED::setYStatus(bool newStatus)
+{
+  yStatus = newStatus;
+  drawYInd();
+  _display->display();
+}
+
+void OLED::setZStatus(bool newStatus)
+{
+  zStatus = newStatus;
+  drawZInd();
+  _display->display();
+}
+
 void OLED::setAMStatus(bool newStatus)
 {
   ampm = newStatus;
