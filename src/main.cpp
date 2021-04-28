@@ -27,6 +27,7 @@ long intervalWiFi = 6000;
 #include <ArduinoOTA.h>
 #include "utilities.h"
 #include <esp_task_wdt.h>
+#include "OLED.h"
 
 /*
   Change the definition of the WPS mode
@@ -206,8 +207,13 @@ void setup()
   timerAlarmEnable(timer1);
   setLedFlashType(1);
 
+  debugMsg("Starting OLED");
+  oled.setUp();
+  oled.clearDisplay();
+
   debugMsg("");
   debugMsg("Starting WiFi");
+  oled.showScrollingMessage("Starting WiFi");
 
   WiFi.onEvent(WiFiEvent);
 
@@ -215,6 +221,7 @@ void setup()
 
   debugMsg("");
   debugMsg("Connessione all'ultimo AP");
+  oled.showScrollingMessage("Connect to AP");
 
   intervalWiFi = millis() + INTERVAL_WIFI;
   while (WiFi.status() != WL_CONNECTED)
@@ -237,6 +244,7 @@ void setup()
   // Try WPS
   debugMsg("");
   debugMsg("Connect using WPS");
+  oled.showScrollingMessage("Connect using WPS");
   intervalWiFi = millis() + INTERVAL_WPS;
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -264,6 +272,10 @@ void setup()
   debugMsg("MAC Address: " + WiFi.macAddress());
   debugMsg("Host name: " + String(WiFi.getHostname()));
 
+  // Connected, show only the IP
+  oled.clearDisplay();
+  oled.showScrollingMessage("IP: " + WiFi.localIP().toString());
+  
   debugMsg("Start up SPIFFS");
 
   // Initialize SPIFFS
@@ -284,6 +296,10 @@ void setup()
 /*  server.on("/hello", HTTP_GET, [](AsyncWebServerRequest *request){
 /    request->send(200, "text/plain", "Hello World");
 /  }); */
+
+  server.onNotFound([](AsyncWebServerRequest *request){
+      request->send(404, "text/plain", "The content you are looking for was not found.");
+  });
 
   server.begin();
 
@@ -340,12 +356,21 @@ void performOncePerSecondProcessing() {
     ntpAsync.getTimeFromNTP(nowMillis);
   }
 
-  if (WiFi.status() == WL_CONNECTED) {
+  bool connected = (WiFi.status() == WL_CONNECTED);
+  if (connected) {
     setLedFlashType(0);
   } else {
     setLedFlashType(1);
   }
-  esp_task_wdt_reset();
+
+  char time_c[11];
+  sprintf(time_c, "%02d:%02d:%02d", hour(), minute(), second());
+  oled.setWiFiStatus(connected);
+  oled.setBlankStatus(false);
+  oled.setNTPStatus(ntpAsync.ntpTimeValid(nowMillis));
+  oled.setTimeString(String(time_c));
+  
+    esp_task_wdt_reset();
 }
 
 // ************************************************************
@@ -362,6 +387,7 @@ void performOncePerMinuteProcessing() {
 // ************************************************************
 void performOncePerHourProcessing() {
   debugMsg("---> OncePerHourProcessing");
+  oled.setAMStatus(isAM());
 }
 
 // ************************************************************
