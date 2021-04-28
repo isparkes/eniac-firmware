@@ -10,8 +10,18 @@
 #include "ArduinoJson.h"
 
 #include "SPIFFS.h"
+#include <Wire.h>
+
 
 AsyncWebServer server(80);
+
+#define COUNT0_MAX 1000
+#define COUNT0_OFF 100
+
+volatile int count0;
+volatile int count0Max = COUNT0_MAX;
+volatile int count0Off = COUNT0_OFF;
+volatile int count1;
 
 void debugMsg(String message) {
     Serial.println(message);
@@ -116,4 +126,60 @@ void getConfigHandler(AsyncWebServerRequest *request) {
   root["ssid"] = WiFi.SSID();
   response->setLength();
   request->send(response);
+}
+
+void getI2CScanHandler(AsyncWebServerRequest *request) {
+  debugMsg("Got I2C scan request");
+  
+  AsyncJsonResponse * response = new AsyncJsonResponse();
+  response->addHeader("Server", "ESP Async Web Server");
+  JsonObject& root = response->getRoot();
+
+  byte error, address;
+  int nDevices;
+  nDevices = 0;
+  for(address = 1; address < 127; address++ ) {
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+    if (error == 0) {
+      debugMsg("I2C device found at address 0x" + String(address, HEX));
+      root["I2C"+String(address)] = "found";
+      nDevices++;
+    }
+    else if (error==4) {
+      debugMsg("Unknown error at address 0x" + String(address, HEX));
+    }    
+  }
+  if (nDevices == 0) {
+    debugMsg("No I2C devices found\n");
+  }
+  else {
+    debugMsg("done\n");
+  }
+
+  response->setLength();
+  request->send(response);
+}
+
+
+void resetWifiHandler(AsyncWebServerRequest *request) {
+  debugMsg("Got utils RESET request");
+  WiFi.disconnect();
+  request->send(200, "text/plain", "WiFi was reset");
+}
+
+void setLedFlashType(byte flashType) {
+  switch(flashType) {
+    case 0: {
+      count0Max = 1000;
+      count0Off = 1;
+      break;
+    }
+    case 1: {
+      count0Max = 1000;
+      count0Off = 500;
+      break;
+    }
+  }
+
 }

@@ -15,8 +15,11 @@
 */
 
 //---------------------------------- VARIABILI PER IL CONTROLLO DELLA CONNESSIONE ATTIVA ---------------------------------
-unsigned long previousMillisWiFi = 0; // Memorizza l'ultimo volta che l'evento è stato aggiornato
-long intervalWiFi = 6000;             // Variabile per l'intervallo di tempo tra un tentativo di connessione e l'altro.
+unsigned long previousMillisWiFi = 0;
+long INTERVAL_WIFI = 6000;
+long INTERVAL_WPS  = 60000;
+
+long intervalWiFi = 6000;
 
 #include "WiFi.h"
 #include <ESPmDNS.h>
@@ -39,9 +42,6 @@ long intervalWiFi = 6000;             // Variabile per l'intervallo di tempo tra
 
 static esp_wps_config_t config;
 
-volatile int count0;
-volatile int count1;
-
 #define LED_PIN 2
 
 hw_timer_t * timer0 = NULL;
@@ -50,11 +50,18 @@ portMUX_TYPE timerMux0 = portMUX_INITIALIZER_UNLOCKED;
 hw_timer_t * timer1 = NULL;
 portMUX_TYPE timerMux1 = portMUX_INITIALIZER_UNLOCKED;
 
-// Code with critica section
+// Led Timer
 void IRAM_ATTR onTimer0() {
    portENTER_CRITICAL_ISR(&timerMux0);
    count0++;
+   if (count0 > count0Max) {
+     count0 = 0;
+     digitalWrite(LED_PIN, HIGH);
+   } else if (count0 == count0Off) {
+     digitalWrite(LED_PIN, LOW);
+   }
    portEXIT_CRITICAL_ISR(&timerMux0);
+
 }
 
 void IRAM_ATTR onTimer1() {
@@ -94,8 +101,7 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
     debugMsg("Station Mode Started");
     break;
   case SYSTEM_EVENT_STA_GOT_IP:
-    debugMsg("Connected to :" + String(WiFi.SSID()));
-    debugMsg("Got IP: " + WiFi.localIP());
+    debugMsg("Connected to :" + String(WiFi.SSID()) + " Got IP: " + WiFi.localIP().toString());
     break;
   case SYSTEM_EVENT_STA_DISCONNECTED:
     debugMsg("Disconnected from station, attempting reconnection");
@@ -180,15 +186,37 @@ void setupOTA()
 void setup()
 {
   Serial.begin(115200);
-  delay(10);
+  delay(100);
+
+  debugMsg("Start up Timers" );
+  
+  // Configure LED output
+  pinMode(LED_PIN, OUTPUT);
+
+  setLedFlashType(1);
+
+  timer0 = timerBegin(0, 80, true);
+  timerAttachInterrupt(timer0, &onTimer0, true);
+  timerAlarmWrite(timer0, 1000, true);
+  timerAlarmEnable(timer0);
+
+  timer1 = timerBegin(1, 80, true);
+  timerAttachInterrupt(timer1, &onTimer1, true);
+  timerAlarmWrite(timer1, 33333, true);
+  timerAlarmEnable(timer1);
+  setLedFlashType(1);
 
   debugMsg("");
   debugMsg("Starting WiFi");
 
+  WiFi.onEvent(WiFiEvent);
+
   WiFi.begin();
 
-  Serial.print("Connessione all'ultimo AP");
+  debugMsg("");
+  debugMsg("Connessione all'ultimo AP");
 
+  intervalWiFi = millis() + INTERVAL_WIFI;
   while (WiFi.status() != WL_CONNECTED)
   {
     if (previousMillisWiFi < intervalWiFi)
@@ -198,41 +226,43 @@ void setup()
 
       delay(500);
     }
-    else
+    else {
+        debugMsg("");
+        debugMsg("Failed to connect");
+        debugMsg("");
+        break;
+    }
+  }
+
+  // Try WPS
+  debugMsg("");
+  debugMsg("Connect using WPS");
+  intervalWiFi = millis() + INTERVAL_WPS;
+  while (WiFi.status() != WL_CONNECTED)
+  {
+      wpsInitConfig();
+      esp_wifi_wps_enable(&config);
+
+    if (previousMillisWiFi < intervalWiFi)
+    {
+      previousMillisWiFi = millis();
+      Serial.print(".");
+
+      esp_wifi_wps_start(500);
+      delay(500);
+    } else {
+      debugMsg("");
+      debugMsg("Failed to connect");
+      debugMsg("");
       break;
+    }
   }
 
-  if (WiFi.status() != WL_CONNECTED)
-  {
-
-    WiFi.onEvent(WiFiEvent);
-    WiFi.mode(WIFI_MODE_STA);
-
-    debugMsg("Starting WPS");
-
-    wpsInitConfig();
-    esp_wifi_wps_enable(&config);
-    esp_wifi_wps_start(0);
-  }
-  else
-  {
-    debugMsg("");
-    debugMsg("Connesso a: " + WiFi.SSID());
-    debugMsg("IP Address: " + WiFi.localIP().toString());
-    debugMsg("MAC Address: " + WiFi.macAddress());
-    debugMsg("Host name: " + String(WiFi.getHostname()));
-  }
-
-  debugMsg("Start up mDNS");
-
-  if(!MDNS.begin(WiFi.getHostname())) {
-      debugMsg("Error starting mDNS");
-      return;
-  }
-
-  debugMsg("Start up OTA");
-
-  setupOTA();
+  debugMsg("");
+  debugMsg("Connesso a: " + WiFi.SSID());
+  debugMsg("IP Address: " + WiFi.localIP().toString());
+  debugMsg("MAC Address: " + WiFi.macAddress());
+  debugMsg("Host name: " + String(WiFi.getHostname()));
 
   debugMsg("Start up SPIFFS");
 
@@ -248,12 +278,29 @@ void setup()
   // server.on("/", HTTP_GET, mainHandler);
   // server.on("/style.css", HTTP_GET, cssHandler);
   server.on("/api/getConfig", HTTP_GET, getConfigHandler);
+  server.on("/utils/resetWifi", HTTP_GET, resetWifiHandler);
   
+  server.on("/utils/scanI2C", HTTP_GET, getI2CScanHandler);
 /*  server.on("/hello", HTTP_GET, [](AsyncWebServerRequest *request){
 /    request->send(200, "text/plain", "Hello World");
 /  }); */
 
   server.begin();
+
+  debugMsg("Start up mDNS");
+
+  if(!MDNS.begin("myesp32")) {
+      debugMsg("Error starting mDNS");
+      return;
+  }
+
+  MDNS.addService("http", "tcp", 80);
+  MDNS.addServiceTxt("http", "tcp", "prop1", "test");
+  MDNS.addServiceTxt("http", "tcp", "prop2", "test2");
+
+  debugMsg("Start up OTA");
+
+  setupOTA();
 
   debugMsg("Start up NTP" );
 
@@ -275,23 +322,11 @@ void setup()
   unsigned long nowMillis = millis();
   ntpAsync.getTimeFromNTP(nowMillis);
 
-  debugMsg("Start up Timers" );
-  
-  // Configure LED output
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW);
+  // Default pins SDA 21, SCL 22
+  debugMsg("Start up I2C...");
+  Wire.begin();
 
-  timer0 = timerBegin(0, 80, true);
-  timerAttachInterrupt(timer0, &onTimer0, true);
-  timerAlarmWrite(timer0, 1000, true);
-  timerAlarmEnable(timer0);
-
-  timer1 = timerBegin(1, 80, true);
-  timerAttachInterrupt(timer1, &onTimer1, true);
-  timerAlarmWrite(timer1, 33333, true);
-  timerAlarmEnable(timer1);
-
-  debugMsg("Configuring WDT...");
+  debugMsg("Start up WDT...");
   esp_task_wdt_init(WDT_TIMEOUT, true);
   esp_task_wdt_add(NULL);
 }
@@ -303,11 +338,13 @@ void setup()
 void performOncePerSecondProcessing() {
   if (ntpAsync.getNextUpdate(nowMillis) < 0) {
     ntpAsync.getTimeFromNTP(nowMillis);
-  }  
-  // debugMsg("count: " + String(count0));
-  // debugMsg("count: " + String(count1));
-  digitalWrite(LED_PIN, second() % 2 == 0);
+  }
 
+  if (WiFi.status() == WL_CONNECTED) {
+    setLedFlashType(0);
+  } else {
+    setLedFlashType(1);
+  }
   esp_task_wdt_reset();
 }
 
