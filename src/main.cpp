@@ -1,20 +1,3 @@
-/*
-  Example Code To Get ESP32 To Connect To A Router Using WPS
-  ===========================================================
-  This example code provides both Push Button method and Pin
-  based WPS entry to get your ESP connected to your WiFi router.
-
-  Hardware Requirements
-  ========================
-  ESP32 and a Router having atleast one WPS functionality
-
-  This code is under Public Domain License.
-
-  Author:
-  Pranav Cherukupalli 
-*/
-
-//---------------------------------- VARIABILI PER IL CONTROLLO DELLA CONNESSIONE ATTIVA ---------------------------------
 unsigned long previousMillisWiFi = 0;
 long INTERVAL_WIFI = 6000;
 long INTERVAL_WPS  = 60000;
@@ -293,6 +276,7 @@ void setup()
   server.on("/utils/resetWifi", HTTP_GET, resetWifiHandler);
   
   server.on("/utils/scanI2C", HTTP_GET, getI2CScanHandler);
+  server.on("/utils/saveStats", HTTP_GET, saveStatsHandler);
 /*  server.on("/hello", HTTP_GET, [](AsyncWebServerRequest *request){
 /    request->send(200, "text/plain", "Hello World");
 /  }); */
@@ -342,6 +326,13 @@ void setup()
   debugMsg("Start up I2C...");
   Wire.begin();
 
+  debugMsg("Startup SPIFFS storage");
+  spiffsStorage.setDebugCallback(dbcb);
+  spiffsStorage.setDebugOutput(true);
+  spiffsStorage.getStatsFromSpiffs(&current_stats);
+
+  debugMsg("Current uptime: " + String(current_stats.uptimeMins));
+
   debugMsg("Start up WDT...");
   esp_task_wdt_init(WDT_TIMEOUT, true);
   esp_task_wdt_add(NULL);
@@ -380,6 +371,9 @@ void performOncePerMinuteProcessing() {
   debugMsg("---> OncePerMinuteProcessing");
 
   debugMsg("nu: " + String(ntpAsync.getNextUpdate(nowMillis)));
+
+  // Usage stats
+  current_stats.uptimeMins++;
 }
 
 // ************************************************************
@@ -395,7 +389,7 @@ void performOncePerHourProcessing() {
 // ************************************************************
 void performOncePerDayProcessing() {
   debugMsg("---> OncePerDayProcessing");
-  // spiffs.saveStatsToSpiffs(&current_stats);
+  spiffsStorage.saveStatsToSpiffs(&current_stats);
 }
 
 void loop()

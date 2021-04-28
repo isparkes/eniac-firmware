@@ -54,8 +54,11 @@ void OLED::showStatusLine()
   drawNTPInd();
   drawPIRInd();
   drawBlankInd();
-  drawAMInd();
+  drawXInd();
+  drawYInd();
+  drawZInd();
   drawTimeInd();
+  drawAMInd();
   _display->display();
 }
 
@@ -146,6 +149,33 @@ void OLED::drawBlankInd() {
     _display->print("B");
   } else {
     _display->print("b");
+  }
+}
+
+void OLED::drawXInd() {
+  _display->setCursor(X_IND_X,STATUS_LINE_Y);
+  if (xStatus) {
+    _display->print("X");
+  } else {
+    _display->print("x");
+  }
+}
+
+void OLED::drawYInd() {
+  _display->setCursor(Y_IND_X,STATUS_LINE_Y);
+  if (yStatus) {
+    _display->print("Y");
+  } else {
+    _display->print("y");
+  }
+}
+
+void OLED::drawZInd() {
+  _display->setCursor(Z_IND_X,STATUS_LINE_Y);
+  if (zStatus) {
+    _display->print("Z");
+  } else {
+    _display->print("z");
   }
 }
 

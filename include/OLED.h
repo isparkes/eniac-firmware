@@ -12,12 +12,15 @@
 #define PIR_MOVEMENT      2
 
 #define STATUS_LINE_Y 54
-#define WIFI_IND_X     6
-#define NTP_IND_X     16
-#define PIR_IND_X     26
-#define BLANK_IND_X   38
-#define TIME_IND_X    50
-#define AM_IND_X     110
+#define WIFI_IND_X     5
+#define NTP_IND_X     12
+#define PIR_IND_X     19
+#define BLANK_IND_X   26
+#define X_IND_X       33
+#define Y_IND_X       40
+#define Z_IND_X       47
+#define TIME_IND_X    60
+#define AM_IND_X     111
 
 #define STATUS_BOX_X   0
 #define STATUS_BOX_Y  52
@@ -38,6 +41,9 @@ class OLED
     void setPIRStatus(bool newStatus);
     void setPIRInstalled(bool newStatus);
     void setBlankStatus(bool newStatus);
+    void setXStatus(bool newStatus);
+    void setYStatus(bool newStatus);
+    void setZStatus(bool newStatus);
     void setAMStatus(bool newStatus);
     void clearDisplay();
     void outputDisplay();
@@ -49,6 +55,9 @@ class OLED
     byte pirStatus = false;
     byte pirInstalled = false;
     bool blankStatus = false;
+    bool xStatus = false;
+    bool yStatus = false;
+    bool zStatus = false;
     bool ampm = false;
     String timeText = "xx:xx:xx";
     String bufferLines[6] = {"","","","","",""};
@@ -59,6 +68,9 @@ class OLED
     void drawNTPInd();
     void drawPIRInd();
     void drawBlankInd();
+    void drawXInd();
+    void drawYInd();
+    void drawZInd();
     void drawAMInd();
     void drawTimeInd();
 };

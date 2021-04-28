@@ -11,7 +11,7 @@
 
 #include "SPIFFS.h"
 #include <Wire.h>
-
+#include "SpiffsStorage.h"
 
 AsyncWebServer server(80);
 
@@ -161,6 +161,13 @@ void getI2CScanHandler(AsyncWebServerRequest *request) {
   request->send(response);
 }
 
+void saveStatsHandler(AsyncWebServerRequest *request) {
+  debugMsg("Got save stats request");
+
+  spiffsStorage.saveStatsToSpiffs(&current_stats);
+  
+  request->send(200, "text/plain", "Stats saved");
+}
 
 void resetWifiHandler(AsyncWebServerRequest *request) {
   debugMsg("Got utils RESET request");
