@@ -109,8 +109,8 @@ String timeStringToReadableString(String timeString){
   return timeToReadableString(y,m,d,h,mi,s);
 }
 
-void getConfigHandler(AsyncWebServerRequest *request) {
-  debugMsg("Got api GET request");
+void getSummaryDataHandler(AsyncWebServerRequest *request) {
+  debugMsg("Got api summary GET request");
   
   AsyncJsonResponse * response = new AsyncJsonResponse();
   response->addHeader("Server", "ESP Async Web Server");
@@ -124,6 +124,92 @@ void getConfigHandler(AsyncWebServerRequest *request) {
   root["last-ntp-time"] = timeStringToReadableString(ntpAsync.getLastTimeFromServer());
   root["heap"] = ESP.getFreeHeap();
   root["ssid"] = WiFi.SSID();
+  response->setLength();
+  request->send(response);
+}
+
+void getConfigDataHandler(AsyncWebServerRequest *request) {
+  debugMsg("Got api config GET request");
+  
+  JsonObject& data = spiffsStorage.getConfigAsJsonObject(&current_config);
+  String responseString;
+  data.printTo(responseString);
+
+  AsyncWebServerResponse *response = request->beginResponse(200, "application/json", responseString);
+  response->addHeader("Server", "ESP Async Web Server");
+  request->send(response);  
+}
+
+void saveConfigDataHandler(AsyncWebServerRequest *request) {
+  debugMsg("Got api config PUT request");
+  
+  spiffs_config_t* cc = &current_config;
+
+  ntpAsync.resetDefaults();
+  cc->ntpPool = ntpAsync.getNtpPool();
+  cc->ntpUpdateInterval = ntpAsync.getUpdateInterval();
+  cc->tzs = ntpAsync.getTZS();
+
+  cc->webUsername = "";
+  cc->webPassword = "";
+
+  spiffsStorage.saveConfigToSpiffs(cc);
+
+  AsyncWebServerResponse *response = request->beginResponse(200, "plain/text", "OK");
+  response->addHeader("Server", "ESP Async Web Server");
+  request->send(response);  
+}
+
+void getTimeserverDataHandler(AsyncWebServerRequest *request) {
+  debugMsg("Got api timeserver GET request");
+  
+  spiffs_config_t* cc = &current_config;
+
+  AsyncJsonResponse * response = new AsyncJsonResponse();
+  response->addHeader("Server", "ESP Async Web Server");
+  JsonObject& root = response->getRoot();
+  root["ntpPool"] = cc->ntpPool;
+  root["ntpUpdateInterval"] = cc->ntpUpdateInterval;
+  root["tzs"] = cc->tzs;
+  response->setLength();
+  request->send(response);
+}
+
+void dumpArgs(AsyncWebServerRequest *request) {
+  int args = request->args();
+  for(int i=0;i<args;i++){
+    Serial.printf("ARG[%s]: %s\n", request->argName(i).c_str(), request->arg(i).c_str());
+  }  
+}
+
+void postTimeserverDataHandler(AsyncWebServerRequest *request) {
+  debugMsg("Got api timeserver POST request");
+  
+  dumpArgs(request);
+
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& json = jsonBuffer.parse(String(request->arg("body")));
+
+  spiffs_config_t* cc = &current_config;
+  if (json.success()) {
+    cc->ntpPool = json["ntpPool"].as<String>();
+    debugMsg("Loaded NTP pool: " + cc->ntpPool);
+
+    cc->ntpUpdateInterval = json["ntpUpdateInterval"].as<int>();
+    debugMsg("Loaded NTP update interval: " + String(cc->ntpUpdateInterval));
+
+    cc->tzs = json["tzs"].as<String>();
+    debugMsg("Loaded time zone string: " + cc->tzs);
+  } else {
+    debugMsg("Json parse failure: " + String(request->arg("body")));
+  }
+
+  AsyncJsonResponse * response = new AsyncJsonResponse();
+  response->addHeader("Server", "ESP Async Web Server");
+  JsonObject& root = response->getRoot();
+  root["ntpPool"] = cc->ntpPool;
+  root["ntpUpdateInterval"] = cc->ntpUpdateInterval;
+  root["tzs"] = cc->tzs;
   response->setLength();
   request->send(response);
 }
@@ -151,10 +237,10 @@ void getI2CScanHandler(AsyncWebServerRequest *request) {
     }    
   }
   if (nDevices == 0) {
-    debugMsg("No I2C devices found\n");
+    debugMsg("No I2C devices found");
   }
   else {
-    debugMsg("done\n");
+    debugMsg("done");
   }
 
   response->setLength();

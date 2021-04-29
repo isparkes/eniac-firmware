@@ -77,6 +77,8 @@ class SPIFFS_CLOCK
     boolean getStatsFromSpiffs(spiffs_stats_t* spiffs_stats);
     void    saveStatsToSpiffs(spiffs_stats_t* spiffs_stats);
 
+    JsonObject& getConfigAsJsonObject(spiffs_config_t* spiffs_config);
+
     // callbacks
     void setDebugCallback(DebugCallback dbcb);
   private:

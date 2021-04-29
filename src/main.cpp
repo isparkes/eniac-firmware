@@ -272,9 +272,13 @@ void setup()
   server.serveStatic("/", SPIFFS, "/web/").setDefaultFile("index.html");
   // server.on("/", HTTP_GET, mainHandler);
   // server.on("/style.css", HTTP_GET, cssHandler);
-  server.on("/api/getConfig", HTTP_GET, getConfigHandler);
-  server.on("/utils/resetWifi", HTTP_GET, resetWifiHandler);
+  server.on("/api/getSummary", HTTP_GET, getSummaryDataHandler);
+  server.on("/api/getTimeserver", HTTP_GET, getTimeserverDataHandler);
+  server.on("/api/postTimeserver", HTTP_POST, postTimeserverDataHandler);
   
+  server.on("/api/putConfig", HTTP_GET, saveConfigDataHandler);
+
+  server.on("/utils/resetWifi", HTTP_GET, resetWifiHandler);
   server.on("/utils/scanI2C", HTTP_GET, getI2CScanHandler);
   server.on("/utils/saveStats", HTTP_GET, saveStatsHandler);
 /*  server.on("/hello", HTTP_GET, [](AsyncWebServerRequest *request){
