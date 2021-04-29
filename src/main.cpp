@@ -11,6 +11,7 @@ long intervalWiFi = 6000;
 #include "utilities.h"
 #include <esp_task_wdt.h>
 #include "OLED.h"
+#include <AsyncElegantOTA.h>
 
 /*
   Change the definition of the WPS mode
@@ -117,55 +118,55 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
   }
 }
 
-void setupOTA()
-{
-  // Port defaults to 3232
-  ArduinoOTA.setPort(3232);
+// void setupOTA(String hostNameStr)
+// {
+//   // Port defaults to 3232
+//   ArduinoOTA.setPort(3232);
 
-  // Hostname defaults to esp3232-[MAC]
-  ArduinoOTA.setHostname("myesp32");
+//   // Hostname defaults to esp3232-[MAC]
+//   ArduinoOTA.setHostname(hostNameStr.c_str());
 
-  // No authentication by default
-  // ArduinoOTA.setPassword("admin");
+//   // No authentication by default
+//   // ArduinoOTA.setPassword("admin");
 
-  // Password can be set with it's md5 value as well
-  // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
-  // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
+//   // Password can be set with it's md5 value as well
+//   // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
+//   // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
 
-  ArduinoOTA
-      .onStart([]() {
-        String type;
-        if (ArduinoOTA.getCommand() == U_FLASH)
-          type = "sketch";
-        else // U_SPIFFS
-          type = "filesystem";
+//   ArduinoOTA
+//       .onStart([]() {
+//         String type;
+//         if (ArduinoOTA.getCommand() == U_FLASH)
+//           type = "sketch";
+//         else // U_SPIFFS
+//           type = "filesystem";
 
-        // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-        debugMsg("Start updating " + type);
-      })
-      .onEnd([]() {
-        debugMsg("\nEnd");
-      })
-      .onProgress([](unsigned int progress, unsigned int total) {
-        Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-      })
-      .onError([](ota_error_t error) {
-        Serial.printf("Error[%u]: ", error);
-        if (error == OTA_AUTH_ERROR)
-          debugMsg("Auth Failed");
-        else if (error == OTA_BEGIN_ERROR)
-          debugMsg("Begin Failed");
-        else if (error == OTA_CONNECT_ERROR)
-          debugMsg("Connect Failed");
-        else if (error == OTA_RECEIVE_ERROR)
-          debugMsg("Receive Failed");
-        else if (error == OTA_END_ERROR)
-          debugMsg("End Failed");
-      });
+//         // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+//         debugMsg("Start updating " + type);
+//       })
+//       .onEnd([]() {
+//         debugMsg("\nEnd");
+//       })
+//       .onProgress([](unsigned int progress, unsigned int total) {
+//         Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+//       })
+//       .onError([](ota_error_t error) {
+//         Serial.printf("Error[%u]: ", error);
+//         if (error == OTA_AUTH_ERROR)
+//           debugMsg("Auth Failed");
+//         else if (error == OTA_BEGIN_ERROR)
+//           debugMsg("Begin Failed");
+//         else if (error == OTA_CONNECT_ERROR)
+//           debugMsg("Connect Failed");
+//         else if (error == OTA_RECEIVE_ERROR)
+//           debugMsg("Receive Failed");
+//         else if (error == OTA_END_ERROR)
+//           debugMsg("End Failed");
+//       });
 
-  debugMsg("Start up OTA: " + ArduinoOTA.getHostname());
-  ArduinoOTA.begin();
-}
+//   debugMsg("Start up OTA: " + ArduinoOTA.getHostname());
+//   ArduinoOTA.begin();
+// }
 
 void setup()
 {
@@ -174,7 +175,6 @@ void setup()
 
   debugMsg("Start up Timers" );
   
-  // Configure LED output
   pinMode(LED_PIN, OUTPUT);
 
   setLedFlashType(1);
@@ -200,6 +200,13 @@ void setup()
 
   WiFi.onEvent(WiFiEvent);
 
+  String mac = String(WiFi.macAddress());
+  mac.replace(":","");
+  String uniqHostname = "ESP32-"+mac.substring(6);
+
+  debugMsg("Unique hostname: " + uniqHostname);
+
+  WiFi.setHostname(uniqHostname.c_str());
   WiFi.begin();
 
   debugMsg("");
@@ -231,8 +238,8 @@ void setup()
   intervalWiFi = millis() + INTERVAL_WPS;
   while (WiFi.status() != WL_CONNECTED)
   {
-      wpsInitConfig();
-      esp_wifi_wps_enable(&config);
+    wpsInitConfig();
+    esp_wifi_wps_enable(&config);
 
     if (previousMillisWiFi < intervalWiFi)
     {
@@ -258,6 +265,7 @@ void setup()
   // Connected, show only the IP
   oled.clearDisplay();
   oled.showScrollingMessage("IP: " + WiFi.localIP().toString());
+  oled.showScrollingMessage(String(WiFi.getHostname()) + ".local");
   
   debugMsg("Start up SPIFFS");
 
@@ -289,22 +297,23 @@ void setup()
       request->send(404, "text/plain", "The content you are looking for was not found.");
   });
 
+  AsyncElegantOTA.begin(&server, "admin", "update");    // Start ElegantOTA
+
   server.begin();
 
-  debugMsg("Start up mDNS");
+  debugMsg("Start up mDNS on http://" + String(WiFi.getHostname()) + ".local");
 
-  if(!MDNS.begin("myesp32")) {
+  // The MDNS host name does not seem to work at the moment - it is being set by OTA
+  if(!MDNS.begin(uniqHostname.c_str())) {
       debugMsg("Error starting mDNS");
       return;
   }
 
   MDNS.addService("http", "tcp", 80);
-  MDNS.addServiceTxt("http", "tcp", "prop1", "test");
-  MDNS.addServiceTxt("http", "tcp", "prop2", "test2");
 
   debugMsg("Start up OTA");
 
-  setupOTA();
+//  setupOTA(uniqHostname);
 
   debugMsg("Start up NTP" );
 
@@ -398,7 +407,8 @@ void performOncePerDayProcessing() {
 
 void loop()
 {
-  ArduinoOTA.handle();
+//  ArduinoOTA.handle();
+  AsyncElegantOTA.loop();
 
   // See if it is time to update the Clock
   nowMillis = millis();
