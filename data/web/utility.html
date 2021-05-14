@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+        <link href="http://www.open-rate.com/wl.css" rel="stylesheet" type="text/css">
+        <script src="http://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ=" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+        <title>Nixie Clock</title>
+    </head>
+    <body>
+        <nav class="navbar navbar-inverse navbar-fixed-top">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="https://www.nixieclock.biz">Nixie Clock</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="/">Summary</a>
+                        </li>
+                        <li>
+                            <a href="/timeServer.html">Configure Time Server</a>
+                        </li>
+                        <li>
+                            <a href="/clockconfig.html">Configure clock settings</a>
+                        </li>
+                        <li>
+                            <a href="/utility.html">Utility</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="container" role="main">
+            <h3 class="sub-header">Utilities</h3>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th class="col-xs-6">Description</th>
+                            <th class="col-xs-6">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Reset Wifi Only (Reset WiFi, leaves clock configuration)</td>
+                            <td>
+                                <a href="/resetwifi">Reset WiFi</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Reset Configuration Only (Reset clock configuration, leaves WiFi)</td>
+                            <td>
+                                <a href="/resetoptions">Reset Configuration</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Reset All (Reset clock configuration, rest WiFi)</td>
+                            <td>
+                                <a href="/resetall">Reset All</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Update firmware</td>
+                            <td>
+                                <a href="/update">Update</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Force NTP update right now</td>
+                            <td>
+                                <a href="/ntpupdate">Update NTP</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>

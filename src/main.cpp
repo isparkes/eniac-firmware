@@ -29,6 +29,8 @@ static esp_wps_config_t config;
 
 #define LED_PIN 2
 
+spiffs_config_t* cc = &current_config;
+
 hw_timer_t * timer0 = NULL;
 portMUX_TYPE timerMux0 = portMUX_INITIALIZER_UNLOCKED;
 
@@ -283,12 +285,18 @@ void setup()
   server.on("/api/getSummary", HTTP_GET, getSummaryDataHandler);
   server.on("/api/getTimeserver", HTTP_GET, getTimeserverDataHandler);
   server.on("/api/postTimeserver", HTTP_POST, postTimeserverDataHandler);
+
+  server.on("/api/postWiFiCredentials", HTTP_POST, postWiFiDataHandler);
   
   server.on("/api/putConfig", HTTP_GET, saveConfigDataHandler);
 
   server.on("/utils/resetWifi", HTTP_GET, resetWifiHandler);
   server.on("/utils/scanI2C", HTTP_GET, getI2CScanHandler);
   server.on("/utils/saveStats", HTTP_GET, saveStatsHandler);
+  server.on("/utils/ntpupdate", HTTP_GET, [] (AsyncWebServerRequest *request) {
+    ntpAsync.resetNextUpdate();
+        request->redirect("/utility.html");;
+    });
 /*  server.on("/hello", HTTP_GET, [](AsyncWebServerRequest *request){
 /    request->send(200, "text/plain", "Hello World");
 /  }); */
@@ -297,7 +305,7 @@ void setup()
       request->send(404, "text/plain", "The content you are looking for was not found.");
   });
 
-  AsyncElegantOTA.begin(&server, "admin", "update");    // Start ElegantOTA
+  AsyncElegantOTA.begin(&server, "admin", "update");
 
   server.begin();
 
@@ -331,10 +339,6 @@ void setup()
   // set up the NTP component and wire up the "got time update" callback
   ntpAsync.setNewTimeCallback(ntcb);
 
-  // kick off NTP updates
-  unsigned long nowMillis = millis();
-  ntpAsync.getTimeFromNTP(nowMillis);
-
   // Default pins SDA 21, SCL 22
   debugMsg("Start up I2C...");
   Wire.begin();
@@ -342,7 +346,31 @@ void setup()
   debugMsg("Startup SPIFFS storage");
   spiffsStorage.setDebugCallback(dbcb);
   spiffsStorage.setDebugOutput(true);
-  spiffsStorage.getStatsFromSpiffs(&current_stats);
+  bool statsLoaded = spiffsStorage.getStatsFromSpiffs(&current_stats);
+
+  if (!statsLoaded) {
+    debugMsg("SPIFFS storage: read stats failed");
+    spiffsStorage.saveStatsToSpiffs(&current_stats);
+  }
+
+  bool configloaded = spiffsStorage.getConfigFromSpiffs(&current_config);
+
+  if (configloaded) {
+    debugMsg("Got TZS: " + cc->tzs);
+    ntpAsync.setTZS(cc->tzs);
+    ntpAsync.setNtpPool(cc->ntpPool);
+    ntpAsync.setUpdateInterval(cc->ntpUpdateInterval);
+  } else {
+    debugMsg("SPIFFS storage: read config failed");
+    cc->tzs = TIME_ZONE_STRING_DEFAULT;
+    cc->ntpPool = NTP_POOL_DEFAULT;
+    cc->ntpUpdateInterval = NTP_UPDATE_INTERVAL_DEFAULT;
+    spiffsStorage.saveConfigToSpiffs(&current_config);
+  }
+
+  // kick off NTP updates
+  unsigned long nowMillis = millis();
+  ntpAsync.getTimeFromNTP(nowMillis);
 
   // debugMsg("Current uptime: " + String(current_stats.uptimeMins));
 

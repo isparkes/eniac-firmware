@@ -109,21 +109,88 @@ String timeStringToReadableString(String timeString){
   return timeToReadableString(y,m,d,h,mi,s);
 }
 
+String secsToReadableString (long secsValue) {
+  long upDays = secsValue / 86400;
+  long upHours = (secsValue - (upDays * 86400)) / 3600;
+  long upMins = (secsValue - (upDays * 86400) - (upHours * 3600)) / 60;
+  secsValue = secsValue - (upDays * 86400) - (upHours * 3600) - (upMins * 60);
+  String uptimeString = "";
+  if (upDays > 0) {
+    uptimeString += upDays; 
+    uptimeString += " d ";
+  }
+  if (upHours > 0) {
+    uptimeString += upHours;
+    uptimeString += " h "; 
+  }
+  if (upMins > 0) {
+    uptimeString += upMins; 
+    uptimeString += " m ";
+  }
+  uptimeString += secsValue; 
+  uptimeString += " s";
+
+  return uptimeString;
+}
+
+void setLedFlashType(byte flashType) {
+  switch(flashType) {
+    case 0: {
+      count0Max = 1000;
+      count0Off = 1;
+      break;
+    }
+    case 1: {
+      count0Max = 1000;
+      count0Off = 500;
+      break;
+    }
+  }
+}
+
+// --------------------------------------------------------------------------------------------------------
+// ---------------------------------------    Web Interface     -------------------------------------------
+// --------------------------------------------------------------------------------------------------------
+
 void getSummaryDataHandler(AsyncWebServerRequest *request) {
   debugMsg("Got api summary GET request");
   
+  unsigned long nowMillis = millis();
+
+  signed long absNextUpdate = abs(ntpAsync.getNextUpdate(nowMillis));
+  String overdueInd = "";
+  if (absNextUpdate < 0) {
+    overdueInd = " overdue";
+    absNextUpdate = -absNextUpdate;
+  }
+
   AsyncJsonResponse * response = new AsyncJsonResponse();
   response->addHeader("Server", "ESP Async Web Server");
   JsonObject& root = response->getRoot();
   root["ip"] = WiFi.localIP().toString();
   root["mac"] = WiFi.macAddress();
-  root["ntp-pool"] = ntpAsync.getTZS();
+  root["ssid"] = WiFi.SSID();
+  root["tz"] = ntpAsync.getTZS();
+  root["ntppool"] = ntpAsync.getNtpPool();
   String clockUrl = "http://" + String(WiFi.getHostname()) + ".local";
   clockUrl.toLowerCase();
-  root["clock-url"] = clockUrl;
-  root["last-ntp-time"] = timeStringToReadableString(ntpAsync.getLastTimeFromServer());
+  root["clockurl"] = clockUrl;
+  root["lastntptime"] = timeStringToReadableString(ntpAsync.getLastTimeFromServer());
+  root["lastntpupdate"] = secsToReadableString(ntpAsync.getLastUpdateTimeSecs(nowMillis));
+  root["nextupdate"] = secsToReadableString(absNextUpdate) + overdueInd;
+  root["displaytime"] = timeToReadableString(year(),month(),day(),hour(),minute(),second());
+  root["uptime"] = current_stats.uptimeMins;
+  root["ontime"] = current_stats.tubeOnTimeMins;
+
   root["heap"] = ESP.getFreeHeap();
-  root["ssid"] = WiFi.SSID();
+  root["freesketch"] = ESP.getFreeSketchSpace();
+  root["sketchsize"] = ESP.getSketchSize();
+  root["compiledate"] = String(CONFIG_APP_COMPILE_TIME_DATE);
+  root["cpufreq"] = ESP.getCpuFreqMHz();
+  root["sdkversion"] = ESP.getSdkVersion();
+  root["sketchmd5"] = ESP.getSketchMD5();
+  root["cyclecount"] = ESP.getCycleCount();
+
   response->setLength();
   request->send(response);
 }
@@ -176,6 +243,19 @@ void getTimeserverDataHandler(AsyncWebServerRequest *request) {
 }
 
 void dumpArgs(AsyncWebServerRequest *request) {
+  int headers = request->headers();
+  int i;
+  for(i=0;i<headers;i++){
+    AsyncWebHeader* h = request->getHeader(i);
+    Serial.printf("HEADER[%s]: %s\n", h->name().c_str(), h->value().c_str());
+  }
+
+  if (request->hasArg("body")) {
+    Serial.println("Body found arg");
+  }
+  if (request->hasParam("body")) {
+    Serial.println("Body found param");
+  }
   int args = request->args();
   for(int i=0;i<args;i++){
     Serial.printf("ARG[%s]: %s\n", request->argName(i).c_str(), request->arg(i).c_str());
@@ -185,13 +265,14 @@ void dumpArgs(AsyncWebServerRequest *request) {
 void postTimeserverDataHandler(AsyncWebServerRequest *request) {
   debugMsg("Got api timeserver POST request");
   
-  dumpArgs(request);
+  // dumpArgs(request);
 
   DynamicJsonBuffer jsonBuffer;
   JsonObject& json = jsonBuffer.parse(String(request->arg("body")));
 
   spiffs_config_t* cc = &current_config;
   if (json.success()) {
+    debugMsg("NTP pool before: " + cc->ntpPool);
     cc->ntpPool = json["ntpPool"].as<String>();
     debugMsg("Loaded NTP pool: " + cc->ntpPool);
 
@@ -200,6 +281,15 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
 
     cc->tzs = json["tzs"].as<String>();
     debugMsg("Loaded time zone string: " + cc->tzs);
+
+    // Now apply the new confog
+    ntpAsync.setNtpPool(cc->ntpPool);
+    ntpAsync.setUpdateInterval(cc->ntpUpdateInterval);
+    ntpAsync.setTZS(cc->tzs);
+    debugMsg("Applied new time config");
+
+    spiffsStorage.saveConfigToSpiffs(cc);
+    debugMsg("Saved new time config");
   } else {
     debugMsg("Json parse failure: " + String(request->arg("body")));
   }
@@ -212,6 +302,30 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
   root["tzs"] = cc->tzs;
   response->setLength();
   request->send(response);
+}
+
+void postWiFiDataHandler(AsyncWebServerRequest *request) {
+  debugMsg("Got api wifi POST request");
+  
+  // dumpArgs(request);
+
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& json = jsonBuffer.parse(String(request->arg("body")));
+
+  if (json.success()) {
+    String newSSID = json["SSID"].as<String>();
+    debugMsg("Received SSID: " + newSSID);
+
+    String newPassword = json["password"].as<String>();
+    debugMsg("Received password: " + newPassword);
+
+  } else {
+    debugMsg("Json parse failure: " + String(request->arg("body")));
+  }
+
+  AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"OK\"}");
+  request->send(response);
+        
 }
 
 void getI2CScanHandler(AsyncWebServerRequest *request) {
@@ -259,20 +373,4 @@ void resetWifiHandler(AsyncWebServerRequest *request) {
   debugMsg("Got utils RESET request");
   WiFi.disconnect();
   request->send(200, "text/plain", "WiFi was reset");
-}
-
-void setLedFlashType(byte flashType) {
-  switch(flashType) {
-    case 0: {
-      count0Max = 1000;
-      count0Off = 1;
-      break;
-    }
-    case 1: {
-      count0Max = 1000;
-      count0Off = 500;
-      break;
-    }
-  }
-
 }

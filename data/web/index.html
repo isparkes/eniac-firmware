@@ -1,15 +1,204 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>ESP32 Web Server</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" href="data:,">
-  <link rel="stylesheet" type="text/css" href="style.css">
-</head>
-<body>
-  <h1>ESP32 Web Server</h1>
-  <p>GPIO state: <strong> %STATE%</strong></p>
-  <p><a href="/on"><button class="button">ON</button></a></p>
-  <p><a href="/off"><button class="button button2">OFF</button></a></p>
-</body>
+    <head>
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+        <link href="http://www.open-rate.com/wl.css" rel="stylesheet" type="text/css">
+        <script src="http://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ=" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+        <title>Nixie Clock</title>
+    </head>
+    <body>
+        <nav class="navbar navbar-inverse navbar-fixed-top">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="https://www.nixieclock.biz">Nixie Clock</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="/">Summary</a>
+                        </li>
+                        <li>
+                            <a href="/timeServer.html">Configure Time Server</a>
+                        </li>
+                        <li>
+                            <a href="/clockconfig.html">Configure clock settings</a>
+                        </li>
+                        <li>
+                            <a href="/utility.html">Utility</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="container" role="main">
+            <h3 class="sub-header">Current Status</h3>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th class="col-xs-6">Name</th>
+                            <th class="col-xs-6">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>WLAN IP</td>
+                            <td id="ip"></td>
+                        </tr>
+                        <tr>
+                            <td>WLAN MAC</td>
+                            <td id="mac"></td>
+                        </tr>
+                        <tr>
+                            <td>WLAN SSID</td>
+                            <td id="ssid"></td>
+                        </tr>
+                        <tr>
+                            <td>NTP Pool</td>
+                            <td id="ntppool"></td>
+                        </tr>
+                        <tr>
+                            <td>TZ</td>
+                            <td id="tz"></td>
+                        </tr>
+                        <tr>
+                            <td>Clock Name</td>
+                            <td id="clockurl"></td>
+                        </tr>
+                        <tr>
+                            <td>Last NTP time</td>
+                            <td id="lastntptime"></td>
+                        </tr>
+                        <tr>
+                            <td>Last NTP update</td>
+                            <td id="lastntpupdate"></td>
+                        </tr>
+                        <tr>
+                            <td>Time before next NTP update</td>
+                            <td id="nextupdate"></td>
+                        </tr>
+                        <tr>
+                            <td>Display Time</td>
+                            <td id="displaytime"></td>
+                        </tr>
+                        <tr>
+                            <td>Uptime</td>
+                            <td id="uptime"></td>
+                        </tr>
+                        <tr>
+                            <td>Version</td>
+                            <td id="version"></td>
+                        </tr>
+                        <tr>
+                            <td>Status string</td>
+                            <td id="status"></td>
+                        </tr>
+                        <tr>
+                            <td>Total clock on time</td>
+                            <td id="ontime"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="container" role="main">
+            <h3 class="sub-header">ESP8266 information</h3>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th class="col-xs-6">Name</th>
+                            <th class="col-xs-6">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Sketch compiled</td>
+                            <td id="compiledate"></td>
+                        </tr>
+                        <tr>
+                            <td>Sketch size</td>
+                            <td id="sketchsize"></td>
+                        </tr>
+                        <tr>
+                            <td>Free sketch size</td>
+                            <td id="freesketch"></td>
+                        </tr>
+                        <tr>
+                            <td>Free heap</td>
+                            <td id="heap"></td>
+                        </tr>
+                        <tr>
+                            <td>CPU Freqency (MHz)</td>
+                            <td id="cpufreq"></td>
+                        </tr>
+                        <tr>
+                            <td>SDK version</td>
+                            <td id="sdkversion"></td>
+                        </tr>
+                        <tr>
+                            <td>Cycle count</td>
+                            <td id="cyclecount"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+
+<script>
+    getClockSummary = function getClockSummary() {
+        var deferred = $.Deferred();
+        console.log('get summary');
+        var ajaxOptions = {
+            url: '/api/getSummary',
+            type: 'GET',
+            Accept: 'application/json; charset=utf-8'
+        };
+        $.ajax(ajaxOptions).done(function (summary) {
+            console.log("Received data: " + JSON.stringify(summary));
+            deferred.resolve(summary);
+        }).fail(function (jqXHR) {
+            console.log("Get api error " + jqXHR.status);
+            deferred.reject(jqXHR.status);
+        });
+        return deferred;
+    };
+
+    getSummary = function() {
+        getClockSummary().then(function(summary){
+            $("#ip").text(summary.ip);
+            $("#mac").text(summary.mac);
+            $("#ssid").text(summary.ssid);
+            $("#ntppool").text(summary.ntppool);
+            $("#tz").text(summary.tz);
+            $("#clockurl").html("<a href=\""+summary.clockurl+"\">"+summary.clockurl+"</a>");
+
+            $("#lastntptime").text(summary.lastntptime);
+            $("#lastntpupdate").text(summary.lastntpupdate);
+            $("#nextupdate").text(summary.nextupdate);
+            $("#displaytime").text(summary.displaytime);
+            $("#uptime").text(summary.uptime);
+            $("#ontime").text(summary.ontime);
+
+            $("#heap").text(summary.heap);
+            $("#freesketch").text(summary.freesketch);
+            $("#sketchsize").text(summary.sketchsize);
+            $("#compiledate").text(summary.compiledate);
+            $("#cpufreq").text(summary.cpufreq);
+            $("#sdkversion").text(summary.sdkversion);
+            $("#sketchmd5").text(summary.sketchmd5);
+            $("#cyclecount").text(summary.cyclecount);
+        });
+    };
+
+    getSummary();
+</script>
 </html>
