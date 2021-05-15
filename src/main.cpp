@@ -198,6 +198,7 @@ void setup()
     debugMsg("An Error has occurred while mounting SPIFFS");
     return;
   }
+
   debugMsg("Startup SPIFFS storage");
   spiffsStorage.setDebugCallback(dbcb);
   spiffsStorage.setDebugOutput(true);
@@ -321,8 +322,9 @@ void performOncePerSecondProcessing() {
   oled.setBlankStatus(false);
   oled.setNTPStatus(ntpAsync.ntpTimeValid(nowMillis));
   oled.setTimeString(String(time_c));
+  oled.setYStatus(SPIFFS.begin(false));
   
-    esp_task_wdt_reset();
+  esp_task_wdt_reset();
 }
 
 // ************************************************************

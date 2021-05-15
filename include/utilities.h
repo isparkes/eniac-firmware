@@ -156,11 +156,11 @@ String getStatusString() {
   } else {
     connectionInfo += "n";
   }
-  if (spiffsStorage.testMountSpiffs()) {
-    connectionInfo += "S";
-  } else {
-    connectionInfo += "s";
-  }
+  // if (spiffsStorage.testMountSpiffs()) {
+  //   connectionInfo += "S";
+  // } else {
+  //   connectionInfo += "s";
+  // }
   if (getOTAvailable()) {
     connectionInfo += "U";
   } else {

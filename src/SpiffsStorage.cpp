@@ -15,7 +15,6 @@ bool SPIFFS_CLOCK::testMountSpiffs()
   if (SPIFFS.begin())
   {
     mounted = true;
-    SPIFFS.end();
   }
 
   return mounted;

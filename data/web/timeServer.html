@@ -113,7 +113,8 @@
             $("#ntpPool").val(config.ntpPool);
             $("#ntpUpdateInterval").val(config.ntpUpdateInterval);
             $("#tzs").val(config.tzs);            
-        });
+        })
+        .then(() => removeLoader());
     };
 
     postTimeServerConfig = function getTimeServerConfig() {
@@ -140,11 +141,24 @@
     };
 
     saveConfig = function() {
+        addLoader();
         postTimeServerConfig().then(function(res){
             console.log("Saved config");
+            removeLoader();
         });
     };
 
+    function addLoader(){
+        $('body').append('<div style="" id="loadingDiv"><div class="loader">Loading...</div></div>');
+    }
+
+    function removeLoader(){
+        $( "#loadingDiv" ).fadeOut(500, function() {
+            $( "#loadingDiv" ).remove();
+        });
+    }
+
+    addLoader();
     getConfig();
 </script>
 
