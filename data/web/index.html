@@ -5,6 +5,7 @@
         <link href="http://www.open-rate.com/wl.css" rel="stylesheet" type="text/css">
         <script src="http://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ=" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+        <link href="css/clock-custom.css" rel="stylesheet">
         <title>Nixie Clock</title>
     </head>
     <body>
@@ -188,6 +189,7 @@
             $("#uptime").text(summary.uptime);
             $("#ontime").text(summary.ontime);
             $("#status").text(summary.status);
+            $("#version").text(summary.version);
 
             $("#heap").text(summary.heap);
             $("#freesketch").text(summary.freesketch);
@@ -197,8 +199,18 @@
             $("#sdkversion").text(summary.sdkversion);
             $("#sketchmd5").text(summary.sketchmd5);
             $("#cyclecount").text(summary.cyclecount);
-        });
+        })
+        .then(() => removeLoader());
     };
+
+    $('body').append('<div style="" id="loadingDiv"><div class="loader">Loading...</div></div>');
+
+    function removeLoader(){
+        $( "#loadingDiv" ).fadeOut(500, function() {
+            // fadeOut complete. Remove the loading div
+            $( "#loadingDiv" ).remove(); //makes page more lightweight 
+        });
+    }
 
     getSummary();
 </script>
