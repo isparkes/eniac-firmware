@@ -1,7 +1,8 @@
 #pragma once
 
-#define INTERVAL_WIFI 6000
-#define INTERVAL_WPS 60000
+#define INTERVAL_WIFI 10000
+#define INTERVAL_WPS 10000
+#define INTERVAL_PORTAL 300000
 
 #define WDT_TIMEOUT 3
 

@@ -10,6 +10,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
         integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
         crossorigin="anonymous"></script>
+    <link href="css/clock-custom.css" rel="stylesheet">
     <title>Nixie Clock</title>
 
     <noscript>This site requires JavaScript!</noscript>
@@ -76,17 +77,22 @@
             <br />
             <hr />
             For a list of commonly used values Time Zone String values, go to <a
-                href="https://www.nixieclock.biz/help/TZ-Variable.html" target="_blank">Time Zone Reference</a>
-            <br />
-            <hr />
-            The NTP poll time should <i>not</i> be set to a multiple of 60 seconds. That will help spread out the load
-            on the NTP servers. 7261 seconds is good, 7200 is not. If using an ntp.org pool server, polls should happen
-            no more often than every 1/2 hour (1800 seconds) to comply with their terms of service. Start by setting the
-            polling interval to a high value then observe how well the clock stays in sync. If it gets more than a
-            second out of sync during that period, lower it. NTP providers will thank you. Regardless of the polling
-            period, the clock will be sent a time update every second.
-        </div>
-    </div>
+                href=" https://www.nixieclock.biz/help/TZ-Variable.html" target="_blank">Time Zone Reference</a>
+                    <br />
+                    <hr />
+                    The NTP poll time should <i>not</i> be set to a multiple of 60 seconds. That will help spread out
+                    the load
+                    on the NTP servers. 7261 seconds is good, 7200 is not. If using an ntp.org pool server, polls should
+                    happen
+                    no more often than every 1/2 hour (1800 seconds) to comply with their terms of service. Start by
+                    setting the
+                    polling interval to a high value then observe how well the clock stays in sync. If it gets more than
+                    a
+                    second out of sync during that period, lower it. NTP providers will thank you. Regardless of the
+                    polling
+                    period, the clock will be sent a time update every second.
+                </div>
+            </div>
 </body>
 
 <script>
@@ -108,13 +114,13 @@
         return deferred;
     };
 
-    getConfig = function() {
-        getTimeServerConfig().then(function(config){
+    getConfig = function () {
+        getTimeServerConfig().then(function (config) {
             $("#ntpPool").val(config.ntpPool);
             $("#ntpUpdateInterval").val(config.ntpUpdateInterval);
-            $("#tzs").val(config.tzs);            
+            $("#tzs").val(config.tzs);
         })
-        .then(() => removeLoader());
+            .then(() => removeLoader());
     };
 
     postTimeServerConfig = function getTimeServerConfig() {
@@ -131,7 +137,7 @@
             data: JSON.stringify(postBody)
         };
         $.ajax(ajaxOptions).done(function (res) {
-            console.log("Saved config" + jqXHR.status);
+            console.log("Saved config");
             deferred.resolve(res);
         }).fail(function (jqXHR) {
             console.log("Post api error " + jqXHR.status);
@@ -140,21 +146,22 @@
         return deferred;
     };
 
-    saveConfig = function() {
+    saveConfig = function () {
         addLoader();
-        postTimeServerConfig().then(function(res){
+        postTimeServerConfig()
+        .then(function (res) {
             console.log("Saved config");
             removeLoader();
         });
     };
 
-    function addLoader(){
+    function addLoader() {
         $('body').append('<div style="" id="loadingDiv"><div class="loader">Loading...</div></div>');
     }
 
-    function removeLoader(){
-        $( "#loadingDiv" ).fadeOut(500, function() {
-            $( "#loadingDiv" ).remove();
+    function removeLoader() {
+        $("#loadingDiv").fadeOut(500, function () {
+            $("#loadingDiv").remove();
         });
     }
 

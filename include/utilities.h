@@ -366,6 +366,41 @@ void postWiFiDataHandler(AsyncWebServerRequest *request) {
         
 }
 
+String ssid = "";
+String password = "";
+bool credentialsReceived = false;
+
+void getCredentialsHandler(AsyncWebServerRequest *request) {
+  debugMsg("Got api wifi credntials request");
+  
+  dumpArgs(request);
+
+  if ((request->hasArg("ssid")) && (request->hasArg("password"))) {
+    ssid = request->arg("ssid");
+    password = request->arg("password");
+    credentialsReceived = true;
+  }
+
+  AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"OK\"}");
+  request->send(response);        
+}
+
+bool gotCredentials() {
+  return credentialsReceived;
+}
+
+void wifiBeginWithCredentials() {
+  WiFi.disconnect();
+  delay(1000);
+  WiFi.mode(WIFI_MODE_STA);
+  delay(1000);
+  delay(1000);
+  WiFi.begin(ssid.c_str(), password.c_str());
+
+  // reset the credentials so that we may have another go if necessary
+  credentialsReceived = false;
+}
+
 void getI2CScanHandler(AsyncWebServerRequest *request) {
   debugMsg("Got I2C scan request");
   

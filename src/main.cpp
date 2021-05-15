@@ -171,7 +171,54 @@ void setup()
 
   // -------------------------------------------------------------------------
   
-  // Captive portal stuff goes here
+  // Captive portal
+  if (WiFi.status() != WL_CONNECTED) {  
+    debugMsg("");
+    debugMsg("Portal mode");
+    oled.showScrollingMessage("Portal mode");
+
+    WiFi.disconnect();
+    delay(100);
+    WiFi.mode(WIFI_MODE_APSTA);
+    delay(100);
+    // WiFi.softAPsetHostname(uniqHostname.c_str());
+    delay(100);
+    debugMsg("Setting soft-AP configuration ... ");
+    WiFi.softAP(uniqHostname.c_str());
+    delay(100);
+    debugMsg("Soft-AP IP address = ");
+    debugMsg(WiFi.softAPIP().toString());
+   oled.showScrollingMessage("IP: " + WiFi.softAPIP().toString());
+    delay(500);
+    server.on("/api/credentials", HTTP_GET, getCredentialsHandler);
+
+    server.onNotFound([](AsyncWebServerRequest *request){
+        request->send(404, "text/plain", "Go to /api/credentials");
+    });
+
+    server.begin();
+  }
+
+  maxMillisWiFiWait = millis() + INTERVAL_PORTAL;
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    if (previousMillisWiFi < maxMillisWiFiWait)
+    {
+      previousMillisWiFi = millis();
+      if (gotCredentials()) {
+        Serial.print("o");
+        wifiBeginWithCredentials();
+      } else {
+        Serial.print(".");
+      }
+      delay(500);
+    } else {
+      debugMsg("");
+      debugMsg("Failed to connect");
+      debugMsg("");
+      break;
+    }
+  }
 
   // -------------------------------------------------------------------------
   
