@@ -15,14 +15,6 @@
 
 AsyncWebServer server(80);
 
-#define COUNT0_MAX 1000
-#define COUNT0_OFF 100
-
-volatile int count0;
-volatile int count0Max = COUNT0_MAX;
-volatile int count0Off = COUNT0_OFF;
-volatile int count1;
-
 void debugMsg(String message) {
     Serial.println(message);
     Serial.flush();
@@ -62,6 +54,13 @@ void grabInts(String s, int *dest, String sep) {
 // Set the time from the value we get back from the time server
 // ************************************************************
 void setTimeFromServer(String timeString) {
+  #define SYNC_HOURS 3
+  #define SYNC_MINS 4
+  #define SYNC_SECS 5
+  #define SYNC_DAY 2
+  #define SYNC_MONTH 1
+  #define SYNC_YEAR 0
+
   int intValues[6];
   grabInts(timeString, &intValues[0], ",");
   setTime(intValues[SYNC_HOURS], intValues[SYNC_MINS], intValues[SYNC_SECS], intValues[SYNC_DAY], intValues[SYNC_MONTH], intValues[SYNC_YEAR]);
@@ -133,19 +132,56 @@ String secsToReadableString (long secsValue) {
   return uptimeString;
 }
 
-void setLedFlashType(byte flashType) {
-  switch(flashType) {
-    case 0: {
-      count0Max = 1000;
-      count0Off = 1;
-      break;
-    }
-    case 1: {
-      count0Max = 1000;
-      count0Off = 500;
-      break;
-    }
+// ************************************************************
+// See if we have enough flash space for OTA
+// ************************************************************
+bool getOTAvailable() {
+  return ESP.getSketchSize() < ESP.getFreeSketchSpace();
+}
+
+// ************************************************************
+// Calculate the status string for the web interface
+// ************************************************************
+String getStatusString() {
+  String connectionInfo = "";
+
+  bool connected = (WiFi.status() == WL_CONNECTED);
+  if (connected) {
+    connectionInfo += "W";
+  } else {
+    connectionInfo += "w";
   }
+  if (ntpAsync.ntpTimeValid(nowMillis)) {
+    connectionInfo += "N";
+  } else {
+    connectionInfo += "n";
+  }
+  if (spiffsStorage.testMountSpiffs()) {
+    connectionInfo += "S";
+  } else {
+    connectionInfo += "s";
+  }
+  if (getOTAvailable()) {
+    connectionInfo += "U";
+  } else {
+    connectionInfo += "u";
+  }
+  
+  spiffs_config_t* cc = &current_config;
+
+  if (cc->webAuthentication) {
+    connectionInfo += "A";
+  } else {
+    connectionInfo += "a";
+  }
+
+#ifdef DEBUG
+  connectionInfo += "D";
+#else
+  connectionInfo += "d";
+#endif
+
+  return connectionInfo;
 }
 
 // --------------------------------------------------------------------------------------------------------
@@ -179,8 +215,10 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   root["lastntpupdate"] = secsToReadableString(ntpAsync.getLastUpdateTimeSecs(nowMillis));
   root["nextupdate"] = secsToReadableString(absNextUpdate) + overdueInd;
   root["displaytime"] = timeToReadableString(year(),month(),day(),hour(),minute(),second());
-  root["uptime"] = current_stats.uptimeMins;
-  root["ontime"] = current_stats.tubeOnTimeMins;
+  root["uptime"] = cs->uptimeMins;
+  root["ontime"] = cs->tubeOnTimeMins;
+  root["status"] = getStatusString();
+  root["version"] = SOFTWARE_VERSION;
 
   root["heap"] = ESP.getFreeHeap();
   root["freesketch"] = ESP.getFreeSketchSpace();
@@ -364,7 +402,7 @@ void getI2CScanHandler(AsyncWebServerRequest *request) {
 void saveStatsHandler(AsyncWebServerRequest *request) {
   debugMsg("Got save stats request");
 
-  spiffsStorage.saveStatsToSpiffs(&current_stats);
+  spiffsStorage.saveStatsToSpiffs(cs);
   
   request->send(200, "text/plain", "Stats saved");
 }

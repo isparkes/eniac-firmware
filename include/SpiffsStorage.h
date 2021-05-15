@@ -13,35 +13,35 @@ typedef struct {
   String ntpPool;
   int ntpUpdateInterval;
   String tzs;
-  boolean hourMode;
+  bool hourMode;
   int minDim;
   byte dayBlanking;
-  boolean scrollback;
-  boolean fade;
+  bool scrollback;
+  bool fade;
   byte fadeSteps;
   byte scrollSteps;
-  boolean suppressACP;
+  bool suppressACP;
   int thresholdBright;
   int sensitivityLDR;
   int sensorSmoothCountLDR;
   byte blankHourStart;
   byte blankHourEnd;
   byte blankMode;
-  boolean useLDR;
+  bool useLDR;
   int pirTimeout;
-  boolean usePIRPullup;
+  bool usePIRPullup;
   byte backlightMode;
-  boolean useBLPulse;
-  boolean useBLDim;
+  bool useBLPulse;
+  bool useBLDim;
   byte redCnl;
   byte grnCnl;
   byte bluCnl;
   byte cycleSpeed;
   byte slotsMode;
-  boolean blankLeading;
+  bool blankLeading;
   byte dateFormat;
-  boolean testMode;
-  boolean webAuthentication;
+  bool testMode;
+  bool webAuthentication;
   String webUsername;
   String webPassword;
   byte antiGhost;
@@ -68,13 +68,13 @@ class SPIFFS_CLOCK
   public:
     void setDebugOutput(bool newDebug);
 
-    boolean testMountSpiffs();
-    boolean getSpiffsMounted();
+    bool testMountSpiffs();
+    bool getSpiffsMounted();
 
-    boolean getConfigFromSpiffs(spiffs_config_t* spiffs_config);
+    bool getConfigFromSpiffs(spiffs_config_t* spiffs_config);
     void    saveConfigToSpiffs(spiffs_config_t* spiffs_config);
 
-    boolean getStatsFromSpiffs(spiffs_stats_t* spiffs_stats);
+    bool getStatsFromSpiffs(spiffs_stats_t* spiffs_stats);
     void    saveStatsToSpiffs(spiffs_stats_t* spiffs_stats);
 
     JsonObject& getConfigAsJsonObject(spiffs_config_t* spiffs_config);

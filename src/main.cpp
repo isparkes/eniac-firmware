@@ -1,9 +1,5 @@
-unsigned long previousMillisWiFi = 0;
-long INTERVAL_WIFI = 6000;
-long INTERVAL_WPS  = 60000;
-
-long intervalWiFi = 6000;
-
+#include "defs.h"
+#include "globals.h"
 #include "WiFi.h"
 #include <ESPmDNS.h>
 #include "esp_wps.h"
@@ -12,6 +8,7 @@ long intervalWiFi = 6000;
 #include <esp_task_wdt.h>
 #include "OLED.h"
 #include <AsyncElegantOTA.h>
+#include "clock_timers.h"
 
 /*
   Change the definition of the WPS mode
@@ -26,38 +23,6 @@ long intervalWiFi = 6000;
 #define ESP_DEVICE_NAME "ESP STATION"
 
 static esp_wps_config_t config;
-
-#define LED_PIN 2
-
-spiffs_config_t* cc = &current_config;
-
-hw_timer_t * timer0 = NULL;
-portMUX_TYPE timerMux0 = portMUX_INITIALIZER_UNLOCKED;
-
-hw_timer_t * timer1 = NULL;
-portMUX_TYPE timerMux1 = portMUX_INITIALIZER_UNLOCKED;
-
-// Led Timer
-void IRAM_ATTR onTimer0() {
-   portENTER_CRITICAL_ISR(&timerMux0);
-   count0++;
-   if (count0 > count0Max) {
-     count0 = 0;
-     digitalWrite(LED_PIN, HIGH);
-   } else if (count0 == count0Off) {
-     digitalWrite(LED_PIN, LOW);
-   }
-   portEXIT_CRITICAL_ISR(&timerMux0);
-
-}
-
-void IRAM_ATTR onTimer1() {
-   portENTER_CRITICAL_ISR(&timerMux1);
-   count1++;
-   portEXIT_CRITICAL_ISR(&timerMux1);
-}
-
-#define WDT_TIMEOUT 3
 
 void wpsInitConfig()
 {
@@ -120,82 +85,24 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
   }
 }
 
-// void setupOTA(String hostNameStr)
-// {
-//   // Port defaults to 3232
-//   ArduinoOTA.setPort(3232);
-
-//   // Hostname defaults to esp3232-[MAC]
-//   ArduinoOTA.setHostname(hostNameStr.c_str());
-
-//   // No authentication by default
-//   // ArduinoOTA.setPassword("admin");
-
-//   // Password can be set with it's md5 value as well
-//   // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
-//   // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
-
-//   ArduinoOTA
-//       .onStart([]() {
-//         String type;
-//         if (ArduinoOTA.getCommand() == U_FLASH)
-//           type = "sketch";
-//         else // U_SPIFFS
-//           type = "filesystem";
-
-//         // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-//         debugMsg("Start updating " + type);
-//       })
-//       .onEnd([]() {
-//         debugMsg("\nEnd");
-//       })
-//       .onProgress([](unsigned int progress, unsigned int total) {
-//         Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-//       })
-//       .onError([](ota_error_t error) {
-//         Serial.printf("Error[%u]: ", error);
-//         if (error == OTA_AUTH_ERROR)
-//           debugMsg("Auth Failed");
-//         else if (error == OTA_BEGIN_ERROR)
-//           debugMsg("Begin Failed");
-//         else if (error == OTA_CONNECT_ERROR)
-//           debugMsg("Connect Failed");
-//         else if (error == OTA_RECEIVE_ERROR)
-//           debugMsg("Receive Failed");
-//         else if (error == OTA_END_ERROR)
-//           debugMsg("End Failed");
-//       });
-
-//   debugMsg("Start up OTA: " + ArduinoOTA.getHostname());
-//   ArduinoOTA.begin();
-// }
-
 void setup()
 {
   Serial.begin(115200);
   delay(100);
 
+  // -------------------------------------------------------------------------
+
   debugMsg("Start up Timers" );
+  startTimers();
+
+  // -------------------------------------------------------------------------
   
-  pinMode(LED_PIN, OUTPUT);
-
-  setLedFlashType(1);
-
-  timer0 = timerBegin(0, 80, true);
-  timerAttachInterrupt(timer0, &onTimer0, true);
-  timerAlarmWrite(timer0, 1000, true);
-  timerAlarmEnable(timer0);
-
-  timer1 = timerBegin(1, 80, true);
-  timerAttachInterrupt(timer1, &onTimer1, true);
-  timerAlarmWrite(timer1, 33333, true);
-  timerAlarmEnable(timer1);
-  setLedFlashType(1);
-
   debugMsg("Starting OLED");
   oled.setUp();
   oled.clearDisplay();
 
+  // -------------------------------------------------------------------------
+  
   debugMsg("");
   debugMsg("Starting WiFi");
   oled.showScrollingMessage("Starting WiFi");
@@ -215,10 +122,10 @@ void setup()
   debugMsg("Connessione all'ultimo AP");
   oled.showScrollingMessage("Connect to AP");
 
-  intervalWiFi = millis() + INTERVAL_WIFI;
+  unsigned long maxMillisWiFiWait = millis() + INTERVAL_WIFI;
   while (WiFi.status() != WL_CONNECTED)
   {
-    if (previousMillisWiFi < intervalWiFi)
+    if (previousMillisWiFi < maxMillisWiFiWait)
     {
       previousMillisWiFi = millis();
       Serial.print(".");
@@ -233,31 +140,41 @@ void setup()
     }
   }
 
+  // -------------------------------------------------------------------------
+  
   // Try WPS
-  debugMsg("");
-  debugMsg("Connect using WPS");
-  oled.showScrollingMessage("Connect using WPS");
-  intervalWiFi = millis() + INTERVAL_WPS;
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    wpsInitConfig();
-    esp_wifi_wps_enable(&config);
-
-    if (previousMillisWiFi < intervalWiFi)
+  if (WiFi.status() != WL_CONNECTED) {  
+    debugMsg("");
+    debugMsg("Connect using WPS");
+    oled.showScrollingMessage("Connect using WPS");
+    maxMillisWiFiWait = millis() + INTERVAL_WPS;
+    while (WiFi.status() != WL_CONNECTED)
     {
-      previousMillisWiFi = millis();
-      Serial.print(".");
+      wpsInitConfig();
+      esp_wifi_wps_enable(&config);
 
-      esp_wifi_wps_start(500);
-      delay(500);
-    } else {
-      debugMsg("");
-      debugMsg("Failed to connect");
-      debugMsg("");
-      break;
+      if (previousMillisWiFi < maxMillisWiFiWait)
+      {
+        previousMillisWiFi = millis();
+        Serial.print(".");
+
+        esp_wifi_wps_start(500);
+        delay(500);
+      } else {
+        debugMsg("");
+        debugMsg("Failed to connect");
+        debugMsg("");
+        break;
+      }
     }
   }
 
+  // -------------------------------------------------------------------------
+  
+  // Captive portal stuff goes here
+
+  // -------------------------------------------------------------------------
+  
   debugMsg("");
   debugMsg("Connesso a: " + WiFi.SSID());
   debugMsg("IP Address: " + WiFi.localIP().toString());
@@ -269,14 +186,45 @@ void setup()
   oled.showScrollingMessage("IP: " + WiFi.localIP().toString());
   oled.showScrollingMessage(String(WiFi.getHostname()) + ".local");
   
+  // -------------------------------------------------------------------------
+  
   debugMsg("Start up SPIFFS");
+
+  // define the debug callback
+  DebugCallback dbcb = debugMsg;
 
   // Initialize SPIFFS
   if(!SPIFFS.begin(true)){
     debugMsg("An Error has occurred while mounting SPIFFS");
     return;
   }
+  debugMsg("Startup SPIFFS storage");
+  spiffsStorage.setDebugCallback(dbcb);
+  spiffsStorage.setDebugOutput(true);
+  bool statsLoaded = spiffsStorage.getStatsFromSpiffs(cs);
 
+  if (!statsLoaded) {
+    debugMsg("SPIFFS storage: read stats failed");
+    spiffsStorage.saveStatsToSpiffs(cs);
+  }
+
+  bool configloaded = spiffsStorage.getConfigFromSpiffs(cc);
+
+  if (configloaded) {
+    debugMsg("Got TZS: " + cc->tzs);
+    ntpAsync.setTZS(cc->tzs);
+    ntpAsync.setNtpPool(cc->ntpPool);
+    ntpAsync.setUpdateInterval(cc->ntpUpdateInterval);
+  } else {
+    debugMsg("SPIFFS storage: read config failed");
+    cc->tzs = TIME_ZONE_STRING_DEFAULT;
+    cc->ntpPool = NTP_POOL_DEFAULT;
+    cc->ntpUpdateInterval = NTP_UPDATE_INTERVAL_DEFAULT;
+    spiffsStorage.saveConfigToSpiffs(cc);
+  }
+
+  // -------------------------------------------------------------------------
+  
   debugMsg("Start up WebServer" );
 
   server.serveStatic("/", SPIFFS, "/web/").setDefaultFile("index.html");
@@ -305,10 +253,15 @@ void setup()
       request->send(404, "text/plain", "The content you are looking for was not found.");
   });
 
+  // -------------------------------------------------------------------------
+  
+  debugMsg("Start up OTA");
   AsyncElegantOTA.begin(&server, "admin", "update");
 
   server.begin();
 
+  // -------------------------------------------------------------------------
+  
   debugMsg("Start up mDNS on http://" + String(WiFi.getHostname()) + ".local");
 
   // The MDNS host name does not seem to work at the moment - it is being set by OTA
@@ -319,60 +272,27 @@ void setup()
 
   MDNS.addService("http", "tcp", 80);
 
-  debugMsg("Start up OTA");
-
-//  setupOTA(uniqHostname);
-
   debugMsg("Start up NTP" );
 
-  DebugCallback dbcb = debugMsg;
   ntpAsync.setDebugCallback(dbcb);
   ntpAsync.setDebugOutput(true);
 
-  ntpAsync.setTZS(TIME_ZONE_STRING_DEFAULT);
-  ntpAsync.setNtpPool(NTP_POOL_DEFAULT);
-  ntpAsync.setUpdateInterval(NTP_UPDATE_INTERVAL_DEFAULT);
-
-
   NewTimeCallback ntcb = newTimeUpdateReceived;
-
-  // set up the NTP component and wire up the "got time update" callback
   ntpAsync.setNewTimeCallback(ntcb);
 
+  // -------------------------------------------------------------------------
+  
   // Default pins SDA 21, SCL 22
   debugMsg("Start up I2C...");
   Wire.begin();
 
-  debugMsg("Startup SPIFFS storage");
-  spiffsStorage.setDebugCallback(dbcb);
-  spiffsStorage.setDebugOutput(true);
-  bool statsLoaded = spiffsStorage.getStatsFromSpiffs(&current_stats);
-
-  if (!statsLoaded) {
-    debugMsg("SPIFFS storage: read stats failed");
-    spiffsStorage.saveStatsToSpiffs(&current_stats);
-  }
-
-  bool configloaded = spiffsStorage.getConfigFromSpiffs(&current_config);
-
-  if (configloaded) {
-    debugMsg("Got TZS: " + cc->tzs);
-    ntpAsync.setTZS(cc->tzs);
-    ntpAsync.setNtpPool(cc->ntpPool);
-    ntpAsync.setUpdateInterval(cc->ntpUpdateInterval);
-  } else {
-    debugMsg("SPIFFS storage: read config failed");
-    cc->tzs = TIME_ZONE_STRING_DEFAULT;
-    cc->ntpPool = NTP_POOL_DEFAULT;
-    cc->ntpUpdateInterval = NTP_UPDATE_INTERVAL_DEFAULT;
-    spiffsStorage.saveConfigToSpiffs(&current_config);
-  }
-
+  // -------------------------------------------------------------------------
+  
   // kick off NTP updates
   unsigned long nowMillis = millis();
   ntpAsync.getTimeFromNTP(nowMillis);
 
-  // debugMsg("Current uptime: " + String(current_stats.uptimeMins));
+  // debugMsg("Current uptime: " + String(cs->uptimeMins));
 
   debugMsg("Start up WDT...");
   esp_task_wdt_init(WDT_TIMEOUT, true);
@@ -414,7 +334,7 @@ void performOncePerMinuteProcessing() {
   debugMsg("nu: " + String(ntpAsync.getNextUpdate(nowMillis)));
 
   // Usage stats
-  current_stats.uptimeMins++;
+  cs->uptimeMins++;
 }
 
 // ************************************************************
@@ -430,7 +350,7 @@ void performOncePerHourProcessing() {
 // ************************************************************
 void performOncePerDayProcessing() {
   debugMsg("---> OncePerDayProcessing");
-  spiffsStorage.saveStatsToSpiffs(&current_stats);
+  spiffsStorage.saveStatsToSpiffs(cs);
 }
 
 void loop()

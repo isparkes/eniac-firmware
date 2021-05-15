@@ -9,9 +9,9 @@
 // ************************************************************
 // Test SPIFFS
 // ************************************************************
-boolean SPIFFS_CLOCK::testMountSpiffs()
+bool SPIFFS_CLOCK::testMountSpiffs()
 {
-  boolean mounted = false;
+  bool mounted = false;
   if (SPIFFS.begin())
   {
     mounted = true;
@@ -24,9 +24,9 @@ boolean SPIFFS_CLOCK::testMountSpiffs()
 // ************************************************************
 // Retrieve the config from the SPIFFS
 // ************************************************************
-boolean SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
+bool SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
 {
-  boolean loaded = false;
+  bool loaded = false;
 
   debugMsg("mounted file system config read");
   if (SPIFFS.exists("/config.json"))
@@ -298,9 +298,9 @@ JsonObject &SPIFFS_CLOCK::getConfigAsJsonObject(spiffs_config_t *spiffs_config)
 // ************************************************************
 // Get the statistics from the SPIFFS
 // ************************************************************
-boolean SPIFFS_CLOCK::getStatsFromSpiffs(spiffs_stats_t *spiffs_stats)
+bool SPIFFS_CLOCK::getStatsFromSpiffs(spiffs_stats_t *spiffs_stats)
 {
-  boolean loaded = false;
+  bool loaded = false;
   if (SPIFFS.exists("/stats.json"))
   {
     //file exists, reading and loading
