@@ -119,7 +119,7 @@ void setup()
   WiFi.begin();
 
   debugMsg("");
-  debugMsg("Connessione all'ultimo AP");
+  debugMsg("Connessione all'ultimo AP: " + WiFi.SSID() + ":" + WiFi.psk());
   oled.showScrollingMessage("Connect to AP");
 
   unsigned long maxMillisWiFiWait = millis() + INTERVAL_WIFI;
@@ -276,16 +276,11 @@ void setup()
   debugMsg("Start up WebServer" );
 
   server.serveStatic("/", SPIFFS, "/web/").setDefaultFile("index.html");
-  // server.on("/", HTTP_GET, mainHandler);
-  // server.on("/style.css", HTTP_GET, cssHandler);
   server.on("/api/getSummary", HTTP_GET, getSummaryDataHandler);
   server.on("/api/getTimeserver", HTTP_GET, getTimeserverDataHandler);
   server.on("/api/postTimeserver", HTTP_POST, postTimeserverDataHandler);
-
   server.on("/api/postWiFiCredentials", HTTP_POST, postWiFiDataHandler);
-  
   server.on("/api/putConfig", HTTP_GET, saveConfigDataHandler);
-
   server.on("/utils/resetWifi", HTTP_GET, resetWifiHandler);
   server.on("/utils/scanI2C", HTTP_GET, getI2CScanHandler);
   server.on("/utils/saveStats", HTTP_GET, saveStatsHandler);
@@ -293,10 +288,18 @@ void setup()
     ntpAsync.resetNextUpdate();
         request->redirect("/utility.html");;
     });
-/*  server.on("/hello", HTTP_GET, [](AsyncWebServerRequest *request){
-/    request->send(200, "text/plain", "Hello World");
-/  }); */
-
+  server.on("/utils/resetwifi", HTTP_GET, [] (AsyncWebServerRequest *request) {
+    resetWifi();
+        request->redirect("/utility.html");;
+    });
+  server.on("/utils/resetoptions", HTTP_GET, [] (AsyncWebServerRequest *request) {
+    resetOptions();
+        request->redirect("/utility.html");;
+    });
+  server.on("/utils/resetall", HTTP_GET, [] (AsyncWebServerRequest *request) {
+    resetAll();
+        request->redirect("/utility.html");;
+    });
   server.onNotFound([](AsyncWebServerRequest *request){
       request->send(404, "text/plain", "The content you are looking for was not found.");
   });

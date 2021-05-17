@@ -366,6 +366,19 @@ void postWiFiDataHandler(AsyncWebServerRequest *request) {
         
 }
 
+void resetWifi() {
+  WiFi.disconnect(false, true);
+}
+
+void resetOptions() {
+  
+}
+
+void resetAll() {
+  WiFi.disconnect(false, true);  
+}
+
+
 String ssid = "";
 String password = "";
 bool credentialsReceived = false;
