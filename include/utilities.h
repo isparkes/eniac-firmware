@@ -460,3 +460,11 @@ void resetWifiHandler(AsyncWebServerRequest *request) {
   WiFi.disconnect();
   request->send(200, "text/plain", "WiFi was reset");
 }
+
+const unsigned int DECODE_DIGIT[] = { 0x0200, 0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020, 0x0040, 0x0080, 0x0100};
+const unsigned int DECODE_LED[]   = { 0x40000000, 0x80000000};
+
+uint32_t decodeBCD(byte valueToDecode) {
+  uint32_t decoded = DECODE_DIGIT[(valueToDecode%10)] << 10 | DECODE_DIGIT[(valueToDecode/10)];
+  return decoded;
+}

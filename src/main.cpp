@@ -9,6 +9,8 @@
 #include "OLED.h"
 #include <AsyncElegantOTA.h>
 #include "clock_timers.h"
+#include <ESP32Encoder.h>
+#include <NeoPixelBus.h>
 
 /*
   Change the definition of the WPS mode
@@ -23,6 +25,16 @@
 #define ESP_DEVICE_NAME "ESP STATION"
 
 static esp_wps_config_t config;
+
+NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> strip(PixelCount, PixelPin);
+
+#define colorSaturation 128
+
+RgbColor red(colorSaturation, 0, 0);
+RgbColor green(0, colorSaturation, 0);
+RgbColor blue(0, 0, colorSaturation);
+RgbColor white(colorSaturation);
+RgbColor black(0);
 
 void wpsInitConfig()
 {
@@ -85,10 +97,38 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
   }
 }
 
+void setPixels() {
+    strip.SetPixelColor(0, red);
+    strip.SetPixelColor(1, green);
+    strip.SetPixelColor(2, red);
+    strip.SetPixelColor(3, green);
+
+    strip.SetPixelColor(4, blue);
+
+    strip.SetPixelColor(5, red);
+    strip.SetPixelColor(6, green);
+    strip.SetPixelColor(7, red);
+    strip.SetPixelColor(8, green);
+
+    strip.SetPixelColor(9, blue);
+
+    strip.SetPixelColor(10, red);
+    strip.SetPixelColor(11, green);
+    strip.SetPixelColor(12, red);
+    strip.SetPixelColor(13, green);
+    strip.Show();
+}
+
 void setup()
 {
   Serial.begin(115200);
   delay(100);
+
+  // -------------------------------------------------------------------------
+
+  debugMsg("Start up neopixels");
+  strip.Begin();
+  setPixels();
 
   // -------------------------------------------------------------------------
 
@@ -345,11 +385,46 @@ void setup()
 
   // debugMsg("Current uptime: " + String(cs->uptimeMins));
 
+  // -------------------------------------------------------------------------
+
+  debugMsg("Start up encoder");
+
+  ESP32Encoder encoder;
+	ESP32Encoder::useInternalWeakPullResistors=UP;
+
+	// use pin 19 and 18 for the first encoder
+	encoder.attachHalfQuad(encoderA, encoderB);
+		
+	// clear the encoder's raw count and set the tracked count to zero
+	encoder.clearCount();
+
+  // -------------------------------------------------------------------------
+  
+  debugMsg("Start up GPIOs");
+  pinMode(LED_PIN, OUTPUT);
+
+  pinMode(clk1, OUTPUT);
+  pinMode(blnk1, OUTPUT);
+  pinMode(data1, OUTPUT);
+  pinMode(latch1, OUTPUT);
+  pinMode(data2, OUTPUT);
+  pinMode(latch2, OUTPUT);
+  pinMode(data3, OUTPUT);
+  pinMode(latch3, OUTPUT);
+
+  // ledcSetup(PWMChannel, PWMFreq, PWMResolution);
+  // ledcAttachPin(BLANK_PIN, PWMChannel);
+  // setLedFlashType(1);
+  // ledcWrite(PWMChannel, MAX_DUTY_CYCLE/2);
+
+  digitalWrite(blnk1, LOW);
+
+  // -------------------------------------------------------------------------
+  
   debugMsg("Start up WDT...");
   esp_task_wdt_init(WDT_TIMEOUT, true);
   esp_task_wdt_add(NULL);
 }
-
 
 // ************************************************************
 // Called once per second
@@ -366,6 +441,7 @@ void performOncePerSecondProcessing() {
     setLedFlashType(1);
   }
 
+  // send time update to OLED and set the other status flags 
   char time_c[11];
   sprintf(time_c, "%02d:%02d:%02d", hour(), minute(), second());
   oled.setWiFiStatus(connected);
@@ -373,7 +449,12 @@ void performOncePerSecondProcessing() {
   oled.setNTPStatus(ntpAsync.ntpTimeValid(nowMillis));
   oled.setTimeString(String(time_c));
   oled.setYStatus(SPIFFS.begin(false));
-  
+
+  // send time display to the drivers
+  val1 = decodeBCD(hour());
+  val2 = decodeBCD(minute());
+  val3 = decodeBCD(second());
+
   esp_task_wdt_reset();
 }
 
@@ -448,7 +529,9 @@ void loop()
 
   // -------------------------------------------------------------------------------
   
-  delay(100);
+  setPixels();
+
+  delay(10);
 }
 
 

@@ -15,3 +15,6 @@ spiffs_stats_t* cs = &current_stats;
 
 // NtpAsync ntpAsync;
 
+volatile uint32_t val1 = 0;
+volatile uint32_t val2 = 0;
+volatile uint32_t val3 = 0;
