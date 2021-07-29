@@ -51,4 +51,4 @@ const uint8_t PIR = 19;
 
 const uint8_t btn1 = 15;
 
-const uint8_t DLS = 4;
+const uint8_t DLS = 34;

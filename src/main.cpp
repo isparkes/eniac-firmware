@@ -36,6 +36,11 @@ RgbColor blue(0, 0, colorSaturation);
 RgbColor white(colorSaturation);
 RgbColor black(0);
 
+const int PWMFreq = 5000; /* 5 KHz */
+const int PWMChannel = 0;
+const int PWMResolution = 10;
+const int MAX_DUTY_CYCLE = (int)(pow(2, PWMResolution) - 1);
+
 void wpsInitConfig()
 {
   config.crypto_funcs = &g_wifi_default_wps_crypto_funcs;
@@ -412,12 +417,12 @@ void setup()
   pinMode(data3, OUTPUT);
   pinMode(latch3, OUTPUT);
 
-  // ledcSetup(PWMChannel, PWMFreq, PWMResolution);
-  // ledcAttachPin(BLANK_PIN, PWMChannel);
-  // setLedFlashType(1);
-  // ledcWrite(PWMChannel, MAX_DUTY_CYCLE/2);
+  ledcSetup(PWMChannel, PWMFreq, PWMResolution);
+  ledcAttachPin(blnk1, PWMChannel);
+  setLedFlashType(1);
+  ledcWrite(PWMChannel, MAX_DUTY_CYCLE/2);
 
-  digitalWrite(blnk1, LOW);
+//   digitalWrite(blnk1, LOW);
 
   // -------------------------------------------------------------------------
   
@@ -451,9 +456,14 @@ void performOncePerSecondProcessing() {
   oled.setYStatus(SPIFFS.begin(false));
 
   // send time display to the drivers
-  val1 = decodeBCD(hour());
-  val2 = decodeBCD(minute());
-  val3 = decodeBCD(second());
+  bool led1 = (second() % 2 == 0);
+  bool led2 = (second() % 2 == 1);
+  val1 = decodeBCD(hour(), led1, led2);
+  val2 = decodeBCD(minute(), led1, led2);
+  val3 = decodeBCD(second(), led1, led2);
+
+  int ldrVal = analogRead(DLS);
+  debugMsg("LDR value: " + String(ldrVal));
 
   esp_task_wdt_reset();
 }

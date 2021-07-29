@@ -461,10 +461,13 @@ void resetWifiHandler(AsyncWebServerRequest *request) {
   request->send(200, "text/plain", "WiFi was reset");
 }
 
-const unsigned int DECODE_DIGIT[] = { 0x0200, 0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020, 0x0040, 0x0080, 0x0100};
-const unsigned int DECODE_LED[]   = { 0x40000000, 0x80000000};
+const uint32_t DECODE_DIGIT[] = { 0x0200, 0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020, 0x0040, 0x0080, 0x0100};
+const uint32_t DECODE_LED[]           = { 0x400000, 0x800000};
+const uint32_t DECODE_BLINKENIGHTS[]  = { 0x100000, 0x200000};
 
-uint32_t decodeBCD(byte valueToDecode) {
+uint32_t decodeBCD(byte valueToDecode, bool led1, bool led2) {
   uint32_t decoded = DECODE_DIGIT[(valueToDecode%10)] << 10 | DECODE_DIGIT[(valueToDecode/10)];
+  if (led1) decoded |= DECODE_LED[0];
+  if (led2) decoded |= DECODE_LED[1];
   return decoded;
 }
