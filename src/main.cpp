@@ -11,6 +11,7 @@
 #include "clock_timers.h"
 #include <ESP32Encoder.h>
 #include <NeoPixelBus.h>
+#include <LDRManager.h>
 
 /*
   Change the definition of the WPS mode
@@ -37,8 +38,8 @@ RgbColor white(colorSaturation);
 RgbColor black(0);
 
 const int PWMFreq = 5000; /* 5 KHz */
-const int PWMChannel = 0;
-const int PWMResolution = 10;
+const int LDRPWMChannel = 0;
+const int PWMResolution = 12;
 const int MAX_DUTY_CYCLE = (int)(pow(2, PWMResolution) - 1);
 
 void wpsInitConfig()
@@ -409,7 +410,7 @@ void setup()
   pinMode(LED_PIN, OUTPUT);
 
   pinMode(clk1, OUTPUT);
-  pinMode(blnk1, OUTPUT);
+  pinMode(BLANKPin, OUTPUT);
   pinMode(data1, OUTPUT);
   pinMode(latch1, OUTPUT);
   pinMode(data2, OUTPUT);
@@ -417,12 +418,22 @@ void setup()
   pinMode(data3, OUTPUT);
   pinMode(latch3, OUTPUT);
 
-  ledcSetup(PWMChannel, PWMFreq, PWMResolution);
-  ledcAttachPin(blnk1, PWMChannel);
+  ledcSetup(LDRPWMChannel, PWMFreq, PWMResolution);
+  ledcAttachPin(BLANKPin, LDRPWMChannel);
   setLedFlashType(1);
-  ledcWrite(PWMChannel, MAX_DUTY_CYCLE/2);
+  ledcWrite(LDRPWMChannel, MAX_DUTY_CYCLE/2);
 
-//   digitalWrite(blnk1, LOW);
+  // -------------------------------------------------------------------------
+  
+  debugMsg("Start up LDR...");
+  cc->sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
+  cc->sensitivityLDR = SENSOR_SENSIT_DEFAULT;
+  cc->thresholdBright = SENSOR_THRSH_DEFAULT;
+  cc->useLDR = true;
+  ldrManager.setConfigObject(cc);
+  ldrManager.setUp();
+  ldrManager.setDebugCallback(dbcb);
+  ldrManager.setDebugOutput(false);
 
   // -------------------------------------------------------------------------
   
@@ -462,8 +473,7 @@ void performOncePerSecondProcessing() {
   val2 = decodeBCD(minute(), led1, led2);
   val3 = decodeBCD(second(), led1, led2);
 
-  int ldrVal = analogRead(DLS);
-  debugMsg("LDR value: " + String(ldrVal));
+  int ldrVal = ldrManager.getLDRValue();
 
   esp_task_wdt_reset();
 }
@@ -536,6 +546,11 @@ void loop()
   // Touch sensor
   #define TOUCH_THRESHOLD 20
   oled.setXStatus(touchRead(4) > TOUCH_THRESHOLD);
+
+  // -------------------------------------------------------------------------------
+
+  ldrManager.getDimmingFromLDR();
+  ledcWrite(LDRPWMChannel, ldrManager.getLDRValue());
 
   // -------------------------------------------------------------------------------
   
