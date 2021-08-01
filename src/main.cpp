@@ -71,7 +71,7 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
     debugMsg("Station Mode Started");
     break;
   case SYSTEM_EVENT_STA_GOT_IP:
-    debugMsg("Connected to :" + String(WiFi.SSID()) + " Got IP: " + WiFi.localIP().toString());
+    debugMsg("Connected to :" + WiFi.SSID() + ", password: " + WiFi.psk());
     break;
   case SYSTEM_EVENT_STA_DISCONNECTED:
     debugMsg("Disconnected from station, attempting reconnection");
@@ -165,8 +165,8 @@ void setup()
   WiFi.begin();
 
   debugMsg("");
-  debugMsg("Connessione all'ultimo AP: " + WiFi.SSID() + ":" + WiFi.psk());
-  oled.showScrollingMessage("Connect to AP");
+  debugMsg("Trying to reconnect to last known AP");
+  oled.showScrollingMessage("Connect to last AP");
 
   unsigned long maxMillisWiFiWait = millis() + INTERVAL_WIFI;
   while (WiFi.status() != WL_CONNECTED)
@@ -329,7 +329,7 @@ void setup()
   server.on("/api/postTimeserver", HTTP_POST, postTimeserverDataHandler);
   
   server.on("/api/getConfig", HTTP_GET, getConfigDataHandler);
-  server.on("/api/postConfig", HTTP_GET, postConfigDataHandler);
+  server.on("/api/postConfig", HTTP_POST, postConfigDataHandler);
 
   server.on("/api/postWiFiCredentials", HTTP_POST, postWiFiDataHandler);
   server.on("/utils/resetWifi", HTTP_GET, resetWifiHandler);
@@ -431,14 +431,11 @@ void setup()
   // -------------------------------------------------------------------------
   
   debugMsg("Start up LDR...");
-  cc->minDim = MIN_DIM_DEFAULT;
+  // Not managing sensorSmoothCountLDR yet
   cc->sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
-  cc->sensitivityLDR = SENSOR_SENSIT_DEFAULT;
-  cc->thresholdBright = SENSOR_THRSH_DEFAULT;
-  cc->useLDR = true;
-  ldrManager.setConfigObject(cc);
-  ldrManager.setUp();
+  ldrManager.setDebugOutput(true);
   ldrManager.setDebugCallback(dbcb);
+  ldrManager.setUp();
   ldrManager.setDebugOutput(false);
 
   // -------------------------------------------------------------------------

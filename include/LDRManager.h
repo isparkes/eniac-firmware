@@ -3,9 +3,12 @@
 
 #include "defs.h"
 #include "Arduino.h"
+#include "globals.h"
 #include "SpiffsStorage.h"
 
 // -------------------------------------------------------------------------------
+#define USE_LDR_DEFAULT true
+
 #define LDR_VALUE_MAX         4095 // The maximum LDR value - based on 12-bit ADC
 
 #define MIN_DIM_DEFAULT       20   // The default minimum dim count
@@ -36,9 +39,6 @@ class LDRManager
     
     // callbacks
     void setDebugCallback(DebugCallback dbcb);
-
-    // Shared config  
-    void setConfigObject(spiffs_config_t* ccPtr);
   private:
     double sensorLDRSmoothed = 0;
     double sensorFactor = (double)SENSOR_SENSIT_DEFAULT / 100.0;
@@ -47,8 +47,6 @@ class LDRManager
     
     DebugCallback _dbcb;
     bool _debug = false;
-
-    spiffs_config_t* _cc;
 
     void debugMsg(String message);                        // print a debug message to the callback
 };

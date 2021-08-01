@@ -7,6 +7,10 @@
 
 extern AsyncWebServer server;
 
+extern NtpAsync ntpAsync;
+
+extern SPIFFS_CLOCK spiffsStorage;
+
 extern unsigned long nowMillis;
 extern unsigned long lastMillis;
 extern unsigned long previousMillisWiFi;
@@ -14,7 +18,6 @@ extern int lastSecond;
 extern boolean triggeredThisSec;
 
 extern spiffs_config_t* cc;
-
 extern spiffs_stats_t* cs;
 
 extern volatile uint32_t val1;

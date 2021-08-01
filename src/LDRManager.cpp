@@ -3,38 +3,38 @@
 void LDRManager::setUp()
 {
   pinMode(LDRPin, INPUT);
-  debugMsg("Config useLDR: " + String(_cc->useLDR));
-  debugMsg("Config sensitivityLDR: " + String(_cc->sensitivityLDR));
-  debugMsg("Config thresholdBright: " + String(_cc->thresholdBright));
-  debugMsg("Config sensorSmoothCountLDR: " + String(_cc->sensorSmoothCountLDR));
-  debugMsg("Config minDim: " + String(_cc->minDim));
+  debugMsg("Config useLDR: " + String(cc->useLDR));
+  debugMsg("Config sensitivityLDR: " + String(cc->sensitivityLDR));
+  debugMsg("Config thresholdBright: " + String(cc->thresholdBright));
+  debugMsg("Config sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
+  debugMsg("Config minDim: " + String(cc->minDim));
 }
 
 // ************************************************************
 // Gets the smoothed LDR Reading and store it
 // ************************************************************
 void LDRManager::getDimmingFromLDR() {
-  if (_cc->useLDR) {
+  if (cc->useLDR) {
     int rawLDR = analogRead(LDRPin);
     debugMsg("-----------------");
     debugMsg("Raw LDR Value: " + String(rawLDR));
     int rawSensorVal = rawLDR;
 
     double sensorDiff = rawSensorVal - sensorLDRSmoothed;
-    sensorLDRSmoothed += (sensorDiff / (double) _cc->sensorSmoothCountLDR);
+    sensorLDRSmoothed += (sensorDiff / (double) cc->sensorSmoothCountLDR);
     debugMsg("Smoothed LDR Value: " + String(sensorLDRSmoothed));
 
     // Scaling offset increases the base brightness
     // factor increases the sensitivity
-    double offset = _cc->thresholdBright;
-    double factor = _cc->sensitivityLDR / 200.0;
+    double offset = cc->thresholdBright;
+    double factor = cc->sensitivityLDR / 200.0;
 
     int returnValue = (sensorLDRSmoothed + offset) / factor;
     
     debugMsg("Raw _ldrValue: " + String(returnValue));
 
-    if (returnValue > (LDR_VALUE_MAX - _cc->minDim)) {
-      returnValue = LDR_VALUE_MAX - _cc->minDim;
+    if (returnValue > (LDR_VALUE_MAX - cc->minDim)) {
+      returnValue = LDR_VALUE_MAX - cc->minDim;
       debugMsg("Clamping _ldrValue to min: " + String(returnValue));
     }
     if (returnValue < 0) {
@@ -43,8 +43,8 @@ void LDRManager::getDimmingFromLDR() {
     }
     _ldrValue = returnValue;
   } else {
-      debugMsg("Not using _ldrValue setting to min: " + String(_cc->minDim));
-    _ldrValue = LDR_VALUE_MAX - _cc->minDim;
+      debugMsg("Not using _ldrValue setting to min: " + String(cc->minDim));
+    _ldrValue = LDR_VALUE_MAX - cc->minDim;
   }
 }
 
@@ -77,11 +77,4 @@ void LDRManager::setDebugCallback(DebugCallback dbcb) {
 // ************************************************************
 void LDRManager::setDebugOutput(bool newDebug) {
   _debug = newDebug;
-}
-
-// ************************************************************
-// Set up the manager
-// ************************************************************
-void LDRManager::setConfigObject(spiffs_config_t* ccPtr) {
-  _cc = ccPtr;
 }

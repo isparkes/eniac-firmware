@@ -143,8 +143,6 @@ String getStatusString() {
     connectionInfo += "u";
   }
   
-  spiffs_config_t* cc = &current_config;
-
   if (cc->webAuthentication) {
     connectionInfo += "A";
   } else {
@@ -222,40 +220,86 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
 void getConfigDataHandler(AsyncWebServerRequest *request) {
   debugMsg("Got api config GET request");
   
-  JsonObject& data = spiffsStorage.getConfigAsJsonObject(&current_config);
-  String responseString;
-  data.printTo(responseString);
-
-  AsyncWebServerResponse *response = request->beginResponse(200, "application/json", responseString);
+  AsyncJsonResponse * response = new AsyncJsonResponse();
   response->addHeader("Server", "ESP Async Web Server");
-  request->send(response);  
+  JsonObject& root = response->getRoot();
+  root["hourMode"] = cc->hourMode;
+  root["blankLeading"] = cc->blankLeading;
+  root["dateFormat"] = cc->dateFormat;
+  root["scrollback"] = cc->scrollback;
+  root["scrollSteps"] = cc->scrollSteps;
+  root["fade"] = cc->fade;
+  root["fadeSteps"] = cc->fadeSteps;
+  root["slotsMode"] = cc->slotsMode;
+  root["suppressACP"] = cc->suppressACP;
+
+  root["useLDR"] = cc->useLDR;
+  root["minDim"] = cc->minDim;
+  root["thresholdBright"] = cc->thresholdBright;
+  root["sensitivityLDR"] = cc->sensitivityLDR;
+
+  response->setLength();
+  request->send(response);
 }
 
 void postConfigDataHandler(AsyncWebServerRequest *request) {
   debugMsg("Got api config POST request");
-  
-  spiffs_config_t* cc = &current_config;
 
-  ntpAsync.resetDefaults();
-  cc->ntpPool = ntpAsync.getNtpPool();
-  cc->ntpUpdateInterval = ntpAsync.getUpdateInterval();
-  cc->tzs = ntpAsync.getTZS();
+  // dumpArgs(request);
 
-  cc->webUsername = "";
-  cc->webPassword = "";
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& json = jsonBuffer.parse(String(request->arg("body")));
 
-  spiffsStorage.saveConfigToSpiffs(cc);
+  if (json.success()) {
+    if (json.containsKey("thresholdBright")) {
+      int newthresholdBright = json["thresholdBright"];
+      if (cc->thresholdBright != newthresholdBright) {
+        debugMsg("thresholdBright before: " + String(cc->thresholdBright));
+        cc->thresholdBright = newthresholdBright;
+        debugMsg("thresholdBright new minDim: " + String(cc->thresholdBright));
+      }
+    }
 
-  AsyncWebServerResponse *response = request->beginResponse(200, "plain/text", "OK");
-  response->addHeader("Server", "ESP Async Web Server");
-  request->send(response);  
+    if (json.containsKey("sensitivityLDR")) {
+      int newsensitivityLDR = json["sensitivityLDR"];
+      if (cc->sensitivityLDR != newsensitivityLDR) {
+        debugMsg("sensitivityLDR before: " + String(cc->sensitivityLDR));
+        cc->sensitivityLDR = newsensitivityLDR;
+        debugMsg("Loaded new sensitivityLDR: " + String(cc->sensitivityLDR));
+      }
+    }
+
+    if (json.containsKey("minDim")) {
+      int newMinDim = json["minDim"];
+      if (cc->minDim != newMinDim) {
+        debugMsg("minDim before: " + String(cc->minDim));
+        cc->minDim = newMinDim;
+        debugMsg("Loaded new minDim: " + String(cc->minDim));
+      }
+    }
+
+    if (json.containsKey("useLDR")) {
+      int newUseLDR = json["useLDR"].as<bool>();
+      if (cc->useLDR != newUseLDR) {
+        debugMsg("useLDR before: " + String(cc->useLDR));
+        cc->useLDR = newUseLDR;
+        debugMsg("Loaded new useLDR: " + String(cc->useLDR));
+      }
+    }
+
+    spiffsStorage.saveConfigToSpiffs(cc);
+    debugMsg("Saved new config");
+  } else {
+    debugMsg("Json parse failure: " + String(request->arg("body")));
+  }
+
+  // Return the updated values
+  getConfigDataHandler(request);
 }
 
 void getTimeserverDataHandler(AsyncWebServerRequest *request) {
   debugMsg("Got api timeserver GET request");
   
-  spiffs_config_t* cc = &current_config;
-
   AsyncJsonResponse * response = new AsyncJsonResponse();
   response->addHeader("Server", "ESP Async Web Server");
   JsonObject& root = response->getRoot();
@@ -294,7 +338,6 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
   DynamicJsonBuffer jsonBuffer;
   JsonObject& json = jsonBuffer.parse(String(request->arg("body")));
 
-  spiffs_config_t* cc = &current_config;
   if (json.success()) {
     debugMsg("NTP pool before: " + cc->ntpPool);
     cc->ntpPool = json["ntpPool"].as<String>();
@@ -357,7 +400,60 @@ void resetWifi() {
 }
 
 void resetOptions() {
+  cc->ntpPool = NTP_POOL_DEFAULT;
+  cc->ntpUpdateInterval = NTP_UPDATE_INTERVAL_DEFAULT;
+  cc->tzs = TIME_ZONE_STRING_DEFAULT;
+
+  cc->hourMode = HOUR_MODE_DEFAULT;
+  cc->blankLeading = LEAD_BLANK_DEFAULT;
+  cc->dateFormat = DATE_FORMAT_DEFAULT;
+  cc->dayBlanking = DAY_BLANKING_DEFAULT;
   
+  cc->useLDR = USE_LDR_DEFAULT;
+  cc->thresholdBright = SENSOR_THRSH_DEFAULT;
+  cc->sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
+  cc->sensitivityLDR = SENSOR_SENSIT_DEFAULT;
+  cc->minDim = MIN_DIM_DEFAULT;
+  
+  cc->fade = FADE_DEFAULT;
+  cc->fadeSteps = FADE_STEPS_DEFAULT;
+  cc->scrollback = SCROLLBACK_DEFAULT;
+  cc->scrollSteps = SCROLL_STEPS_DEFAULT;
+  cc->slotsMode = SLOTS_MODE_DEFAULT;
+  
+  cc->backlightMode = BACKLIGHT_DEFAULT;
+  cc->useBLDim = true;
+  cc->useBLPulse = false;
+  cc->redCnl = COLOUR_RED_CNL_DEFAULT;
+  cc->grnCnl = COLOUR_GRN_CNL_DEFAULT;
+  cc->bluCnl = COLOUR_BLU_CNL_DEFAULT;
+  cc->cycleSpeed = CYCLE_SPEED_DEFAULT;
+//  cc->backlightDimFactor = BACKLIGHT_DIM_FACTOR_DEFAULT;
+//  cc->extDimFactor = EXT_DIM_FACTOR_DEFAULT;
+//  cc->separatorDimFactor = SEPARATOR_DIM_FACTOR_DEFAULT;
+//  cc->ledMode = LED_BLINK_DEFAULT;
+
+  cc->blankMode = BLANK_MODE_DEFAULT;
+  cc->blankHourStart = 0;
+  cc->blankHourEnd = 7;
+
+  cc->useLDR = USE_LDR_DEFAULT;
+  
+  cc->pirTimeout = PIR_TIMEOUT_DEFAULT;
+  cc->usePIRPullup = USE_PIR_PULLUP_DEFAULT;
+  
+  // cc->webAuthentication = getWebAuthentication();
+  // cc->webUsername = getWebUserName();
+  // cc->webPassword = getWebPassword();
+  // setWebAuthentication(WEB_AUTH_DEFAULT);
+  // setWebUserName(WEB_USERNAME_DEFAULT);
+  // setWebPassword(WEB_PASSWORD_DEFAULT);
+  
+  cc->antiGhost = ANTI_GHOST_DEFAULT;
+  cc->testMode = true;
+
+  spiffsStorage.saveConfigToSpiffs(cc);
+  debugMsg("Saved factory config");
 }
 
 void resetAll() {

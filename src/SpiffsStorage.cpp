@@ -131,6 +131,15 @@ bool SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
         spiffs_config->useLDR = json["useLDR"];
         debugMsg("Loaded useLDR: " + String(spiffs_config->useLDR));
 
+        spiffs_config->thresholdBright = json["thresholdBright"];
+        debugMsg("Loaded thresholdBright: " + String(spiffs_config->thresholdBright));
+
+        spiffs_config->sensitivityLDR = json["sensitivityLDR"];
+        debugMsg("Loaded sensitivityLDR: " + String(spiffs_config->sensitivityLDR));
+
+        spiffs_config->sensorSmoothCountLDR = json["sensorSmoothCountLDR"];
+        debugMsg("Loaded sensorSmoothCountLDR: " + String(spiffs_config->sensorSmoothCountLDR));
+
         spiffs_config->slotsMode = json["slotsMode"];
         debugMsg("Loaded slotsMode: " + String(spiffs_config->slotsMode));
 
@@ -219,6 +228,9 @@ void SPIFFS_CLOCK::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
   json["cycleSpeed"] = spiffs_config->cycleSpeed;
   json["pirTimeout"] = spiffs_config->pirTimeout;
   json["useLDR"] = spiffs_config->useLDR;
+  json["thresholdBright"] = spiffs_config->thresholdBright;
+  json["sensitivityLDR"] = spiffs_config->sensitivityLDR;
+  json["sensorSmoothCountLDR"] = spiffs_config->sensorSmoothCountLDR;
   json["slotsMode"] = spiffs_config->slotsMode;
   json["usePIRPullup"] = spiffs_config->usePIRPullup;
   json["testMode"] = spiffs_config->testMode;

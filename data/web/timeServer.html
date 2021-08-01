@@ -71,28 +71,23 @@
             </div>
             <div class="form-group">
                 <div class="col-xs-offset-3 col-xs-9">
-                    <input type="submit" class="btn btn-primary" value="Set" onclick="saveConfig()"">
+                    <input type="submit" class="btn btn-primary" value="Set" onclick="saveConfig()">
                 </div>
             </div>
             <br />
             <hr />
             For a list of commonly used values Time Zone String values, go to <a
                 href=" https://www.nixieclock.biz/help/TZ-Variable.html" target="_blank">Time Zone Reference</a>
-                    <br />
-                    <hr />
-                    The NTP poll time should <i>not</i> be set to a multiple of 60 seconds. That will help spread out
-                    the load
-                    on the NTP servers. 7261 seconds is good, 7200 is not. If using an ntp.org pool server, polls should
-                    happen
-                    no more often than every 1/2 hour (1800 seconds) to comply with their terms of service. Start by
-                    setting the
-                    polling interval to a high value then observe how well the clock stays in sync. If it gets more than
-                    a
-                    second out of sync during that period, lower it. NTP providers will thank you. Regardless of the
-                    polling
-                    period, the clock will be sent a time update every second.
-                </div>
-            </div>
+            <br />
+            <hr />
+            The NTP poll time should <i>not</i> be set to a multiple of 60 seconds. That will help spread out
+            the load on the NTP servers. 7261 seconds is good, 7200 is not. If using an ntp.org pool server, polls
+            should happen no more often than every 1/2 hour (1800 seconds) to comply with their terms of service. Start
+            by setting the polling interval to a high value then observe how well the clock stays in sync. If it gets
+            more than a second out of sync during that period, lower it. NTP providers will thank you. Regardless of the
+            polling period, the clock will be sent a time update every second.
+        </div>
+    </div>
 </body>
 
 <script>
@@ -123,7 +118,7 @@
             .then(() => removeLoader());
     };
 
-    postTimeServerConfig = function getTimeServerConfig() {
+    postTimeServerConfig = function postTimeServerConfig() {
         var deferred = $.Deferred();
         console.log('post time server values');
         var postBody = {
@@ -149,10 +144,10 @@
     saveConfig = function () {
         addLoader();
         postTimeServerConfig()
-        .then(function (res) {
-            console.log("Saved config");
-            removeLoader();
-        });
+            .then(function (res) {
+                console.log("Saved config");
+                removeLoader();
+            });
     };
 
     function addLoader() {

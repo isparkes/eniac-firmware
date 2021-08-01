@@ -39,7 +39,7 @@
         </nav>
         <div class="container" role="main">
             <h3 class="sub-header">General options</h3>
-            <form class="form-horizontal">
+            <div class="form-horizontal">
                 <div class="form-group">
                     <label class="control-label col-xs-3">12H/24H mode:</label>
                     <div class="col-xs-1">
@@ -141,40 +141,57 @@
                         <input type="submit" class="btn btn-primary" value="Set">
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
         <div class="container" role="main">
             <h3 class="sub-header">Light Dependent Resistor</h3>
-            <form class="form-horizontal">
+            <div class="form-horizontal">
+
                 <div class="form-group">
                     <label class="control-label col-xs-3">Use LDR:</label>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input checked type="radio" name="useLDR" value="on">On
+                            <input type="radio" name="useLDR" id="useLDR" value="on">On
                         </label>
-                    </div>
+                    </div>                    
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input type="radio" name="useLDR" value="off">Off
+                            <input type="radio" name="useLDR" id="useLDROff" value="off">Off
                         </label>
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label class="control-label col-xs-3" for="minDim">Min Dim:</label>
                     <div class="col-xs-2">
-                        <input type="number" class="form-control" name="minDim" id="minDim" min="100" max="500" value="100">
+                        <input type="number" class="form-control" name="minDim" id="minDim" min="0" max="500" value="20">
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="sensitivityLDR">Sensitivity:</label>
+                    <div class="col-xs-2">
+                        <input type="number" class="form-control" name="sensitivityLDR" id="sensitivityLDR" min="100" max="400" value="200">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="thresholdBright">Threshold:</label>
+                    <div class="col-xs-2">
+                        <input type="number" class="form-control" name="thresholdBright" id="thresholdBright" min="0" max="500" value="50">
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <div class="col-xs-offset-3 col-xs-9">
-                        <input type="submit" class="btn btn-primary" value="Set">
+                        <input type="submit" class="btn btn-primary" value="Set"  onclick="saveConfig()">
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
         <div class="container" role="main">
             <h3 class="sub-header">Digit blanking</h3>
-            <form class="form-horizontal">
+            <div class="form-horizontal">
                 <div class="form-group">
                     <label class="control-label col-xs-3">Day blanking:</label>
                     <div class="col-xs-8">
@@ -215,14 +232,14 @@
                 </div>
                 <div class="form-group">
                     <div class="col-xs-offset-3 col-xs-9">
-                        <input type="submit" class="btn btn-primary" value="Set">
+                        <input type="submit" class="btn btn-primary" value="Set" onclick="saveConfigLDR()">
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
         <div class="container" role="main">
             <h3 class="sub-header">Back/Underlights</h3>
-            <form class="form-horizontal">
+            <div class="form-horizontal">
                 <div class="form-group">
                     <label class="control-label col-xs-3">Back light:</label>
                     <div class="col-xs-8">
@@ -265,11 +282,11 @@
                         <input type="submit" class="btn btn-primary" value="Set">
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
         <div class="container" role="main">
             <h3 class="sub-header">Security</h3>
-            <form class="form-horizontal">
+            <div class="form-horizontal">
                 <div class="form-group">
                     <label class="control-label col-xs-3">Web Authentication:</label>
                     <div class="col-xs-1">
@@ -300,16 +317,17 @@
                         <input type="submit" class="btn btn-primary" value="Set">
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
     </body>
 
 <script>
+    var localConfig;
     getClockConfig = function getClockConfig() {
         var deferred = $.Deferred();
         console.log('get clock values');
         var ajaxOptions = {
-            url: '/api/getTimeserver',
+            url: '/api/getConfig',
             type: 'GET',
             Accept: 'application/json; charset=utf-8'
         };
@@ -324,24 +342,41 @@
     };
 
     getConfig = function () {
-        getTimeServerConfig().then(function (config) {
-            $("#ntpPool").val(config.ntpPool);
-            $("#ntpUpdateInterval").val(config.ntpUpdateInterval);
-            $("#tzs").val(config.tzs);
+        getClockConfig().then(function (config) {
+            localConfig = config;
+            $("#minDim").val(config.minDim);
+            $("#sensitivityLDR").val(config.sensitivityLDR);
+            $("#thresholdBright").val(config.thresholdBright);
+            setCurrentRadioValue("#useLDR", "#useLDROff", config.useLDR);
         })
-            .then(() => removeLoader());
+        .then(() => removeLoader());
     };
 
-    postTimeServerConfig = function getTimeServerConfig() {
+    postConfig = function postConfig() {
         var deferred = $.Deferred();
-        console.log('post time server values');
+        console.log('post LDR config values');
+
         var postBody = {
-            ntpPool: $("#ntpPool").val(),
-            ntpUpdateInterval: $("#ntpUpdateInterval").val(),
-            tzs: $("#tzs").val()
         };
+
+        if (localConfig.minDim!=$("#minDim").val()) {
+            postBody["minDim"] = $("#minDim").val();
+        }
+
+        if (localConfig.sensitivityLDR!=$("#sensitivityLDR").val()) {
+            postBody["sensitivityLDR"] = $("#sensitivityLDR").val();
+        }
+
+        if (localConfig.thresholdBright!=$("#thresholdBright").val()) {
+            postBody["thresholdBright"] = $("#thresholdBright").val();
+        }
+
+        if (compareRadioChanged("#useLDR", localConfig.useLDR)) {
+            postBody["useLDR"] = getCurrentRadioValue("#useLDR");
+        }
+
         var ajaxOptions = {
-            url: '/api/postTimeserver',
+            url: '/api/postConfig',
             type: 'POST',
             data: JSON.stringify(postBody)
         };
@@ -357,9 +392,9 @@
 
     saveConfig = function () {
         addLoader();
-        postTimeServerConfig()
+        postConfig()
         .then(function (res) {
-            console.log("Saved config");
+            console.log("Saved LDR config");
             removeLoader();
         });
     };
@@ -372,6 +407,22 @@
         $("#loadingDiv").fadeOut(500, function () {
             $("#loadingDiv").remove();
         });
+    }
+
+    function compareRadioChanged(radioID, originalValue) {
+        return $(radioID).prop('checked') != originalValue
+    }
+
+    function getCurrentRadioValue(radioID) {
+        return $(radioID).prop('checked');
+    }
+
+    function setCurrentRadioValue(radioID, radioIDOff, newValue) {
+        if (newValue) {
+            $(radioID).prop('checked', true);
+        } else {
+            $(radioIDOff).prop('checked', true);
+        }
     }
 
     addLoader();

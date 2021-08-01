@@ -66,6 +66,4 @@ class NtpAsync
     void debugMsg(String message);
 };
 
-static NtpAsync ntpAsync;
-
 #endif
