@@ -5,8 +5,6 @@
 #include <ESPAsyncWebServer.h>
 #include "WiFi.h"
 
-extern NtpAsync ntpAsync;
-
 extern AsyncWebServer server;
 
 extern unsigned long nowMillis;
