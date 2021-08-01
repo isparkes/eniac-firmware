@@ -90,6 +90,10 @@
                             <td id="displaytime"></td>
                         </tr>
                         <tr>
+                            <td>Current LDR reading</td>
+                            <td id="ldrvalue"></td>
+                        </tr>
+                        <tr>
                             <td>Total Clock Hours</td>
                             <td id="uptime"></td>
                         </tr>
@@ -190,6 +194,7 @@
             $("#ontime").text(summary.ontime);
             $("#status").text(summary.status);
             $("#version").text(summary.version);
+            $("#ldrvalue").text(summary.ldrvalue);
 
             $("#heap").text(summary.heap);
             $("#freesketch").text(summary.freesketch);

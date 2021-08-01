@@ -33,8 +33,8 @@ void LDRManager::getDimmingFromLDR() {
     
     debugMsg("Raw _ldrValue: " + String(returnValue));
 
-    if (returnValue > (MIN_DIM_MAX - _cc->minDim)) {
-      returnValue = MIN_DIM_MAX - _cc->minDim;
+    if (returnValue > (LDR_VALUE_MAX - _cc->minDim)) {
+      returnValue = LDR_VALUE_MAX - _cc->minDim;
       debugMsg("Clamping _ldrValue to min: " + String(returnValue));
     }
     if (returnValue < 0) {
@@ -44,7 +44,7 @@ void LDRManager::getDimmingFromLDR() {
     _ldrValue = returnValue;
   } else {
       debugMsg("Not using _ldrValue setting to min: " + String(_cc->minDim));
-    _ldrValue = MIN_DIM_MAX - _cc->minDim;
+    _ldrValue = LDR_VALUE_MAX - _cc->minDim;
   }
 }
 

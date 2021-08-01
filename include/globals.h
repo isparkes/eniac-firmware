@@ -5,16 +5,26 @@
 #include <ESPAsyncWebServer.h>
 #include "WiFi.h"
 
-unsigned long previousMillisWiFi = 0;
+extern NtpAsync ntpAsync;
 
-spiffs_config_t* cc = &current_config;
+extern AsyncWebServer server;
 
-spiffs_stats_t* cs = &current_stats;
+extern unsigned long nowMillis;
+extern unsigned long lastMillis;
+extern unsigned long previousMillisWiFi;
+extern int lastSecond;
+extern boolean triggeredThisSec;
 
-// AsyncWebServer server(80);
+extern spiffs_config_t* cc;
 
-// NtpAsync ntpAsync;
+extern spiffs_stats_t* cs;
 
-volatile uint32_t val1 = 0;
-volatile uint32_t val2 = 0;
-volatile uint32_t val3 = 0;
+extern volatile uint32_t val1;
+extern volatile uint32_t val2;
+extern volatile uint32_t val3;
+
+extern String ssid;
+extern String password;
+extern bool credentialsReceived;
+
+extern int ldrValue;

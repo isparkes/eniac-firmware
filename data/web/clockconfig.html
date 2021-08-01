@@ -303,4 +303,79 @@
             </form>
         </div>
     </body>
+
+<script>
+    getClockConfig = function getClockConfig() {
+        var deferred = $.Deferred();
+        console.log('get clock values');
+        var ajaxOptions = {
+            url: '/api/getTimeserver',
+            type: 'GET',
+            Accept: 'application/json; charset=utf-8'
+        };
+        $.ajax(ajaxOptions).done(function (config) {
+            console.log("Received data: " + JSON.stringify(config));
+            deferred.resolve(config);
+        }).fail(function (jqXHR) {
+            console.log("Get api error " + jqXHR.status);
+            deferred.reject(jqXHR.status);
+        });
+        return deferred;
+    };
+
+    getConfig = function () {
+        getTimeServerConfig().then(function (config) {
+            $("#ntpPool").val(config.ntpPool);
+            $("#ntpUpdateInterval").val(config.ntpUpdateInterval);
+            $("#tzs").val(config.tzs);
+        })
+            .then(() => removeLoader());
+    };
+
+    postTimeServerConfig = function getTimeServerConfig() {
+        var deferred = $.Deferred();
+        console.log('post time server values');
+        var postBody = {
+            ntpPool: $("#ntpPool").val(),
+            ntpUpdateInterval: $("#ntpUpdateInterval").val(),
+            tzs: $("#tzs").val()
+        };
+        var ajaxOptions = {
+            url: '/api/postTimeserver',
+            type: 'POST',
+            data: JSON.stringify(postBody)
+        };
+        $.ajax(ajaxOptions).done(function (res) {
+            console.log("Saved config");
+            deferred.resolve(res);
+        }).fail(function (jqXHR) {
+            console.log("Post api error " + jqXHR.status);
+            deferred.reject(jqXHR.status);
+        });
+        return deferred;
+    };
+
+    saveConfig = function () {
+        addLoader();
+        postTimeServerConfig()
+        .then(function (res) {
+            console.log("Saved config");
+            removeLoader();
+        });
+    };
+
+    function addLoader() {
+        $('body').append('<div style="" id="loadingDiv"><div class="loader">Loading...</div></div>');
+    }
+
+    function removeLoader() {
+        $("#loadingDiv").fadeOut(500, function () {
+            $("#loadingDiv").remove();
+        });
+    }
+
+    addLoader();
+    getConfig();
+</script>
+
 </html>

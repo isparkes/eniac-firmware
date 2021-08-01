@@ -6,16 +6,17 @@
 #include "SpiffsStorage.h"
 
 // -------------------------------------------------------------------------------
-#define MIN_DIM_DEFAULT       1000  // The default minimum dim count
-#define MIN_DIM_MIN           800  // The minimum dim count
-#define MIN_DIM_MAX           4095 // The maximum dim count
+#define LDR_VALUE_MAX         4095 // The maximum LDR value - based on 12-bit ADC
 
-// -------------------------------------------------------------------------------
-#define SENSOR_SENSIT_MIN     100 // Sensor Sensitivity
+#define MIN_DIM_DEFAULT       20   // The default minimum dim count
+#define MIN_DIM_MIN           0    // The minimum dim count
+#define MIN_DIM_MAX           500  // The maximum dim count
+
+#define SENSOR_SENSIT_MIN     100  // Sensor Sensitivity
 #define SENSOR_SENSIT_MAX     400
-#define SENSOR_SENSIT_DEFAULT 300
+#define SENSOR_SENSIT_DEFAULT 200
 
-#define SENSOR_THRSH_MIN      0   // Bright is when we have LDR value = 0, when we read less than this value, we have full brightness
+#define SENSOR_THRSH_MIN      0    // Bright is when we have LDR value = 0, when we read less than this value, we have full brightness
 #define SENSOR_THRSH_MAX      500
 #define SENSOR_THRSH_DEFAULT  50
 

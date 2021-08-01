@@ -1,10 +1,10 @@
 #include "defs.h"
 #include "globals.h"
+#include "utilities.h"
 #include "WiFi.h"
 #include <ESPmDNS.h>
 #include "esp_wps.h"
 #include <ArduinoOTA.h>
-#include "utilities.h"
 #include <esp_task_wdt.h>
 #include "OLED.h"
 #include <AsyncElegantOTA.h>
@@ -37,7 +37,7 @@ RgbColor blue(0, 0, colorSaturation);
 RgbColor white(colorSaturation);
 RgbColor black(0);
 
-const int PWMFreq = 5000; /* 5 KHz */
+const int PWMFreq = 1000; /* 1 KHz */
 const int LDRPWMChannel = 0;
 const int PWMResolution = 12;
 const int MAX_DUTY_CYCLE = (int)(pow(2, PWMResolution) - 1);
@@ -322,11 +322,16 @@ void setup()
   debugMsg("Start up WebServer" );
 
   server.serveStatic("/", SPIFFS, "/web/").setDefaultFile("index.html");
+
   server.on("/api/getSummary", HTTP_GET, getSummaryDataHandler);
+  
   server.on("/api/getTimeserver", HTTP_GET, getTimeserverDataHandler);
   server.on("/api/postTimeserver", HTTP_POST, postTimeserverDataHandler);
+  
+  server.on("/api/getConfig", HTTP_GET, getConfigDataHandler);
+  server.on("/api/postConfig", HTTP_GET, postConfigDataHandler);
+
   server.on("/api/postWiFiCredentials", HTTP_POST, postWiFiDataHandler);
-  server.on("/api/putConfig", HTTP_GET, saveConfigDataHandler);
   server.on("/utils/resetWifi", HTTP_GET, resetWifiHandler);
   server.on("/utils/scanI2C", HTTP_GET, getI2CScanHandler);
   server.on("/utils/saveStats", HTTP_GET, saveStatsHandler);
@@ -386,7 +391,7 @@ void setup()
   // -------------------------------------------------------------------------
   
   // kick off NTP updates
-  unsigned long nowMillis = millis();
+  nowMillis = millis();
   ntpAsync.getTimeFromNTP(nowMillis);
 
   // debugMsg("Current uptime: " + String(cs->uptimeMins));
@@ -426,6 +431,7 @@ void setup()
   // -------------------------------------------------------------------------
   
   debugMsg("Start up LDR...");
+  cc->minDim = MIN_DIM_DEFAULT;
   cc->sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
   cc->sensitivityLDR = SENSOR_SENSIT_DEFAULT;
   cc->thresholdBright = SENSOR_THRSH_DEFAULT;
@@ -473,7 +479,7 @@ void performOncePerSecondProcessing() {
   val2 = decodeBCD(minute(), led1, led2);
   val3 = decodeBCD(second(), led1, led2);
 
-  int ldrVal = ldrManager.getLDRValue();
+  // debugMsg("LDR Reading: " + String(ldrValue));
 
   esp_task_wdt_reset();
 }
@@ -550,7 +556,10 @@ void loop()
   // -------------------------------------------------------------------------------
 
   ldrManager.getDimmingFromLDR();
-  ledcWrite(LDRPWMChannel, ldrManager.getLDRValue());
+  ldrValue = ldrManager.getLDRValue();
+
+  // set the digit brightness
+  ledcWrite(LDRPWMChannel, ldrValue);
 
   // -------------------------------------------------------------------------------
   
