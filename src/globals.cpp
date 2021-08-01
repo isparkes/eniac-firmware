@@ -1,4 +1,7 @@
 #include "globals.h"
+#include "defs.h"
+
+byte numberArray[DIGIT_COUNT];
 
 SPIFFS_CLOCK spiffsStorage;
 spiffs_config_t current_config;

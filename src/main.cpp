@@ -10,8 +10,8 @@
 #include <AsyncElegantOTA.h>
 #include "clock_timers.h"
 #include <ESP32Encoder.h>
-#include <NeoPixelBus.h>
 #include <LDRManager.h>
+#include <LEDManager.h>
 
 /*
   Change the definition of the WPS mode
@@ -26,16 +26,6 @@
 #define ESP_DEVICE_NAME "ESP STATION"
 
 static esp_wps_config_t config;
-
-NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> strip(PixelCount, PixelPin);
-
-#define colorSaturation 128
-
-RgbColor red(colorSaturation, 0, 0);
-RgbColor green(0, colorSaturation, 0);
-RgbColor blue(0, 0, colorSaturation);
-RgbColor white(colorSaturation);
-RgbColor black(0);
 
 const int PWMFreq = 1000; /* 1 KHz */
 const int LDRPWMChannel = 0;
@@ -103,38 +93,10 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
   }
 }
 
-void setPixels() {
-    strip.SetPixelColor(0, red);
-    strip.SetPixelColor(1, green);
-    strip.SetPixelColor(2, red);
-    strip.SetPixelColor(3, green);
-
-    strip.SetPixelColor(4, blue);
-
-    strip.SetPixelColor(5, red);
-    strip.SetPixelColor(6, green);
-    strip.SetPixelColor(7, red);
-    strip.SetPixelColor(8, green);
-
-    strip.SetPixelColor(9, blue);
-
-    strip.SetPixelColor(10, red);
-    strip.SetPixelColor(11, green);
-    strip.SetPixelColor(12, red);
-    strip.SetPixelColor(13, green);
-    strip.Show();
-}
-
 void setup()
 {
   Serial.begin(115200);
   delay(100);
-
-  // -------------------------------------------------------------------------
-
-  debugMsg("Start up neopixels");
-  strip.Begin();
-  setPixels();
 
   // -------------------------------------------------------------------------
 
@@ -146,6 +108,12 @@ void setup()
   debugMsg("Starting OLED");
   oled.setUp();
   oled.clearDisplay();
+
+  // -------------------------------------------------------------------------
+
+  debugMsg("Start up neopixels");
+  ledManager.setUp();
+  ledManager.setLDRRange(LDR_VALUE_MAX);
 
   // -------------------------------------------------------------------------
   
@@ -446,9 +414,97 @@ void setup()
 }
 
 // ************************************************************
+// Set the seconds tick led(s) and the back lights
+// ************************************************************
+void setLeds()
+{
+  unsigned int secsDelta;
+  int secsDeltaAbs = (nowMillis - lastMillis);
+
+  bool upOrDown = (second() % 2) == 0;
+  
+  if (upOrDown) {
+    secsDelta = (nowMillis - lastMillis);
+  } else {
+    secsDelta = 1000 - (nowMillis - lastMillis);
+  }
+
+  // --------------------------------------- separators --------------------------------------
+  
+  bool led1State;
+  bool led2State;
+
+  switch (cc->ledMode) {
+    case LED_RAILROAD:
+      {
+        if (upOrDown) {
+          led1State = true;
+          led2State = false;
+        } else {
+          led1State = false;
+          led2State = true;
+        }
+        break;
+      }
+    case LED_BLINK_SLOW:
+      {
+        if (upOrDown) {
+          led1State = true;
+          led2State = true;
+        } else {
+          led1State = false;
+          led2State = false;
+        }
+        break;
+      }
+    case LED_BLINK_FAST:
+      {
+        if (secsDeltaAbs < 500) {
+          led1State = true;
+          led2State = true;
+        } else {
+          led1State = false;
+          led2State = false;
+        }
+        break;
+      }
+    case LED_BLINK_DBL:
+      {
+        if ((secsDeltaAbs < 100) || ((secsDeltaAbs > 200) && (secsDeltaAbs < 300))) {
+          led1State = true;
+          led2State = true;
+        } else {
+          led1State = false;
+          led2State = false;
+        }
+        break;
+      }
+    case LED_ON:
+      {
+          led1State = true;
+          led2State = true;
+        break;
+      }
+    case LED_OFF:
+      {
+          led1State = false;
+          led2State = false;
+        break;
+      }
+  }
+
+  // output the backlight/underlight LEDs
+  ledManager.setPulseValue(secsDelta);  
+  ledManager.processLedStatus();
+}
+
+
+// ************************************************************
 // Called once per second
 // ************************************************************
 void performOncePerSecondProcessing() {
+  lastMillis = nowMillis;
+
   if (ntpAsync.getNextUpdate(nowMillis) < 0) {
     ntpAsync.getTimeFromNTP(nowMillis);
   }
@@ -468,6 +524,21 @@ void performOncePerSecondProcessing() {
   oled.setNTPStatus(ntpAsync.ntpTimeValid(nowMillis));
   oled.setTimeString(String(time_c));
   oled.setYStatus(SPIFFS.begin(false));
+
+  // ************************************************************
+  // Break the time into displayable digits
+  // ************************************************************
+  numberArray[5] = second() % 10;
+  numberArray[4] = second() / 10;
+  numberArray[3] = minute() % 10;
+  numberArray[2] = minute() / 10;
+  if (cc->hourMode) {
+    numberArray[1] = hourFormat12() % 10;
+    numberArray[0] = hourFormat12() / 10;
+  } else {
+    numberArray[1] = hour() % 10;
+    numberArray[0] = hour() / 10;
+  }
 
   // send time display to the drivers
   bool led1 = (second() % 2 == 0);
@@ -511,7 +582,6 @@ void performOncePerDayProcessing() {
 
 void loop()
 {
-//  ArduinoOTA.handle();
   AsyncElegantOTA.loop();
 
   // See if it is time to update the Clock
@@ -557,10 +627,12 @@ void loop()
 
   // set the digit brightness
   ledcWrite(LDRPWMChannel, ldrValue);
+  ledManager.setLDRValue(ldrValue);
 
   // -------------------------------------------------------------------------------
   
-  setPixels();
+  // output the backlight/underlight LEDs
+  setLeds();
 
   delay(10);
 }

@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 
+#define DIGIT_COUNT 6
+
 #define INTERVAL_WIFI 10000
 #define INTERVAL_WPS 10000
 #define INTERVAL_PORTAL 300000
@@ -27,9 +29,6 @@
 
 // #define DATA3_PIN 32
 // #define LATCH3_PIN 33
-
-const uint8_t PixelCount = 14;
-const uint8_t PixelPin = 13;
 
 const uint8_t clk1 = 17;
 const uint8_t BLANKPin = 18;

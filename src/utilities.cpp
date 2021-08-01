@@ -461,7 +461,7 @@ void resetAll() {
 }
 
 void getCredentialsHandler(AsyncWebServerRequest *request) {
-  debugMsg("Got api wifi credntials request");
+  debugMsg("Got api wifi credentials request");
   
   dumpArgs(request);
 

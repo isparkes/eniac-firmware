@@ -4,7 +4,9 @@
 #include "NtpAsync.h"
 #include <ESPAsyncWebServer.h>
 #include "WiFi.h"
+#include "defs.h"
 
+extern byte numberArray[DIGIT_COUNT];
 extern AsyncWebServer server;
 
 extern NtpAsync ntpAsync;

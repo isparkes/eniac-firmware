@@ -30,6 +30,7 @@ typedef struct {
   bool useLDR;
   int pirTimeout;
   bool usePIRPullup;
+  byte ledMode;
   byte backlightMode;
   bool useBLPulse;
   bool useBLDim;
@@ -51,7 +52,8 @@ typedef struct {
   byte alarmMode;
   byte alarmHour;
   byte alarmMinute;
-  byte sepMode;  
+  byte sepMode;
+  byte backlightDimFactor;
 } spiffs_config_t;
 
 typedef struct {
