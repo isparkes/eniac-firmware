@@ -14,13 +14,7 @@
 #define NORMAL_BL_OUTPUT          // REVERSE_BL_OUTPUT | NORMAL_BL_OUTPUT
 #define NORMAL_UL_OUTPUT          // REVERSE_UL_OUTPUT | NORMAL_UL_OUTPUT
 
-// FEATURE_SEP_LED: Two additional Neopixels in separator towers
-// DIGIT_COUNT Backlights and DIGIT_COUNT underlights + 2 separators in towers
-#ifdef FEATURE_SEP_LED
-  #define NUM_BL_PIXELS DIGIT_COUNT*2 + 2
-#else
-  #define NUM_BL_PIXELS DIGIT_COUNT*2
-#endif
+#define NUM_BL_PIXELS DIGIT_COUNT*2
 
 #ifdef FEATURE_EXT_LEDS
   #define NUM_UL_PIXELS DIGIT_COUNT
@@ -28,9 +22,14 @@
   #define NUM_UL_PIXELS 0
 #endif
 
-// Count it all up!
-// #define NUM_PIXELS_TOTAL NUM_BL_PIXELS+NUM_UL_PIXELS
-#define NUM_PIXELS_TOTAL 14
+// FEATURE_SEP_LED: Two additional Neopixels in separator towers
+// DIGIT_COUNT Backlights and DIGIT_COUNT underlights + 2 separators in towers
+// The array LED_ADDR spreads the neopixels out if needed
+#ifdef FEATURE_SEP_LED
+  #define NUM_PIXELS_TOTAL NUM_BL_PIXELS+NUM_UL_PIXELS+2
+#else
+  #define NUM_PIXELS_TOTAL NUM_BL_PIXELS+NUM_UL_PIXELS
+#endif
 
 // --------------------------- Strategy Backlights -------------------------------
 #define BACKLIGHT_MIN                   0

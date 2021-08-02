@@ -126,7 +126,7 @@ void LEDManager::setDayOfWeek(byte dow) {
 // Put the led buffers out
 // ************************************************************
 void LEDManager::outputLEDBuffer() {
-  for (int i = 0 ; i < NUM_BL_PIXELS ; i++) {
+  for (int i = 0 ; i < NUM_PIXELS_TOTAL - NUM_UL_PIXELS ; i++) {
 #ifdef REVERSE_BL_OUTPUT
     RgbColor color(ledRb[NUM_BL_PIXELS - i - 1], ledGb[NUM_BL_PIXELS - i - 1], ledBb[NUM_BL_PIXELS - i - 1]);
 #else
@@ -135,7 +135,7 @@ void LEDManager::outputLEDBuffer() {
     leds.SetPixelColor(i, color);
   }
   
-  for (int i = 0 ; i < DIGIT_COUNT ; i++) {
+  for (int i = 0 ; i < NUM_UL_PIXELS ; i++) {
 #ifdef REVERSE_UL_OUTPUT
     RgbColor color(ledRu[DIGIT_COUNT - i - 1], ledGu[DIGIT_COUNT - i - 1], ledBu[DIGIT_COUNT - i - 1]);
 #else

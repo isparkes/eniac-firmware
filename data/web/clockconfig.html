@@ -5,6 +5,7 @@
         <link href="http://www.open-rate.com/wl.css" rel="stylesheet" type="text/css">
         <script src="http://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ=" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+        <link href="css/clock-custom.css" rel="stylesheet">
         <title>Nixie Clock</title>
     </head>
     <body>
@@ -44,12 +45,12 @@
                     <label class="control-label col-xs-3">12H/24H mode:</label>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input type="radio" name="12h24hMode" value="12h">12H
+                            <input type="radio" name="12h24hMode" id="hourMode" value="12h">12H
                         </label>
                     </div>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input checked type="radio" name="12h24hMode" value="24h">24H
+                            <input checked type="radio" name="12h24hMode" id="hourModeOff" value="24h">24H
                         </label>
                     </div>
                 </div>
@@ -57,19 +58,19 @@
                     <label class="control-label col-xs-3">Blank leading zero:</label>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input type="radio" name="blankLeading" value="blank">Blank
+                            <input type="radio" name="blankLeading" id="blankLeading" value="blank">Blank
                         </label>
                     </div>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input checked type="radio" name="blankLeading" value="show">Show
+                            <input checked type="radio" name="blankLeading" id="blankLeadingOff" value="show">Show
                         </label>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="control-label col-xs-3">Date format:</label>
                     <div class="col-xs-2">
-                        <select class="form-control" name="dateFormat">
+                        <select class="form-control" name="dateFormat" id="dateFormat">
                             <option value="0">YY-MM-DD</option>
                             <option value="1">MM-DD-YY</option>
                             <option selected value="2">DD-MM-YY</option>
@@ -80,12 +81,12 @@
                     <label class="control-label col-xs-3">Scrollback effect:</label>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input type="radio" name="scrollback" value="on">On
+                            <input type="radio" name="scrollback" id="scrollback" value="on">On
                         </label>
                     </div>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input checked type="radio" name="scrollback" value="off">Off
+                            <input checked type="radio" name="scrollback" id="scrollbackOff" value="off">Off
                         </label>
                     </div>
                 </div>
@@ -99,12 +100,12 @@
                     <label class="control-label col-xs-3">Fade effect:</label>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input type="radio" name="fade" value="on">On
+                            <input type="radio" name="fade" id="fade" value="on">On
                         </label>
                     </div>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input checked type="radio" name="fade" value="off">Off
+                            <input checked type="radio" name="fade" id="fadeOff" value="off">Off
                         </label>
                     </div>
                 </div>
@@ -117,7 +118,7 @@
                 <div class="form-group">
                     <label class="control-label col-xs-3">Slots mode:</label>
                     <div class="col-xs-2">
-                        <select class="form-control" name="slotsMode">
+                        <select class="form-control" name="slotsMode" id="slotsMode">
                             <option value="0">No slots</option>
                             <option selected value="1">Scroll, scramble</option>
                         </select>
@@ -127,18 +128,18 @@
                     <label class="control-label col-xs-3">Suppress ACP when dimmed:</label>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input checked type="radio" name="suppressACP" value="on">On
+                            <input checked type="radio" name="suppressACP" id="suppressACP" value="on">On
                         </label>
                     </div>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input type="radio" name="suppressACP" value="off">Off
+                            <input type="radio" name="suppressACP" id="suppressACPOff" value="off">Off
                         </label>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-xs-offset-3 col-xs-9">
-                        <input type="submit" class="btn btn-primary" value="Set">
+                        <input type="submit" class="btn btn-primary" value="Set"  onclick="saveConfig()">
                     </div>
                 </div>
             </div>
@@ -195,7 +196,7 @@
                 <div class="form-group">
                     <label class="control-label col-xs-3">Day blanking:</label>
                     <div class="col-xs-8">
-                        <select class="form-control" name="dayBlanking">
+                        <select class="form-control" name="dayBlanking" id="dayBlanking">
                             <option selected value="0">Never blank</option>
                             <option value="1">Blank all day on weekends</option>
                             <option value="2">Blank all day on week days</option>
@@ -211,7 +212,7 @@
                 <div class="form-group">
                     <label class="control-label col-xs-3">Blank Mode:</label>
                     <div class="col-xs-8">
-                        <select class="form-control" name="blankMode">
+                        <select class="form-control" name="blankMode" id="blankMode">
                             <option value="0">Blank tubes only</option>
                             <option value="1">Blank LEDs only</option>
                             <option selected value="2">Blank tubes and LEDs</option>
@@ -305,7 +306,7 @@
                 </div>
                 <div class="form-group">
                     <div class="col-xs-offset-3 col-xs-9">
-                        <input type="submit" class="btn btn-primary" value="Set">
+                        <input type="submit" class="btn btn-primary" value="Set"  onclick="saveConfig()">
                     </div>
                 </div>
             </div>
@@ -340,7 +341,7 @@
                 </div>
                 <div class="form-group">
                     <div class="col-xs-offset-3 col-xs-9">
-                        <input type="submit" class="btn btn-primary" value="Set">
+                        <input type="submit" class="btn btn-primary" value="Set"  onclick="saveConfig()">
                     </div>
                 </div>
             </div>
@@ -370,10 +371,21 @@
     getConfig = function () {
         getClockConfig().then(function (config) {
             localConfig = config;
+
+            setCurrentRadioValue("#hourMode", "#hourModeOff", config.hourMode);
+            setCurrentRadioValue("#blankLeading", "#blankLeadingOff", config.blankLeading);
+            $("#dateFormat").val(config.dateFormat);
+            setCurrentRadioValue("#scrollback", "#scrollbackOff", config.scrollback);
+            $("#scrollSteps").val(config.scrollSteps);
+            setCurrentRadioValue("#fade", "#fadeOff", config.fade);
+            $("#fadeSteps").val(config.fadeSteps);
+            setCurrentRadioValue("#suppressACP", "#suppressACPOff", config.suppressACP);
+            $("#slotsMode").val(config.slotsMode);
+
+            setCurrentRadioValue("#useLDR", "#useLDROff", config.useLDR);
             $("#minDim").val(config.minDim);
             $("#sensitivityLDR").val(config.sensitivityLDR);
             $("#thresholdBright").val(config.thresholdBright);
-            setCurrentRadioValue("#useLDR", "#useLDROff", config.useLDR);
 
             $("#redCnl").val(config.redCnl);
             $("#grnCnl").val(config.grnCnl);
@@ -392,7 +404,48 @@
         var postBody = {
         };
 
+        // -------------- General --------------
+        if (compareRadioChanged("#hourMode", localConfig.hourMode)) {
+            postBody["hourMode"] = getCurrentRadioValue("#hourMode");
+        }
+
+        if (compareRadioChanged("#blankLeading", localConfig.blankLeading)) {
+            postBody["blankLeading"] = getCurrentRadioValue("#blankLeading");
+        }
+
+        if (localConfig.dateFormat!=$("#dateFormat").val()) {
+            postBody["dateFormat"] = $("#dateFormat").val();
+        }
+
+        if (compareRadioChanged("#scrollback", localConfig.scrollback)) {
+            postBody["scrollback"] = getCurrentRadioValue("#scrollback");
+        }
+
+        if (localConfig.scrollSteps!=$("#scrollSteps").val()) {
+            postBody["scrollSteps"] = $("#scrollSteps").val();
+        }
+
+        if (compareRadioChanged("#fade", localConfig.fade)) {
+            postBody["fade"] = getCurrentRadioValue("#fade");
+        }
+
+        if (localConfig.fadeSteps!=$("#fadeSteps").val()) {
+            postBody["fadeSteps"] = $("#fadeSteps").val();
+        }
+
+        if (compareRadioChanged("#suppressACP", localConfig.suppressACP)) {
+            postBody["suppressACP"] = getCurrentRadioValue("#suppressACP");
+        }
+
+        if (localConfig.slotsMode!=$("#slotsMode").val()) {
+            postBody["slotsMode"] = $("#slotsMode").val();
+        }
+
         // -------------- LDR --------------
+        if (compareRadioChanged("#useLDR", localConfig.useLDR)) {
+            postBody["useLDR"] = getCurrentRadioValue("#useLDR");
+        }
+
         if (localConfig.minDim!=$("#minDim").val()) {
             postBody["minDim"] = $("#minDim").val();
         }
@@ -403,10 +456,6 @@
 
         if (localConfig.thresholdBright!=$("#thresholdBright").val()) {
             postBody["thresholdBright"] = $("#thresholdBright").val();
-        }
-
-        if (compareRadioChanged("#useLDR", localConfig.useLDR)) {
-            postBody["useLDR"] = getCurrentRadioValue("#useLDR");
         }
 
         // -------------- LEDs --------------

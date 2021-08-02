@@ -31,3 +31,5 @@ extern String password;
 extern bool credentialsReceived;
 
 extern int ldrValue;
+
+extern bool blanked;

@@ -559,6 +559,10 @@ void performOncePerMinuteProcessing() {
 
   // Usage stats
   cs->uptimeMins++;
+
+  if (!blanked) {
+    cs->tubeOnTimeMins++;
+  }
 }
 
 // ************************************************************

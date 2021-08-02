@@ -210,10 +210,10 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   root["status"] = getStatusString();
   root["version"] = SOFTWARE_VERSION;
 
+  const char compile_date[] = __DATE__ " " __TIME__;
   root["heap"] = ESP.getFreeHeap();
   root["freesketch"] = ESP.getFreeSketchSpace();
   root["sketchsize"] = ESP.getSketchSize();
-  const char compile_date[] = __DATE__ " " __TIME__;
   root["compiledate"] = String(compile_date);
   root["cpufreq"] = ESP.getCpuFreqMHz();
   root["sdkversion"] = ESP.getSdkVersion();
@@ -266,21 +266,87 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
   JsonObject& json = jsonBuffer.parse(String(request->arg("body")));
 
   if (json.success()) {
-    if (json.containsKey("thresholdBright")) {
-      int newthresholdBright = json["thresholdBright"];
-      if (cc->thresholdBright != newthresholdBright) {
-        debugMsg("thresholdBright before: " + String(cc->thresholdBright));
-        cc->thresholdBright = newthresholdBright;
-        debugMsg("thresholdBright new minDim: " + String(cc->thresholdBright));
+
+    if (json.containsKey("hourMode")) {
+      int newhourMode = json["hourMode"];
+      if (cc->thresholdBright != newhourMode) {
+        debugMsg("hourMode before: " + String(cc->hourMode));
+        cc->thresholdBright = newhourMode;
+        debugMsg("Loaded new hourMode: " + String(cc->hourMode));
       }
     }
 
-    if (json.containsKey("sensitivityLDR")) {
-      int newsensitivityLDR = json["sensitivityLDR"];
-      if (cc->sensitivityLDR != newsensitivityLDR) {
-        debugMsg("sensitivityLDR before: " + String(cc->sensitivityLDR));
-        cc->sensitivityLDR = newsensitivityLDR;
-        debugMsg("Loaded new sensitivityLDR: " + String(cc->sensitivityLDR));
+    if (json.containsKey("blankLeading")) {
+      int newblankLeading = json["blankLeading"];
+      if (cc->blankLeading != newblankLeading) {
+        debugMsg("blankLeading before: " + String(cc->blankLeading));
+        cc->blankLeading = newblankLeading;
+        debugMsg("Loaded new blankLeading: " + String(cc->blankLeading));
+      }
+    }
+
+    if (json.containsKey("dateFormat")) {
+      int newdateFormat = json["dateFormat"];
+      if (cc->dateFormat != newdateFormat) {
+        debugMsg("dateFormat before: " + String(cc->dateFormat));
+        cc->dateFormat = newdateFormat;
+        debugMsg("Loaded new dateFormat: " + String(cc->dateFormat));
+      }
+    }
+
+    if (json.containsKey("scrollback")) {
+      int newscrollback = json["scrollback"];
+      if (cc->scrollback != newscrollback) {
+        debugMsg("scrollback before: " + String(cc->scrollback));
+        cc->scrollback = newscrollback;
+        debugMsg("Loaded new scrollback: " + String(cc->scrollback));
+      }
+    }
+
+    if (json.containsKey("scrollSteps")) {
+      int newscrollSteps = json["scrollSteps"];
+      if (cc->scrollSteps != newscrollSteps) {
+        debugMsg("scrollSteps before: " + String(cc->scrollSteps));
+        cc->scrollSteps = newscrollSteps;
+        debugMsg("Loaded new scrollSteps: " + String(cc->scrollSteps));
+      }
+    }
+
+    if (json.containsKey("fade")) {
+      int newfade = json["fade"];
+      if (cc->fade != newfade) {
+        debugMsg("fade before: " + String(cc->fade));
+        cc->fade = newfade;
+        debugMsg("Loaded new fade: " + String(cc->fade));
+      }
+    }
+
+    if (json.containsKey("suppressACP")) {
+      int newsuppressACP = json["suppressACP"];
+      if (cc->suppressACP != newsuppressACP) {
+        debugMsg("suppressACP before: " + String(cc->suppressACP));
+        cc->suppressACP = newsuppressACP;
+        debugMsg("Loaded new suppressACP: " + String(cc->suppressACP));
+      }
+    }
+
+    if (json.containsKey("slotsMode")) {
+      int newslotsMode = json["slotsMode"];
+      if (cc->slotsMode != newslotsMode) {
+        debugMsg("slotsMode before: " + String(cc->slotsMode));
+        cc->slotsMode = newslotsMode;
+        debugMsg("Loaded new slotsMode: " + String(cc->slotsMode));
+      }
+    }
+
+    // ------------------------------------------------------------
+
+    if (json.containsKey("useLDR")) {
+      int newUseLDR = json["useLDR"].as<bool>();
+      if (cc->useLDR != newUseLDR) {
+        debugMsg("useLDR before: " + String(cc->useLDR));
+        cc->useLDR = newUseLDR;
+        debugMsg("Loaded new useLDR: " + String(cc->useLDR));
       }
     }
 
@@ -293,12 +359,21 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
       }
     }
 
-    if (json.containsKey("useLDR")) {
-      int newUseLDR = json["useLDR"].as<bool>();
-      if (cc->useLDR != newUseLDR) {
-        debugMsg("useLDR before: " + String(cc->useLDR));
-        cc->useLDR = newUseLDR;
-        debugMsg("Loaded new useLDR: " + String(cc->useLDR));
+    if (json.containsKey("thresholdBright")) {
+      int newthresholdBright = json["thresholdBright"];
+      if (cc->thresholdBright != newthresholdBright) {
+        debugMsg("thresholdBright before: " + String(cc->thresholdBright));
+        cc->thresholdBright = newthresholdBright;
+        debugMsg("Loaded new thresholdBright: " + String(cc->thresholdBright));
+      }
+    }
+
+    if (json.containsKey("sensitivityLDR")) {
+      int newsensitivityLDR = json["sensitivityLDR"];
+      if (cc->sensitivityLDR != newsensitivityLDR) {
+        debugMsg("sensitivityLDR before: " + String(cc->sensitivityLDR));
+        cc->sensitivityLDR = newsensitivityLDR;
+        debugMsg("Loaded new sensitivityLDR: " + String(cc->sensitivityLDR));
       }
     }
 

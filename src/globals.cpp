@@ -30,3 +30,4 @@ String ssid = "";
 String password = "";
 bool credentialsReceived = false;
 
+bool blanked;
