@@ -278,11 +278,8 @@ void setup()
     ntpAsync.setNtpPool(cc->ntpPool);
     ntpAsync.setUpdateInterval(cc->ntpUpdateInterval);
   } else {
-    debugMsg("SPIFFS storage: read config failed");
-    cc->tzs = TIME_ZONE_STRING_DEFAULT;
-    cc->ntpPool = NTP_POOL_DEFAULT;
-    cc->ntpUpdateInterval = NTP_UPDATE_INTERVAL_DEFAULT;
-    spiffsStorage.saveConfigToSpiffs(cc);
+    debugMsg("SPIFFS storage: read config failed - do factory reset");
+    resetOptions();
   }
 
   // -------------------------------------------------------------------------

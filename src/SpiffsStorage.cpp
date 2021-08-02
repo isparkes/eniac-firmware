@@ -182,6 +182,9 @@ bool SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
         spiffs_config->sepMode = json["sepMode"];
         debugMsg("Loaded sepMode: " + String(spiffs_config->sepMode));
 
+        spiffs_config->wasSetup = json["wasSetup"].as<bool>();
+        debugMsg("Loaded wasSetup: " + String(spiffs_config->wasSetup));
+
         loaded = true;
       }
       else

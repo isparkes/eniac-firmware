@@ -29,7 +29,7 @@ void LDRManager::getDimmingFromLDR() {
     double offset = cc->thresholdBright;
     double factor = cc->sensitivityLDR / 200.0;
 
-    int returnValue = (sensorLDRSmoothed + offset) / factor;
+    int returnValue = (sensorLDRSmoothed - offset) * factor;
     
     debugMsg("Raw _ldrValue: " + String(returnValue));
 

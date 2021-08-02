@@ -232,7 +232,7 @@
                 </div>
                 <div class="form-group">
                     <div class="col-xs-offset-3 col-xs-9">
-                        <input type="submit" class="btn btn-primary" value="Set" onclick="saveConfigLDR()">
+                        <input type="submit" class="btn btn-primary" value="Set" onclick="saveConfig()">
                     </div>
                 </div>
             </div>
@@ -243,13 +243,11 @@
                 <div class="form-group">
                     <label class="control-label col-xs-3">Back light:</label>
                     <div class="col-xs-8">
-                        <select class="form-control" name="backlightMode">
-                            <option value="0">Fixed RGB backlight, no dimming</option>
-                            <option value="1">Pulsing RGB backlight, no dimming</option>
-                            <option value="2">Cycling RGB backlight, no dimming</option>
-                            <option value="3">Fixed RGB backlight, dims with ambient light</option>
-                            <option value="4">Pulsing RGB backlight, dims with ambient light</option>
-                            <option selected value="5">Cycling RGB backlight, dims with ambient light</option>
+                        <select class="form-control" name="backlightMode" id="backlightMode">
+                            <option value="0">Fixed RGB backlight</option>
+                            <option value="1">Cycling RGB backlight</option>
+                            <option value="2">Colortime RGB backlight</option>
+                            <option value="3">Day of Week RGB backlight</option>
                         </select>
                     </div>
                 </div>
@@ -272,10 +270,38 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label class="control-label col-xs-3">Dim Backlights:</label>
+                    <div class="col-xs-1">
+                        <label class="radio-inline">
+                            <input type="radio" name="useBLDim" id="useBLDim" value="on">On
+                        </label>
+                    </div>
+                    <div class="col-xs-1">
+                        <label class="radio-inline">
+                            <input type="radio" name="useBLDim" id="useBLDimOff" value="off">Off
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-xs-3">Pulse Backlights:</label>
+                    <div class="col-xs-1">
+                        <label class="radio-inline">
+                            <input type="radio" name="useBLPulse" id="useBLPulse" value="on">On
+                        </label>
+                    </div>
+                    <div class="col-xs-1">
+                        <label class="radio-inline">
+                            <input type="radio" name="useBLPulse" id="useBLPulseOff" value="off">Off
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
                     <label class="control-label col-xs-3" for="cycleSpeed">Backlight Cycle Speed:</label>
                     <div class="col-xs-2">
                         <input type="number" class="form-control" name="cycleSpeed" id="cycleSpeed" min="2" max="64" value="10">
                     </div>
+                
                 </div>
                 <div class="form-group">
                     <div class="col-xs-offset-3 col-xs-9">
@@ -348,6 +374,13 @@
             $("#sensitivityLDR").val(config.sensitivityLDR);
             $("#thresholdBright").val(config.thresholdBright);
             setCurrentRadioValue("#useLDR", "#useLDROff", config.useLDR);
+
+            $("#redCnl").val(config.redCnl);
+            $("#grnCnl").val(config.grnCnl);
+            $("#bluCnl").val(config.bluCnl);
+            $("#cycleSpeed").val(config.cycleSpeed);
+            setCurrentRadioValue("#useBLDim", "#useBLDimOff", config.useBLDim);
+            setCurrentRadioValue("#useBLPulse", "#useBLPulseOff", config.useBLPulse);
         })
         .then(() => removeLoader());
     };
@@ -359,6 +392,7 @@
         var postBody = {
         };
 
+        // -------------- LDR --------------
         if (localConfig.minDim!=$("#minDim").val()) {
             postBody["minDim"] = $("#minDim").val();
         }
@@ -373,6 +407,16 @@
 
         if (compareRadioChanged("#useLDR", localConfig.useLDR)) {
             postBody["useLDR"] = getCurrentRadioValue("#useLDR");
+        }
+
+        // -------------- LEDs --------------
+
+        if (compareRadioChanged("#useBLDim", localConfig.useBLDim)) {
+            postBody["useBLDim"] = getCurrentRadioValue("#useBLDim");
+        }
+
+        if (compareRadioChanged("#useBLPulse", localConfig.useBLPulse)) {
+            postBody["useBLPulse"] = getCurrentRadioValue("#useBLPulse");
         }
 
         var ajaxOptions = {

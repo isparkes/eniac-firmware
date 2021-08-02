@@ -101,8 +101,13 @@ String secsToReadableString (long secsValue) {
     uptimeString += upMins; 
     uptimeString += " m ";
   }
-  uptimeString += secsValue; 
-  uptimeString += " s";
+  if (secsValue > 0) {
+    uptimeString += secsValue; 
+    uptimeString += " s";
+  }
+  if (uptimeString == "") {
+    uptimeString = "0 s";
+  }
 
   return uptimeString;
 }
@@ -197,17 +202,19 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   root["nextupdate"] = secsToReadableString(absNextUpdate) + overdueInd;
   root["displaytime"] = timeToReadableString(year(),month(),day(),hour(),minute(),second());
 
-  root["ldrvalue"] = ldrValue;
+  float ldrPerc = (4095 - ldrValue) / 4095.0 * 100.0;
+  root["ldrvalue"] = String(ldrPerc, 2) + "% (" + String(ldrValue) + ")";
 
-  root["uptime"] = cs->uptimeMins;
-  root["ontime"] = cs->tubeOnTimeMins;
+  root["uptime"] = secsToReadableString(cs->uptimeMins * 60);
+  root["ontime"] = secsToReadableString(cs->tubeOnTimeMins * 60);
   root["status"] = getStatusString();
   root["version"] = SOFTWARE_VERSION;
 
   root["heap"] = ESP.getFreeHeap();
   root["freesketch"] = ESP.getFreeSketchSpace();
   root["sketchsize"] = ESP.getSketchSize();
-  root["compiledate"] = String(CONFIG_APP_COMPILE_TIME_DATE);
+  const char compile_date[] = __DATE__ " " __TIME__;
+  root["compiledate"] = String(compile_date);
   root["cpufreq"] = ESP.getCpuFreqMHz();
   root["sdkversion"] = ESP.getSdkVersion();
   root["sketchmd5"] = ESP.getSketchMD5();
@@ -237,6 +244,14 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["minDim"] = cc->minDim;
   root["thresholdBright"] = cc->thresholdBright;
   root["sensitivityLDR"] = cc->sensitivityLDR;
+
+  root["backlightMode"] = cc->backlightMode;
+  root["redCnl"] = cc->redCnl;
+  root["grnCnl"] = cc->grnCnl;
+  root["bluCnl"] = cc->bluCnl;
+  root["cycleSpeed"] = cc->cycleSpeed;
+  root["useBLDim"] = cc->useBLDim;
+  root["useBLPulse"] = cc->useBLPulse;
 
   response->setLength();
   request->send(response);
@@ -284,6 +299,24 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
         debugMsg("useLDR before: " + String(cc->useLDR));
         cc->useLDR = newUseLDR;
         debugMsg("Loaded new useLDR: " + String(cc->useLDR));
+      }
+    }
+
+    if (json.containsKey("useBLDim")) {
+      int newUseBLDim = json["useBLDim"].as<bool>();
+      if (cc->useBLDim != newUseBLDim) {
+        debugMsg("useBLDim before: " + String(cc->useBLDim));
+        cc->useBLDim = newUseBLDim;
+        debugMsg("Loaded new useBLDim: " + String(cc->useBLDim));
+      }
+    }
+
+    if (json.containsKey("useBLPulse")) {
+      int newUseBLPulse = json["useBLDim"].as<bool>();
+      if (cc->useBLPulse != newUseBLPulse) {
+        debugMsg("useBLPulse before: " + String(cc->useBLPulse));
+        cc->useBLPulse = newUseBLPulse;
+        debugMsg("Loaded new useBLPulse: " + String(cc->useBLPulse));
       }
     }
 

@@ -54,6 +54,7 @@ typedef struct {
   byte alarmMinute;
   byte sepMode;
   byte backlightDimFactor;
+  bool wasSetup;
 } spiffs_config_t;
 
 typedef struct {
