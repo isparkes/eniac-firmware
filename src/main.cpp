@@ -379,14 +379,14 @@ void setup()
   debugMsg("Start up GPIOs");
   pinMode(LED_PIN, OUTPUT);
 
-  pinMode(clk1, OUTPUT);
+  pinMode(CLKPin, OUTPUT);
   pinMode(BLANKPin, OUTPUT);
-  pinMode(data1, OUTPUT);
-  pinMode(latch1, OUTPUT);
-  pinMode(data2, OUTPUT);
-  pinMode(latch2, OUTPUT);
-  pinMode(data3, OUTPUT);
-  pinMode(latch3, OUTPUT);
+  pinMode(DATA1Pin, OUTPUT);
+  pinMode(LATCH1Pin, OUTPUT);
+  pinMode(DATA2Pin, OUTPUT);
+  pinMode(LATCH2Pin, OUTPUT);
+  pinMode(DATA3Pin, OUTPUT);
+  pinMode(LATCH3Pin, OUTPUT);
 
   ledcSetup(LDRPWMChannel, PWMFreq, PWMResolution);
   ledcAttachPin(BLANKPin, LDRPWMChannel);
@@ -520,7 +520,6 @@ void performOncePerSecondProcessing() {
   oled.setBlankStatus(false);
   oled.setNTPStatus(ntpAsync.ntpTimeValid(nowMillis));
   oled.setTimeString(String(time_c));
-  oled.setYStatus(SPIFFS.begin(false));
 
   // ************************************************************
   // Break the time into displayable digits
@@ -619,7 +618,8 @@ void loop()
 
   // Touch sensor
   #define TOUCH_THRESHOLD 20
-  oled.setXStatus(touchRead(4) > TOUCH_THRESHOLD);
+  oled.setXStatus(touchRead(btn1) > TOUCH_THRESHOLD);
+  oled.setYStatus(touchRead(btn2) > TOUCH_THRESHOLD);
 
   // -------------------------------------------------------------------------------
 

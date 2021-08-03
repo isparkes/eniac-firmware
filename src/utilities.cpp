@@ -218,7 +218,7 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   root["cpufreq"] = ESP.getCpuFreqMHz();
   root["sdkversion"] = ESP.getSdkVersion();
   root["sketchmd5"] = ESP.getSketchMD5();
-  root["cyclecount"] = ESP.getCycleCount();
+//  root["cyclecount"] = ESP.getCycleCount(); // Doesn't seem to deliver any real information
 
   response->setLength();
   request->send(response);
@@ -536,17 +536,15 @@ void resetOptions() {
   cc->grnCnl = COLOUR_GRN_CNL_DEFAULT;
   cc->bluCnl = COLOUR_BLU_CNL_DEFAULT;
   cc->cycleSpeed = CYCLE_SPEED_DEFAULT;
-//  cc->backlightDimFactor = BACKLIGHT_DIM_FACTOR_DEFAULT;
+  cc->backlightDimFactor = BACKLIGHT_DIM_FACTOR_DEFAULT;
 //  cc->extDimFactor = EXT_DIM_FACTOR_DEFAULT;
 //  cc->separatorDimFactor = SEPARATOR_DIM_FACTOR_DEFAULT;
-//  cc->ledMode = LED_BLINK_DEFAULT;
+  cc->ledMode = LED_BLINK_DEFAULT;
 
   cc->blankMode = BLANK_MODE_DEFAULT;
   cc->blankHourStart = 0;
   cc->blankHourEnd = 7;
 
-  cc->useLDR = USE_LDR_DEFAULT;
-  
   cc->pirTimeout = PIR_TIMEOUT_DEFAULT;
   cc->usePIRPullup = USE_PIR_PULLUP_DEFAULT;
   
@@ -557,8 +555,8 @@ void resetOptions() {
   // setWebUserName(WEB_USERNAME_DEFAULT);
   // setWebPassword(WEB_PASSWORD_DEFAULT);
   
-  cc->antiGhost = ANTI_GHOST_DEFAULT;
   cc->testMode = true;
+  cc->wasSetup = true;
 
   spiffsStorage.saveConfigToSpiffs(cc);
   debugMsg("Saved factory config");

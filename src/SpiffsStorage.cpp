@@ -146,9 +146,6 @@ bool SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
         spiffs_config->usePIRPullup = json["usePIRPullup"];
         debugMsg("Loaded usePIRPullup: " + String(spiffs_config->usePIRPullup));
 
-        spiffs_config->testMode = json["testMode"].as<bool>();
-        debugMsg("Loaded testMode: " + String(spiffs_config->testMode));
-
         spiffs_config->webAuthentication = json["webAuthentication"].as<bool>();
         debugMsg("Loaded webAuthentication: " + String(spiffs_config->webAuthentication));
 
@@ -157,12 +154,6 @@ bool SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
 
         spiffs_config->webPassword = json["webPassword"].as<String>();
         debugMsg("Loaded webPassword: " + spiffs_config->webPassword);
-
-        spiffs_config->antiGhost = json["antiGhost"];
-        debugMsg("Loaded antiGhost: " + String(spiffs_config->antiGhost));
-
-        spiffs_config->dpEnable = json["dpEnable"];
-        debugMsg("Loaded dpEnable: " + String(spiffs_config->dpEnable));
 
         spiffs_config->acpMode = json["acpMode"];
         debugMsg("Loaded acpMode: " + String(spiffs_config->acpMode));
@@ -181,6 +172,9 @@ bool SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
 
         spiffs_config->sepMode = json["sepMode"];
         debugMsg("Loaded sepMode: " + String(spiffs_config->sepMode));
+
+        spiffs_config->testMode = json["testMode"].as<bool>();
+        debugMsg("Loaded testMode: " + String(spiffs_config->testMode));
 
         spiffs_config->wasSetup = json["wasSetup"].as<bool>();
         debugMsg("Loaded wasSetup: " + String(spiffs_config->wasSetup));
@@ -236,18 +230,18 @@ void SPIFFS_CLOCK::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
   json["sensorSmoothCountLDR"] = spiffs_config->sensorSmoothCountLDR;
   json["slotsMode"] = spiffs_config->slotsMode;
   json["usePIRPullup"] = spiffs_config->usePIRPullup;
-  json["testMode"] = spiffs_config->testMode;
   json["webAuthentication"] = spiffs_config->webAuthentication;
   json["webUsername"] = spiffs_config->webUsername;
   json["webPassword"] = spiffs_config->webPassword;
-  json["antiGhost"] = spiffs_config->antiGhost;
-  json["dpEnable"] = spiffs_config->dpEnable;
   json["acpMode"] = spiffs_config->acpMode;
   json["pirBlankMode"] = spiffs_config->pirBlankMode;
   json["alarmMode"] = spiffs_config->alarmMode;
   json["alarmHour"] = spiffs_config->alarmHour;
   json["alarmMinute"] = spiffs_config->alarmMinute;
   json["sepMode"] = spiffs_config->sepMode;
+
+  json["testMode"] = spiffs_config->testMode;
+  json["wasSetup"] = spiffs_config->wasSetup;
 
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile)
@@ -263,50 +257,6 @@ void SPIFFS_CLOCK::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
   json.printTo(configFile);
   configFile.close();
   debugMsg("Saved config");
-}
-
-JsonObject &SPIFFS_CLOCK::getConfigAsJsonObject(spiffs_config_t *spiffs_config)
-{
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &json = jsonBuffer.createObject();
-  json["ntp_pool"] = spiffs_config->ntpPool;
-  json["ntp_update_interval"] = spiffs_config->ntpUpdateInterval;
-  json["time_zone_string"] = spiffs_config->tzs;
-  json["hourMode"] = spiffs_config->hourMode;
-  json["blankLeading"] = spiffs_config->blankLeading;
-  json["dateFormat"] = spiffs_config->dateFormat;
-  json["dayBlanking"] = spiffs_config->dayBlanking;
-  json["fade"] = spiffs_config->fade;
-  json["scrollback"] = spiffs_config->scrollback;
-  json["fadeSteps"] = spiffs_config->fadeSteps;
-  json["scrollSteps"] = spiffs_config->scrollSteps;
-  json["suppressACP"] = spiffs_config->suppressACP;
-  json["minDim"] = spiffs_config->minDim;
-  json["backlightMode"] = spiffs_config->backlightMode;
-  json["redCnl"] = spiffs_config->redCnl;
-  json["grnCnl"] = spiffs_config->grnCnl;
-  json["bluCnl"] = spiffs_config->bluCnl;
-  json["blankMode"] = spiffs_config->blankMode;
-  json["blankHourStart"] = spiffs_config->blankHourStart;
-  json["blankHourEnd"] = spiffs_config->blankHourEnd;
-  json["cycleSpeed"] = spiffs_config->cycleSpeed;
-  json["pirTimeout"] = spiffs_config->pirTimeout;
-  json["useLDR"] = spiffs_config->useLDR;
-  json["slotsMode"] = spiffs_config->slotsMode;
-  json["usePIRPullup"] = spiffs_config->usePIRPullup;
-  json["testMode"] = spiffs_config->testMode;
-  json["webAuthentication"] = spiffs_config->webAuthentication;
-  json["webUsername"] = spiffs_config->webUsername;
-  json["webPassword"] = spiffs_config->webPassword;
-  json["antiGhost"] = spiffs_config->antiGhost;
-  json["dpEnable"] = spiffs_config->dpEnable;
-  json["acpMode"] = spiffs_config->acpMode;
-  json["pirBlankMode"] = spiffs_config->pirBlankMode;
-  json["alarmMode"] = spiffs_config->alarmMode;
-  json["alarmHour"] = spiffs_config->alarmHour;
-  json["alarmMinute"] = spiffs_config->alarmMinute;
-  json["sepMode"] = spiffs_config->sepMode;
-  return json;
 }
 
 // ************************************************************

@@ -41,12 +41,9 @@ typedef struct {
   byte slotsMode;
   bool blankLeading;
   byte dateFormat;
-  bool testMode;
   bool webAuthentication;
   String webUsername;
   String webPassword;
-  byte antiGhost;
-  byte dpEnable;
   byte acpMode;
   byte pirBlankMode;
   byte alarmMode;
@@ -54,6 +51,8 @@ typedef struct {
   byte alarmMinute;
   byte sepMode;
   byte backlightDimFactor;
+  
+  bool testMode;
   bool wasSetup;
 } spiffs_config_t;
 

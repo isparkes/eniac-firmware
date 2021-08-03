@@ -43,12 +43,12 @@ void IRAM_ATTR shiftOut24H(uint32_t _val1) {
   uint8_t i;
 
   for (i = 0; i < 24; i++) {
-    digitalWrite(data1, !!(_val1 & (1 << (23 - i))));
-    digitalWrite(clk1, HIGH);
-    digitalWrite(clk1, LOW);
+    digitalWrite(DATA1Pin, !!(_val1 & (1 << (23 - i))));
+    digitalWrite(CLKPin, HIGH);
+    digitalWrite(CLKPin, LOW);
   }
-  digitalWrite(latch1, HIGH);
-  digitalWrite(latch1, LOW);
+  digitalWrite(LATCH1Pin, HIGH);
+  digitalWrite(LATCH1Pin, LOW);
 }
 
 // ************************************************************
@@ -58,12 +58,12 @@ void IRAM_ATTR shiftOut24M(uint32_t _val1) {
   uint8_t i;
 
   for (i = 0; i < 24; i++) {
-    digitalWrite(data2, !!(_val1 & (1 << (23 - i))));
-    digitalWrite(clk1, HIGH);
-    digitalWrite(clk1, LOW);
+    digitalWrite(DATA2Pin, !!(_val1 & (1 << (23 - i))));
+    digitalWrite(CLKPin, HIGH);
+    digitalWrite(CLKPin, LOW);
   }
-  digitalWrite(latch2, HIGH);
-  digitalWrite(latch2, LOW);
+  digitalWrite(LATCH2Pin, HIGH);
+  digitalWrite(LATCH2Pin, LOW);
 }
 
 // ************************************************************
@@ -73,12 +73,12 @@ void IRAM_ATTR shiftOut24S(uint32_t _val1) {
   uint8_t i;
 
   for (i = 0; i < 24; i++) {
-    digitalWrite(data3, !!(_val1 & (1 << (23 - i))));
-    digitalWrite(clk1, HIGH);
-    digitalWrite(clk1, LOW);
+    digitalWrite(DATA3Pin, !!(_val1 & (1 << (23 - i))));
+    digitalWrite(CLKPin, HIGH);
+    digitalWrite(CLKPin, LOW);
   }
-  digitalWrite(latch3, HIGH);
-  digitalWrite(latch3, LOW);
+  digitalWrite(LATCH3Pin, HIGH);
+  digitalWrite(LATCH3Pin, LOW);
 }
 
 void IRAM_ATTR onTimer1() {

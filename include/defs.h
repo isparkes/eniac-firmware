@@ -18,41 +18,32 @@
 
 #define COUNTS_PER_DIGIT 20
 
-// #define CLK_PIN 17
-// #define BLANK_PIN 18
+#define CLKPin    17
+#define BLANKPin  18
 
-// #define DATA1_PIN 23
-// #define LATCH1_PIN 25
+#define DATA1Pin  23
+#define LATCH1Pin 25
 
-// #define DATA2_PIN 26
-// #define LATCH2_PIN 27
+#define DATA2Pin  26
+#define LATCH2Pin 27
 
-// #define DATA3_PIN 32
-// #define LATCH3_PIN 33
+#define DATA3Pin  32
+#define LATCH3Pin 33
 
-const uint8_t clk1 = 17;
-const uint8_t BLANKPin = 18;
+#define encoderA  34
+#define encoderB  35
 
-const uint8_t data1 = 23;
-const uint8_t latch1 = 25;
+#define SDAint    21
+#define SCLint    22
 
-const uint8_t data2 = 26;
-const uint8_t latch2 = 27;
+#define PIRPin    19
 
-const uint8_t data3 = 32;
-const uint8_t latch3 = 33;
+#define btn1      15
+#define btn2      4
 
-const uint8_t encoderA = 34;
-const uint8_t encoderB = 35;
+#define LDRPin    34
 
-const uint8_t SDAinternal = 21;
-const uint8_t SCLinternal = 22;
-
-const uint8_t PIRPin = 19;
-
-const uint8_t btn1 = 15;
-
-const uint8_t LDRPin = 34;
+// -------------------------------------------------------------------------------
 
 #define HOUR_MODE_DEFAULT               false
 #define LEAD_BLANK_DEFAULT              false
