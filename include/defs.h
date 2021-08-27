@@ -18,11 +18,11 @@
 
 #define COUNTS_PER_DIGIT 20
 
-#define CLKPin    17
+#define CLKPin    19
 #define BLANKPin  18
 
 #define DATA1Pin  23
-#define LATCH1Pin 25
+#define LATCH1Pin 17
 
 #define DATA2Pin  26
 #define LATCH2Pin 27
@@ -33,10 +33,11 @@
 #define encoderA  34
 #define encoderB  35
 
+// Internally defined
 #define SDAint    21
 #define SCLint    22
 
-#define PIRPin    19
+#define PIRPin    35
 
 #define btn1      15
 #define btn2      4
