@@ -39,8 +39,10 @@
 
 #define PIRPin    35
 
+// Touch capable buttons
 #define btn1      15
 #define btn2      4
+#define btn3      14
 
 #define LDRPin    34
 

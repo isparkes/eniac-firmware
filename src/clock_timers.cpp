@@ -105,13 +105,17 @@ void IRAM_ATTR onTimer1() {
 // ************************************************************
 void startTimers() {
   timer0 = timerBegin(0, 80, true);
-  timerAttachInterrupt(timer0, &onTimer0, true);
+  timerAttachInterrupt(timer0, &onTimer0, false);
   timerAlarmWrite(timer0, 1000, true);
+  // https://community.platformio.org/t/hardware-timer-issue-with-esp32/22047/10
+  delayMicroseconds(0);
   timerAlarmEnable(timer0);
 
   timer1 = timerBegin(1, 80, true);
-  timerAttachInterrupt(timer1, &onTimer1, true);
+  timerAttachInterrupt(timer1, &onTimer1, false);
   timerAlarmWrite(timer1, 50000, true);
+  // https://community.platformio.org/t/hardware-timer-issue-with-esp32/22047/10
+  delayMicroseconds(0);
   timerAlarmEnable(timer1);
 
   setLedFlashType(1);
@@ -133,4 +137,8 @@ void setLedFlashType(byte flashType) {
       break;
     }
   }
+}
+
+int getCount0() {
+  return count0;
 }

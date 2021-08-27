@@ -215,6 +215,31 @@ void LEDManager::processLedStatus() {
 }
 
 // ************************************************************
+// Process the options and create a new buffer
+// ************************************************************
+void LEDManager::setTestValue(byte value) {
+  // -------------------------------- Backlights / Underlights -------------------------------
+
+  byte numVal = value%10;
+  for (byte i = 0 ; i < DIGIT_COUNT ; i++) {
+    setBacklightLED(i, 
+                    getLEDAdjustedBL(testColoursR[numVal]),
+                    getLEDAdjustedBL(testColoursG[numVal]),
+                    getLEDAdjustedBL(testColoursB[numVal]));
+    setUnderlightLED(i, 
+                    getLEDAdjustedUL(testColoursR[numVal]),
+                    getLEDAdjustedUL(testColoursG[numVal]),
+                    getLEDAdjustedUL(testColoursB[numVal]));
+  }
+
+  setTowerLEDs(   getLEDAdjustedUL(255),
+                  getLEDAdjustedUL(0),
+                  getLEDAdjustedUL(0));
+
+  outputLEDBuffer();
+}
+
+// ************************************************************
 // output a PWM LED channel, adjusting for dimming, PWM
 // and user back light brightness
 // ************************************************************

@@ -65,6 +65,22 @@ void setup()
 
   // -------------------------------------------------------------------------
 
+  debugMsg("Start up GPIOs");
+  pinMode(LED_PIN, OUTPUT);
+
+  pinMode(CLKPin, OUTPUT);
+  pinMode(BLANKPin, OUTPUT);
+  pinMode(DATA1Pin, OUTPUT);
+  pinMode(LATCH1Pin, OUTPUT);
+  pinMode(DATA2Pin, OUTPUT);
+  pinMode(LATCH2Pin, OUTPUT);
+  pinMode(DATA3Pin, OUTPUT);
+  pinMode(LATCH3Pin, OUTPUT);
+
+  pinMode(PIRPin, INPUT);
+
+  // -------------------------------------------------------------------------
+
   debugMsg("Start up Timers" );
   startTimers();
 
@@ -80,6 +96,18 @@ void setup()
   ledManager.setUp();
   ledManager.setLDRRange(LDR_VALUE_MAX);
 
+  // -------------------------------------------------------------------------
+
+  // debugMsg("Test pattern");
+  // for (int j = 0 ; j < 10 ; j++) {
+  //   for (int i = 0 ; i < 10 ; i++) {
+  //     uint32_t val = decodeBCD(i*10+i, i%2 == 0, i %2 == 1);
+  //     val1 = val2 = val3 = decodeBCD(i*10+i, i%2 == 0, i %2 == 1);
+  //     ledManager.setTestValue(i);
+  //     delay(100);
+  //   }
+  // }
+  
   // -------------------------------------------------------------------------
   
   debugMsg("");
@@ -329,11 +357,8 @@ void setup()
   // -------------------------------------------------------------------------
 
   debugMsg("Start up encoder");
-
   ESP32Encoder encoder;
 	ESP32Encoder::useInternalWeakPullResistors=UP;
-
-	// use pin 19 and 18 for the first encoder
 	encoder.attachHalfQuad(encoderA, encoderB);
 		
 	// clear the encoder's raw count and set the tracked count to zero
@@ -341,18 +366,7 @@ void setup()
 
   // -------------------------------------------------------------------------
   
-  debugMsg("Start up GPIOs");
-  pinMode(LED_PIN, OUTPUT);
-
-  pinMode(CLKPin, OUTPUT);
-  pinMode(BLANKPin, OUTPUT);
-  pinMode(DATA1Pin, OUTPUT);
-  pinMode(LATCH1Pin, OUTPUT);
-  pinMode(DATA2Pin, OUTPUT);
-  pinMode(LATCH2Pin, OUTPUT);
-  pinMode(DATA3Pin, OUTPUT);
-  pinMode(LATCH3Pin, OUTPUT);
-
+  debugMsg("Start up dimming PWM");
   ledcSetup(LDRPWMChannel, PWMFreq, PWMResolution);
   ledcAttachPin(BLANKPin, LDRPWMChannel);
   setLedFlashType(1);
@@ -485,9 +499,13 @@ void performOncePerSecondProcessing() {
   oled.setBlankStatus(false);
   oled.setNTPStatus(ntpAsync.ntpTimeValid(nowMillis));
   oled.setTimeString(String(time_c));
+  if (digitalRead(PIRPin) == false) {
+    oled.setPIRInstalled(true);  
+  }
+  oled.setPIRStatus(digitalRead(PIRPin));
 
   // ************************************************************
-  // Break the time into displayable digits
+  // send time display to the drivers
   // ************************************************************
   numberArray[5] = second() % 10;
   numberArray[4] = second() / 10;
@@ -501,7 +519,6 @@ void performOncePerSecondProcessing() {
     numberArray[0] = hour() / 10;
   }
 
-  // send time display to the drivers
   bool led1 = (second() % 2 == 0);
   bool led2 = (second() % 2 == 1);
   val1 = decodeBCD(hour(), led1, led2);
@@ -509,6 +526,26 @@ void performOncePerSecondProcessing() {
   val3 = decodeBCD(second(), led1, led2);
 
   // debugMsg("LDR Reading: " + String(ldrValue));
+
+  // debugMsg("PIR Reading: " + String(digitalRead(PIRPin)));
+
+  // String btnStatus = ""; 
+  // if(touchRead(btn1) < 50) {
+  //   btnStatus = btnStatus + "X";
+  // } else {
+  //   btnStatus = btnStatus + "-";
+  // }
+  // if(touchRead(btn2) < 50) {
+  //   btnStatus = btnStatus + "Y";
+  // } else {
+  //   btnStatus = btnStatus + "-";
+  // }
+  // if(touchRead(btn3) < 50) {
+  //   btnStatus = btnStatus + "Z";
+  // } else {
+  //   btnStatus = btnStatus + "-";
+  // }
+  // debugMsg("T Reading: " + btnStatus);
 
   esp_task_wdt_reset();
 }
@@ -582,9 +619,10 @@ void loop()
   }
 
   // Touch sensor
-  #define TOUCH_THRESHOLD 20
+  #define TOUCH_THRESHOLD 50
   oled.setXStatus(touchRead(btn1) > TOUCH_THRESHOLD);
   oled.setYStatus(touchRead(btn2) > TOUCH_THRESHOLD);
+  oled.setZStatus(touchRead(btn3) > TOUCH_THRESHOLD);
 
   // -------------------------------------------------------------------------------
 

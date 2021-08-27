@@ -122,6 +122,9 @@ class LEDManager
     // This processes the values and outputs the buffer
     void processLedStatus();
 
+    // Set the LEDs to a test value
+    void setTestValue(byte value);
+
   private:
     float _backlightDim = 1.0;
     float _underlightDim = 1.0;
@@ -189,15 +192,21 @@ const byte rgb_backlight_curve[] = {0, 16, 32, 48, 64, 80, 99, 112, 128, 144, 16
 
 // Used to define "colourTime" colours
 //                             0    1    2    3    4    5    6    7    8    9
-//const byte colourTimeR[] = { 255, 255, 204,  51,   0,   0,   0, 153, 204, 255};
-//const byte colourTimeG[] = {   0, 153, 192, 192, 255, 192, 102,   0,   0,   0};
-//const byte colourTimeB[] = {   0,   0,   0,   0,  51, 192, 255, 255, 255, 153};
+const byte colourTimeR[] = { 255, 255, 204,  51,   0,   0,   0, 153, 204, 255};
+const byte colourTimeG[] = {   0, 153, 192, 192, 255, 192, 102,   0,   0,   0};
+const byte colourTimeB[] = {   0,   0,   0,   0,  51, 192, 255, 255, 255, 153};
 
 // Used to define "colourTime" colours - Mia's 
 //                             0    1    2    3    4    5    6    7    8    9
-const byte colourTimeR[] = { 255,   0, 255,  20, 255, 153,   0, 255,   0, 255};
-const byte colourTimeG[] = {   0, 255, 255, 255,   0,  51, 255, 255,   0, 170};
-const byte colourTimeB[] = { 255, 255, 255, 180,   0, 255,   0,   0, 255,   0};
+//const byte colourTimeR[] = { 255,   0, 255,  20, 255, 153,   0, 255,   0, 255};
+//const byte colourTimeG[] = {   0, 255, 255, 255,   0,  51, 255, 255,   0, 170};
+//const byte colourTimeB[] = { 255, 255, 255, 180,   0, 255,   0,   0, 255,   0};
+
+// Used to define "test" colours
+//                             0    1    2    3    4    5    6    7    8    9
+const byte testColoursR[] = { 255,   0,   0, 255,   0,   0, 128,   0,   0,   0};
+const byte testColoursG[] = {   0, 255,   0,   0, 255,   0,   0, 128,   0,   0};
+const byte testColoursB[] = {   0,   0, 255,   0,   0, 255,   0,   0, 128,   0};
 
 // Used to define "dayOfWeek" colours
 //                            0    1    2    3    4    5    6
