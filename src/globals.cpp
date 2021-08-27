@@ -1,8 +1,10 @@
 #include "globals.h"
-#include "defs.h"
 
 byte numberArray[DIGIT_COUNT];
 
+// ************************************************************
+// SPIFFS and public configs
+// ************************************************************
 SPIFFS_CLOCK spiffsStorage;
 spiffs_config_t current_config;
 spiffs_stats_t current_stats;
@@ -14,10 +16,18 @@ AsyncWebServer server(80);
 
 NtpAsync ntpAsync;
 
+esp_wps_config_t wps_config;
+
+// ************************************************************
+// SPIFFS and public configs
+// ************************************************************
 volatile uint32_t val1 = 0;
 volatile uint32_t val2 = 0;
 volatile uint32_t val3 = 0;
 
+// ************************************************************
+// SPIFFS and public configs
+// ************************************************************
 unsigned long previousMillisWiFi = 0;
 unsigned long lastMillis = 0;
 unsigned long nowMillis = 0;

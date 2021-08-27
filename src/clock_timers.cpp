@@ -19,10 +19,9 @@ volatile uint32_t val1curr = 0;
 volatile uint32_t val2curr = 0;
 volatile uint32_t val3curr = 0;
 
-// count1 is used to output the display
-volatile int count1;
-
-// Led Timer
+// ************************************************************
+// ISR for LED flash update
+// ************************************************************
 void IRAM_ATTR onTimer0() {
    portENTER_CRITICAL_ISR(&timerMux0);
    count0++;
@@ -81,9 +80,11 @@ void IRAM_ATTR shiftOut24S(uint32_t _val1) {
   digitalWrite(LATCH3Pin, LOW);
 }
 
+// ************************************************************
+// ISR for display update
+// ************************************************************
 void IRAM_ATTR onTimer1() {
    portENTER_CRITICAL_ISR(&timerMux1);
-   count1++;
    if (val1 != val1curr) {
      shiftOut24H(val1);
      val1curr = val1;
@@ -99,12 +100,10 @@ void IRAM_ATTR onTimer1() {
    portEXIT_CRITICAL_ISR(&timerMux1);
 }
 
+// ************************************************************
+// Start the timers
+// ************************************************************
 void startTimers() {
-  // ledcSetup(PWMChannel, PWMFreq, PWMResolution);
-  // ledcAttachPin(BLANK_PIN, PWMChannel);
-  // setLedFlashType(1);
-  // ledcWrite(PWMChannel, MAX_DUTY_CYCLE/2);
-
   timer0 = timerBegin(0, 80, true);
   timerAttachInterrupt(timer0, &onTimer0, true);
   timerAlarmWrite(timer0, 1000, true);
@@ -118,6 +117,9 @@ void startTimers() {
   setLedFlashType(1);
 }
 
+// ************************************************************
+// Set the LED flash type
+// ************************************************************
 void setLedFlashType(byte flashType) {
   switch(flashType) {
     case 0: {
@@ -132,4 +134,3 @@ void setLedFlashType(byte flashType) {
     }
   }
 }
-

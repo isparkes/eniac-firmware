@@ -5,11 +5,14 @@
 #include <ESPAsyncWebServer.h>
 #include "WiFi.h"
 #include "defs.h"
+#include "esp_wps.h"
 
 extern byte numberArray[DIGIT_COUNT];
 extern AsyncWebServer server;
 
 extern NtpAsync ntpAsync;
+
+extern esp_wps_config_t wps_config;
 
 extern SPIFFS_CLOCK spiffsStorage;
 

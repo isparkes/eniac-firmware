@@ -6,6 +6,10 @@
 #define COUNT0_MAX 1000
 #define COUNT0_OFF 100
 
+// ************************************************************
+// Public prototypes
+// ************************************************************
+
 void startTimers();
 void setLedFlashType(byte flashType);
 

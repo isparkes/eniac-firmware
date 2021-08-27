@@ -148,6 +148,10 @@
                             <td>SDK version</td>
                             <td id="sdkversion"></td>
                         </tr>
+                        <tr>
+                            <td>Sketch md5</td>
+                            <td id="sketchmd5"></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -199,7 +203,6 @@
             $("#cpufreq").text(summary.cpufreq);
             $("#sdkversion").text(summary.sdkversion);
             $("#sketchmd5").text(summary.sketchmd5);
-            $("#cyclecount").text(summary.cyclecount);
         })
         .then(() => removeLoader());
     };
