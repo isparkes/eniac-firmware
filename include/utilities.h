@@ -30,8 +30,9 @@ const uint32_t DECODE_LED[]           = { 0x400000, 0x800000};
 const uint32_t DECODE_BLINKENIGHTS[]  = { 0x100000, 0x200000};
 
 void debugMsg(String message);
+void debugMsgCont(String message);
 void newTimeUpdateReceived();
-uint32_t decodeBCD(byte valueToDecode, bool led1, bool led2);
+uint32_t decodeBCD(byte valueToDecode, bool bl1, bool bl2, bool led1, bool led2);
 
 void getCredentialsHandler(AsyncWebServerRequest *request);
 bool gotCredentials();

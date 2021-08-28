@@ -21,6 +21,12 @@ void OLED::clearDisplay()
   showStatusLine();
 }
 
+void OLED::blankDisplay()
+{
+  _display->clearDisplay();
+  _display->display();
+}
+
 void OLED::outputDisplay()
 {
   _display->display();

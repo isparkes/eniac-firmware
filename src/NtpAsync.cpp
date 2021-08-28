@@ -11,7 +11,9 @@ void NtpAsync::resetDefaults() {
   setNtpPool(NTP_POOL_DEFAULT);
   setUpdateInterval(NTP_UPDATE_INTERVAL_DEFAULT);
   setTZS(TIME_ZONE_STRING_DEFAULT);
+  #ifdef DEBUG_ON
   debugMsg("Reset defaults");
+  #endif
 }
 
 // ************************************************************
@@ -122,22 +124,28 @@ void NtpAsync::getTimeFromNTP(unsigned long nowMillis) {
   debugMsg("Async NTP in");
 
   if (WiFi.status() != WL_CONNECTED) {
+    #ifdef DEBUG_ON
     debugMsg("WiFi not connected. Abort.");
+    #endif
     return;
   }
 
 
   // Don't spam the pool
   if ((_ntpStarted > 0) && (nowMillis - _ntpStarted) < NTP_RETRY_INTERVAL_MS) {
+    #ifdef DEBUG_ON
     debugMsg("Suppressing NTP retry");
+    #endif
     return;
   }
   
   IPAddress serverIP;
   WiFi.hostByName(_ntpPool.c_str(), serverIP);
+  #ifdef DEBUG_ON
   String str = "NTP IPAddr: ";
   str += serverIP.toString();
   debugMsg(str);
+  #endif
 
   byte buffer[NTP_PACKET_SIZE];
   memset(buffer, 0, NTP_PACKET_SIZE);
@@ -152,20 +160,30 @@ void NtpAsync::getTimeFromNTP(unsigned long nowMillis) {
   buffer[15]  = 'C';
 
   _ntpStarted = nowMillis;
+  #ifdef DEBUG_ON
   debugMsg("Connect to NTP");
+  #endif
   _udp.connect(serverIP, 123); //NTP requests are to port 123
+  #ifdef DEBUG_ON
   debugMsg("Write to NTP");
+  #endif
   _udp.write(buffer, NTP_PACKET_SIZE);
+  #ifdef DEBUG_ON
   debugMsg("NTP Packet sent at " + String(_ntpStarted));
+  #endif
 
   _udp.onPacket([&](AsyncUDPPacket packet) {
+    #ifdef DEBUG_ON
     String message = "NTP response UDP Packet Type: " + packet.isBroadcast() ? "Broadcast" : packet.isMulticast() ? "Multicast" : "Unicast";
     message += " from " + packet.remoteIP().toString() + ":" + String(packet.remotePort());
     message += " to " + packet.localIP().toString() + ":" + String(packet.localPort());
     debugMsg(message);
+    #endif
 
     if (packet.length() != 48) {
+      #ifdef DEBUG_ON
       debugMsg("Received data, but got invalid length: " + String(packet.length()));
+      #endif
     } else {
       uint8_t buffer[NTP_PACKET_SIZE];
       memcpy(&buffer, packet.data(), packet.length());
@@ -185,33 +203,43 @@ void NtpAsync::getTimeFromNTP(unsigned long nowMillis) {
 
       highWord = ( buffer[44] << 8 | buffer[45] ) & 0x0000FFFF;
       lowWord = ( buffer[46] << 8 | buffer[47] ) & 0x0000FFFF;
+      #ifdef DEBUG_ON
       uint32_t fraction = highWord << 16 | lowWord;       // transmit timestamp fractions
+      #endif
 
       //check if received data makes sense
       //buffer[1] = stratum - should be 1..15 for valid reply
       //also checking that all timestamps are non-zero and receive timestamp seconds are <= transmit timestamp seconds
       if ((buffer[1] < 1) or (buffer[1] > 15) or (reftsSec == 0) or (rcvtsSec == 0) or (rcvtsSec > secsSince1900)) {
         // we got invalid packet
+        #ifdef DEBUG_ON
         debugMsg("Got data, but got INVALID_DATA");
+        #endif
         return;
       }
 
       // Set the t and measured_at variables that were passed by reference
       unsigned long done = millis();
+      #ifdef DEBUG_ON
       debugMsg("success round trip " + String(done - _ntpStarted) + " ms");
+      #endif
       unsigned long t = secsSince1900 - 2208988800UL;                     // Subtract 70 years to get seconds since 1970
-      uint16_t ms = fraction / 4294967UL;                                 // Turn 32 bit fraction into ms by dividing by 2^32 / 1000
-      unsigned long measured_at = done - ((done - _ntpStarted) / 2) - ms;  // Assume symmetric network latency and return when we think the whole second was.
 
       _lastUpdateFromServer = done;
 
+      #ifdef DEBUG_ON
+      uint16_t ms = fraction / 4294967UL;                                 // Turn 32 bit fraction into ms by dividing by 2^32 / 1000
+      unsigned long measured_at = done - ((done - _ntpStarted) / 2) - ms;  // Assume symmetric network latency and return when we think the whole second was.
       debugMsg("_lastUpdateFromServer: " + String(_lastUpdateFromServer) + " - latency: " + String(measured_at));
+      #endif
       
       time_t ntpTime = t;
       const tm* tm = localtime(&ntpTime);
 
       String timeString = String(tm->tm_year + 1900) + "," + String(tm->tm_mon + 1) + "," + String(tm->tm_mday) + "," + String(tm->tm_hour) + "," + String(tm->tm_min) + "," + String(tm->tm_sec);
+      #ifdef DEBUG_ON
       debugMsg("NTP Update time str: " + timeString);
+      #endif
       _lastTimeFromServer = timeString;
 
       // Reset when we last started.
@@ -224,7 +252,9 @@ void NtpAsync::getTimeFromNTP(unsigned long nowMillis) {
     }
   });
 
+  #ifdef DEBUG_ON
   debugMsg("Async GET Time out");
+  #endif
 }
 
 // ************************************************************
@@ -241,7 +271,9 @@ void NtpAsync::debugMsg(String message) {
 // ************************************************************
 void NtpAsync::setDebugCallback(DebugCallback dbcb) {
   _dbcb = dbcb;
+  #ifdef DEBUG_ON
   debugMsg("Debugging started, callback set");
+  #endif
 }
 
 // ************************************************************
@@ -249,5 +281,7 @@ void NtpAsync::setDebugCallback(DebugCallback dbcb) {
 // ************************************************************
 void NtpAsync::setNewTimeCallback(NewTimeCallback ntcb) {
   _ntcb = ntcb;
+  #ifdef DEBUG_ON
   debugMsg("Time update callback set");
+  #endif
 }

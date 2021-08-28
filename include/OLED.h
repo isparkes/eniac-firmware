@@ -46,6 +46,7 @@ class OLED
     void setZStatus(bool newStatus);
     void setAMStatus(bool newStatus);
     void clearDisplay();
+    void blankDisplay();
     void outputDisplay();
     void showScrollingMessage(String messageText);
     void setTimeString(String timeText);

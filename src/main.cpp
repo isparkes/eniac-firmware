@@ -9,10 +9,10 @@
 #include "OLED.h"
 #include <AsyncElegantOTA.h>
 #include "clock_timers.h"
-#include <ESP32Encoder.h>
 #include <LDRManager.h>
 #include <LEDManager.h>
 
+// ToDo move to display manager
 const int PWMFreq = 1000; /* 1 KHz */
 const int LDRPWMChannel = 0;
 const int PWMResolution = 12;
@@ -69,7 +69,6 @@ void setup()
   pinMode(LED_PIN, OUTPUT);
 
   pinMode(CLKPin, OUTPUT);
-  pinMode(BLANKPin, OUTPUT);
   pinMode(DATA1Pin, OUTPUT);
   pinMode(LATCH1Pin, OUTPUT);
   pinMode(DATA2Pin, OUTPUT);
@@ -78,6 +77,17 @@ void setup()
   pinMode(LATCH3Pin, OUTPUT);
 
   pinMode(PIRPin, INPUT);
+
+  pinMode(BLANKPin, OUTPUT);
+
+  pinMode(encBTN, INPUT);
+
+  // -------------------------------------------------------------------------
+  
+  debugMsg("Start up dimming PWM");
+  ledcSetup(LDRPWMChannel, PWMFreq, PWMResolution);
+  ledcAttachPin(BLANKPin, LDRPWMChannel);
+  ledcWrite(LDRPWMChannel, MAX_DUTY_CYCLE);
 
   // -------------------------------------------------------------------------
 
@@ -89,6 +99,7 @@ void setup()
   debugMsg("Starting OLED");
   oled.setUp();
   oled.clearDisplay();
+  oledTime = OLED_ON_TIME;
 
   // -------------------------------------------------------------------------
 
@@ -357,20 +368,11 @@ void setup()
   // -------------------------------------------------------------------------
 
   debugMsg("Start up encoder");
-  ESP32Encoder encoder;
 	ESP32Encoder::useInternalWeakPullResistors=UP;
-	encoder.attachHalfQuad(encoderA, encoderB);
+	encoder.attachHalfQuad(encA, encB);
 		
 	// clear the encoder's raw count and set the tracked count to zero
 	encoder.clearCount();
-
-  // -------------------------------------------------------------------------
-  
-  debugMsg("Start up dimming PWM");
-  ledcSetup(LDRPWMChannel, PWMFreq, PWMResolution);
-  ledcAttachPin(BLANKPin, LDRPWMChannel);
-  setLedFlashType(1);
-  ledcWrite(LDRPWMChannel, MAX_DUTY_CYCLE/2);
 
   // -------------------------------------------------------------------------
   
@@ -407,9 +409,6 @@ void setLeds()
 
   // --------------------------------------- separators --------------------------------------
   
-  bool led1State;
-  bool led2State;
-
   switch (cc->ledMode) {
     case LED_RAILROAD:
       {
@@ -474,6 +473,7 @@ void setLeds()
   ledManager.processLedStatus();
 }
 
+int encoderCount;
 
 // ************************************************************
 // Called once per second
@@ -492,17 +492,43 @@ void performOncePerSecondProcessing() {
     setLedFlashType(1);
   }
 
-  // send time update to OLED and set the other status flags 
-  char time_c[11];
-  sprintf(time_c, "%02d:%02d:%02d", hour(), minute(), second());
-  oled.setWiFiStatus(connected);
-  oled.setBlankStatus(false);
-  oled.setNTPStatus(ntpAsync.ntpTimeValid(nowMillis));
-  oled.setTimeString(String(time_c));
-  if (digitalRead(PIRPin) == false) {
-    oled.setPIRInstalled(true);  
+  // Touch sensor
+  bool btn1 = touchRead(BTN1Pin) < TOUCH_THRESHOLD;
+  bool btn2 = touchRead(BTN2Pin) < TOUCH_THRESHOLD;
+  bool btn3 = touchRead(BTN3Pin) < TOUCH_THRESHOLD;
+
+  if (btn2) {
+    oledTime = 1;
   }
-  oled.setPIRStatus(digitalRead(PIRPin));
+
+  if (btn1 && oledTime == 0) {
+    oledTime = OLED_ON_TIME;
+    oled.setUp();
+    oled.clearDisplay();
+    oled.showScrollingMessage("IP: " + WiFi.localIP().toString());
+    oled.showScrollingMessage(String(WiFi.getHostname()) + ".local");
+  }
+
+  if (oledTime > 0) {
+    // ************************************************************
+    // send time update to OLED and set the other status flags 
+    // ************************************************************
+    char time_c[11];
+    sprintf(time_c, "%02d:%02d:%02d", hour(), minute(), second());
+    oled.setTimeString(String(time_c));
+
+    oled.setWiFiStatus(connected);
+    oled.setBlankStatus(false);
+    oled.setNTPStatus(ntpAsync.ntpTimeValid(nowMillis));
+    if (digitalRead(PIRPin) == false) {
+      oled.setPIRInstalled(true);  
+    }
+    oled.setPIRStatus(digitalRead(PIRPin));
+
+    oled.setXStatus(btn1);
+    oled.setYStatus(btn2);
+    oled.setZStatus(btn3);
+  }
 
   // ************************************************************
   // send time display to the drivers
@@ -519,33 +545,65 @@ void performOncePerSecondProcessing() {
     numberArray[0] = hour() / 10;
   }
 
-  bool led1 = (second() % 2 == 0);
-  bool led2 = (second() % 2 == 1);
-  val1 = decodeBCD(hour(), led1, led2);
-  val2 = decodeBCD(minute(), led1, led2);
-  val3 = decodeBCD(second(), led1, led2);
+  // ToDo move into output manager
+  indLed1 = (second() % 2 == 0);
+  indLed2 = (second() % 2 == 1);
 
-  // debugMsg("LDR Reading: " + String(ldrValue));
+  bl1 = false;
+  bl2 = false;
+  bl3 = false;
+  bl4 = false;
+  bl5 = false;
+  bl6 = false;
 
-  // debugMsg("PIR Reading: " + String(digitalRead(PIRPin)));
+  encoderCount = encoder.getCount()/2 % 6;
 
-  // String btnStatus = ""; 
-  // if(touchRead(btn1) < 50) {
-  //   btnStatus = btnStatus + "X";
-  // } else {
-  //   btnStatus = btnStatus + "-";
-  // }
-  // if(touchRead(btn2) < 50) {
-  //   btnStatus = btnStatus + "Y";
-  // } else {
-  //   btnStatus = btnStatus + "-";
-  // }
-  // if(touchRead(btn3) < 50) {
-  //   btnStatus = btnStatus + "Z";
-  // } else {
-  //   btnStatus = btnStatus + "-";
-  // }
-  // debugMsg("T Reading: " + btnStatus);
+  switch (encoderCount) {
+    case 0: {
+      bl1 = true;
+      break;
+    }
+    case 1: {
+      bl2 = true;
+      break;
+    }
+    case 2: {
+      bl3 = true;
+      break;
+    }
+    case 3: {
+      bl4 = true;
+      break;
+    }
+    case 4: {
+      bl5 = true;
+      break;
+    }
+    case 5: {
+      bl6 = true;
+      break;
+    }
+  }
+
+  val1 = decodeBCD(hour(), bl1, bl2, led1State, led2State);
+  val2 = decodeBCD(minute(), bl3, bl4, led1State, led2State);
+  val3 = decodeBCD(second(), bl5, bl6, indLed1, indLed2);
+
+  // -------------------------------------------------------------------------------
+  if (oledTime > 0) {
+    oledTime--;
+    if (oledTime == 0) {
+      oled.setUp();
+      oled.blankDisplay();
+    }
+  }
+
+  // debugMsg("EncBTN: " + String(digitalRead(encBTN)));
+  // debugMsg("EncCount: " + String((int) encoder.getCount()));
+
+  // debugMsg("Enc Attached: " + String(encoder.isAttached()));
+
+  debugMsg("EncCount: " + String(encoderCount));
 
   esp_task_wdt_reset();
 }
@@ -617,12 +675,6 @@ void loop()
       triggeredThisSec = false;
     }
   }
-
-  // Touch sensor
-  #define TOUCH_THRESHOLD 50
-  oled.setXStatus(touchRead(btn1) > TOUCH_THRESHOLD);
-  oled.setYStatus(touchRead(btn2) > TOUCH_THRESHOLD);
-  oled.setZStatus(touchRead(btn3) > TOUCH_THRESHOLD);
 
   // -------------------------------------------------------------------------------
 

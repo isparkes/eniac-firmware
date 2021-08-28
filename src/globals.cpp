@@ -18,6 +18,8 @@ NtpAsync ntpAsync;
 
 esp_wps_config_t wps_config;
 
+ESP32Encoder encoder;
+
 // ************************************************************
 // SPIFFS and public configs
 // ************************************************************
@@ -41,3 +43,17 @@ String password = "";
 bool credentialsReceived = false;
 
 bool blanked;
+unsigned int oledTime;
+
+// ToDo move into outputManager
+bool led1State;
+bool led2State;
+bool indLed1;
+bool indLed2;
+
+bool bl1;
+bool bl2;
+bool bl3;
+bool bl4;
+bool bl5;
+bool bl6;

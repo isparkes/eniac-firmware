@@ -3,11 +3,13 @@
 void LDRManager::setUp()
 {
   pinMode(LDRPin, INPUT);
+  #ifdef DEBUG_ON
   debugMsg("Config useLDR: " + String(cc->useLDR));
   debugMsg("Config sensitivityLDR: " + String(cc->sensitivityLDR));
   debugMsg("Config thresholdBright: " + String(cc->thresholdBright));
   debugMsg("Config sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
   debugMsg("Config minDim: " + String(cc->minDim));
+  #endif
 }
 
 // ************************************************************
@@ -16,13 +18,17 @@ void LDRManager::setUp()
 void LDRManager::getDimmingFromLDR() {
   if (cc->useLDR) {
     int rawLDR = analogRead(LDRPin);
+    #ifdef DEBUG_ON
     debugMsg("-----------------");
     debugMsg("Raw LDR Value: " + String(rawLDR));
+    #endif
     int rawSensorVal = rawLDR;
 
     double sensorDiff = rawSensorVal - sensorLDRSmoothed;
     sensorLDRSmoothed += (sensorDiff / (double) cc->sensorSmoothCountLDR);
+    #ifdef DEBUG_ON
     debugMsg("Smoothed LDR Value: " + String(sensorLDRSmoothed));
+    #endif
 
     // Scaling offset increases the base brightness
     // factor increases the sensitivity
@@ -31,20 +37,28 @@ void LDRManager::getDimmingFromLDR() {
 
     int returnValue = (sensorLDRSmoothed - offset) * factor;
     
+    #ifdef DEBUG_ON
     debugMsg("Raw _ldrValue: " + String(returnValue));
+    #endif
 
     if (returnValue > (LDR_VALUE_MAX - cc->minDim)) {
       returnValue = LDR_VALUE_MAX - cc->minDim;
+      #ifdef DEBUG_ON
       debugMsg("Clamping _ldrValue to min: " + String(returnValue));
+      #endif
     }
     if (returnValue < 0) {
       returnValue = 0;
+      #ifdef DEBUG_ON
       debugMsg("Clamping _ldrValue to max: " + String(returnValue));
+      #endif
     }
     _ldrValue = returnValue;
   } else {
-      debugMsg("Not using _ldrValue setting to min: " + String(cc->minDim));
+    #ifdef DEBUG_ON
+    debugMsg("Not using _ldrValue setting to min: " + String(cc->minDim));
     _ldrValue = LDR_VALUE_MAX - cc->minDim;
+    #endif
   }
 }
 

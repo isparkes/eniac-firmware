@@ -10,7 +10,7 @@
 
 #define WDT_TIMEOUT 5
 
-#define DEBUG_ON             // DEBUG_ON | DEBUG_OFF 
+#define DEBUG_ON             // DEBUG_ON | DEBUG_OFF
 
 #define LED_PIN 2
 
@@ -30,8 +30,9 @@
 #define DATA3Pin  32
 #define LATCH3Pin 33
 
-#define encoderA  34
-#define encoderB  35
+#define encA      5
+#define encB      12
+#define encBTN    16
 
 // Internally defined
 #define SDAint    21
@@ -40,11 +41,15 @@
 #define PIRPin    35
 
 // Touch capable buttons
-#define btn1      15
-#define btn2      4
-#define btn3      14
+#define BTN1Pin   15
+#define BTN2Pin   4
+#define BTN3Pin   14
 
 #define LDRPin    34
+
+// -------------------------------------------------------------------------------
+
+#define TOUCH_THRESHOLD 60
 
 // -------------------------------------------------------------------------------
 
@@ -108,6 +113,10 @@
 #define BLANK_MODE_BOTH                 2  // Use blanking for tubes and LEDs
 #define BLANK_MODE_MAX                  2
 #define BLANK_MODE_DEFAULT              2
+
+// -------------------------------------------------------------------------------
+
+#define OLED_ON_TIME                    60 // Time in seconds the OLED stays on for
 
 // -------------------------------------------------------------------------------
 #define ANTI_GHOST_MIN                  0

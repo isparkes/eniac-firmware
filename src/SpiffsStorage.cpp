@@ -27,15 +27,21 @@ bool SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
 {
   bool loaded = false;
 
+  #ifdef DEBUG_ON
   debugMsg("mounted file system config read");
+  #endif
   if (SPIFFS.exists("/config.json"))
   {
     //file exists, reading and loading
+    #ifdef DEBUG_ON
     debugMsg("reading config file");
+    #endif
     File configFile = SPIFFS.open("/config.json", "r");
     if (configFile)
     {
+      #ifdef DEBUG_ON
       debugMsg("opened config file");
+      #endif
       size_t size = configFile.size();
       // Allocate a buffer to store contents of the file.
       std::unique_ptr<char[]> buf(new char[size]);
@@ -48,144 +54,236 @@ bool SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
 
       if (json.success())
       {
+        #ifdef DEBUG_ON
         debugMsg("parsed json");
+        #endif
 
         spiffs_config->ntpPool = json["ntp_pool"].as<String>();
+        #ifdef DEBUG_ON
         debugMsg("Loaded NTP pool: " + spiffs_config->ntpPool);
+        #endif
 
         spiffs_config->ntpUpdateInterval = json["ntp_update_interval"].as<int>();
+        #ifdef DEBUG_ON
         debugMsg("Loaded NTP update interval: " + String(spiffs_config->ntpUpdateInterval));
+        #endif
 
         spiffs_config->tzs = json["time_zone_string"].as<String>();
+        #ifdef DEBUG_ON
         debugMsg("Loaded time zone string: " + spiffs_config->tzs);
+        #endif
 
         spiffs_config->hourMode = json["hourMode"].as<bool>();
+        #ifdef DEBUG_ON
         debugMsg("Loaded 12/24H mode: " + String(spiffs_config->hourMode));
+        #endif
 
         spiffs_config->blankLeading = json["blankLeading"].as<bool>();
+        #ifdef DEBUG_ON
         debugMsg("Loaded lead zero blanking: " + String(spiffs_config->blankLeading));
+        #endif
 
         spiffs_config->dateFormat = json["dateFormat"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded date format: " + String(spiffs_config->dateFormat));
+        #endif
 
         spiffs_config->dayBlanking = json["dayBlanking"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded dayBlanking: " + String(spiffs_config->dayBlanking));
+        #endif
 
         spiffs_config->fade = json["fade"].as<bool>();
+        #ifdef DEBUG_ON
         debugMsg("Loaded fade: " + String(spiffs_config->fade));
+        #endif
 
         spiffs_config->fadeSteps = json["fadeSteps"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded fadeSteps: " + String(spiffs_config->fadeSteps));
+        #endif
 
         spiffs_config->scrollback = json["scrollback"].as<bool>();
+        #ifdef DEBUG_ON
         debugMsg("Loaded scrollback: " + String(spiffs_config->scrollback));
+        #endif
 
         spiffs_config->scrollSteps = json["scrollSteps"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded scrollSteps: " + String(spiffs_config->scrollSteps));
+        #endif
 
         spiffs_config->thresholdBright = json["thresholdBright"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded thresholdBright: " + String(spiffs_config->thresholdBright));
+        #endif
 
         spiffs_config->sensitivityLDR = json["sensitivityLDR"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded sensitivityLDR: " + String(spiffs_config->sensitivityLDR));
+        #endif
 
         spiffs_config->minDim = json["minDim"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded minDim: " + String(spiffs_config->minDim));
+        #endif
 
         spiffs_config->sensorSmoothCountLDR = json["sensorSmoothCountLDR"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded sensorSmoothCountLDR: " + String(spiffs_config->sensorSmoothCountLDR));
+        #endif
 
         spiffs_config->backlightMode = json["backlightMode"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded backlight mode: " + String(spiffs_config->backlightMode));
+        #endif
 
         spiffs_config->useBLPulse = json["useBLPulse"].as<bool>();
+        #ifdef DEBUG_ON
         debugMsg("Loaded backlight pulse: " + String(spiffs_config->useBLPulse));
+        #endif
 
         spiffs_config->useBLDim = json["useBLDim"].as<bool>();
+        #ifdef DEBUG_ON
         debugMsg("Loaded backlight dim: " + String(spiffs_config->useBLDim));
+        #endif
 
         spiffs_config->redCnl = json["redCnl"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded redCnl: " + String(spiffs_config->redCnl));
+        #endif
 
         spiffs_config->grnCnl = json["grnCnl"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded grnCnl: " + String(spiffs_config->grnCnl));
+        #endif
 
         spiffs_config->bluCnl = json["bluCnl"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded bluCnl: " + String(spiffs_config->bluCnl));
+        #endif
 
         spiffs_config->blankMode = json["blankMode"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded blankMode: " + String(spiffs_config->blankMode));
+        #endif
 
         spiffs_config->blankHourStart = json["blankHourStart"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded blankHourStart: " + String(spiffs_config->blankHourStart));
+        #endif
 
         spiffs_config->blankHourEnd = json["blankHourEnd"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded blankHourEnd: " + String(spiffs_config->blankHourEnd));
+        #endif
 
         spiffs_config->cycleSpeed = json["cycleSpeed"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded cycleSpeed: " + String(spiffs_config->cycleSpeed));
+        #endif
 
         spiffs_config->pirTimeout = json["pirTimeout"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded pirTimeout: " + String(spiffs_config->pirTimeout));
+        #endif
 
         spiffs_config->useLDR = json["useLDR"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded useLDR: " + String(spiffs_config->useLDR));
+        #endif
 
         spiffs_config->thresholdBright = json["thresholdBright"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded thresholdBright: " + String(spiffs_config->thresholdBright));
+        #endif
 
         spiffs_config->sensitivityLDR = json["sensitivityLDR"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded sensitivityLDR: " + String(spiffs_config->sensitivityLDR));
+        #endif
 
         spiffs_config->sensorSmoothCountLDR = json["sensorSmoothCountLDR"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded sensorSmoothCountLDR: " + String(spiffs_config->sensorSmoothCountLDR));
+        #endif
 
         spiffs_config->slotsMode = json["slotsMode"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded slotsMode: " + String(spiffs_config->slotsMode));
+        #endif
 
         spiffs_config->usePIRPullup = json["usePIRPullup"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded usePIRPullup: " + String(spiffs_config->usePIRPullup));
+        #endif
 
         spiffs_config->webAuthentication = json["webAuthentication"].as<bool>();
+        #ifdef DEBUG_ON
         debugMsg("Loaded webAuthentication: " + String(spiffs_config->webAuthentication));
+        #endif
 
         spiffs_config->webUsername = json["webUsername"].as<String>();
+        #ifdef DEBUG_ON
         debugMsg("Loaded webUsername: " + spiffs_config->webUsername);
+        #endif
 
         spiffs_config->webPassword = json["webPassword"].as<String>();
+        #ifdef DEBUG_ON
         debugMsg("Loaded webPassword: " + spiffs_config->webPassword);
+        #endif
 
         spiffs_config->acpMode = json["acpMode"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded acpMode: " + String(spiffs_config->acpMode));
+        #endif
 
         spiffs_config->pirBlankMode = json["pirBlankMode"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded pirBlankMode: " + String(spiffs_config->pirBlankMode));
+        #endif
 
         spiffs_config->alarmMode = json["alarmMode"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded alarmMode: " + String(spiffs_config->alarmMode));
+        #endif
 
         spiffs_config->alarmHour = json["alarmHour"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded alarmHour: " + String(spiffs_config->alarmHour));
+        #endif
 
         spiffs_config->alarmMinute = json["alarmMinute"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded alarmMinute: " + String(spiffs_config->alarmMinute));
+        #endif
 
         spiffs_config->sepMode = json["sepMode"];
+        #ifdef DEBUG_ON
         debugMsg("Loaded sepMode: " + String(spiffs_config->sepMode));
+        #endif
 
         spiffs_config->testMode = json["testMode"].as<bool>();
+        #ifdef DEBUG_ON
         debugMsg("Loaded testMode: " + String(spiffs_config->testMode));
+        #endif
 
         spiffs_config->wasSetup = json["wasSetup"].as<bool>();
+        #ifdef DEBUG_ON
         debugMsg("Loaded wasSetup: " + String(spiffs_config->wasSetup));
+        #endif
 
         loaded = true;
       }
       else
       {
+        #ifdef DEBUG_ON
         debugMsg("failed to load json config");
+        #endif
       }
+      #ifdef DEBUG_ON
       debugMsg("Closing config file");
+      #endif
       configFile.close();
     }
   }
@@ -198,7 +296,9 @@ bool SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
 // ************************************************************
 void SPIFFS_CLOCK::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
 {
+  #ifdef DEBUG_ON
   debugMsg("saving config");
+  #endif
 
   DynamicJsonBuffer jsonBuffer;
   JsonObject &json = jsonBuffer.createObject();
@@ -246,7 +346,9 @@ void SPIFFS_CLOCK::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile)
   {
+    #ifdef DEBUG_ON
     debugMsg("failed to open config file for writing");
+    #endif
     configFile.close();
     return;
   }
@@ -256,7 +358,9 @@ void SPIFFS_CLOCK::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
 
   json.printTo(configFile);
   configFile.close();
+  #ifdef DEBUG_ON
   debugMsg("Saved config");
+  #endif
 }
 
 // ************************************************************
@@ -268,11 +372,15 @@ bool SPIFFS_CLOCK::getStatsFromSpiffs(spiffs_stats_t *spiffs_stats)
   if (SPIFFS.exists("/stats.json"))
   {
     //file exists, reading and loading
+    #ifdef DEBUG_ON
     debugMsg("reading stats file");
+    #endif
     File statsFile = SPIFFS.open("/stats.json", "r");
     if (statsFile)
     {
+      #ifdef DEBUG_ON
       debugMsg("opened stats file");
+      #endif
       size_t size = statsFile.size();
       // Allocate a buffer to store contents of the file.
       std::unique_ptr<char[]> buf(new char[size]);
@@ -285,21 +393,31 @@ bool SPIFFS_CLOCK::getStatsFromSpiffs(spiffs_stats_t *spiffs_stats)
 
       if (json.success())
       {
+        #ifdef DEBUG_ON
         debugMsg("parsed stats json");
+        #endif
 
         spiffs_stats->uptimeMins = json.get<unsigned long>("uptime");
+        #ifdef DEBUG_ON
         debugMsg("Loaded uptime: " + String(spiffs_stats->uptimeMins));
+        #endif
 
         spiffs_stats->tubeOnTimeMins = json.get<unsigned long>("tubeontime");
+        #ifdef DEBUG_ON
         debugMsg("Loaded tubeontime: " + String(spiffs_stats->tubeOnTimeMins));
+        #endif
 
         loaded = true;
       }
       else
       {
+        #ifdef DEBUG_ON
         debugMsg("failed to load json config");
+        #endif
       }
+      #ifdef DEBUG_ON
       debugMsg("Closing stats file");
+      #endif
       statsFile.close();
     }
   }
@@ -311,7 +429,9 @@ bool SPIFFS_CLOCK::getStatsFromSpiffs(spiffs_stats_t *spiffs_stats)
 // ************************************************************
 void SPIFFS_CLOCK::saveStatsToSpiffs(spiffs_stats_t *spiffs_stats)
 {
+  #ifdef DEBUG_ON
   debugMsg("saving stats");
+  #endif
 
   DynamicJsonBuffer jsonBuffer;
   JsonObject &json = jsonBuffer.createObject();
@@ -321,18 +441,18 @@ void SPIFFS_CLOCK::saveStatsToSpiffs(spiffs_stats_t *spiffs_stats)
   File statsFile = SPIFFS.open("/stats.json", "w");
   if (!statsFile)
   {
+    #ifdef DEBUG_ON
     debugMsg("failed to open stats file for writing");
+    #endif
     statsFile.close();
     return;
   }
 
-  // json.printTo(Serial);
-  // debugMsg("\n");
-
   json.printTo(statsFile);
   statsFile.close();
+  #ifdef DEBUG_ON
   debugMsg("Saved stats");
-  //end save
+  #endif
 }
 
 // ************************************************************
@@ -352,7 +472,9 @@ void SPIFFS_CLOCK::debugMsg(String message)
 void SPIFFS_CLOCK::setDebugCallback(DebugCallback dbcb)
 {
   _dbcb = dbcb;
+  #ifdef DEBUG_ON
   debugMsg("Debugging started, callback set");
+  #endif
 }
 
 // ************************************************************

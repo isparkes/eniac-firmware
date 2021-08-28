@@ -15,9 +15,13 @@ extern volatile uint32_t val1;
 extern volatile uint32_t val2;
 extern volatile uint32_t val3;
 
-volatile uint32_t val1curr = 0;
-volatile uint32_t val2curr = 0;
-volatile uint32_t val3curr = 0;
+// These strange values are to provoke that the first call to
+// the interrups detects a change in the buffer and outputs
+// the 0 values to the display. This avoids ghosting of digits
+// during set up of the display  
+volatile uint32_t val1curr = 0x80000000;
+volatile uint32_t val2curr = 0x80000000;
+volatile uint32_t val3curr = 0x80000000;
 
 // ************************************************************
 // ISR for LED flash update

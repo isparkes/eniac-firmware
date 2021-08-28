@@ -10,6 +10,11 @@ void debugMsg(String message) {
     Serial.flush();
 }
 
+void debugMsgCont(String message) {
+    Serial.print(message);
+    Serial.flush();
+}
+
 // ************************************************************
 // Set the time from the value we get back from the time server
 // ************************************************************
@@ -39,25 +44,33 @@ void setTimeFromServer(String timeString) {
   int intValues[6];
   grabInts(timeString, &intValues[0], ",");
   setTime(intValues[SYNC_HOURS], intValues[SYNC_MINS], intValues[SYNC_SECS], intValues[SYNC_DAY], intValues[SYNC_MONTH], intValues[SYNC_YEAR]);
+  #ifdef DEBUG_ON
   debugMsg("Set internal time to NTP time: " + String(year()) + ":" + String(month()) + ":" + String(day()) + " " + String(hour()) + ":" + String(minute()) + ":" + String(second()));
+  #endif
 }
 
  // ************************************************************
-  // Callback: When the NTP component tells us there is an update
-  // go and get it
-  // ************************************************************
-  void newTimeUpdateReceived() {
-    debugMsg("Got a new time update: " + ntpAsync.getLastTimeFromServer());
-    setTimeFromServer(ntpAsync.getLastTimeFromServer());
-  }
+// Callback: When the NTP component tells us there is an update
+// go and get it
+// ************************************************************
+void newTimeUpdateReceived() {
+  #ifdef DEBUG_ON
+  debugMsg("Got a new time update: " + ntpAsync.getLastTimeFromServer());
+  #endif
+  setTimeFromServer(ntpAsync.getLastTimeFromServer());
+}
 
 void mainHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
 	debugMsg("Got request");
+  #endif
 	request->send(SPIFFS, "/web/index.html");
 }
 
 void cssHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
 	debugMsg("Got css request");
+  #endif
 	request->send(SPIFFS, "/web/style.css");
 }
 
@@ -154,7 +167,19 @@ String getStatusString() {
     connectionInfo += "a";
   }
 
-#ifdef DEBUG
+  if (blanked) {
+    connectionInfo += "B";
+  } else {
+    connectionInfo += "b";
+  }
+
+  if (oledTime > 0) {
+    connectionInfo += "O";
+  } else {
+    connectionInfo += "o";
+  }
+
+#ifdef DEBUG_ON
   connectionInfo += "D";
 #else
   connectionInfo += "d";
@@ -163,10 +188,12 @@ String getStatusString() {
   return connectionInfo;
 }
 
-uint32_t decodeBCD(byte valueToDecode, bool led1, bool led2) {
+uint32_t decodeBCD(byte valueToDecode, bool bl1, bool bl2, bool led1, bool led2) {
   uint32_t decoded = DECODE_DIGIT[(valueToDecode%10)] << 10 | DECODE_DIGIT[(valueToDecode/10)];
   if (led1) decoded |= DECODE_LED[0];
   if (led2) decoded |= DECODE_LED[1];
+  if (bl1)  decoded |= DECODE_BLINKENIGHTS[0];
+  if (bl2)  decoded |= DECODE_BLINKENIGHTS[1];
   return decoded;
 }
 
@@ -175,7 +202,9 @@ uint32_t decodeBCD(byte valueToDecode, bool led1, bool led2) {
 // --------------------------------------------------------------------------------------------------------
 
 void getSummaryDataHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
   debugMsg("Got api summary GET request");
+  #endif
   
   long nowMillis = millis();
 
@@ -225,7 +254,9 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
 }
 
 void getConfigDataHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
   debugMsg("Got api config GET request");
+  #endif
   
   AsyncJsonResponse * response = new AsyncJsonResponse();
   response->addHeader("Server", "ESP Async Web Server");
@@ -258,7 +289,9 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
 }
 
 void postConfigDataHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
   debugMsg("Got api config POST request");
+  #endif
 
   // dumpArgs(request);
 
@@ -270,72 +303,104 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     if (json.containsKey("hourMode")) {
       int newhourMode = json["hourMode"];
       if (cc->thresholdBright != newhourMode) {
+        #ifdef DEBUG_ON
         debugMsg("hourMode before: " + String(cc->hourMode));
+        #endif
         cc->thresholdBright = newhourMode;
+        #ifdef DEBUG_ON
         debugMsg("Loaded new hourMode: " + String(cc->hourMode));
+        #endif
       }
     }
 
     if (json.containsKey("blankLeading")) {
       int newblankLeading = json["blankLeading"];
       if (cc->blankLeading != newblankLeading) {
+        #ifdef DEBUG_ON
         debugMsg("blankLeading before: " + String(cc->blankLeading));
+        #endif
         cc->blankLeading = newblankLeading;
+        #ifdef DEBUG_ON
         debugMsg("Loaded new blankLeading: " + String(cc->blankLeading));
+        #endif
       }
     }
 
     if (json.containsKey("dateFormat")) {
       int newdateFormat = json["dateFormat"];
       if (cc->dateFormat != newdateFormat) {
+        #ifdef DEBUG_ON
         debugMsg("dateFormat before: " + String(cc->dateFormat));
+        #endif
         cc->dateFormat = newdateFormat;
+        #ifdef DEBUG_ON
         debugMsg("Loaded new dateFormat: " + String(cc->dateFormat));
+        #endif
       }
     }
 
     if (json.containsKey("scrollback")) {
       int newscrollback = json["scrollback"];
       if (cc->scrollback != newscrollback) {
+        #ifdef DEBUG_ON
         debugMsg("scrollback before: " + String(cc->scrollback));
+        #endif
         cc->scrollback = newscrollback;
+        #ifdef DEBUG_ON
         debugMsg("Loaded new scrollback: " + String(cc->scrollback));
+        #endif
       }
     }
 
     if (json.containsKey("scrollSteps")) {
       int newscrollSteps = json["scrollSteps"];
       if (cc->scrollSteps != newscrollSteps) {
+        #ifdef DEBUG_ON
         debugMsg("scrollSteps before: " + String(cc->scrollSteps));
+        #endif
         cc->scrollSteps = newscrollSteps;
+        #ifdef DEBUG_ON
         debugMsg("Loaded new scrollSteps: " + String(cc->scrollSteps));
+        #endif
       }
     }
 
     if (json.containsKey("fade")) {
       int newfade = json["fade"];
       if (cc->fade != newfade) {
+        #ifdef DEBUG_ON
         debugMsg("fade before: " + String(cc->fade));
+        #endif
         cc->fade = newfade;
+        #ifdef DEBUG_ON
         debugMsg("Loaded new fade: " + String(cc->fade));
+        #endif
       }
     }
 
     if (json.containsKey("suppressACP")) {
       int newsuppressACP = json["suppressACP"];
       if (cc->suppressACP != newsuppressACP) {
+        #ifdef DEBUG_ON
         debugMsg("suppressACP before: " + String(cc->suppressACP));
+        #endif
         cc->suppressACP = newsuppressACP;
+        #ifdef DEBUG_ON
         debugMsg("Loaded new suppressACP: " + String(cc->suppressACP));
+        #endif
       }
     }
 
     if (json.containsKey("slotsMode")) {
       int newslotsMode = json["slotsMode"];
       if (cc->slotsMode != newslotsMode) {
+        #ifdef DEBUG_ON
         debugMsg("slotsMode before: " + String(cc->slotsMode));
+        #endif
         cc->slotsMode = newslotsMode;
+        #ifdef DEBUG_ON
         debugMsg("Loaded new slotsMode: " + String(cc->slotsMode));
+        #endif
       }
     }
 
@@ -344,61 +409,89 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     if (json.containsKey("useLDR")) {
       int newUseLDR = json["useLDR"].as<bool>();
       if (cc->useLDR != newUseLDR) {
+        #ifdef DEBUG_ON
         debugMsg("useLDR before: " + String(cc->useLDR));
+        #endif
         cc->useLDR = newUseLDR;
+        #ifdef DEBUG_ON
         debugMsg("Loaded new useLDR: " + String(cc->useLDR));
+        #endif
       }
     }
 
     if (json.containsKey("minDim")) {
       int newMinDim = json["minDim"];
       if (cc->minDim != newMinDim) {
+        #ifdef DEBUG_ON
         debugMsg("minDim before: " + String(cc->minDim));
+        #endif
         cc->minDim = newMinDim;
+        #ifdef DEBUG_ON
         debugMsg("Loaded new minDim: " + String(cc->minDim));
+        #endif
       }
     }
 
     if (json.containsKey("thresholdBright")) {
       int newthresholdBright = json["thresholdBright"];
       if (cc->thresholdBright != newthresholdBright) {
+        #ifdef DEBUG_ON
         debugMsg("thresholdBright before: " + String(cc->thresholdBright));
+        #endif
         cc->thresholdBright = newthresholdBright;
+        #ifdef DEBUG_ON
         debugMsg("Loaded new thresholdBright: " + String(cc->thresholdBright));
+        #endif
       }
     }
 
     if (json.containsKey("sensitivityLDR")) {
       int newsensitivityLDR = json["sensitivityLDR"];
       if (cc->sensitivityLDR != newsensitivityLDR) {
+        #ifdef DEBUG_ON
         debugMsg("sensitivityLDR before: " + String(cc->sensitivityLDR));
+        #endif
         cc->sensitivityLDR = newsensitivityLDR;
+        #ifdef DEBUG_ON
         debugMsg("Loaded new sensitivityLDR: " + String(cc->sensitivityLDR));
+        #endif
       }
     }
 
     if (json.containsKey("useBLDim")) {
       int newUseBLDim = json["useBLDim"].as<bool>();
       if (cc->useBLDim != newUseBLDim) {
+        #ifdef DEBUG_ON
         debugMsg("useBLDim before: " + String(cc->useBLDim));
+        #endif
         cc->useBLDim = newUseBLDim;
+        #ifdef DEBUG_ON
         debugMsg("Loaded new useBLDim: " + String(cc->useBLDim));
+        #endif
       }
     }
 
     if (json.containsKey("useBLPulse")) {
       int newUseBLPulse = json["useBLDim"].as<bool>();
       if (cc->useBLPulse != newUseBLPulse) {
+        #ifdef DEBUG_ON
         debugMsg("useBLPulse before: " + String(cc->useBLPulse));
+        #endif
         cc->useBLPulse = newUseBLPulse;
+        #ifdef DEBUG_ON
         debugMsg("Loaded new useBLPulse: " + String(cc->useBLPulse));
+        #endif
       }
     }
 
     spiffsStorage.saveConfigToSpiffs(cc);
+    #ifdef DEBUG_ON
     debugMsg("Saved new config");
+    #endif
   } else {
+    #ifdef DEBUG_ON
     debugMsg("Json parse failure: " + String(request->arg("body")));
+    #endif
   }
 
   // Return the updated values
@@ -406,7 +499,9 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
 }
 
 void getTimeserverDataHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
   debugMsg("Got api timeserver GET request");
+  #endif
   
   AsyncJsonResponse * response = new AsyncJsonResponse();
   response->addHeader("Server", "ESP Async Web Server");
@@ -423,23 +518,35 @@ void dumpArgs(AsyncWebServerRequest *request) {
   int i;
   for(i=0;i<headers;i++){
     AsyncWebHeader* h = request->getHeader(i);
-    Serial.printf("HEADER[%s]: %s\n", h->name().c_str(), h->value().c_str());
+    #ifdef DEBUG_ON
+    String message = "HEADER[" + h->name() + ":" + h->value();
+    debugMsg(message);
+    #endif
   }
 
   if (request->hasArg("body")) {
-    Serial.println("Body found arg");
+    #ifdef DEBUG_ON
+    debugMsg("Body found arg");
+    #endif
   }
   if (request->hasParam("body")) {
-    Serial.println("Body found param");
+    #ifdef DEBUG_ON
+    debugMsg("Body found param");
+    #endif
   }
   int args = request->args();
   for(int i=0;i<args;i++){
-    Serial.printf("ARG[%s]: %s\n", request->argName(i).c_str(), request->arg(i).c_str());
+    #ifdef DEBUG_ON
+    String message = "ARG[" + request->argName(i) + "]: " + request->arg(i); 
+    debugMsg(message);
+    #endif
   }  
 }
 
 void postTimeserverDataHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
   debugMsg("Got api timeserver POST request");
+  #endif
   
   // dumpArgs(request);
 
@@ -447,26 +554,40 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
   JsonObject& json = jsonBuffer.parse(String(request->arg("body")));
 
   if (json.success()) {
+    #ifdef DEBUG_ON
     debugMsg("NTP pool before: " + cc->ntpPool);
+    #endif
     cc->ntpPool = json["ntpPool"].as<String>();
+    #ifdef DEBUG_ON
     debugMsg("Loaded NTP pool: " + cc->ntpPool);
+    #endif
 
     cc->ntpUpdateInterval = json["ntpUpdateInterval"].as<int>();
+    #ifdef DEBUG_ON
     debugMsg("Loaded NTP update interval: " + String(cc->ntpUpdateInterval));
+    #endif
 
     cc->tzs = json["tzs"].as<String>();
+    #ifdef DEBUG_ON
     debugMsg("Loaded time zone string: " + cc->tzs);
+    #endif
 
     // Now apply the new confog
     ntpAsync.setNtpPool(cc->ntpPool);
     ntpAsync.setUpdateInterval(cc->ntpUpdateInterval);
     ntpAsync.setTZS(cc->tzs);
+    #ifdef DEBUG_ON
     debugMsg("Applied new time config");
+    #endif
 
     spiffsStorage.saveConfigToSpiffs(cc);
+    #ifdef DEBUG_ON
     debugMsg("Saved new time config");
+    #endif
   } else {
+    #ifdef DEBUG_ON
     debugMsg("Json parse failure: " + String(request->arg("body")));
+    #endif
   }
 
   AsyncJsonResponse * response = new AsyncJsonResponse();
@@ -480,7 +601,9 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
 }
 
 void postWiFiDataHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
   debugMsg("Got api wifi POST request");
+  #endif
   
   // dumpArgs(request);
 
@@ -489,13 +612,19 @@ void postWiFiDataHandler(AsyncWebServerRequest *request) {
 
   if (json.success()) {
     String newSSID = json["SSID"].as<String>();
+    #ifdef DEBUG_ON
     debugMsg("Received SSID: " + newSSID);
+    #endif
 
     String newPassword = json["password"].as<String>();
+    #ifdef DEBUG_ON
     debugMsg("Received password: " + newPassword);
+    #endif
 
   } else {
+    #ifdef DEBUG_ON
     debugMsg("Json parse failure: " + String(request->arg("body")));
+    #endif
   }
 
   AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"OK\"}");
@@ -559,7 +688,9 @@ void resetOptions() {
   cc->wasSetup = true;
 
   spiffsStorage.saveConfigToSpiffs(cc);
+  #ifdef DEBUG_ON
   debugMsg("Saved factory config");
+  #endif
 }
 
 void resetAll() {
@@ -567,9 +698,13 @@ void resetAll() {
 }
 
 void getCredentialsHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
   debugMsg("Got api wifi credentials request");
+  #endif
   
+  #ifdef DEBUG_ON
   dumpArgs(request);
+  #endif
 
   if ((request->hasArg("ssid")) && (request->hasArg("password"))) {
     ssid = request->arg("ssid");
@@ -598,7 +733,9 @@ void wifiBeginWithCredentials() {
 }
 
 void getI2CScanHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
   debugMsg("Got I2C scan request");
+  #endif
   
   AsyncJsonResponse * response = new AsyncJsonResponse();
   response->addHeader("Server", "ESP Async Web Server");
@@ -611,19 +748,27 @@ void getI2CScanHandler(AsyncWebServerRequest *request) {
     Wire.beginTransmission(address);
     error = Wire.endTransmission();
     if (error == 0) {
+      #ifdef DEBUG_ON
       debugMsg("I2C device found at address 0x" + String(address, HEX));
+      #endif
       root["I2C"+String(address)] = "found";
       nDevices++;
     }
     else if (error==4) {
+      #ifdef DEBUG_ON
       debugMsg("Unknown error at address 0x" + String(address, HEX));
+      #endif
     }    
   }
   if (nDevices == 0) {
+    #ifdef DEBUG_ON
     debugMsg("No I2C devices found");
+  #endif
   }
   else {
+    #ifdef DEBUG_ON
     debugMsg("done");
+    #endif
   }
 
   response->setLength();
@@ -631,7 +776,9 @@ void getI2CScanHandler(AsyncWebServerRequest *request) {
 }
 
 void saveStatsHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
   debugMsg("Got save stats request");
+  #endif
 
   spiffsStorage.saveStatsToSpiffs(cs);
   
@@ -639,7 +786,9 @@ void saveStatsHandler(AsyncWebServerRequest *request) {
 }
 
 void resetWifiHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
   debugMsg("Got utils RESET request");
+  #endif
   WiFi.disconnect();
   request->send(200, "text/plain", "WiFi was reset");
 }
