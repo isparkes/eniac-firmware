@@ -90,6 +90,10 @@
                             <td id="displaytime"></td>
                         </tr>
                         <tr>
+                            <td>RTC Time</td>
+                            <td id="rtctime"></td>
+                        </tr>
+                        <tr>
                             <td>Digit brightness</td>
                             <td id="ldrvalue"></td>
                         </tr>
@@ -148,10 +152,6 @@
                             <td>SDK version</td>
                             <td id="sdkversion"></td>
                         </tr>
-                        <tr>
-                            <td>Sketch md5</td>
-                            <td id="sketchmd5"></td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -190,6 +190,7 @@
             $("#lastntpupdate").text(summary.lastntpupdate);
             $("#nextupdate").text(summary.nextupdate);
             $("#displaytime").text(summary.displaytime);
+            $("#rtctime").text(summary.rtctime);
             $("#uptime").text(summary.uptime);
             $("#ontime").text(summary.ontime);
             $("#status").text(summary.status);

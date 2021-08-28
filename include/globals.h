@@ -7,6 +7,7 @@
 #include "defs.h"
 #include "esp_wps.h"
 #include <ESP32Encoder.h>
+#include "ESP_DS1307.h"
 
 extern byte numberArray[DIGIT_COUNT];
 extern AsyncWebServer server;
@@ -18,6 +19,8 @@ extern esp_wps_config_t wps_config;
 extern SPIFFS_CLOCK spiffsStorage;
 
 extern ESP32Encoder encoder;
+
+extern DS1307 rtclock;
 
 extern unsigned long nowMillis;
 extern unsigned long lastMillis;
@@ -53,3 +56,5 @@ extern bool bl3;
 extern bool bl4;
 extern bool bl5;
 extern bool bl6;
+
+extern bool useRTC;

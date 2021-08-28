@@ -56,4 +56,8 @@ void resetWifi();
 void resetOptions();
 void resetAll();
 
+void testRTCTimeProvider();
+String getRTCTime(boolean setInternalTime);
+void setRTCTime();
+
 #endif

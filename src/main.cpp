@@ -358,6 +358,16 @@ void setup()
   Wire.begin();
 
   // -------------------------------------------------------------------------
+  debugMsg("Start up RTC...");
+  testRTCTimeProvider();
+  if (useRTC) {
+    getRTCTime(true);
+    debugMsg("RTC found");
+  } else {
+    debugMsg("RTC NOT found");
+  }
+
+  // -------------------------------------------------------------------------
   
   // kick off NTP updates
   nowMillis = millis();
@@ -603,7 +613,12 @@ void performOncePerSecondProcessing() {
 
   // debugMsg("Enc Attached: " + String(encoder.isAttached()));
 
-  debugMsg("EncCount: " + String(encoderCount));
+  if (useRTC) {
+    debugMsg("RTC Enabled");
+    debugMsg("RTC result: " + getRTCTime(false));
+  } else {
+    debugMsg("RTC NOT Enabled");
+  }
 
   esp_task_wdt_reset();
 }
@@ -616,6 +631,10 @@ void performOncePerMinuteProcessing() {
 
   debugMsg("nu: " + String(ntpAsync.getNextUpdate(nowMillis)));
 
+  // Set the internal time to the time from the RTC even if we are still in
+  // NTP valid time. This is more accurate than using the internal time source
+  getRTCTime(true);
+  
   // Usage stats
   cs->uptimeMins++;
 

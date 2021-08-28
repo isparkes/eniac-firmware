@@ -20,6 +20,8 @@ esp_wps_config_t wps_config;
 
 ESP32Encoder encoder;
 
+DS1307 rtclock;
+
 // ************************************************************
 // SPIFFS and public configs
 // ************************************************************
@@ -51,9 +53,14 @@ bool led2State;
 bool indLed1;
 bool indLed2;
 
+// ************************************************************
+// Blinkenlights
+// ************************************************************
 bool bl1;
 bool bl2;
 bool bl3;
 bool bl4;
 bool bl5;
 bool bl6;
+
+bool useRTC;

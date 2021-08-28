@@ -1,5 +1,6 @@
 #include "utilities.h"
 #include "LDRManager.h"
+#include "ESP_DS1307.h"
 
 // --------------------------------------------------------------------------------------------------------
 // ----------------------------------------  Utility functions  -------------------------------------------
@@ -31,35 +32,8 @@ void grabInts(String s, int *dest, String sep) {
 }
 
 // ************************************************************
-// Set the time from the value we get back from the time server
+// Main page handler
 // ************************************************************
-void setTimeFromServer(String timeString) {
-  #define SYNC_HOURS 3
-  #define SYNC_MINS 4
-  #define SYNC_SECS 5
-  #define SYNC_DAY 2
-  #define SYNC_MONTH 1
-  #define SYNC_YEAR 0
-
-  int intValues[6];
-  grabInts(timeString, &intValues[0], ",");
-  setTime(intValues[SYNC_HOURS], intValues[SYNC_MINS], intValues[SYNC_SECS], intValues[SYNC_DAY], intValues[SYNC_MONTH], intValues[SYNC_YEAR]);
-  #ifdef DEBUG_ON
-  debugMsg("Set internal time to NTP time: " + String(year()) + ":" + String(month()) + ":" + String(day()) + " " + String(hour()) + ":" + String(minute()) + ":" + String(second()));
-  #endif
-}
-
- // ************************************************************
-// Callback: When the NTP component tells us there is an update
-// go and get it
-// ************************************************************
-void newTimeUpdateReceived() {
-  #ifdef DEBUG_ON
-  debugMsg("Got a new time update: " + ntpAsync.getLastTimeFromServer());
-  #endif
-  setTimeFromServer(ntpAsync.getLastTimeFromServer());
-}
-
 void mainHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
 	debugMsg("Got request");
@@ -197,6 +171,107 @@ uint32_t decodeBCD(byte valueToDecode, bool bl1, bool bl2, bool led1, bool led2)
   return decoded;
 }
 
+//**********************************************************************************
+//**********************************************************************************
+//*                         RTC Module Time Provider                               *
+//**********************************************************************************
+//**********************************************************************************
+
+// ************************************************************
+// Check that we still have access to the time from the RTC
+// ************************************************************
+void testRTCTimeProvider() {
+  // Set up the time provider
+  // first try to find the RTC, if not available, go into slave mode
+  Wire.beginTransmission(DS1307_I2C_ADDRESS);
+  useRTC = (Wire.endTransmission() == 0);
+}
+
+// ************************************************************
+// Get the time from the RTC
+// ************************************************************
+String getRTCTime(boolean setInternalTime) {
+  testRTCTimeProvider();
+  if (useRTC) {
+    rtclock.getTime();
+    int years = rtclock.year + 2000;
+    byte months = rtclock.month;
+    byte days = rtclock.dayOfMonth;
+    byte hours = rtclock.hour;
+    byte mins = rtclock.minute;
+    byte secs = rtclock.second;
+
+    String returnValue = String(years) + ":" + String(months) + ":" + String(days) + " " + String(hours) + ":" + String(mins) + ":" + String(secs);
+    debugMsg("Got RTC time: " + returnValue);
+
+    if (setInternalTime) {
+      // Set the internal time provider to the value we got
+      setTime(hours, mins, secs, days, months, years);
+      debugMsg("Set Internal time to: " + returnValue);
+    }
+
+    return returnValue;
+  } else {
+    return "";
+  }
+}
+
+// ************************************************************
+// Set the date/time in the RTC from the internal time
+// Always hold the time in 24 format, we convert to 12 in the
+// display.
+// ************************************************************
+void setRTCTime() {
+  testRTCTimeProvider();
+  if (useRTC) {
+    rtclock.fillByYMD(year() % 100, month(), day());
+    rtclock.fillByHMS(hour(), minute(), second());
+    rtclock.setTime();
+
+    debugMsg("Set RTC time to internal time: " + String(year()) + ":" + String(month()) + ":" + String(day()) + " " + String(hour()) + ":" + String(minute()) + ":" + String(second()));
+  }
+}
+
+// ************************************************************
+// Set the time from the value we get back from the time server
+// ************************************************************
+void setTimeFromServer(String timeString) {
+  #define SYNC_HOURS 3
+  #define SYNC_MINS 4
+  #define SYNC_SECS 5
+  #define SYNC_DAY 2
+  #define SYNC_MONTH 1
+  #define SYNC_YEAR 0
+
+  int intValues[6];
+  grabInts(timeString, &intValues[0], ",");
+  setTime(intValues[SYNC_HOURS], intValues[SYNC_MINS], intValues[SYNC_SECS], intValues[SYNC_DAY], intValues[SYNC_MONTH], intValues[SYNC_YEAR]);
+
+  // Push the update to the RTC chip
+  setRTCTime();
+  
+  #ifdef DEBUG_ON
+  debugMsg("Set internal time to NTP time: " + String(year()) + ":" + String(month()) + ":" + String(day()) + " " + String(hour()) + ":" + String(minute()) + ":" + String(second()));
+  #endif
+}
+
+//**********************************************************************************
+//**********************************************************************************
+//*                                  NTP Callback                                  *
+//**********************************************************************************
+//**********************************************************************************
+
+// ************************************************************
+// Callback: When the NTP component tells us there is an update
+// go and get it
+// ************************************************************
+void newTimeUpdateReceived() {
+  #ifdef DEBUG_ON
+  debugMsg("Got a new time update: " + ntpAsync.getLastTimeFromServer());
+  #endif
+  setTimeFromServer(ntpAsync.getLastTimeFromServer());
+}
+
 // --------------------------------------------------------------------------------------------------------
 // ---------------------------------------    Web Interface     -------------------------------------------
 // --------------------------------------------------------------------------------------------------------
@@ -230,6 +305,12 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   root["lastntpupdate"] = secsToReadableString(ntpAsync.getLastUpdateTimeSecs(nowMillis));
   root["nextupdate"] = secsToReadableString(absNextUpdate) + overdueInd;
   root["displaytime"] = timeToReadableString(year(),month(),day(),hour(),minute(),second());
+
+  if (useRTC) { 
+    root["rtctime"] = getRTCTime(false);
+  } else {
+    root["rtctime"] = "RTC not installed";
+  }
 
   float ldrPerc = (4095 - ldrValue) / 4095.0 * 100.0;
   root["ldrvalue"] = String(ldrPerc, 2) + "% (" + String(ldrValue) + ")";
