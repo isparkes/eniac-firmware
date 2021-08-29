@@ -60,4 +60,6 @@ void testRTCTimeProvider();
 String getRTCTime(boolean setInternalTime);
 void setRTCTime();
 
+void parseNMEAMsg(char c);
+
 #endif

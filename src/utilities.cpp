@@ -305,6 +305,7 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   root["lastntpupdate"] = secsToReadableString(ntpAsync.getLastUpdateTimeSecs(nowMillis));
   root["nextupdate"] = secsToReadableString(absNextUpdate) + overdueInd;
   root["displaytime"] = timeToReadableString(year(),month(),day(),hour(),minute(),second());
+  root["lastgps"] = lastNMEAMessage;
 
   if (useRTC) { 
     root["rtctime"] = getRTCTime(false);
@@ -873,3 +874,35 @@ void resetWifiHandler(AsyncWebServerRequest *request) {
   WiFi.disconnect();
   request->send(200, "text/plain", "WiFi was reset");
 }
+
+char msgBuffer[37];
+byte bufferOffset = 0;
+
+// Picks messages like this "$GPZDA,184937.00,28,08,2021,00,00*65"
+
+void parseNMEAMsg(char c)
+{
+//  debugMsgCont("GPS: " + String(c));
+  switch(c) {
+    case '\r':
+    case '\n':
+      msgBuffer[sizeof(msgBuffer)-1] = 0;
+      if (bufferOffset == 36)
+      {
+        lastNMEAMessage = String(msgBuffer);
+        if (lastNMEAMessage.startsWith("$GPZDA")) {
+          debugMsg("Got GPS ZDA msg: " + lastNMEAMessage);
+        }
+      }
+      return;
+    case '$': // sentence begin
+      bufferOffset = 0;
+      msgBuffer[bufferOffset++] = c;
+      return;
+    default:
+      // ordinary characters
+      if (bufferOffset < sizeof(msgBuffer) - 1)
+        msgBuffer[bufferOffset++] = c;
+  }
+}
+

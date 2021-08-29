@@ -12,12 +12,14 @@
 
 #define DEBUG_ON             // DEBUG_ON | DEBUG_OFF
 
-#define LED_PIN 2
-
 #define SOFTWARE_VERSION "LTC-ESP32 V0.1"
 
 #define COUNTS_PER_DIGIT 20
 
+// Onboard LED 
+#define LED_PIN 2
+
+// Digit drivers
 #define CLKPin    19
 #define BLANKPin  18
 
@@ -30,22 +32,25 @@
 #define DATA3Pin  32
 #define LATCH3Pin 33
 
-#define encA      5
-#define encB      12
-#define encBTN    16
+// Encoder
+#define ENC_APin  5
+#define ENC_BPin  12
+#define ENC_BTN   16
 
 // Internally defined
 #define SDAint    21
 #define SCLint    22
-
-#define PIRPin    35
 
 // Touch capable buttons
 #define BTN1Pin   15
 #define BTN2Pin   4
 #define BTN3Pin   14
 
+// Analogue capable - no internal pullups
 #define LDRPin    34
+#define PIRPin    35
+
+#define PPSPin    0
 
 // -------------------------------------------------------------------------------
 

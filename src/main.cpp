@@ -61,7 +61,6 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
 void setup()
 {
   Serial.begin(115200);
-  delay(100);
 
   // -------------------------------------------------------------------------
 
@@ -80,7 +79,9 @@ void setup()
 
   pinMode(BLANKPin, OUTPUT);
 
-  pinMode(encBTN, INPUT);
+  pinMode(ENC_BTN, INPUT);
+
+  pinMode(PPSPin, OUTPUT);
 
   // -------------------------------------------------------------------------
   
@@ -379,7 +380,7 @@ void setup()
 
   debugMsg("Start up encoder");
 	ESP32Encoder::useInternalWeakPullResistors=UP;
-	encoder.attachHalfQuad(encA, encB);
+	encoder.attachHalfQuad(ENC_APin, ENC_BPin);
 		
 	// clear the encoder's raw count and set the tracked count to zero
 	encoder.clearCount();
@@ -393,6 +394,11 @@ void setup()
   ldrManager.setDebugCallback(dbcb);
   ldrManager.setUp();
   ldrManager.setDebugOutput(false);
+
+  // -------------------------------------------------------------------------
+
+  debugMsg("GPR/Serial...");
+  // Serial.begin(115200);
 
   // -------------------------------------------------------------------------
   
@@ -613,12 +619,20 @@ void performOncePerSecondProcessing() {
 
   // debugMsg("Enc Attached: " + String(encoder.isAttached()));
 
-  if (useRTC) {
-    debugMsg("RTC Enabled");
-    debugMsg("RTC result: " + getRTCTime(false));
-  } else {
-    debugMsg("RTC NOT Enabled");
+  // if (useRTC) {
+  //   debugMsg("RTC Enabled");
+  //   debugMsg("RTC result: " + getRTCTime(false));
+  // } else {
+  //   debugMsg("RTC NOT Enabled");
+  // }
+
+  while (Serial.available()) {
+    char c = Serial.read();
+    parseNMEAMsg(c);
   }
+
+  // Trigger 1PPS signal
+  triggerTimer2();
 
   esp_task_wdt_reset();
 }
@@ -634,7 +648,7 @@ void performOncePerMinuteProcessing() {
   // Set the internal time to the time from the RTC even if we are still in
   // NTP valid time. This is more accurate than using the internal time source
   getRTCTime(true);
-  
+
   // Usage stats
   cs->uptimeMins++;
 

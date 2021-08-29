@@ -58,3 +58,5 @@ extern bool bl5;
 extern bool bl6;
 
 extern bool useRTC;
+
+extern String lastNMEAMessage;

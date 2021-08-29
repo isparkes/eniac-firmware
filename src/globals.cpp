@@ -64,3 +64,5 @@ bool bl5;
 bool bl6;
 
 bool useRTC;
+
+String lastNMEAMessage = "";
