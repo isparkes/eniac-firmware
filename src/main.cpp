@@ -79,7 +79,7 @@ void setup()
 
   pinMode(BLANKPin, OUTPUT);
 
-  pinMode(ENC_BTN, INPUT);
+  pinMode(ENC_BTN, INPUT_PULLUP);
 
   pinMode(PPSPin, OUTPUT);
 
