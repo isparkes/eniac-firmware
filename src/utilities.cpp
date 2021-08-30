@@ -932,24 +932,24 @@ void parseNMEAMsg(char c)
   switch(c) {
     case '\r':
     case '\n':
+    {
       msgBuffer[sizeof(msgBuffer)-1] = 0;
-      if (bufferOffset == 36)
-      {
-        String lastMessage = String(msgBuffer);
-        if (lastMessage.startsWith("$GPZDA")) {
-          #ifdef DEBUG_ON 
-          debugMsg("Got GPS ZDA msg: " + lastGPSTime);
-          #endif
-          lastGPSTime = String(msgBuffer);
-          lastGPSReadTime = nowMillis;
-        }
+      String lastMessage = String(msgBuffer);
+      if (lastMessage.indexOf("$GPZDA") >= 0) {
+        #ifdef DEBUG_ON 
+        debugMsg("Got GPS ZDA msg: " + lastGPSTime);
+        #endif
+        lastGPSTime = String(msgBuffer);
+        lastGPSReadTime = nowMillis;
       }
       return;
-    case '$': // sentence begin
+    }
+    case '$': { // sentence begin
       memset(msgBuffer, 0, sizeof(msgBuffer));
       bufferOffset = 0;
       msgBuffer[bufferOffset++] = c;
       return;
+    }
     default:
       // ordinary characters
       if (bufferOffset < sizeof(msgBuffer) - 1)

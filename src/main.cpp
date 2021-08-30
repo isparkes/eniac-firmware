@@ -293,16 +293,22 @@ void setup()
 
   server.serveStatic("/", SPIFFS, "/web/").setDefaultFile("index.html");
 
+  // Summary and diagnostics
   server.on("/api/getSummary", HTTP_GET, getSummaryDataHandler);
   server.on("/api/getDiags", HTTP_GET, getDiagsDataHandler);
   
+  // Configure time server
   server.on("/api/getTimeserver", HTTP_GET, getTimeserverDataHandler);
   server.on("/api/postTimeserver", HTTP_POST, postTimeserverDataHandler);
   
+  // Configure options
   server.on("/api/getConfig", HTTP_GET, getConfigDataHandler);
   server.on("/api/postConfig", HTTP_POST, postConfigDataHandler);
 
+  // wifi credentials
   server.on("/api/postWiFiCredentials", HTTP_POST, postWiFiDataHandler);
+
+  // Utilities
   server.on("/utils/resetWifi", HTTP_GET, resetWifiHandler);
   server.on("/utils/scanI2C", HTTP_GET, getI2CScanHandler);
   server.on("/utils/saveStats", HTTP_GET, saveStatsHandler);
@@ -323,6 +329,7 @@ void setup()
         request->redirect("/utility.html");;
     });
   server.on("/utils/restart", HTTP_GET, restartHandler);
+
   server.onNotFound([](AsyncWebServerRequest *request){
       request->send(404, "text/plain", "The content you are looking for was not found.");
   });
