@@ -39,7 +39,6 @@ void IRAM_ATTR onTimer0() {
      digitalWrite(LED_PIN, LOW);
    }
    portEXIT_CRITICAL_ISR(&timerMux0);
-
 }
 
 // ************************************************************
@@ -130,21 +129,21 @@ void triggerTimer2() {
 // ************************************************************
 void startTimers() {
   timer0 = timerBegin(0, 80, true);
-  timerAttachInterrupt(timer0, &onTimer0, false);
-  timerAlarmWrite(timer0, 1000, true);
+  timerAttachInterrupt(timer0, &onTimer0, true);
+  timerAlarmWrite(timer0, 10000, true);
   // https://community.platformio.org/t/hardware-timer-issue-with-esp32/22047/10
   delayMicroseconds(0);
   timerAlarmEnable(timer0);
 
   timer1 = timerBegin(1, 80, true);
-  timerAttachInterrupt(timer1, &onTimer1, false);
+  timerAttachInterrupt(timer1, &onTimer1, true);
   timerAlarmWrite(timer1, 50000, true);
   // https://community.platformio.org/t/hardware-timer-issue-with-esp32/22047/10
   delayMicroseconds(0);
   timerAlarmEnable(timer1);
 
   timer2 = timerBegin(2, 80, true);
-  timerAttachInterrupt(timer2, &onTimer2, false);
+  timerAttachInterrupt(timer2, &onTimer2, true);
   // https://community.platformio.org/t/hardware-timer-issue-with-esp32/22047/10
   timerAlarmWrite(timer2, 50000, false);
   delayMicroseconds(0);
@@ -160,13 +159,13 @@ void startTimers() {
 void setLedFlashType(byte flashType) {
   switch(flashType) {
     case 0: {
-      count0Max = 1000;
+      count0Max = 100;
       count0Off = 1;
       break;
     }
     case 1: {
-      count0Max = 1000;
-      count0Off = 500;
+      count0Max = 100;
+      count0Off = 50;
       break;
     }
   }

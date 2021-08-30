@@ -59,4 +59,6 @@ extern bool bl6;
 
 extern bool useRTC;
 
-extern String lastNMEAMessage;
+extern String lastGPSTime;
+extern unsigned long lastGPSReadTime;
+extern bool gpsTimeValid;

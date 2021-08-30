@@ -294,6 +294,7 @@ void setup()
   server.serveStatic("/", SPIFFS, "/web/").setDefaultFile("index.html");
 
   server.on("/api/getSummary", HTTP_GET, getSummaryDataHandler);
+  server.on("/api/getDiags", HTTP_GET, getDiagsDataHandler);
   
   server.on("/api/getTimeserver", HTTP_GET, getTimeserverDataHandler);
   server.on("/api/postTimeserver", HTTP_POST, postTimeserverDataHandler);
@@ -321,6 +322,7 @@ void setup()
     resetAll();
         request->redirect("/utility.html");;
     });
+  server.on("/utils/restart", HTTP_GET, restartHandler);
   server.onNotFound([](AsyncWebServerRequest *request){
       request->send(404, "text/plain", "The content you are looking for was not found.");
   });
@@ -397,7 +399,7 @@ void setup()
 
   // -------------------------------------------------------------------------
 
-  debugMsg("GPR/Serial...");
+  debugMsg("GPS/Serial...");
   // Serial.begin(115200);
 
   // -------------------------------------------------------------------------
@@ -491,6 +493,16 @@ void setLeds()
 
 int encoderCount;
 
+void print64(uint64_t value)
+{
+    if ( value >= 10 )
+    {
+        print64(value / 10);
+    }
+    
+    Serial.print(value % 10);
+}
+
 // ************************************************************
 // Called once per second
 // ************************************************************
@@ -574,7 +586,7 @@ void performOncePerSecondProcessing() {
 
   encoderCount = encoder.getCount()/2 % 6;
 
-  switch (encoderCount) {
+  switch (second() % 6) {
     case 0: {
       bl1 = true;
       break;
@@ -630,6 +642,9 @@ void performOncePerSecondProcessing() {
     char c = Serial.read();
     parseNMEAMsg(c);
   }
+
+  // debugMsg("Timer: " + String(getTimerStarted()));
+  // print64(getCount());
 
   // Trigger 1PPS signal
   triggerTimer2();

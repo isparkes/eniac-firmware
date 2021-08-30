@@ -1,6 +1,8 @@
 #include "utilities.h"
 #include "LDRManager.h"
 #include "ESP_DS1307.h"
+#include <rom/rtc.h>
+#include "clock_timers.h"
 
 // --------------------------------------------------------------------------------------------------------
 // ----------------------------------------  Utility functions  -------------------------------------------
@@ -159,6 +161,12 @@ String getStatusString() {
   connectionInfo += "d";
 #endif
 
+  if (gpsTimeValid) {
+    connectionInfo += "G";
+  } else {
+    connectionInfo += "g";
+  }
+
   return connectionInfo;
 }
 
@@ -281,8 +289,6 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   debugMsg("Got api summary GET request");
   #endif
   
-  long nowMillis = millis();
-
   signed long absNextUpdate = abs(ntpAsync.getNextUpdate(nowMillis));
   String overdueInd = "";
   if (absNextUpdate < 0) {
@@ -305,7 +311,7 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   root["lastntpupdate"] = secsToReadableString(ntpAsync.getLastUpdateTimeSecs(nowMillis));
   root["nextupdate"] = secsToReadableString(absNextUpdate) + overdueInd;
   root["displaytime"] = timeToReadableString(year(),month(),day(),hour(),minute(),second());
-  root["lastgps"] = lastNMEAMessage;
+  root["lastgpstime"] = lastGPSTime;
 
   if (useRTC) { 
     root["rtctime"] = getRTCTime(false);
@@ -316,8 +322,12 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   float ldrPerc = (4095 - ldrValue) / 4095.0 * 100.0;
   root["ldrvalue"] = String(ldrPerc, 2) + "% (" + String(ldrValue) + ")";
 
+  // Total ontime for the life of the clock
   root["uptime"] = secsToReadableString(cs->uptimeMins * 60);
+
+  // Total time the tubes have been on for
   root["ontime"] = secsToReadableString(cs->tubeOnTimeMins * 60);
+
   root["status"] = getStatusString();
   root["version"] = SOFTWARE_VERSION;
 
@@ -330,6 +340,26 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   root["sdkversion"] = ESP.getSdkVersion();
   root["sketchmd5"] = ESP.getSketchMD5();
 //  root["cyclecount"] = ESP.getCycleCount(); // Doesn't seem to deliver any real information
+
+  response->setLength();
+  request->send(response);
+}
+
+void getDiagsDataHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
+  debugMsg("Got api diagnostics GET request");
+  #endif
+  
+  AsyncJsonResponse * response = new AsyncJsonResponse();
+  response->addHeader("Server", "ESP Async Web Server");
+  JsonObject& root = response->getRoot();
+
+  // The amount of time we have been on for right now
+  root["runtime"] = secsToReadableString(nowMillis/1000);
+  root["cyclecount"] = ESP.getCycleCount();
+  root["minfreepsram"] = ESP.getMinFreePsram();
+  root["minfreeheap"] = ESP.getMinFreeHeap();
+  root["resetreason"] = String(rtc_get_reset_reason(0)) + "/" + String(rtc_get_reset_reason(1));
 
   response->setLength();
   request->send(response);
@@ -682,6 +712,22 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
   request->send(response);
 }
 
+void restartHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
+  debugMsg("Got api restat request");
+  #endif
+  
+  #ifdef DEBUG_ON
+  dumpArgs(request);
+  #endif
+
+  AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"Restart in 1s\"}");
+  request->send(response);
+
+  delay(1000);
+  ESP.restart();
+}
+
 void postWiFiDataHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
   debugMsg("Got api wifi POST request");
@@ -889,13 +935,18 @@ void parseNMEAMsg(char c)
       msgBuffer[sizeof(msgBuffer)-1] = 0;
       if (bufferOffset == 36)
       {
-        lastNMEAMessage = String(msgBuffer);
-        if (lastNMEAMessage.startsWith("$GPZDA")) {
-          debugMsg("Got GPS ZDA msg: " + lastNMEAMessage);
+        String lastMessage = String(msgBuffer);
+        if (lastMessage.startsWith("$GPZDA")) {
+          #ifdef DEBUG_ON 
+          debugMsg("Got GPS ZDA msg: " + lastGPSTime);
+          #endif
+          lastGPSTime = String(msgBuffer);
+          lastGPSReadTime = nowMillis;
         }
       }
       return;
     case '$': // sentence begin
+      memset(msgBuffer, 0, sizeof(msgBuffer));
       bufferOffset = 0;
       msgBuffer[bufferOffset++] = c;
       return;

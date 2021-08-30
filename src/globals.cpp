@@ -65,4 +65,6 @@ bool bl6;
 
 bool useRTC;
 
-String lastNMEAMessage = "";
+String lastGPSTime = "";
+unsigned long lastGPSReadTime = 0;
+bool gpsTimeValid = false;

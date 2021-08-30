@@ -26,12 +26,13 @@
 #define SYNC_YEAR 0
 
 const uint32_t DECODE_DIGIT[] = { 0x0200, 0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020, 0x0040, 0x0080, 0x0100};
-const uint32_t DECODE_LED[]           = { 0x400000, 0x800000};
-const uint32_t DECODE_BLINKENIGHTS[]  = { 0x100000, 0x200000};
+const uint32_t DECODE_LED[]          = { 0x800000, 0x400000};
+const uint32_t DECODE_BLINKENIGHTS[] = { 0x200000, 0x100000};
 
 void debugMsg(String message);
 void debugMsgCont(String message);
 void newTimeUpdateReceived();
+
 uint32_t decodeBCD(byte valueToDecode, bool bl1, bool bl2, bool led1, bool led2);
 
 void getCredentialsHandler(AsyncWebServerRequest *request);
@@ -39,6 +40,7 @@ bool gotCredentials();
 void wifiBeginWithCredentials();
 
 void getSummaryDataHandler(AsyncWebServerRequest *request);
+void getDiagsDataHandler(AsyncWebServerRequest *request);
 
 void getTimeserverDataHandler(AsyncWebServerRequest *request);
 void postTimeserverDataHandler(AsyncWebServerRequest *request);
@@ -51,6 +53,8 @@ void resetWifiHandler(AsyncWebServerRequest *request);
 
 void getI2CScanHandler(AsyncWebServerRequest *request);
 void saveStatsHandler(AsyncWebServerRequest *request);
+
+void restartHandler(AsyncWebServerRequest *request);
 
 void resetWifi();
 void resetOptions();
