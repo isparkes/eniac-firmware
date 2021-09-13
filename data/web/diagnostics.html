@@ -5,6 +5,7 @@
         <link href="http://www.open-rate.com/wl.css" rel="stylesheet" type="text/css">
         <script src="http://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ=" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
         <link href="css/clock-custom.css" rel="stylesheet">
         <title>Nixie Clock</title>
     </head>
@@ -39,7 +40,7 @@
             </div>
         </nav>
         <div class="container" role="main">
-            <h3 class="sub-header">Current Status</h3>
+            <h3 class="sub-header">Diagnostics</h3>
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
@@ -50,68 +51,44 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>WLAN IP</td>
-                            <td id="ip"></td>
+                            <td>Sketch compiled</td>
+                            <td id="compiledate"></td>
                         </tr>
                         <tr>
-                            <td>WLAN MAC</td>
-                            <td id="mac"></td>
+                            <td>Sketch size</td>
+                            <td id="sketchsize"></td>
                         </tr>
                         <tr>
-                            <td>WLAN SSID</td>
-                            <td id="ssid"></td>
+                            <td>Sketch available</td>
+                            <td id="freesketch"></td>
                         </tr>
                         <tr>
-                            <td>NTP Pool</td>
-                            <td id="ntppool"></td>
+                            <td>Sketch checksum</td>
+                            <td id="sketchmd5"></td>
                         </tr>
                         <tr>
-                            <td>TZ</td>
-                            <td id="tz"></td>
+                            <td>Free heap</td>
+                            <td id="heap"></td>
                         </tr>
                         <tr>
-                            <td>Clock Name</td>
-                            <td id="clockurl"></td>
+                            <td>CPU Freqency (MHz)</td>
+                            <td id="cpufreq"></td>
                         </tr>
                         <tr>
-                            <td>Last NTP time</td>
-                            <td id="lastntptime"></td>
+                            <td>SDK version</td>
+                            <td id="sdkversion"></td>
                         </tr>
                         <tr>
-                            <td>Last NTP update</td>
-                            <td id="lastntpupdate"></td>
+                            <td>Time since last boot</td>
+                            <td id="runtime"></td>
                         </tr>
                         <tr>
-                            <td>Time before next NTP update</td>
-                            <td id="nextupdate"></td>
+                            <td>Total Clock Hours <span class="bi-save" id="uptimesave" title="Save the stats"></span></td>
+                            <td id="uptime"></td>
                         </tr>
                         <tr>
-                            <td>Display Time</td>
-                            <td id="displaytime"></td>
-                        </tr>
-                        <tr>
-                            <td>RTC Time</td>
-                            <td id="rtctime"></td>
-                        </tr>
-                        <tr>
-                            <td>Last GPS time</td>
-                            <td id="lastgpstime"></td>
-                        </tr>
-                        <tr>
-                            <td>Last GPS update</td>
-                            <td id="lastgpsupdate"></td>
-                        </tr>
-                        <tr>
-                            <td>Digit brightness</td>
-                            <td id="ldrvalue"></td>
-                        </tr>
-                        <tr>
-                            <td>Version</td>
-                            <td id="version"></td>
-                        </tr>
-                        <tr>
-                            <td>Status string</td>
-                            <td id="status"></td>
+                            <td>Total Tube hours</td>
+                            <td id="ontime"></td>
                         </tr>
                     </tbody>
                 </table>
@@ -120,11 +97,11 @@
     </body>
 
 <script>
-    getClockSummary = function getClockSummary() {
+    getClockDiags = function getClockDiags() {
         var deferred = $.Deferred();
         console.log('get summary');
         var ajaxOptions = {
-            url: '/api/getSummary',
+            url: '/api/getDiags',
             type: 'GET',
             Accept: 'application/json; charset=utf-8'
         };
@@ -138,24 +115,47 @@
         return deferred;
     };
 
-    getSummary = function() {
-        getClockSummary().then(function(summary){
-            $("#ip").text(summary.ip);
-            $("#mac").text(summary.mac);
-            $("#ssid").text(summary.ssid);
-            $("#ntppool").text(summary.ntppool);
-            $("#tz").text(summary.tz);
-            $("#clockurl").html("<a href=\""+summary.clockurl+"\">"+summary.clockurl+"</a>");
-            $("#lastntptime").text(summary.lastntptime);
-            $("#lastntpupdate").text(summary.lastntpupdate);
-            $("#nextupdate").text(summary.nextupdate);
-            $("#displaytime").text(summary.displaytime);
-            $("#rtctime").text(summary.rtctime);
-            $("#lastgpstime").text(summary.lastgpstime);
-            $("#lastgpsupdate").text(summary.lastgpsupdate);
-            $("#status").text(summary.status);
-            $("#version").text(summary.version);
-            $("#ldrvalue").text(summary.ldrvalue);
+    saveStats = function saveStas() {
+        var deferred = $.Deferred();
+        console.log('save stats');
+        var ajaxOptions = {
+            url: '/utils/saveStats',
+            type: 'GET',
+            Accept: 'application/json; charset=utf-8'
+        };
+        $.ajax(ajaxOptions).done(function (summary) {
+            console.log("Received data: " + JSON.stringify(summary));
+            deferred.resolve(summary);
+        }).fail(function (jqXHR) {
+            console.log("Get api error " + jqXHR.status);
+            deferred.reject(jqXHR.status);
+        });
+        return deferred;
+    };
+
+    getDiags = function() {
+        getClockDiags().then(function(diags){
+            const totalMem = diags.freesketch + diags.sketchsize;
+            let OTAFlag = '';
+            if (diags.sketchsize >= diags.freesketch) {
+                OTAFlag = ' --> OTA DISABLED!';
+            } else {
+                OTAFlag = ' --> OTA enabled';
+            }
+            const usedMemPC = (diags.sketchsize/totalMem * 100).toFixed(2);
+            const freeMemPC = (diags.freesketch/totalMem * 100).toFixed(2);
+            const usedMsg = usedMemPC + '% (' + diags.sketchsize + ')' + OTAFlag;
+            const freeMsg = freeMemPC + '% (' + diags.freesketch + ')';
+            $("#runtime").text(diags.runtime);
+            $("#uptime").text(diags.uptime);
+            $("#ontime").text(diags.ontime);
+            $("#heap").text(diags.heap);
+            $("#freesketch").text(freeMsg);
+            $("#sketchsize").text(usedMsg);
+            $("#compiledate").text(diags.compiledate);
+            $("#cpufreq").text(diags.cpufreq);
+            $("#sdkversion").text(diags.sdkversion);
+            $("#sketchmd5").text(diags.sketchmd5);
         })
         .then(() => removeLoader());
     };
@@ -168,6 +168,12 @@
         });
     }
 
-    getSummary();
+    getDiags();
+
+    $("span#uptimesave").click(function(){
+        saveStats().then(function(res){
+            alert("Saved stats.");
+        })
+    });
 </script>
 </html>

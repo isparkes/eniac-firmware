@@ -677,6 +677,12 @@ void performOncePerMinuteProcessing() {
   if (!blanked) {
     cs->tubeOnTimeMins++;
   }
+
+  if (lastGPSReadTime > 0) {
+    gpsTimeValid = ((nowMillis - lastGPSReadTime)/1000 < GPS_READING_VALIDITY_SECS);
+  } else {
+    gpsTimeValid = false;
+  }
 }
 
 // ************************************************************

@@ -206,3 +206,6 @@
 #define EXT_DIM_FACTOR_MIN              10
 #define EXT_DIM_FACTOR_MAX              100
 #define EXT_DIM_FACTOR_DEFAULT          100
+
+// -------------------------------------------------------------------------------
+#define GPS_READING_VALIDITY_SECS       240

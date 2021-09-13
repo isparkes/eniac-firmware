@@ -209,13 +209,17 @@ String getRTCTime(boolean setInternalTime) {
     byte mins = rtclock.minute;
     byte secs = rtclock.second;
 
-    String returnValue = String(years) + ":" + String(months) + ":" + String(days) + " " + String(hours) + ":" + String(mins) + ":" + String(secs);
+    String returnValue = timeToReadableString(years, months, days, hours, mins, secs);
+    #ifdef DEBUG_ON
     debugMsg("Got RTC time: " + returnValue);
+    #endif
 
     if (setInternalTime) {
       // Set the internal time provider to the value we got
       setTime(hours, mins, secs, days, months, years);
+      #ifdef DEBUG_ON
       debugMsg("Set Internal time to: " + returnValue);
+      #endif
     }
 
     return returnValue;
@@ -236,7 +240,9 @@ void setRTCTime() {
     rtclock.fillByHMS(hour(), minute(), second());
     rtclock.setTime();
 
+    #ifdef DEBUG_ON
     debugMsg("Set RTC time to internal time: " + String(year()) + ":" + String(month()) + ":" + String(day()) + " " + String(hour()) + ":" + String(minute()) + ":" + String(second()));
+    #endif
   }
 }
 
@@ -311,7 +317,19 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   root["lastntpupdate"] = secsToReadableString(ntpAsync.getLastUpdateTimeSecs(nowMillis));
   root["nextupdate"] = secsToReadableString(absNextUpdate) + overdueInd;
   root["displaytime"] = timeToReadableString(year(),month(),day(),hour(),minute(),second());
-  root["lastgpstime"] = lastGPSTime;
+
+  unsigned long gpsAge = (nowMillis - lastGPSReadTime)/1000;
+  if (lastGPSReadTime > 0) {
+    root["lastgpstime"] = lastGPSTime;
+    if (gpsTimeValid) {
+      root["lastgpsupdate"] = secsToReadableString(gpsAge);
+    } else {
+      root["lastgpsupdate"] = secsToReadableString(gpsAge) + " (Invalid)";
+    }
+  } else {
+    root["lastgpstime"] = "GPS Receiver not installed";
+    root["lastgpsupdate"] = "";
+  }
 
   if (useRTC) { 
     root["rtctime"] = getRTCTime(false);
@@ -322,24 +340,8 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   float ldrPerc = (4095 - ldrValue) / 4095.0 * 100.0;
   root["ldrvalue"] = String(ldrPerc, 2) + "% (" + String(ldrValue) + ")";
 
-  // Total ontime for the life of the clock
-  root["uptime"] = secsToReadableString(cs->uptimeMins * 60);
-
-  // Total time the tubes have been on for
-  root["ontime"] = secsToReadableString(cs->tubeOnTimeMins * 60);
-
   root["status"] = getStatusString();
   root["version"] = SOFTWARE_VERSION;
-
-  const char compile_date[] = __DATE__ " " __TIME__;
-  root["heap"] = ESP.getFreeHeap();
-  root["freesketch"] = ESP.getFreeSketchSpace();
-  root["sketchsize"] = ESP.getSketchSize();
-  root["compiledate"] = String(compile_date);
-  root["cpufreq"] = ESP.getCpuFreqMHz();
-  root["sdkversion"] = ESP.getSdkVersion();
-  root["sketchmd5"] = ESP.getSketchMD5();
-//  root["cyclecount"] = ESP.getCycleCount(); // Doesn't seem to deliver any real information
 
   response->setLength();
   request->send(response);
@@ -354,7 +356,22 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   response->addHeader("Server", "ESP Async Web Server");
   JsonObject& root = response->getRoot();
 
-  // The amount of time we have been on for right now
+  const char compile_date[] = __DATE__ " " __TIME__;
+  // Total ontime for the life of the clock
+  root["uptime"] = secsToReadableString(cs->uptimeMins * 60);
+
+  // Total time the tubes have been on for
+  root["ontime"] = secsToReadableString(cs->tubeOnTimeMins * 60);
+
+  root["heap"] = ESP.getFreeHeap();
+  root["freesketch"] = ESP.getFreeSketchSpace();
+  root["sketchsize"] = ESP.getSketchSize();
+  root["compiledate"] = String(compile_date);
+  root["cpufreq"] = ESP.getCpuFreqMHz();
+  root["sdkversion"] = ESP.getSdkVersion();
+  root["sketchmd5"] = ESP.getSketchMD5();
+
+  // Time since last reboot
   root["runtime"] = secsToReadableString(nowMillis/1000);
   root["cyclecount"] = ESP.getCycleCount();
   root["minfreepsram"] = ESP.getMinFreePsram();
@@ -910,7 +927,7 @@ void saveStatsHandler(AsyncWebServerRequest *request) {
 
   spiffsStorage.saveStatsToSpiffs(cs);
   
-  request->send(200, "text/plain", "Stats saved");
+  request->send(200, "text/json", "{\"status\": \"Stats saved\"}");
 }
 
 void resetWifiHandler(AsyncWebServerRequest *request) {
@@ -918,14 +935,13 @@ void resetWifiHandler(AsyncWebServerRequest *request) {
   debugMsg("Got utils RESET request");
   #endif
   WiFi.disconnect();
-  request->send(200, "text/plain", "WiFi was reset");
+  request->send(200, "text/json", "{\"status\": \"WiFi was reset\"}");
 }
 
 char msgBuffer[37];
 byte bufferOffset = 0;
 
 // Picks messages like this "$GPZDA,184937.00,28,08,2021,00,00*65"
-
 void parseNMEAMsg(char c)
 {
 //  debugMsgCont("GPS: " + String(c));
