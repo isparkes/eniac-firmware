@@ -74,32 +74,24 @@
                             <td id="clockurl"></td>
                         </tr>
                         <tr>
-                            <td>Last NTP time</td>
-                            <td id="lastntptime"></td>
-                        </tr>
-                        <tr>
-                            <td>Last NTP update</td>
-                            <td id="lastntpupdate"></td>
-                        </tr>
-                        <tr>
-                            <td>Time before next NTP update</td>
-                            <td id="nextupdate"></td>
-                        </tr>
-                        <tr>
                             <td>Display Time</td>
                             <td id="displaytime"></td>
                         </tr>
                         <tr>
+                            <td>Last NTP time</td>
+                            <td id="lastntptime"></td>
+                        </tr>
+                        <tr>
                             <td>RTC Time</td>
-                            <td id="rtctime"></td>
+                            <td id="lastrtctime"></td>
                         </tr>
                         <tr>
                             <td>Last GPS time</td>
                             <td id="lastgpstime"></td>
                         </tr>
                         <tr>
-                            <td>Last GPS update</td>
-                            <td id="lastgpsupdate"></td>
+                            <td>Time before next NTP update</td>
+                            <td id="nextupdate"></td>
                         </tr>
                         <tr>
                             <td>Digit brightness</td>
@@ -146,13 +138,29 @@
             $("#ntppool").text(summary.ntppool);
             $("#tz").text(summary.tz);
             $("#clockurl").html("<a href=\""+summary.clockurl+"\">"+summary.clockurl+"</a>");
-            $("#lastntptime").text(summary.lastntptime);
-            $("#lastntpupdate").text(summary.lastntpupdate);
+            if (summary.ntpvalid) {
+                $("#lastntptime").text(summary.lastntptime + ' ('+summary.lastntpupdate + ' ago, valid)');
+            } else {
+                $("#lastntptime").text(summary.lastntptime + ' ('+summary.lastntpupdate + ' ago, invalid)');
+            }
             $("#nextupdate").text(summary.nextupdate);
             $("#displaytime").text(summary.displaytime);
-            $("#rtctime").text(summary.rtctime);
-            $("#lastgpstime").text(summary.lastgpstime);
-            $("#lastgpsupdate").text(summary.lastgpsupdate);
+
+            if (summary.lastrtctime !== 'RTC not installed') {
+                $("#lastrtctime").text(summary.lastrtctime + ' ('+summary.lastrtcupdate + ' ago)');
+            } else {
+                $("#lastrtctime").text(summary.lastrtctime);
+            }
+
+            if (summary.lastgpstime !== 'GPS Receiver not installed') {
+                if (summary.gpsvalid) {
+                    $("#lastgpstime").text(summary.lastgpstime + ' ('+summary.lastgpsupdate + ' ago, valid)');
+                } else {
+                    $("#lastgpstime").text(summary.lastgpstime + ' ('+summary.lastgpsupdate + ' ago, invalid)');
+                }
+            } else {
+                $("#lastgpstime").text(summary.lastgpstime);
+            }
             $("#status").text(summary.status);
             $("#version").text(summary.version);
             $("#ldrvalue").text(summary.ldrvalue);

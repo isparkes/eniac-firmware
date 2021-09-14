@@ -62,3 +62,6 @@ extern bool useRTC;
 extern String lastGPSTime;
 extern unsigned long lastGPSReadTime;
 extern bool gpsTimeValid;
+
+extern String lastRTCTime;
+extern unsigned long lastRTCReadTime;

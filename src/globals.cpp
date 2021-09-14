@@ -68,3 +68,6 @@ bool useRTC;
 String lastGPSTime = "";
 unsigned long lastGPSReadTime = 0;
 bool gpsTimeValid = false;
+
+String lastRTCTime = "";
+unsigned long lastRTCReadTime = 0;

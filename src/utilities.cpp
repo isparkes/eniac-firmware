@@ -189,17 +189,20 @@ uint32_t decodeBCD(byte valueToDecode, bool bl1, bool bl2, bool led1, bool led2)
 // Check that we still have access to the time from the RTC
 // ************************************************************
 void testRTCTimeProvider() {
-  // Set up the time provider
-  // first try to find the RTC, if not available, go into slave mode
   Wire.beginTransmission(DS1307_I2C_ADDRESS);
-  useRTC = (Wire.endTransmission() == 0);
+  useRTC = (Wire.endTransmission(true) == 0);
+  #ifdef DEBUG_ON
+  debugMsg("Set useRTC to: " + String(useRTC));
+  if (!useRTC) {
+    debugMsg("I2C error: " + String(Wire.getErrorText(Wire.lastError())));
+  }
+  #endif
 }
 
 // ************************************************************
 // Get the time from the RTC
 // ************************************************************
 String getRTCTime(boolean setInternalTime) {
-  testRTCTimeProvider();
   if (useRTC) {
     rtclock.getTime();
     int years = rtclock.year + 2000;
@@ -234,7 +237,6 @@ String getRTCTime(boolean setInternalTime) {
 // display.
 // ************************************************************
 void setRTCTime() {
-  testRTCTimeProvider();
   if (useRTC) {
     rtclock.fillByYMD(year() % 100, month(), day());
     rtclock.fillByHMS(hour(), minute(), second());
@@ -265,7 +267,7 @@ void setTimeFromServer(String timeString) {
   setRTCTime();
   
   #ifdef DEBUG_ON
-  debugMsg("Set internal time to NTP time: " + String(year()) + ":" + String(month()) + ":" + String(day()) + " " + String(hour()) + ":" + String(minute()) + ":" + String(second()));
+  debugMsg("Set RTC time to NTP time: " + String(year()) + ":" + String(month()) + ":" + String(day()) + " " + String(hour()) + ":" + String(minute()) + ":" + String(second()));
   #endif
 }
 
@@ -316,25 +318,33 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   root["lastntptime"] = timeStringToReadableString(ntpAsync.getLastTimeFromServer());
   root["lastntpupdate"] = secsToReadableString(ntpAsync.getLastUpdateTimeSecs(nowMillis));
   root["nextupdate"] = secsToReadableString(absNextUpdate) + overdueInd;
+  if (ntpAsync.ntpTimeValid(nowMillis)) {
+    root["ntpvalid"] = 1;
+  } else {
+    root["ntpvalid"] = 0;
+  }
   root["displaytime"] = timeToReadableString(year(),month(),day(),hour(),minute(),second());
 
   unsigned long gpsAge = (nowMillis - lastGPSReadTime)/1000;
   if (lastGPSReadTime > 0) {
     root["lastgpstime"] = lastGPSTime;
+    root["lastgpsupdate"] = secsToReadableString(gpsAge);
     if (gpsTimeValid) {
-      root["lastgpsupdate"] = secsToReadableString(gpsAge);
+      root["gpsvalid"] = 1;
     } else {
-      root["lastgpsupdate"] = secsToReadableString(gpsAge) + " (Invalid)";
+      root["gpsvalid"] = 0;
     }
   } else {
     root["lastgpstime"] = "GPS Receiver not installed";
     root["lastgpsupdate"] = "";
   }
 
-  if (useRTC) { 
-    root["rtctime"] = getRTCTime(false);
+  if (useRTC) {
+    root["lastrtctime"] = lastRTCTime;
+    root["lastrtcupdate"] = secsToReadableString((nowMillis - lastRTCReadTime)/1000);
   } else {
-    root["rtctime"] = "RTC not installed";
+    root["lastrtctime"] = "RTC not installed";
+    root["lastrtcupdate"] = "";
   }
 
   float ldrPerc = (4095 - ldrValue) / 4095.0 * 100.0;
@@ -646,8 +656,8 @@ void dumpArgs(AsyncWebServerRequest *request) {
   int headers = request->headers();
   int i;
   for(i=0;i<headers;i++){
-    AsyncWebHeader* h = request->getHeader(i);
     #ifdef DEBUG_ON
+    AsyncWebHeader* h = request->getHeader(i);
     String message = "HEADER[" + h->name() + ":" + h->value();
     debugMsg(message);
     #endif

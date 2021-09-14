@@ -363,9 +363,9 @@ void setup()
 
   // -------------------------------------------------------------------------
   
-  // Default pins SDA 21, SCL 22
+  // Default pins SDA 21, SCL 22 Frequency 400kHz 
   debugMsg("Start up I2C...");
-  Wire.begin();
+  Wire.begin(SDAint, SCLint, 400000L);
 
   // -------------------------------------------------------------------------
   debugMsg("Start up RTC...");
@@ -669,7 +669,8 @@ void performOncePerMinuteProcessing() {
 
   // Set the internal time to the time from the RTC even if we are still in
   // NTP valid time. This is more accurate than using the internal time source
-  getRTCTime(true);
+  lastRTCTime = getRTCTime(true);
+  lastRTCReadTime = nowMillis;
 
   // Usage stats
   cs->uptimeMins++;
