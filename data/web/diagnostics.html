@@ -90,6 +90,14 @@
                             <td>Total Tube hours</td>
                             <td id="ontime"></td>
                         </tr>
+                        <tr>
+                            <td>Last raw GPS string</td>
+                            <td id="lastgpsraw"></td>
+                        </tr>
+                        <tr>
+                            <td>Current UTC offset</td>
+                            <td id="utcoffset"></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -146,6 +154,7 @@
             const freeMemPC = (diags.freesketch/totalMem * 100).toFixed(2);
             const usedMsg = usedMemPC + '% (' + diags.sketchsize + ')' + OTAFlag;
             const freeMsg = freeMemPC + '% (' + diags.freesketch + ')';
+            $("#lastgpsraw").text(diags.lastgpsraw);
             $("#runtime").text(diags.runtime);
             $("#uptime").text(diags.uptime);
             $("#ontime").text(diags.ontime);
@@ -156,6 +165,7 @@
             $("#cpufreq").text(diags.cpufreq);
             $("#sdkversion").text(diags.sdkversion);
             $("#sketchmd5").text(diags.sketchmd5);
+            $("#utcoffset").text(diags.utcoffset);
         })
         .then(() => removeLoader());
     };

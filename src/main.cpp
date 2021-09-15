@@ -684,6 +684,8 @@ void performOncePerMinuteProcessing() {
   } else {
     gpsTimeValid = false;
   }
+
+  calculateCurrentOffset(year(),month(),day(),hour(),minute(),second());
 }
 
 // ************************************************************

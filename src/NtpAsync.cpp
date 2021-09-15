@@ -234,6 +234,11 @@ void NtpAsync::getTimeFromNTP(unsigned long nowMillis) {
       #endif
       
       time_t ntpTime = t;
+
+      #ifdef DEBUG_ON
+      debugMsg("Raw time: " + String(ntpTime));
+      #endif
+
       const tm* tm = localtime(&ntpTime);
 
       String timeString = String(tm->tm_year + 1900) + "," + String(tm->tm_mon + 1) + "," + String(tm->tm_mday) + "," + String(tm->tm_hour) + "," + String(tm->tm_min) + "," + String(tm->tm_sec);

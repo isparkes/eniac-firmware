@@ -3,6 +3,7 @@
 #include "ESP_DS1307.h"
 #include <rom/rtc.h>
 #include "clock_timers.h"
+#include "globals.h"
 
 // --------------------------------------------------------------------------------------------------------
 // ----------------------------------------  Utility functions  -------------------------------------------
@@ -25,6 +26,7 @@ void grabInts(String s, int *dest, String sep) {
   int end = 0;
   for (int start = 0; end != -1; start = end + 1) {
     end = s.indexOf(sep, start);
+
     if (end > 0) {
       *dest++ = s.substring(start, end).toInt();
     } else {
@@ -327,7 +329,7 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
 
   unsigned long gpsAge = (nowMillis - lastGPSReadTime)/1000;
   if (lastGPSReadTime > 0) {
-    root["lastgpstime"] = lastGPSTime;
+    root["lastgpstime"] = timeStringToReadableString(lastGPSTime);
     root["lastgpsupdate"] = secsToReadableString(gpsAge);
     if (gpsTimeValid) {
       root["gpsvalid"] = 1;
@@ -387,6 +389,8 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["minfreepsram"] = ESP.getMinFreePsram();
   root["minfreeheap"] = ESP.getMinFreeHeap();
   root["resetreason"] = String(rtc_get_reset_reason(0)) + "/" + String(rtc_get_reset_reason(1));
+  root["lastgpsraw"] = lastGPSTimeRaw;
+  root["utcoffset"] = String(UTCoffset);
 
   response->setLength();
   request->send(response);
@@ -951,6 +955,84 @@ void resetWifiHandler(AsyncWebServerRequest *request) {
 char msgBuffer[37];
 byte bufferOffset = 0;
 
+// Turn the GPS string tinto a parsed string
+String parseGPZDAMsg(String messageToParse) {
+  if (messageToParse.length() == 36) {
+    String result = messageToParse.substring(23,27) + ":" +
+                    messageToParse.substring(20,22) + ":" + 
+                    messageToParse.substring(17,19) + " " + 
+                    messageToParse.substring(7,9) + ":" + 
+                    messageToParse.substring(9,11) + ":" + 
+                    messageToParse.substring(11,13);
+    return result; 
+  } else {
+    return "";
+  }
+}
+
+void calculateCurrentOffset(int year, int mon, int day, int hour, int min, int sec) {
+    struct tm whenStart;
+    whenStart.tm_year = year - 1900;
+    whenStart.tm_mon = mon - 1; 
+    whenStart.tm_mday = day; 
+    whenStart.tm_hour = hour; 
+    whenStart.tm_min = min;
+    whenStart.tm_sec = sec;
+
+    time_t now = mktime(&whenStart);
+
+    #ifdef DEBUG_ON
+    const char *str = ctime(&now);
+    debugMsg("input: " + String(str));
+    #endif
+
+    struct tm info_local;
+    struct tm info_gm;
+    localtime_r(&now, &info_local);
+    gmtime_r(&now, &info_gm);
+
+    #ifdef DEBUG_ON
+    String timeStringLocal = String(info_local.tm_year + 1900) + "," + String(info_local.tm_mon + 1) + "," + String(info_local.tm_mday) + "," + String(info_local.tm_hour) + "," + String(info_local.tm_min) + "," + String(info_local.tm_sec);
+    String timeStringGm = String(info_gm.tm_year + 1900) + "," + String(info_gm.tm_mon + 1) + "," + String(info_gm.tm_mday) + "," + String(info_gm.tm_hour) + "," + String(info_gm.tm_min) + "," + String(info_gm.tm_sec);
+
+    debugMsg("local: " + timeStringLocal);
+    debugMsg("gm: " + timeStringGm);
+    #endif
+
+    // The local time might be in DST, so correct that
+    info_gm.tm_isdst = 0;
+    info_local.tm_isdst = 0;
+
+    UTCoffset = mktime(&info_local) - mktime(&info_gm);
+
+    #ifdef DEBUG_ON
+    debugMsg("UTC offset: " + String(UTCoffset));
+    #endif
+}
+
+// Turn the GPS string into a time_t and then onto a time string
+String parseGPZDAMsgToLocaltime(String messageToParse) {
+  if (messageToParse.length() == 36) {
+    time_t tReceived;
+    struct tm whenStart;
+    whenStart.tm_year = messageToParse.substring(23,27).toInt() - 1900;
+    whenStart.tm_mon = messageToParse.substring(20,22).toInt() - 1; 
+    whenStart.tm_mday = messageToParse.substring(17,19).toInt(); 
+    whenStart.tm_hour = messageToParse.substring(7,9).toInt(); 
+    whenStart.tm_min = messageToParse.substring(9,11).toInt();
+    whenStart.tm_sec = messageToParse.substring(11,13).toInt();
+
+    tReceived = mktime(&whenStart) + UTCoffset;
+    const tm *tm = localtime(&tReceived);
+
+    String timeString = String(tm->tm_year + 1900) + "," + String(tm->tm_mon + 1) + "," + String(tm->tm_mday) + "," + String(tm->tm_hour) + "," + String(tm->tm_min) + "," + String(tm->tm_sec);
+
+    return timeString; 
+  } else {
+    return "";
+  }
+}
+
 // Picks messages like this "$GPZDA,184937.00,28,08,2021,00,00*65"
 void parseNMEAMsg(char c)
 {
@@ -965,8 +1047,11 @@ void parseNMEAMsg(char c)
         #ifdef DEBUG_ON 
         debugMsg("Got GPS ZDA msg: " + lastGPSTime);
         #endif
-        lastGPSTime = String(msgBuffer);
-        lastGPSReadTime = nowMillis;
+        lastGPSTimeRaw = lastMessage;
+        lastGPSTime = parseGPZDAMsgToLocaltime(lastMessage);
+        if (lastGPSTime != "") {
+          lastGPSReadTime = nowMillis;
+        }
       }
       return;
     }

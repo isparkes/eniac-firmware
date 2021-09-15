@@ -66,8 +66,11 @@ bool bl6;
 bool useRTC;
 
 String lastGPSTime = "";
+String lastGPSTimeRaw = "";
 unsigned long lastGPSReadTime = 0;
 bool gpsTimeValid = false;
 
 String lastRTCTime = "";
 unsigned long lastRTCReadTime = 0;
+
+unsigned long UTCoffset;

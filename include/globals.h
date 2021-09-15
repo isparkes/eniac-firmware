@@ -60,8 +60,11 @@ extern bool bl6;
 extern bool useRTC;
 
 extern String lastGPSTime;
+extern String lastGPSTimeRaw;
 extern unsigned long lastGPSReadTime;
 extern bool gpsTimeValid;
 
 extern String lastRTCTime;
 extern unsigned long lastRTCReadTime;
+
+extern unsigned long UTCoffset;

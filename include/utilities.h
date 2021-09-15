@@ -66,4 +66,6 @@ void setRTCTime();
 
 void parseNMEAMsg(char c);
 
+void calculateCurrentOffset(int year, int mon, int day, int hour, int min, int sec);
+
 #endif
