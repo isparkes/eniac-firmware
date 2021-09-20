@@ -401,6 +401,7 @@ void loadNumberArrayTime() {
 void outputDisplay() {
   byte tmpDispType;
   byte tmpDispTypeArray[DIGIT_COUNT];
+  byte tmpNumberArray[DIGIT_COUNT];
 
   for ( int i = DIGIT_COUNT - 1 ; i >= 0  ; i -- ) {
     // Blanking
@@ -431,9 +432,13 @@ void outputDisplay() {
       }
     }
 
+
     if (scrollCounter[i] > 0) {
       scrollCounter[i] = scrollCounter[i] - 1;
       currNumberArray[i] = scrollCounter[i]/cc->scrollSteps;
+      tmpNumberArray[i] = currNumberArray[i];
+    } else {
+      tmpNumberArray[i] = numberArray[i];
     }
 
     tmpDispTypeArray[i] = tmpDispType;
@@ -452,24 +457,24 @@ void outputDisplay() {
     switchTimeBuf = (fadeState / fadeStepsInternal);
   }
 
-  val1 = decodeFromNumberArray( numberArray[H10], 
-                                numberArray[H1],
+  val1 = decodeFromNumberArray( tmpNumberArray[H10], 
+                                tmpNumberArray[H1],
                                 tmpDispTypeArray[H10] == BLANKED,
                                 tmpDispTypeArray[H1] == BLANKED,
                                 bl1,
                                 bl2,
                                 led1State,
                                 led2State);
-  val2 = decodeFromNumberArray( numberArray[M10], 
-                                numberArray[M1],
+  val2 = decodeFromNumberArray( tmpNumberArray[M10], 
+                                tmpNumberArray[M1],
                                 tmpDispTypeArray[M10] == BLANKED,
                                 tmpDispTypeArray[M1] == BLANKED,
                                 bl3,
                                 bl4,
                                 led1State,
                                 led2State);
-  val3 = decodeFromNumberArray( numberArray[S10], 
-                                numberArray[S1],
+  val3 = decodeFromNumberArray( tmpNumberArray[S10], 
+                                tmpNumberArray[S1],
                                 tmpDispTypeArray[S10] == BLANKED,
                                 tmpDispTypeArray[S1] == BLANKED,
                                 bl5,
