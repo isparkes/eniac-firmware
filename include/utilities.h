@@ -64,8 +64,9 @@ void testRTCTimeProvider();
 String getRTCTime(boolean setInternalTime);
 void setRTCTime();
 
-void parseNMEAMsg(char c);
-
 void calculateCurrentOffset(int year, int mon, int day, int hour, int min, int sec);
+
+void loadNumberArrayTime();
+void outputDisplay();
 
 #endif

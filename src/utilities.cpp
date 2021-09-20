@@ -4,6 +4,7 @@
 #include <rom/rtc.h>
 #include "clock_timers.h"
 #include "globals.h"
+#include "GPSManager.h"
 
 // --------------------------------------------------------------------------------------------------------
 // ----------------------------------------  Utility functions  -------------------------------------------
@@ -36,28 +37,17 @@ void grabInts(String s, int *dest, String sep) {
 }
 
 // ************************************************************
-// Main page handler
+// Format a time into an output string
 // ************************************************************
-void mainHandler(AsyncWebServerRequest *request) {
-  #ifdef DEBUG_ON
-	debugMsg("Got request");
-  #endif
-	request->send(SPIFFS, "/web/index.html");
-}
-
-void cssHandler(AsyncWebServerRequest *request) {
-  #ifdef DEBUG_ON
-	debugMsg("Got css request");
-  #endif
-	request->send(SPIFFS, "/web/style.css");
-}
-
 String timeToReadableString(int y, int m, int d, int h, int mi, int s) {
   char buf1[20];
   sprintf(buf1, "%04d:%02d:%02d %02d:%02d:%02d", y, m, d, h, mi, s);
   return String(buf1);
 }
 
+// ************************************************************
+// Format a time into an output string
+// ************************************************************
 String timeStringToReadableString(String timeString){
   char* ptr = strtok((char *)timeString.c_str(), ",");
   int y = atoi(ptr);
@@ -74,6 +64,9 @@ String timeStringToReadableString(String timeString){
   return timeToReadableString(y,m,d,h,mi,s);
 }
 
+// ************************************************************
+// Format a duration into an output string
+// ************************************************************
 String secsToReadableString (long secsValue) {
   long upDays = secsValue / 86400;
   long upHours = (secsValue - (upDays * 86400)) / 3600;
@@ -163,7 +156,7 @@ String getStatusString() {
   connectionInfo += "d";
 #endif
 
-  if (gpsTimeValid) {
+  if (gpsManager.getGPSTimeValid(nowMillis)) {
     connectionInfo += "G";
   } else {
     connectionInfo += "g";
@@ -172,13 +165,85 @@ String getStatusString() {
   return connectionInfo;
 }
 
-uint32_t decodeBCD(byte valueToDecode, bool bl1, bool bl2, bool led1, bool led2) {
-  uint32_t decoded = DECODE_DIGIT[(valueToDecode%10)] << 10 | DECODE_DIGIT[(valueToDecode/10)];
-  if (led1) decoded |= DECODE_LED[0];
-  if (led2) decoded |= DECODE_LED[1];
-  if (bl1)  decoded |= DECODE_BLINKENIGHTS[0];
-  if (bl2)  decoded |= DECODE_BLINKENIGHTS[1];
-  return decoded;
+void resetWifi() {
+  WiFi.disconnect(false, true);
+}
+
+void resetOptions() {
+  cc->ntpPool = NTP_POOL_DEFAULT;
+  cc->ntpUpdateInterval = NTP_UPDATE_INTERVAL_DEFAULT;
+  cc->tzs = TIME_ZONE_STRING_DEFAULT;
+
+  cc->hourMode = HOUR_MODE_DEFAULT;
+  cc->blankLeading = LEAD_BLANK_DEFAULT;
+  cc->dateFormat = DATE_FORMAT_DEFAULT;
+  cc->dayBlanking = DAY_BLANKING_DEFAULT;
+  
+  cc->useLDR = USE_LDR_DEFAULT;
+  cc->thresholdBright = SENSOR_THRSH_DEFAULT;
+  cc->sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
+  cc->sensitivityLDR = SENSOR_SENSIT_DEFAULT;
+  cc->minDim = MIN_DIM_DEFAULT;
+  
+  cc->fade = FADE_DEFAULT;
+  cc->fadeSteps = FADE_STEPS_DEFAULT;
+  cc->scrollback = SCROLLBACK_DEFAULT;
+  cc->scrollSteps = SCROLL_STEPS_DEFAULT;
+  cc->slotsMode = SLOTS_MODE_DEFAULT;
+  
+  cc->backlightMode = BACKLIGHT_DEFAULT;
+  cc->useBLDim = true;
+  cc->useBLPulse = false;
+  cc->redCnl = COLOUR_RED_CNL_DEFAULT;
+  cc->grnCnl = COLOUR_GRN_CNL_DEFAULT;
+  cc->bluCnl = COLOUR_BLU_CNL_DEFAULT;
+  cc->cycleSpeed = CYCLE_SPEED_DEFAULT;
+  cc->backlightDimFactor = BACKLIGHT_DIM_FACTOR_DEFAULT;
+//  cc->extDimFactor = EXT_DIM_FACTOR_DEFAULT;
+//  cc->separatorDimFactor = SEPARATOR_DIM_FACTOR_DEFAULT;
+  cc->ledMode = LED_BLINK_DEFAULT;
+
+  cc->blankMode = BLANK_MODE_DEFAULT;
+  cc->blankHourStart = 0;
+  cc->blankHourEnd = 7;
+
+  cc->pirTimeout = PIR_TIMEOUT_DEFAULT;
+  cc->usePIRPullup = USE_PIR_PULLUP_DEFAULT;
+  
+  // cc->webAuthentication = getWebAuthentication();
+  // cc->webUsername = getWebUserName();
+  // cc->webPassword = getWebPassword();
+  // setWebAuthentication(WEB_AUTH_DEFAULT);
+  // setWebUserName(WEB_USERNAME_DEFAULT);
+  // setWebPassword(WEB_PASSWORD_DEFAULT);
+  
+  cc->testMode = true;
+  cc->wasSetup = true;
+
+  spiffsStorage.saveConfigToSpiffs(cc);
+  #ifdef DEBUG_ON
+  debugMsg("Saved factory config");
+  #endif
+}
+
+void resetAll() {
+  WiFi.disconnect(false, true);  
+}
+
+bool gotCredentials() {
+  return credentialsReceived;
+}
+
+void wifiBeginWithCredentials() {
+  WiFi.disconnect();
+  delay(1000);
+  WiFi.mode(WIFI_MODE_STA);
+  delay(1000);
+  delay(1000);
+  WiFi.begin(ssid.c_str(), password.c_str());
+
+  // reset the credentials so that we may have another go if necessary
+  credentialsReceived = false;
 }
 
 //**********************************************************************************
@@ -290,9 +355,208 @@ void newTimeUpdateReceived() {
   setTimeFromServer(ntpAsync.getLastTimeFromServer());
 }
 
-// --------------------------------------------------------------------------------------------------------
-// ---------------------------------------    Web Interface     -------------------------------------------
-// --------------------------------------------------------------------------------------------------------
+//**********************************************************************************
+//**********************************************************************************
+//*                              Display Scheduling                                *
+//**********************************************************************************
+//**********************************************************************************
+
+// ************************************************************
+// Turn a display pair into a uint24 ready for output
+// ************************************************************
+uint32_t decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, bool blankTens, bool blankUnits, bool bl1, bool bl2, bool led1, bool led2) {
+  uint32_t decoded = 0;
+  if (!blankTens) decoded = DECODE_DIGIT[valueToDecodeTens];
+  if (!blankUnits) decoded = decoded | DECODE_DIGIT[valueToDecodeUnits] << 10;
+  if (led1) decoded |= DECODE_LED[0];
+  if (led2) decoded |= DECODE_LED[1];
+  if (bl1)  decoded |= DECODE_BLINKENIGHTS[0];
+  if (bl2)  decoded |= DECODE_BLINKENIGHTS[1];
+  return decoded;
+}
+
+// ************************************************************
+// Break the time into displayable digits
+// ************************************************************
+void loadNumberArrayTime() {
+  numberArray[S1] = second() % 10;
+  numberArray[S10] = second() / 10;
+  numberArray[M1] = minute() % 10;
+  numberArray[M10] = minute() / 10;
+  if (cc->hourMode) {
+    numberArray[H1] = hourFormat12() % 10;
+    numberArray[H10] = hourFormat12() / 10;
+  } else {
+    numberArray[H1] = hour() % 10;
+    numberArray[H10] = hour() / 10;
+  }
+}
+
+// ************************************************************
+// Do a single complete display, including any fading and
+// dimming requested. Prepares the display variables for
+// the interrupt driven display output.
+// This is the heart of the display processing!
+// ************************************************************
+void outputDisplay() {
+  byte tmpDispType;
+  byte tmpDispTypeArray[DIGIT_COUNT];
+
+  for ( int i = DIGIT_COUNT - 1 ; i >= 0  ; i -- ) {
+    // Blanking
+    if (blankTubes) {
+      tmpDispType = BLANKED;
+    } else {
+      tmpDispType = displayType[i];
+    }
+
+    // Digit blinking
+    if (tmpDispType == BLINK) {
+      if (blinkState) {
+      } else {
+        tmpDispType = BLANKED;
+      }
+    }
+
+    // Trigger scolling and fading - scolling takes precendence
+    if (numberArray[i] != currNumberArray[i]) {
+      // Do scrollback when we are going to 0
+      if ((numberArray[i] == 0) && cc->scrollback && (scrollCounter[i] == 0)) {
+          scrollCounter[i] = (currNumberArray[i]+1) * cc->scrollSteps;
+      } else if ((fadeState == 0) && cc->fade) {
+        // if we are not going to 0, set up the fade steps
+        fadeState = PHASE_MAX * fadeStepsInternal;
+      } else if (fadeState == 0) {
+        currNumberArray[i] = numberArray[i];
+      }
+    }
+
+    if (scrollCounter[i] > 0) {
+      scrollCounter[i] = scrollCounter[i] - 1;
+      currNumberArray[i] = scrollCounter[i]/cc->scrollSteps;
+    }
+
+    tmpDispTypeArray[i] = tmpDispType;
+  }
+
+  if (fadeState == 1) {
+    fadeState = 0;
+    switchTimeBuf = 0;
+    for (byte j = 0 ; j < DIGIT_COUNT ; j++) {
+      if (scrollCounter[j] == 0) {
+        currNumberArray[j] = numberArray[j];
+      }
+    }
+  } else if (fadeState > 0) {
+    fadeState--;
+    switchTimeBuf = (fadeState / fadeStepsInternal);
+  }
+
+  val1 = decodeFromNumberArray( numberArray[H10], 
+                                numberArray[H1],
+                                tmpDispTypeArray[H10] == BLANKED,
+                                tmpDispTypeArray[H1] == BLANKED,
+                                bl1,
+                                bl2,
+                                led1State,
+                                led2State);
+  val2 = decodeFromNumberArray( numberArray[M10], 
+                                numberArray[M1],
+                                tmpDispTypeArray[M10] == BLANKED,
+                                tmpDispTypeArray[M1] == BLANKED,
+                                bl3,
+                                bl4,
+                                led1State,
+                                led2State);
+  val3 = decodeFromNumberArray( numberArray[S10], 
+                                numberArray[S1],
+                                tmpDispTypeArray[S10] == BLANKED,
+                                tmpDispTypeArray[S1] == BLANKED,
+                                bl5,
+                                bl6,
+                                indLed1,
+                                indLed2);
+
+  // ToDo fading/scrolling
+  nextVal1 = decodeFromNumberArray( currNumberArray[H10], 
+                                currNumberArray[H1],
+                                tmpDispTypeArray[H10] == BLANKED,
+                                tmpDispTypeArray[H1] == BLANKED,
+                                bl1,
+                                bl2,
+                                led1State,
+                                led2State);
+  nextVal2 = decodeFromNumberArray( currNumberArray[M10], 
+                                currNumberArray[M1],
+                                tmpDispTypeArray[M10] == BLANKED,
+                                tmpDispTypeArray[M1] == BLANKED,
+                                bl3,
+                                bl4,
+                                led1State,
+                                led2State);
+  nextVal3 = decodeFromNumberArray( currNumberArray[S10], 
+                                currNumberArray[S1],
+                                tmpDispTypeArray[S10] == BLANKED,
+                                tmpDispTypeArray[S1] == BLANKED,
+                                bl5,
+                                bl6,
+                                indLed1,
+                                indLed2);
+}
+
+//**********************************************************************************
+//**********************************************************************************
+//*                                  Web Handlers                                  *
+//**********************************************************************************
+//**********************************************************************************
+
+// ************************************************************
+// Debug server args
+// ************************************************************
+#ifdef DEBUG_ON
+void dumpArgs(AsyncWebServerRequest *request) {
+  int headers = request->headers();
+  int i;
+  for(i=0;i<headers;i++){
+    AsyncWebHeader* h = request->getHeader(i);
+    String message = "HEADER[" + h->name() + ":" + h->value();
+    debugMsg(message);
+  }
+
+  if (request->hasArg("body")) {
+    debugMsg("Body found arg");
+  }
+  if (request->hasParam("body")) {
+    debugMsg("Body found param");
+  }
+  int args = request->args();
+  for(int i=0;i<args;i++){
+    String message = "ARG[" + request->argName(i) + "]: " + request->arg(i); 
+    debugMsg(message);
+  }  
+}
+#endif
+
+
+// ************************************************************
+// Main page handler
+// ************************************************************
+void mainHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
+	debugMsg("Got request");
+  #endif
+	request->send(SPIFFS, "/web/index.html");
+}
+
+// ************************************************************
+// Main CSS handler
+// ************************************************************
+void cssHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
+	debugMsg("Got css request");
+  #endif
+	request->send(SPIFFS, "/web/style.css");
+}
 
 void getSummaryDataHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
@@ -327,11 +591,11 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   }
   root["displaytime"] = timeToReadableString(year(),month(),day(),hour(),minute(),second());
 
-  unsigned long gpsAge = (nowMillis - lastGPSReadTime)/1000;
-  if (lastGPSReadTime > 0) {
-    root["lastgpstime"] = timeStringToReadableString(lastGPSTime);
+  unsigned long gpsAge = (nowMillis - gpsManager.getLastGPSReadTime())/1000;
+  if (gpsManager.getLastGPSReadTime() > 0) {
+    root["lastgpstime"] = timeStringToReadableString(gpsManager.getLastGPSTime());
     root["lastgpsupdate"] = secsToReadableString(gpsAge);
-    if (gpsTimeValid) {
+    if (gpsManager.getGPSTimeValid(nowMillis)) {
       root["gpsvalid"] = 1;
     } else {
       root["gpsvalid"] = 0;
@@ -389,8 +653,8 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["minfreepsram"] = ESP.getMinFreePsram();
   root["minfreeheap"] = ESP.getMinFreeHeap();
   root["resetreason"] = String(rtc_get_reset_reason(0)) + "/" + String(rtc_get_reset_reason(1));
-  root["lastgpsraw"] = lastGPSTimeRaw;
-  root["utcoffset"] = String(UTCoffset);
+  root["lastgpsraw"] = gpsManager.getLastGPSTimeRaw();
+  root["utcoffset"] = String(gpsManager.getCurrentUTCOffset());
 
   response->setLength();
   request->send(response);
@@ -656,36 +920,6 @@ void getTimeserverDataHandler(AsyncWebServerRequest *request) {
   request->send(response);
 }
 
-void dumpArgs(AsyncWebServerRequest *request) {
-  int headers = request->headers();
-  int i;
-  for(i=0;i<headers;i++){
-    #ifdef DEBUG_ON
-    AsyncWebHeader* h = request->getHeader(i);
-    String message = "HEADER[" + h->name() + ":" + h->value();
-    debugMsg(message);
-    #endif
-  }
-
-  if (request->hasArg("body")) {
-    #ifdef DEBUG_ON
-    debugMsg("Body found arg");
-    #endif
-  }
-  if (request->hasParam("body")) {
-    #ifdef DEBUG_ON
-    debugMsg("Body found param");
-    #endif
-  }
-  int args = request->args();
-  for(int i=0;i<args;i++){
-    #ifdef DEBUG_ON
-    String message = "ARG[" + request->argName(i) + "]: " + request->arg(i); 
-    debugMsg(message);
-    #endif
-  }  
-}
-
 void postTimeserverDataHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
   debugMsg("Got api timeserver POST request");
@@ -791,106 +1025,6 @@ void postWiFiDataHandler(AsyncWebServerRequest *request) {
         
 }
 
-void resetWifi() {
-  WiFi.disconnect(false, true);
-}
-
-void resetOptions() {
-  cc->ntpPool = NTP_POOL_DEFAULT;
-  cc->ntpUpdateInterval = NTP_UPDATE_INTERVAL_DEFAULT;
-  cc->tzs = TIME_ZONE_STRING_DEFAULT;
-
-  cc->hourMode = HOUR_MODE_DEFAULT;
-  cc->blankLeading = LEAD_BLANK_DEFAULT;
-  cc->dateFormat = DATE_FORMAT_DEFAULT;
-  cc->dayBlanking = DAY_BLANKING_DEFAULT;
-  
-  cc->useLDR = USE_LDR_DEFAULT;
-  cc->thresholdBright = SENSOR_THRSH_DEFAULT;
-  cc->sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
-  cc->sensitivityLDR = SENSOR_SENSIT_DEFAULT;
-  cc->minDim = MIN_DIM_DEFAULT;
-  
-  cc->fade = FADE_DEFAULT;
-  cc->fadeSteps = FADE_STEPS_DEFAULT;
-  cc->scrollback = SCROLLBACK_DEFAULT;
-  cc->scrollSteps = SCROLL_STEPS_DEFAULT;
-  cc->slotsMode = SLOTS_MODE_DEFAULT;
-  
-  cc->backlightMode = BACKLIGHT_DEFAULT;
-  cc->useBLDim = true;
-  cc->useBLPulse = false;
-  cc->redCnl = COLOUR_RED_CNL_DEFAULT;
-  cc->grnCnl = COLOUR_GRN_CNL_DEFAULT;
-  cc->bluCnl = COLOUR_BLU_CNL_DEFAULT;
-  cc->cycleSpeed = CYCLE_SPEED_DEFAULT;
-  cc->backlightDimFactor = BACKLIGHT_DIM_FACTOR_DEFAULT;
-//  cc->extDimFactor = EXT_DIM_FACTOR_DEFAULT;
-//  cc->separatorDimFactor = SEPARATOR_DIM_FACTOR_DEFAULT;
-  cc->ledMode = LED_BLINK_DEFAULT;
-
-  cc->blankMode = BLANK_MODE_DEFAULT;
-  cc->blankHourStart = 0;
-  cc->blankHourEnd = 7;
-
-  cc->pirTimeout = PIR_TIMEOUT_DEFAULT;
-  cc->usePIRPullup = USE_PIR_PULLUP_DEFAULT;
-  
-  // cc->webAuthentication = getWebAuthentication();
-  // cc->webUsername = getWebUserName();
-  // cc->webPassword = getWebPassword();
-  // setWebAuthentication(WEB_AUTH_DEFAULT);
-  // setWebUserName(WEB_USERNAME_DEFAULT);
-  // setWebPassword(WEB_PASSWORD_DEFAULT);
-  
-  cc->testMode = true;
-  cc->wasSetup = true;
-
-  spiffsStorage.saveConfigToSpiffs(cc);
-  #ifdef DEBUG_ON
-  debugMsg("Saved factory config");
-  #endif
-}
-
-void resetAll() {
-  WiFi.disconnect(false, true);  
-}
-
-void getCredentialsHandler(AsyncWebServerRequest *request) {
-  #ifdef DEBUG_ON
-  debugMsg("Got api wifi credentials request");
-  #endif
-  
-  #ifdef DEBUG_ON
-  dumpArgs(request);
-  #endif
-
-  if ((request->hasArg("ssid")) && (request->hasArg("password"))) {
-    ssid = request->arg("ssid");
-    password = request->arg("password");
-    credentialsReceived = true;
-  }
-
-  AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"OK\"}");
-  request->send(response);        
-}
-
-bool gotCredentials() {
-  return credentialsReceived;
-}
-
-void wifiBeginWithCredentials() {
-  WiFi.disconnect();
-  delay(1000);
-  WiFi.mode(WIFI_MODE_STA);
-  delay(1000);
-  delay(1000);
-  WiFi.begin(ssid.c_str(), password.c_str());
-
-  // reset the credentials so that we may have another go if necessary
-  credentialsReceived = false;
-}
-
 void getI2CScanHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
   debugMsg("Got I2C scan request");
@@ -952,119 +1086,21 @@ void resetWifiHandler(AsyncWebServerRequest *request) {
   request->send(200, "text/json", "{\"status\": \"WiFi was reset\"}");
 }
 
-char msgBuffer[37];
-byte bufferOffset = 0;
+void getCredentialsHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
+  debugMsg("Got api wifi credentials request");
+  #endif
+  
+  #ifdef DEBUG_ON
+  dumpArgs(request);
+  #endif
 
-// Turn the GPS string tinto a parsed string
-String parseGPZDAMsg(String messageToParse) {
-  if (messageToParse.length() == 36) {
-    String result = messageToParse.substring(23,27) + ":" +
-                    messageToParse.substring(20,22) + ":" + 
-                    messageToParse.substring(17,19) + " " + 
-                    messageToParse.substring(7,9) + ":" + 
-                    messageToParse.substring(9,11) + ":" + 
-                    messageToParse.substring(11,13);
-    return result; 
-  } else {
-    return "";
+  if ((request->hasArg("ssid")) && (request->hasArg("password"))) {
+    ssid = request->arg("ssid");
+    password = request->arg("password");
+    credentialsReceived = true;
   }
+
+  AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"OK\"}");
+  request->send(response);        
 }
-
-void calculateCurrentOffset(int year, int mon, int day, int hour, int min, int sec) {
-    struct tm whenStart;
-    whenStart.tm_year = year - 1900;
-    whenStart.tm_mon = mon - 1; 
-    whenStart.tm_mday = day; 
-    whenStart.tm_hour = hour; 
-    whenStart.tm_min = min;
-    whenStart.tm_sec = sec;
-
-    time_t now = mktime(&whenStart);
-
-    #ifdef DEBUG_ON
-    const char *str = ctime(&now);
-    debugMsg("input: " + String(str));
-    #endif
-
-    struct tm info_local;
-    struct tm info_gm;
-    localtime_r(&now, &info_local);
-    gmtime_r(&now, &info_gm);
-
-    #ifdef DEBUG_ON
-    String timeStringLocal = String(info_local.tm_year + 1900) + "," + String(info_local.tm_mon + 1) + "," + String(info_local.tm_mday) + "," + String(info_local.tm_hour) + "," + String(info_local.tm_min) + "," + String(info_local.tm_sec);
-    String timeStringGm = String(info_gm.tm_year + 1900) + "," + String(info_gm.tm_mon + 1) + "," + String(info_gm.tm_mday) + "," + String(info_gm.tm_hour) + "," + String(info_gm.tm_min) + "," + String(info_gm.tm_sec);
-
-    debugMsg("local: " + timeStringLocal);
-    debugMsg("gm: " + timeStringGm);
-    #endif
-
-    // The local time might be in DST, so correct that
-    info_gm.tm_isdst = 0;
-    info_local.tm_isdst = 0;
-
-    UTCoffset = mktime(&info_local) - mktime(&info_gm);
-
-    #ifdef DEBUG_ON
-    debugMsg("UTC offset: " + String(UTCoffset));
-    #endif
-}
-
-// Turn the GPS string into a time_t and then onto a time string
-String parseGPZDAMsgToLocaltime(String messageToParse) {
-  if (messageToParse.length() == 36) {
-    time_t tReceived;
-    struct tm whenStart;
-    whenStart.tm_year = messageToParse.substring(23,27).toInt() - 1900;
-    whenStart.tm_mon = messageToParse.substring(20,22).toInt() - 1; 
-    whenStart.tm_mday = messageToParse.substring(17,19).toInt(); 
-    whenStart.tm_hour = messageToParse.substring(7,9).toInt(); 
-    whenStart.tm_min = messageToParse.substring(9,11).toInt();
-    whenStart.tm_sec = messageToParse.substring(11,13).toInt();
-
-    tReceived = mktime(&whenStart) + UTCoffset;
-    const tm *tm = localtime(&tReceived);
-
-    String timeString = String(tm->tm_year + 1900) + "," + String(tm->tm_mon + 1) + "," + String(tm->tm_mday) + "," + String(tm->tm_hour) + "," + String(tm->tm_min) + "," + String(tm->tm_sec);
-
-    return timeString; 
-  } else {
-    return "";
-  }
-}
-
-// Picks messages like this "$GPZDA,184937.00,28,08,2021,00,00*65"
-void parseNMEAMsg(char c)
-{
-//  debugMsgCont("GPS: " + String(c));
-  switch(c) {
-    case '\r':
-    case '\n':
-    {
-      msgBuffer[sizeof(msgBuffer)-1] = 0;
-      String lastMessage = String(msgBuffer);
-      if (lastMessage.indexOf("$GPZDA") >= 0) {
-        #ifdef DEBUG_ON 
-        debugMsg("Got GPS ZDA msg: " + lastGPSTime);
-        #endif
-        lastGPSTimeRaw = lastMessage;
-        lastGPSTime = parseGPZDAMsgToLocaltime(lastMessage);
-        if (lastGPSTime != "") {
-          lastGPSReadTime = nowMillis;
-        }
-      }
-      return;
-    }
-    case '$': { // sentence begin
-      memset(msgBuffer, 0, sizeof(msgBuffer));
-      bufferOffset = 0;
-      msgBuffer[bufferOffset++] = c;
-      return;
-    }
-    default:
-      // ordinary characters
-      if (bufferOffset < sizeof(msgBuffer) - 1)
-        msgBuffer[bufferOffset++] = c;
-  }
-}
-

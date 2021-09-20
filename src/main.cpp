@@ -11,6 +11,8 @@
 #include "clock_timers.h"
 #include <LDRManager.h>
 #include <LEDManager.h>
+#include "MyLib.h"
+#include "GPSManager.h"
 
 // ToDo move to display manager
 const int PWMFreq = 1000; /* 1 KHz */
@@ -407,10 +409,15 @@ void setup()
   // -------------------------------------------------------------------------
 
   debugMsg("GPS/Serial...");
+  gpsManager.getCurrentUTCOffset();
   // Serial.begin(115200);
 
   // -------------------------------------------------------------------------
   
+
+  MyLib.begin();
+  MyLib.doStuff();
+
   debugMsg("Start up WDT...");
   esp_task_wdt_init(WDT_TIMEOUT, true);
   esp_task_wdt_add(NULL);
@@ -620,9 +627,7 @@ void performOncePerSecondProcessing() {
     }
   }
 
-  val1 = decodeBCD(hour(), bl1, bl2, led1State, led2State);
-  val2 = decodeBCD(minute(), bl3, bl4, led1State, led2State);
-  val3 = decodeBCD(second(), bl5, bl6, indLed1, indLed2);
+  loadNumberArrayTime();
 
   // -------------------------------------------------------------------------------
   if (oledTime > 0) {
@@ -645,17 +650,19 @@ void performOncePerSecondProcessing() {
   //   debugMsg("RTC NOT Enabled");
   // }
 
+  debugMsg("Impressions: " + String(impressions));
+  debugMsg("Outputs:  " + String(outputs1) + ":" + String(outputs2) + ":" + String(outputs3));
+  debugMsg("Switches: " + String(switches1) + ":" + String(switches2) + ":" + String(switches3));
+
   while (Serial.available()) {
     char c = Serial.read();
-    parseNMEAMsg(c);
+    gpsManager.parseNMEAMsg(c, nowMillis);
   }
-
-  // debugMsg("Timer: " + String(getTimerStarted()));
-  // print64(getCount());
 
   // Trigger 1PPS signal
   triggerTimer2();
 
+  // Feed the watchdog - woof
   esp_task_wdt_reset();
 }
 
@@ -679,13 +686,8 @@ void performOncePerMinuteProcessing() {
     cs->tubeOnTimeMins++;
   }
 
-  if (lastGPSReadTime > 0) {
-    gpsTimeValid = ((nowMillis - lastGPSReadTime)/1000 < GPS_READING_VALIDITY_SECS);
-  } else {
-    gpsTimeValid = false;
-  }
-
-  calculateCurrentOffset(year(),month(),day(),hour(),minute(),second());
+  // recalculate the UTC offset
+  gpsManager.calculateCurrentOffset(year(),month(),day(),hour(),minute(),second());
 }
 
 // ************************************************************
@@ -751,6 +753,8 @@ void loop()
 
   // -------------------------------------------------------------------------------
   
+  outputDisplay();
+
   // output the backlight/underlight LEDs
   setLeds();
 

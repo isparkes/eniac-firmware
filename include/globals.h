@@ -35,6 +35,31 @@ extern volatile uint32_t val1;
 extern volatile uint32_t val2;
 extern volatile uint32_t val3;
 
+extern volatile uint32_t nextVal1;
+extern volatile uint32_t nextVal2;
+extern volatile uint32_t nextVal3;
+
+extern volatile uint8_t phase;
+extern volatile uint8_t switchTime;
+extern uint8_t switchTimeBuf;
+extern volatile uint16_t impressions;
+extern volatile uint16_t outputs1;
+extern volatile uint16_t outputs2;
+extern volatile uint16_t outputs3;
+extern volatile uint16_t switches1;
+extern volatile uint16_t switches2;
+extern volatile uint16_t switches3;
+
+extern int blinkState;
+extern int fadeStepsExternal;
+extern int fadeStepsInternal;
+
+extern byte numberArray[DIGIT_COUNT];
+extern byte currNumberArray[DIGIT_COUNT];
+extern byte displayType[DIGIT_COUNT];
+extern int fadeState;
+extern byte scrollCounter[DIGIT_COUNT];
+
 extern String ssid;
 extern String password;
 extern bool credentialsReceived;
@@ -42,6 +67,8 @@ extern bool credentialsReceived;
 extern int ldrValue;
 
 extern bool blanked;
+extern bool blankTubes;
+extern bool blankLEDs;
 extern unsigned int oledTime;
 
 // ToDo move into outputManager
@@ -66,5 +93,3 @@ extern bool gpsTimeValid;
 
 extern String lastRTCTime;
 extern unsigned long lastRTCReadTime;
-
-extern unsigned long UTCoffset;

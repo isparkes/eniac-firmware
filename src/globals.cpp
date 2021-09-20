@@ -1,9 +1,8 @@
 #include "globals.h"
-
-byte numberArray[DIGIT_COUNT];
+#include "defs.h"
 
 // ************************************************************
-// SPIFFS and public configs
+// Global shared components and objects
 // ************************************************************
 SPIFFS_CLOCK spiffsStorage;
 spiffs_config_t current_config;
@@ -23,11 +22,38 @@ ESP32Encoder encoder;
 DS1307 rtclock;
 
 // ************************************************************
-// SPIFFS and public configs
+// Display values
 // ************************************************************
 volatile uint32_t val1 = 0;
 volatile uint32_t val2 = 0;
 volatile uint32_t val3 = 0;
+
+volatile uint32_t nextVal1 = 0x81;
+volatile uint32_t nextVal2 = 0x81;
+volatile uint32_t nextVal3 = 0x81;
+
+volatile uint8_t phase;
+volatile uint8_t switchTime = 10;
+uint8_t switchTimeBuf = 10;
+volatile uint16_t impressions;
+volatile uint16_t outputs1;
+volatile uint16_t outputs2;
+volatile uint16_t outputs3;
+volatile uint16_t switches1;
+volatile uint16_t switches2;
+volatile uint16_t switches3;
+int blinkState = 0;
+int fadeStepsExternal = FADE_STEPS_DEFAULT;
+int fadeStepsInternal = fadeStepsExternal / FADE_STEPS_DIVISOR;
+
+byte numberArray[DIGIT_COUNT]     = {0, 0, 0, 0, 0, 0};
+byte currNumberArray[DIGIT_COUNT] = {0, 0, 0, 0, 0, 0};
+byte displayType[DIGIT_COUNT]     = {NORMAL, NORMAL, NORMAL, NORMAL, NORMAL, NORMAL};
+int fadeState                     = 0;
+byte scrollCounter[DIGIT_COUNT]   = {0, 0, 0, 0, 0, 0};
+byte valueDisplayTime             = 0;
+byte valueToShow[3]               = {0, 0, 0};
+byte valueDisplayType[3]          = {0x33, 0x33, 0x33}; // All normal by default
 
 // ************************************************************
 // SPIFFS and public configs
@@ -45,6 +71,9 @@ String password = "";
 bool credentialsReceived = false;
 
 bool blanked;
+bool blankTubes;
+bool blankLEDs;
+
 unsigned int oledTime;
 
 // ToDo move into outputManager
@@ -65,12 +94,5 @@ bool bl6;
 
 bool useRTC;
 
-String lastGPSTime = "";
-String lastGPSTimeRaw = "";
-unsigned long lastGPSReadTime = 0;
-bool gpsTimeValid = false;
-
 String lastRTCTime = "";
 unsigned long lastRTCReadTime = 0;
-
-unsigned long UTCoffset;

@@ -54,6 +54,17 @@
 
 // -------------------------------------------------------------------------------
 
+#define DIGIT_COUNT 6
+#define PHASE_MAX 20
+#define H10 0
+#define H1  1
+#define M10 2
+#define M1  3
+#define S10 4
+#define S1  5
+
+// -------------------------------------------------------------------------------
+
 #define TOUCH_THRESHOLD 60
 
 // -------------------------------------------------------------------------------
@@ -65,16 +76,17 @@
 
 // -------------------------------------------------------------------------------
 // How quickly the scroll works
-#define SCROLL_STEPS_DEFAULT 8
+#define SCROLL_STEPS_DEFAULT 4
 #define SCROLL_STEPS_MIN     1
-#define SCROLL_STEPS_MAX     80
+#define SCROLL_STEPS_MAX     10
 
 // -------------------------------------------------------------------------------
 // The number of dispay impessions we need to fade by default
 // 100 is about 1 second
-#define FADE_STEPS_DEFAULT 50
-#define FADE_STEPS_MIN     20
-#define FADE_STEPS_MAX     200
+#define FADE_STEPS_DEFAULT 10
+#define FADE_STEPS_MIN     2
+#define FADE_STEPS_MAX     40
+#define FADE_STEPS_DIVISOR 15
 
 // -------------------------------------------------------------------------------
 // Temporary display modes - accessed by a short press ( < 1S ) on the button when in MODE_TIME
@@ -208,4 +220,7 @@
 #define EXT_DIM_FACTOR_DEFAULT          100
 
 // -------------------------------------------------------------------------------
-#define GPS_READING_VALIDITY_SECS       240
+// Display mode, set per digit
+#define BLANKED  0
+#define NORMAL   1
+#define BLINK    2

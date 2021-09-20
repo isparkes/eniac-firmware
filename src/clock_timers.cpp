@@ -18,6 +18,21 @@ extern volatile uint32_t val1;
 extern volatile uint32_t val2;
 extern volatile uint32_t val3;
 
+extern volatile uint32_t nextVal1;
+extern volatile uint32_t nextVal2;
+extern volatile uint32_t nextVal3;
+
+extern volatile uint8_t phase;
+extern volatile uint8_t switchTime;
+extern uint8_t switchTimeBuf;
+extern volatile uint16_t impressions;
+extern volatile uint16_t outputs1;
+extern volatile uint16_t outputs2;
+extern volatile uint16_t outputs3;
+extern volatile uint16_t switches1;
+extern volatile uint16_t switches2;
+extern volatile uint16_t switches3;
+
 // These strange values are to provoke that the first call to
 // the interrups detects a change in the buffer and outputs
 // the 0 values to the display. This avoids ghosting of digits
@@ -90,20 +105,48 @@ void IRAM_ATTR shiftOut24S(uint32_t _val1) {
 // ISR for display update
 // ************************************************************
 void IRAM_ATTR onTimer1() {
-   portENTER_CRITICAL_ISR(&timerMux1);
-   if (val1 != val1curr) {
-     shiftOut24H(val1);
-     val1curr = val1;
-   } 
-   if (val2 != val2curr) {
-     shiftOut24M(val2);
-     val2curr = val2;
-   }
-   if (val3 != val3curr) {
-     shiftOut24S(val3);
-     val3curr = val3;
-   }
-   portEXIT_CRITICAL_ISR(&timerMux1);
+  portENTER_CRITICAL_ISR(&timerMux1);
+  phase++;
+    if (phase > PHASE_MAX) {
+    phase = 0;
+    impressions++;
+    switchTime = switchTimeBuf;
+
+    if (val1 != val1curr) {
+      shiftOut24H(val1);
+      val1curr = val1;
+      outputs1++;
+    } 
+    if (val2 != val2curr) {
+      shiftOut24M(val2);
+      val2curr = val2;
+      outputs2++;
+    }
+    if (val3 != val3curr) {
+      shiftOut24S(val3);
+      val3curr = val3;
+      outputs3++;
+    }
+  }
+
+  if (phase == switchTime) {
+    if (nextVal1 != val1curr) {
+      shiftOut24H(nextVal1);
+      val1curr = nextVal1;
+      switches1++;
+    } 
+    if (nextVal2 != val2curr) {
+      shiftOut24M(nextVal2);
+      val2curr = nextVal2;
+      switches2++;
+    }
+    if (nextVal3 != val3curr) {
+      shiftOut24S(nextVal3);
+      val3curr = nextVal3;
+      switches3++;
+    }
+  }
+  portEXIT_CRITICAL_ISR(&timerMux1);
 }
 
 // ************************************************************
@@ -137,7 +180,7 @@ void startTimers() {
 
   timer1 = timerBegin(1, 80, true);
   timerAttachInterrupt(timer1, &onTimer1, true);
-  timerAlarmWrite(timer1, 50000, true);
+  timerAlarmWrite(timer1, 500, true);
   // https://community.platformio.org/t/hardware-timer-issue-with-esp32/22047/10
   delayMicroseconds(0);
   timerAlarmEnable(timer1);
@@ -171,6 +214,3 @@ void setLedFlashType(byte flashType) {
   }
 }
 
-int getCount0() {
-  return count0;
-}
