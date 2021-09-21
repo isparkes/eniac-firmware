@@ -11,9 +11,9 @@
 
 #define LDR_VALUE_MAX         4095 // The maximum LDR value - based on 12-bit ADC
 
-#define MIN_DIM_DEFAULT       20   // The default minimum dim count
-#define MIN_DIM_MIN           0    // The minimum dim count
-#define MIN_DIM_MAX           500  // The maximum dim count
+#define MIN_DIM_DEFAULT       20   // The default minimum dim %
+#define MIN_DIM_MIN           1    // The minimum dim %
+#define MIN_DIM_MAX           100  // The maximum dim %
 
 #define SENSOR_SENSIT_MIN     100  // Sensor Sensitivity
 #define SENSOR_SENSIT_MAX     400

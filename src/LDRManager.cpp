@@ -8,7 +8,7 @@ void LDRManager::setUp()
   debugMsg("Config sensitivityLDR: " + String(cc->sensitivityLDR));
   debugMsg("Config thresholdBright: " + String(cc->thresholdBright));
   debugMsg("Config sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
-  debugMsg("Config minDim: " + String(cc->minDim));
+  debugMsg("Config minDim %: " + String(cc->minDim));
   #endif
 }
 
@@ -41,8 +41,10 @@ void LDRManager::getDimmingFromLDR() {
     debugMsg("Raw _ldrValue: " + String(returnValue));
     #endif
 
-    if (returnValue > (LDR_VALUE_MAX - cc->minDim)) {
-      returnValue = LDR_VALUE_MAX - cc->minDim;
+    int effectiveMinDim = LDR_VALUE_MAX - (cc->minDim * LDR_VALUE_MAX / 100);
+
+    if (returnValue > effectiveMinDim) {
+      returnValue = effectiveMinDim;
       #ifdef DEBUG_ON
       debugMsg("Clamping _ldrValue to min: " + String(returnValue));
       #endif
@@ -57,7 +59,7 @@ void LDRManager::getDimmingFromLDR() {
   } else {
     #ifdef DEBUG_ON
     debugMsg("Not using _ldrValue setting to min: " + String(cc->minDim));
-    _ldrValue = LDR_VALUE_MAX - cc->minDim;
+    _ldrValue = LDR_VALUE_MAX - (cc->minDim * LDR_VALUE_MAX / 100);
     #endif
   }
 }
