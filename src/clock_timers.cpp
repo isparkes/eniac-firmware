@@ -14,6 +14,7 @@ volatile int count0;
 volatile int count0Max = COUNT0_MAX;
 volatile int count0Off = COUNT0_OFF;
 
+// These variables hold the impression data
 extern volatile uint32_t val1;
 extern volatile uint32_t val2;
 extern volatile uint32_t val3;
@@ -22,9 +23,9 @@ extern volatile uint32_t nextVal1;
 extern volatile uint32_t nextVal2;
 extern volatile uint32_t nextVal3;
 
-extern volatile uint8_t phase;
-extern volatile uint8_t switchTime;
-extern uint8_t switchTimeBuf;
+extern uint8_t switchTime;
+
+// These are for debugging
 extern volatile uint16_t impressions;
 extern volatile uint16_t outputs1;
 extern volatile uint16_t outputs2;
@@ -37,9 +38,21 @@ extern volatile uint16_t switches3;
 // the interrups detects a change in the buffer and outputs
 // the 0 values to the display. This avoids ghosting of digits
 // during set up of the display  
-volatile uint32_t val1curr = 0x80000000;
-volatile uint32_t val2curr = 0x80000000;
-volatile uint32_t val3curr = 0x80000000;
+volatile uint8_t _phase;
+
+volatile uint8_t _switchTime;
+
+volatile uint32_t _val1curr = 0x80000000;
+volatile uint32_t _val2curr = 0x80000000;
+volatile uint32_t _val3curr = 0x80000000;
+
+volatile uint32_t _val1 = 0;
+volatile uint32_t _val2 = 0;
+volatile uint32_t _val3 = 0;
+
+volatile uint32_t _val1Next = 0;
+volatile uint32_t _val2Next = 0;
+volatile uint32_t _val3Next = 0;
 
 // ************************************************************
 // ISR for LED flash update
@@ -106,43 +119,52 @@ void IRAM_ATTR shiftOut24S(uint32_t _val1) {
 // ************************************************************
 void IRAM_ATTR onTimer1() {
   portENTER_CRITICAL_ISR(&timerMux1);
-  phase++;
-    if (phase > PHASE_MAX) {
-    phase = 0;
+  _phase++;
+    if (_phase > PHASE_MAX) {
+    _phase = 0;
     impressions++;
-    switchTime = switchTimeBuf;
 
-    if (val1 != val1curr) {
+    // Load the new values
+    _switchTime = switchTime;
+    _val1 = val1;
+    _val2 = val2;
+    _val3 = val3;
+    _val1Next = nextVal1;
+    _val2Next = nextVal2;
+    _val3Next = nextVal3;
+
+    // Update if there was a display change
+    if (val1 != _val1curr) {
       shiftOut24H(val1);
-      val1curr = val1;
+      _val1curr = val1;
       outputs1++;
     } 
-    if (val2 != val2curr) {
+    if (val2 != _val2curr) {
       shiftOut24M(val2);
-      val2curr = val2;
+      _val2curr = val2;
       outputs2++;
     }
-    if (val3 != val3curr) {
+    if (val3 != _val3curr) {
       shiftOut24S(val3);
-      val3curr = val3;
+      _val3curr = val3;
       outputs3++;
     }
   }
 
-  if (phase == switchTime) {
-    if (nextVal1 != val1curr) {
+  if (_phase == _switchTime) {
+    if (nextVal1 != _val1curr) {
       shiftOut24H(nextVal1);
-      val1curr = nextVal1;
+      _val1curr = nextVal1;
       switches1++;
     } 
-    if (nextVal2 != val2curr) {
+    if (nextVal2 != _val2curr) {
       shiftOut24M(nextVal2);
-      val2curr = nextVal2;
+      _val2curr = nextVal2;
       switches2++;
     }
-    if (nextVal3 != val3curr) {
+    if (nextVal3 != _val3curr) {
       shiftOut24S(nextVal3);
-      val3curr = nextVal3;
+      _val3curr = nextVal3;
       switches3++;
     }
   }

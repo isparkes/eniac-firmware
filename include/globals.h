@@ -31,17 +31,16 @@ extern boolean triggeredThisSec;
 extern spiffs_config_t* cc;
 extern spiffs_stats_t* cs;
 
-extern volatile uint32_t val1;
-extern volatile uint32_t val2;
-extern volatile uint32_t val3;
+extern uint32_t val1;
+extern uint32_t val2;
+extern uint32_t val3;
 
-extern volatile uint32_t nextVal1;
-extern volatile uint32_t nextVal2;
-extern volatile uint32_t nextVal3;
+extern uint32_t nextVal1;
+extern uint32_t nextVal2;
+extern uint32_t nextVal3;
 
-extern volatile uint8_t phase;
-extern volatile uint8_t switchTime;
-extern uint8_t switchTimeBuf;
+extern uint8_t switchTime;
+
 extern volatile uint16_t impressions;
 extern volatile uint16_t outputs1;
 extern volatile uint16_t outputs2;

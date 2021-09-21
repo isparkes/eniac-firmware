@@ -650,9 +650,11 @@ void performOncePerSecondProcessing() {
   //   debugMsg("RTC NOT Enabled");
   // }
 
-  debugMsg("Impressions: " + String(impressions));
-  debugMsg("Outputs:  " + String(outputs1) + ":" + String(outputs2) + ":" + String(outputs3));
-  debugMsg("Switches: " + String(switches1) + ":" + String(switches2) + ":" + String(switches3));
+  // debugMsg("Impressions: " + String(impressions));
+  // debugMsg("Outputs:  " + String(outputs1) + ":" + String(outputs2) + ":" + String(outputs3));
+  // debugMsg("Switches: " + String(switches1) + ":" + String(switches2) + ":" + String(switches3));
+
+  // debugMsg("val1: " + String(val1) + ":" + String(nextVal1));
 
   while (Serial.available()) {
     char c = Serial.read();

@@ -45,12 +45,12 @@
                     <label class="control-label col-xs-3">12H/24H mode:</label>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input type="radio" name="12h24hMode" id="hourMode" value="12h">12H
+                            <input type="radio" name="12h24hMode" id="hourMode" value="on">12H
                         </label>
                     </div>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input checked type="radio" name="12h24hMode" id="hourModeOff" value="24h">24H
+                            <input checked type="radio" name="12h24hMode" id="hourModeOff" value="off">24H
                         </label>
                     </div>
                 </div>
@@ -69,7 +69,7 @@
                 </div>
                 <div class="form-group">
                     <label class="control-label col-xs-3">Date format:</label>
-                    <div class="col-xs-2">
+                    <div class="col-xs-4">
                         <select class="form-control" name="dateFormat" id="dateFormat">
                             <option value="0">YY-MM-DD</option>
                             <option value="1">MM-DD-YY</option>
@@ -81,12 +81,12 @@
                     <label class="control-label col-xs-3">Scrollback effect:</label>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input type="radio" name="scrollback" id="scrollback" value="on">On
+                            <input type="radio" name="scrollback" id="scrollback" value="on" onclick="handleScrollbackClick(this);">On
                         </label>
                     </div>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input checked type="radio" name="scrollback" id="scrollbackOff" value="off">Off
+                            <input checked type="radio" name="scrollback" id="scrollbackOff" value="off" onclick="handleScrollbackClick(this);">Off
                         </label>
                     </div>
                 </div>
@@ -100,12 +100,12 @@
                     <label class="control-label col-xs-3">Fade effect:</label>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input type="radio" name="fade" id="fade" value="on">On
+                            <input type="radio" name="fade" id="fade" value="on" onclick="handleFadeClick(this);">On
                         </label>
                     </div>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input checked type="radio" name="fade" id="fadeOff" value="off">Off
+                            <input checked type="radio" name="fade" id="fadeOff" value="off" onclick="handleFadeClick(this);">Off
                         </label>
                     </div>
                 </div>
@@ -117,7 +117,7 @@
                 </div>
                 <div class="form-group">
                     <label class="control-label col-xs-3">Slots mode:</label>
-                    <div class="col-xs-2">
+                    <div class="col-xs-4">
                         <select class="form-control" name="slotsMode" id="slotsMode">
                             <option value="0">No slots</option>
                             <option selected value="1">Scroll, scramble</option>
@@ -152,18 +152,18 @@
                     <label class="control-label col-xs-3">Use LDR:</label>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input type="radio" name="useLDR" id="useLDR" value="on">On
+                            <input type="radio" name="useLDR" id="useLDR" value="on" onclick="handleLDRClick(this);">On
                         </label>
                     </div>                    
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input type="radio" name="useLDR" id="useLDROff" value="off">Off
+                            <input type="radio" name="useLDR" id="useLDROff" value="off" onclick="handleLDRClick(this);">Off
                         </label>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="control-label col-xs-3" for="minDim">Min Dim:</label>
+                    <label class="control-label col-xs-3" for="minDim" id="minDimLabel">Min Dim:</label>
                     <div class="col-xs-2">
                         <input type="number" class="form-control" name="minDim" id="minDim" min="0" max="500" value="20">
                     </div>
@@ -195,8 +195,8 @@
             <div class="form-horizontal">
                 <div class="form-group">
                     <label class="control-label col-xs-3">Day blanking:</label>
-                    <div class="col-xs-8">
-                        <select class="form-control" name="dayBlanking" id="dayBlanking">
+                    <div class="col-xs-4">
+                        <select class="form-control" name="dayBlanking" id="dayBlanking" onChange="handleDayBlankingChange()">
                             <option selected value="0">Never blank</option>
                             <option value="1">Blank all day on weekends</option>
                             <option value="2">Blank all day on week days</option>
@@ -211,7 +211,7 @@
                 </div>
                 <div class="form-group">
                     <label class="control-label col-xs-3">Blank Mode:</label>
-                    <div class="col-xs-8">
+                    <div class="col-xs-4">
                         <select class="form-control" name="blankMode" id="blankMode">
                             <option value="0">Blank tubes only</option>
                             <option value="1">Blank LEDs only</option>
@@ -243,8 +243,8 @@
             <div class="form-horizontal">
                 <div class="form-group">
                     <label class="control-label col-xs-3">Back light:</label>
-                    <div class="col-xs-8">
-                        <select class="form-control" name="backlightMode" id="backlightMode">
+                    <div class="col-xs-4">
+                        <select class="form-control" name="backlightMode" id="backlightMode" onChange="handleDayBacklightModeChange()">
                             <option value="0">Fixed RGB backlight</option>
                             <option value="1">Cycling RGB backlight</option>
                             <option value="2">Colortime RGB backlight</option>
@@ -372,6 +372,7 @@
         getClockConfig().then(function (config) {
             localConfig = config;
 
+            // -------------- General --------------
             setCurrentRadioValue("#hourMode", "#hourModeOff", config.hourMode);
             setCurrentRadioValue("#blankLeading", "#blankLeadingOff", config.blankLeading);
             $("#dateFormat").val(config.dateFormat);
@@ -379,20 +380,36 @@
             $("#scrollSteps").val(config.scrollSteps);
             setCurrentRadioValue("#fade", "#fadeOff", config.fade);
             $("#fadeSteps").val(config.fadeSteps);
-            setCurrentRadioValue("#suppressACP", "#suppressACPOff", config.suppressACP);
             $("#slotsMode").val(config.slotsMode);
+            setCurrentRadioValue("#suppressACP", "#suppressACPOff", config.suppressACP);
 
+            // -------------- LDR --------------
             setCurrentRadioValue("#useLDR", "#useLDROff", config.useLDR);
             $("#minDim").val(config.minDim);
             $("#sensitivityLDR").val(config.sensitivityLDR);
             $("#thresholdBright").val(config.thresholdBright);
 
+            // ------------ Blanking ------------
+            $("#dayBlanking").val(config.dayBlanking);
+            $("#blankMode").val(config.blankMode);
+            $("#blankHourStart").val(config.blankHourStart);
+            $("#blankHourEnd").val(config.blankHourEnd);
+
+            // -------------- LEDs --------------
+            $("#backlightMode").val(config.backlightMode);
             $("#redCnl").val(config.redCnl);
             $("#grnCnl").val(config.grnCnl);
             $("#bluCnl").val(config.bluCnl);
-            $("#cycleSpeed").val(config.cycleSpeed);
             setCurrentRadioValue("#useBLDim", "#useBLDimOff", config.useBLDim);
             setCurrentRadioValue("#useBLPulse", "#useBLPulseOff", config.useBLPulse);
+            $("#cycleSpeed").val(config.cycleSpeed);
+
+            // -- Triggers for dependent settings --
+            handleScrollbackClick($("#scrollback"));
+            handleFadeClick($("#fade"));
+            handleLDRClick($("#useLDR"));
+            handleDayBlankingChange();
+            handleDayBacklightModeChange()
         })
         .then(() => removeLoader());
     };
@@ -458,7 +475,39 @@
             postBody["thresholdBright"] = $("#thresholdBright").val();
         }
 
+        // ------------ Blanking ------------
+        if (localConfig.dayBlanking!=$("#dayBlanking").val()) {
+            postBody["dayBlanking"] = $("#dayBlanking").val();
+        }
+
+        if (localConfig.blankMode!=$("#blankMode").val()) {
+            postBody["blankMode"] = $("#blankMode").val();
+        }
+
+        if (localConfig.blankHourStart!=$("#blankHourStart").val()) {
+            postBody["blankHourStart"] = $("#blankHourStart").val();
+        }
+
+        if (localConfig.blankHourEnd!=$("#blankHourEnd").val()) {
+            postBody["blankHourEnd"] = $("#blankHourEnd").val();
+        }
+
         // -------------- LEDs --------------
+        if (localConfig.backlightMode!=$("#backlightMode").val()) {
+            postBody["backlightMode"] = $("#backlightMode").val();
+        }
+
+        if (localConfig.redCnl!=$("#redCnl").val()) {
+            postBody["redCnl"] = $("#redCnl").val();
+        }
+
+        if (localConfig.grnCnl!=$("#grnCnl").val()) {
+            postBody["grnCnl"] = $("#grnCnl").val();
+        }
+
+        if (localConfig.bluCnl!=$("#bluCnl").val()) {
+            postBody["bluCnl"] = $("#bluCnl").val();
+        }
 
         if (compareRadioChanged("#useBLDim", localConfig.useBLDim)) {
             postBody["useBLDim"] = getCurrentRadioValue("#useBLDim");
@@ -467,6 +516,12 @@
         if (compareRadioChanged("#useBLPulse", localConfig.useBLPulse)) {
             postBody["useBLPulse"] = getCurrentRadioValue("#useBLPulse");
         }
+
+        if (localConfig.cycleSpeed!=$("#cycleSpeed").val()) {
+            postBody["cycleSpeed"] = $("#cycleSpeed").val();
+        }
+
+        // ----------------------------------
 
         var ajaxOptions = {
             url: '/api/postConfig',
@@ -518,8 +573,64 @@
         }
     }
 
+    function handleScrollbackClick(radioID) {
+        if($(radioID).prop('checked') && $(radioID).val() == 'on') {
+            $("#scrollSteps").prop('disabled', false);
+        } else {
+            $("#scrollSteps").prop('disabled', true);
+        }
+    }
+
+    function handleFadeClick(radioID) {
+        if($(radioID).prop('checked') && $(radioID).val() == 'on') {
+            $("#fadeSteps").prop('disabled', false);
+        } else {
+            $("#fadeSteps").prop('disabled', true);
+        }
+    }
+
+    function handleLDRClick(radioID) {
+        if($(radioID).prop('checked') && $(radioID).val() == 'on') {
+            $("#sensitivityLDR").prop('disabled', false);
+            $("#thresholdBright").prop('disabled', false);
+            $("minDimLabel").text("Min Dim:");
+        } else {
+            $("#sensitivityLDR").prop('disabled', true);
+            $("#thresholdBright").prop('disabled', true);
+            $("minDimLabel").text("Set Dim:");
+        }
+    }
+
+    function handleDayBlankingChange() {
+        if ($("#dayBlanking").val() > 3) {
+            $("#blankHourStart").prop('disabled', false);
+            $("#blankHourEnd").prop('disabled', false);
+        } else {
+            $("#blankHourStart").prop('disabled', true);
+            $("#blankHourEnd").prop('disabled', true);
+        }
+    }
+
+    function handleDayBacklightModeChange() {
+        if ($("#backlightMode").val() == 0) {
+            $("#redCnl").prop('disabled', false);
+            $("#grnCnl").prop('disabled', false);
+            $("#bluCnl").prop('disabled', false);
+        } else {
+            $("#redCnl").prop('disabled', true);
+            $("#grnCnl").prop('disabled', true);
+            $("#bluCnl").prop('disabled', true);
+        }
+        if ($("#backlightMode").val() == 1) {
+            $("#cycleSpeed").prop('disabled', false);
+        } else {
+            $("#cycleSpeed").prop('disabled', true);
+        }
+    }
+
     addLoader();
     getConfig();
+    
 </script>
 
 </html>

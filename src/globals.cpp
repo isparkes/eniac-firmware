@@ -24,17 +24,16 @@ DS1307 rtclock;
 // ************************************************************
 // Display values
 // ************************************************************
-volatile uint32_t val1 = 0;
-volatile uint32_t val2 = 0;
-volatile uint32_t val3 = 0;
+uint32_t val1 = 0;
+uint32_t val2 = 0;
+uint32_t val3 = 0;
 
-volatile uint32_t nextVal1 = 0x81;
-volatile uint32_t nextVal2 = 0x81;
-volatile uint32_t nextVal3 = 0x81;
+uint32_t nextVal1 = 0x81;
+uint32_t nextVal2 = 0x81;
+uint32_t nextVal3 = 0x81;
 
-volatile uint8_t phase;
-volatile uint8_t switchTime = 10;
-uint8_t switchTimeBuf = 10;
+uint8_t switchTime = 0;
+
 volatile uint16_t impressions;
 volatile uint16_t outputs1;
 volatile uint16_t outputs2;
@@ -42,6 +41,7 @@ volatile uint16_t outputs3;
 volatile uint16_t switches1;
 volatile uint16_t switches2;
 volatile uint16_t switches3;
+
 int blinkState = 0;
 int fadeStepsExternal = FADE_STEPS_DEFAULT;
 int fadeStepsInternal = fadeStepsExternal / FADE_STEPS_DIVISOR;

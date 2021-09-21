@@ -446,7 +446,7 @@ void outputDisplay() {
 
   if (fadeState == 1) {
     fadeState = 0;
-    switchTimeBuf = 0;
+    switchTime = 0;
     for (byte j = 0 ; j < DIGIT_COUNT ; j++) {
       if (scrollCounter[j] == 0) {
         currNumberArray[j] = numberArray[j];
@@ -454,7 +454,7 @@ void outputDisplay() {
     }
   } else if (fadeState > 0) {
     fadeState--;
-    switchTimeBuf = (fadeState / fadeStepsInternal);
+    switchTime = (fadeState / fadeStepsInternal);
   }
 
   val1 = decodeFromNumberArray( tmpNumberArray[H10], 
@@ -688,13 +688,18 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["thresholdBright"] = cc->thresholdBright;
   root["sensitivityLDR"] = cc->sensitivityLDR;
 
+  root["dayBlanking"] = cc->dayBlanking;
+  root["blankMode"] = cc->blankMode;
+  root["blankHourStart"] = cc->blankHourStart;
+  root["blankHourEnd"] = cc->blankHourEnd;
+
   root["backlightMode"] = cc->backlightMode;
   root["redCnl"] = cc->redCnl;
   root["grnCnl"] = cc->grnCnl;
   root["bluCnl"] = cc->bluCnl;
-  root["cycleSpeed"] = cc->cycleSpeed;
   root["useBLDim"] = cc->useBLDim;
   root["useBLPulse"] = cc->useBLPulse;
+  root["cycleSpeed"] = cc->cycleSpeed;
 
   response->setLength();
   request->send(response);
@@ -714,11 +719,11 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
 
     if (json.containsKey("hourMode")) {
       int newhourMode = json["hourMode"];
-      if (cc->thresholdBright != newhourMode) {
+      if (cc->hourMode != newhourMode) {
         #ifdef DEBUG_ON
         debugMsg("hourMode before: " + String(cc->hourMode));
         #endif
-        cc->thresholdBright = newhourMode;
+        cc->hourMode = newhourMode;
         #ifdef DEBUG_ON
         debugMsg("Loaded new hourMode: " + String(cc->hourMode));
         #endif
@@ -790,15 +795,15 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
       }
     }
 
-    if (json.containsKey("suppressACP")) {
-      int newsuppressACP = json["suppressACP"];
-      if (cc->suppressACP != newsuppressACP) {
+    if (json.containsKey("fadeSteps")) {
+      int newfadeSteps = json["fadeSteps"];
+      if (cc->fadeSteps != newfadeSteps) {
         #ifdef DEBUG_ON
-        debugMsg("suppressACP before: " + String(cc->suppressACP));
+        debugMsg("fadeSteps before: " + String(cc->fadeSteps));
         #endif
-        cc->suppressACP = newsuppressACP;
+        cc->fadeSteps = newfadeSteps;
         #ifdef DEBUG_ON
-        debugMsg("Loaded new suppressACP: " + String(cc->suppressACP));
+        debugMsg("Loaded new fadeSteps: " + String(cc->fadeSteps));
         #endif
       }
     }
@@ -812,6 +817,19 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
         cc->slotsMode = newslotsMode;
         #ifdef DEBUG_ON
         debugMsg("Loaded new slotsMode: " + String(cc->slotsMode));
+        #endif
+      }
+    }
+
+    if (json.containsKey("suppressACP")) {
+      int newsuppressACP = json["suppressACP"];
+      if (cc->suppressACP != newsuppressACP) {
+        #ifdef DEBUG_ON
+        debugMsg("suppressACP before: " + String(cc->suppressACP));
+        #endif
+        cc->suppressACP = newsuppressACP;
+        #ifdef DEBUG_ON
+        debugMsg("Loaded new suppressACP: " + String(cc->suppressACP));
         #endif
       }
     }
@@ -870,6 +888,114 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
       }
     }
 
+    // ------------------------------------------------------------
+
+    if (json.containsKey("dayBlanking")) {
+      int newdayBlanking = json["dayBlanking"];
+      if (cc->dayBlanking != newdayBlanking) {
+        #ifdef DEBUG_ON
+        debugMsg("dayBlanking before: " + String(cc->dayBlanking));
+        #endif
+        cc->dayBlanking = newdayBlanking;
+        #ifdef DEBUG_ON
+        debugMsg("Loaded new dayBlanking: " + String(cc->dayBlanking));
+        #endif
+      }
+    }
+
+    if (json.containsKey("blankMode")) {
+      int newblankMode = json["blankMode"];
+      if (cc->blankMode != newblankMode) {
+        #ifdef DEBUG_ON
+        debugMsg("blankMode before: " + String(cc->blankMode));
+        #endif
+        cc->blankMode = newblankMode;
+        #ifdef DEBUG_ON
+        debugMsg("Loaded new blankMode: " + String(cc->blankMode));
+        #endif
+      }
+    }
+
+    if (json.containsKey("blankHourStart")) {
+      int newblankHourStart = json["blankHourStart"];
+      if (cc->blankHourStart != newblankHourStart) {
+        #ifdef DEBUG_ON
+        debugMsg("blankHourStart before: " + String(cc->blankHourStart));
+        #endif
+        cc->blankHourStart = newblankHourStart;
+        #ifdef DEBUG_ON
+        debugMsg("Loaded new blankHourStart: " + String(cc->blankHourStart));
+        #endif
+      }
+    }
+
+    if (json.containsKey("blankHourEnd")) {
+      int newblankHourEnd = json["blankHourEnd"];
+      if (cc->blankHourEnd != newblankHourEnd) {
+        #ifdef DEBUG_ON
+        debugMsg("blankHourEnd before: " + String(cc->blankHourEnd));
+        #endif
+        cc->blankHourEnd = newblankHourEnd;
+        #ifdef DEBUG_ON
+        debugMsg("Loaded new blankHourEnd: " + String(cc->blankHourEnd));
+        #endif
+      }
+    }
+
+    // ------------------------------------------------------------
+
+    if (json.containsKey("backlightMode")) {
+      int newbacklightMode = json["backlightMode"];
+      if (cc->backlightMode != newbacklightMode) {
+        #ifdef DEBUG_ON
+        debugMsg("backlightMode before: " + String(cc->backlightMode));
+        #endif
+        cc->backlightMode = newbacklightMode;
+        #ifdef DEBUG_ON
+        debugMsg("Loaded new backlightMode: " + String(cc->backlightMode));
+        #endif
+      }
+    }
+
+    if (json.containsKey("redCnl")) {
+      int newredCnl = json["redCnl"];
+      if (cc->redCnl != newredCnl) {
+        #ifdef DEBUG_ON
+        debugMsg("redCnl before: " + String(cc->redCnl));
+        #endif
+        cc->redCnl = newredCnl;
+        #ifdef DEBUG_ON
+        debugMsg("Loaded new redCnl: " + String(cc->redCnl));
+        #endif
+      }
+    }
+
+    if (json.containsKey("grnCnl")) {
+      int newgrnCnl = json["grnCnl"];
+      if (cc->grnCnl != newgrnCnl) {
+        #ifdef DEBUG_ON
+        debugMsg("grnCnl before: " + String(cc->grnCnl));
+        #endif
+        cc->grnCnl = newgrnCnl;
+        #ifdef DEBUG_ON
+        debugMsg("Loaded new grnCnl: " + String(cc->grnCnl));
+        #endif
+      }
+    }
+
+    if (json.containsKey("bluCnl")) {
+      int newbluCnl = json["bluCnl"];
+      if (cc->bluCnl != newbluCnl) {
+        #ifdef DEBUG_ON
+        debugMsg("bluCnl before: " + String(cc->bluCnl));
+        #endif
+        cc->bluCnl = newbluCnl;
+        #ifdef DEBUG_ON
+        debugMsg("Loaded new bluCnl: " + String(cc->bluCnl));
+        #endif
+      }
+    }
+
     if (json.containsKey("useBLDim")) {
       int newUseBLDim = json["useBLDim"].as<bool>();
       if (cc->useBLDim != newUseBLDim) {
@@ -895,6 +1021,21 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
         #endif
       }
     }
+
+    if (json.containsKey("cycleSpeed")) {
+      int newcycleSpeed = json["cycleSpeed"];
+      if (cc->cycleSpeed != newcycleSpeed) {
+        #ifdef DEBUG_ON
+        debugMsg("cycleSpeed before: " + String(cc->cycleSpeed));
+        #endif
+        cc->cycleSpeed = newcycleSpeed;
+        #ifdef DEBUG_ON
+        debugMsg("Loaded new cycleSpeed: " + String(cc->cycleSpeed));
+        #endif
+      }
+    } 
+
+    // ------------------------------------------------------------
 
     spiffsStorage.saveConfigToSpiffs(cc);
     #ifdef DEBUG_ON
