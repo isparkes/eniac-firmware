@@ -31,15 +31,15 @@ extern boolean triggeredThisSec;
 extern spiffs_config_t* cc;
 extern spiffs_stats_t* cs;
 
-extern uint32_t val1;
-extern uint32_t val2;
-extern uint32_t val3;
+extern volatile uint32_t val1;
+extern volatile uint32_t val2;
+extern volatile uint32_t val3;
 
-extern uint32_t nextVal1;
-extern uint32_t nextVal2;
-extern uint32_t nextVal3;
+extern volatile uint32_t nextVal1;
+extern volatile uint32_t nextVal2;
+extern volatile uint32_t nextVal3;
 
-extern uint8_t switchTime;
+extern volatile uint8_t switchTime;
 
 extern volatile uint16_t impressions;
 extern volatile uint16_t outputs1;
@@ -50,8 +50,7 @@ extern volatile uint16_t switches2;
 extern volatile uint16_t switches3;
 
 extern int blinkState;
-extern int fadeStepsExternal;
-extern int fadeStepsInternal;
+extern float fadeStepsInternal;
 
 extern byte numberArray[DIGIT_COUNT];
 extern byte currNumberArray[DIGIT_COUNT];

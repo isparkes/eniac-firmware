@@ -93,7 +93,7 @@
                 <div class="form-group">
                     <label class="control-label col-xs-3" for="scrollSteps">Scroll steps:</label>
                     <div class="col-xs-2">
-                        <input type="number" class="form-control" name="scrollSteps" id="scrollSteps" min="1" max="40" value="4" disabled>
+                        <input type="number" class="form-control" name="scrollSteps" id="scrollSteps" min="1" max="8" value="4" disabled>
                     </div>
                 </div>
                 <div class="form-group">
@@ -112,7 +112,7 @@
                 <div class="form-group">
                     <label class="control-label col-xs-3" for="fadeSteps">Fade steps:</label>
                     <div class="col-xs-2">
-                        <input type="number" class="form-control" name="fadeSteps" id="fadeSteps" min="20" max="200" value="50" disabled>
+                        <input type="number" class="form-control" name="fadeSteps" id="fadeSteps" min="10" max="60" value="25" disabled>
                     </div>
                 </div>
                 <div class="form-group">
@@ -370,53 +370,57 @@
 
     getConfig = function () {
         getClockConfig().then(function (config) {
-            localConfig = config;
-
-            // -------------- General --------------
-            setCurrentRadioValue("#hourMode", "#hourModeOff", config.hourMode);
-            setCurrentRadioValue("#blankLeading", "#blankLeadingOff", config.blankLeading);
-            $("#dateFormat").val(config.dateFormat);
-            setCurrentRadioValue("#scrollback", "#scrollbackOff", config.scrollback);
-            $("#scrollSteps").val(config.scrollSteps);
-            setCurrentRadioValue("#fade", "#fadeOff", config.fade);
-            $("#fadeSteps").val(config.fadeSteps);
-            $("#slotsMode").val(config.slotsMode);
-            setCurrentRadioValue("#suppressACP", "#suppressACPOff", config.suppressACP);
-
-            // -------------- LDR --------------
-            setCurrentRadioValue("#useLDR", "#useLDROff", config.useLDR);
-            $("#minDim").val(config.minDim);
-            $("#sensitivityLDR").val(config.sensitivityLDR);
-            $("#thresholdBright").val(config.thresholdBright);
-
-            // ------------ Blanking ------------
-            $("#dayBlanking").val(config.dayBlanking);
-            $("#blankMode").val(config.blankMode);
-            $("#blankHourStart").val(config.blankHourStart);
-            $("#blankHourEnd").val(config.blankHourEnd);
-
-            // -------------- LEDs --------------
-            $("#backlightMode").val(config.backlightMode);
-            $("#redCnl").val(config.redCnl);
-            $("#grnCnl").val(config.grnCnl);
-            $("#bluCnl").val(config.bluCnl);
-            setCurrentRadioValue("#useBLDim", "#useBLDimOff", config.useBLDim);
-            setCurrentRadioValue("#useBLPulse", "#useBLPulseOff", config.useBLPulse);
-            $("#cycleSpeed").val(config.cycleSpeed);
-
-            // -- Triggers for dependent settings --
-            handleScrollbackClick($("#scrollback"));
-            handleFadeClick($("#fade"));
-            handleLDRClick($("#useLDR"));
-            handleDayBlankingChange();
-            handleDayBacklightModeChange()
+            setWidgets(config);
+            removeLoader();
         })
-        .then(() => removeLoader());
+    }
+
+    setWidgets = function(config) {
+        localConfig = config;
+
+        // -------------- General --------------
+        setCurrentRadioValue("#hourMode", "#hourModeOff", config.hourMode);
+        setCurrentRadioValue("#blankLeading", "#blankLeadingOff", config.blankLeading);
+        $("#dateFormat").val(config.dateFormat);
+        setCurrentRadioValue("#scrollback", "#scrollbackOff", config.scrollback);
+        $("#scrollSteps").val(config.scrollSteps);
+        setCurrentRadioValue("#fade", "#fadeOff", config.fade);
+        $("#fadeSteps").val(config.fadeSteps);
+        $("#slotsMode").val(config.slotsMode);
+        setCurrentRadioValue("#suppressACP", "#suppressACPOff", config.suppressACP);
+
+        // -------------- LDR --------------
+        setCurrentRadioValue("#useLDR", "#useLDROff", config.useLDR);
+        $("#minDim").val(config.minDim);
+        $("#sensitivityLDR").val(config.sensitivityLDR);
+        $("#thresholdBright").val(config.thresholdBright);
+
+        // ------------ Blanking ------------
+        $("#dayBlanking").val(config.dayBlanking);
+        $("#blankMode").val(config.blankMode);
+        $("#blankHourStart").val(config.blankHourStart);
+        $("#blankHourEnd").val(config.blankHourEnd);
+
+        // -------------- LEDs --------------
+        $("#backlightMode").val(config.backlightMode);
+        $("#redCnl").val(config.redCnl);
+        $("#grnCnl").val(config.grnCnl);
+        $("#bluCnl").val(config.bluCnl);
+        setCurrentRadioValue("#useBLDim", "#useBLDimOff", config.useBLDim);
+        setCurrentRadioValue("#useBLPulse", "#useBLPulseOff", config.useBLPulse);
+        $("#cycleSpeed").val(config.cycleSpeed);
+
+        // -- Triggers for dependent settings --
+        handleScrollbackClick($("#scrollback"));
+        handleFadeClick($("#fade"));
+        handleLDRClick($("#useLDR"));
+        handleDayBlankingChange();
+        handleDayBacklightModeChange()
     };
 
     postConfig = function postConfig() {
         var deferred = $.Deferred();
-        console.log('post LDR config values');
+        console.log('post config values');
 
         var postBody = {
         };
@@ -430,7 +434,7 @@
             postBody["blankLeading"] = getCurrentRadioValue("#blankLeading");
         }
 
-        if (localConfig.dateFormat!=$("#dateFormat").val()) {
+        if (localConfig.dateFormat != $("#dateFormat").val()) {
             postBody["dateFormat"] = $("#dateFormat").val();
         }
 
@@ -438,7 +442,7 @@
             postBody["scrollback"] = getCurrentRadioValue("#scrollback");
         }
 
-        if (localConfig.scrollSteps!=$("#scrollSteps").val()) {
+        if (localConfig.scrollSteps != $("#scrollSteps").val()) {
             postBody["scrollSteps"] = $("#scrollSteps").val();
         }
 
@@ -446,19 +450,20 @@
             postBody["fade"] = getCurrentRadioValue("#fade");
         }
 
-        if (localConfig.fadeSteps!=$("#fadeSteps").val()) {
+        if (localConfig.fadeSteps != $("#fadeSteps").val()) {
             postBody["fadeSteps"] = $("#fadeSteps").val();
-        }
-
-        if (compareRadioChanged("#suppressACP", localConfig.suppressACP)) {
-            postBody["suppressACP"] = getCurrentRadioValue("#suppressACP");
         }
 
         if (localConfig.slotsMode!=$("#slotsMode").val()) {
             postBody["slotsMode"] = $("#slotsMode").val();
         }
 
+        if (compareRadioChanged("#suppressACP", localConfig.suppressACP)) {
+            postBody["suppressACP"] = getCurrentRadioValue("#suppressACP");
+        }
+
         // -------------- LDR --------------
+
         if (compareRadioChanged("#useLDR", localConfig.useLDR)) {
             postBody["useLDR"] = getCurrentRadioValue("#useLDR");
         }
@@ -541,8 +546,9 @@
     saveConfig = function () {
         addLoader();
         postConfig()
-        .then(function (res) {
-            console.log("Saved LDR config");
+        .then(function (config) {
+            console.log("Saved config");
+            setWidgets(config)
             removeLoader();
         });
     };

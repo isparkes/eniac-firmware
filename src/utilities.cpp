@@ -423,10 +423,12 @@ void outputDisplay() {
     if (numberArray[i] != currNumberArray[i]) {
       // Do scrollback when we are going to 0
       if ((numberArray[i] == 0) && cc->scrollback && (scrollCounter[i] == 0)) {
-          scrollCounter[i] = (currNumberArray[i]+1) * cc->scrollSteps;
+        scrollCounter[i] = (currNumberArray[i]+1) * cc->scrollSteps;
+//        debugMsg("Scroll triggered: ");
       } else if ((fadeState == 0) && cc->fade) {
         // if we are not going to 0, set up the fade steps
-        fadeState = PHASE_MAX * fadeStepsInternal;
+        fadeState = cc->fadeSteps;
+//        debugMsg("Fade triggered: " + String(fadeState));
       } else if (fadeState == 0) {
         currNumberArray[i] = numberArray[i];
       }
@@ -446,7 +448,6 @@ void outputDisplay() {
 
   if (fadeState == 1) {
     fadeState = 0;
-    switchTime = 0;
     for (byte j = 0 ; j < DIGIT_COUNT ; j++) {
       if (scrollCounter[j] == 0) {
         currNumberArray[j] = numberArray[j];
@@ -454,7 +455,8 @@ void outputDisplay() {
     }
   } else if (fadeState > 0) {
     fadeState--;
-    switchTime = (fadeState / fadeStepsInternal);
+    switchTime = PHASE_MAX - (PHASE_MAX * fadeState / cc->fadeSteps) - 1;
+//     debugMsg("switch: " + String(switchTime));
   }
 
   val1 = decodeFromNumberArray( tmpNumberArray[H10], 

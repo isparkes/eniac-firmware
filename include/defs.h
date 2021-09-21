@@ -78,15 +78,14 @@
 // How quickly the scroll works
 #define SCROLL_STEPS_DEFAULT 4
 #define SCROLL_STEPS_MIN     1
-#define SCROLL_STEPS_MAX     10
+#define SCROLL_STEPS_MAX     8
 
 // -------------------------------------------------------------------------------
 // The number of dispay impessions we need to fade by default
 // 100 is about 1 second
-#define FADE_STEPS_DEFAULT 10
-#define FADE_STEPS_MIN     2
-#define FADE_STEPS_MAX     40
-#define FADE_STEPS_DIVISOR 15
+#define FADE_STEPS_DEFAULT 25
+#define FADE_STEPS_MIN     10
+#define FADE_STEPS_MAX     60
 
 // -------------------------------------------------------------------------------
 // Temporary display modes - accessed by a short press ( < 1S ) on the button when in MODE_TIME

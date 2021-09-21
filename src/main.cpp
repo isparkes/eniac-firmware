@@ -244,7 +244,7 @@ void setup()
   // -------------------------------------------------------------------------
   
   debugMsg("");
-  debugMsg("Connesso a: " + WiFi.SSID());
+  debugMsg("Connected to: " + WiFi.SSID());
   debugMsg("IP Address: " + WiFi.localIP().toString());
   debugMsg("MAC Address: " + WiFi.macAddress());
   debugMsg("Host name: " + String(WiFi.getHostname()));

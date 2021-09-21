@@ -23,7 +23,7 @@ extern volatile uint32_t nextVal1;
 extern volatile uint32_t nextVal2;
 extern volatile uint32_t nextVal3;
 
-extern uint8_t switchTime;
+extern volatile uint8_t switchTime;
 
 // These are for debugging
 extern volatile uint16_t impressions;
@@ -220,6 +220,8 @@ void startTimers() {
 
 // ************************************************************
 // Set the LED flash type
+// 0: Connected - short flash 1/s
+// 1: Connecting - long flash 2/3s
 // ************************************************************
 void setLedFlashType(byte flashType) {
   switch(flashType) {

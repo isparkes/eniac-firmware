@@ -13,6 +13,7 @@ void startTimers();
 void setLedFlashType(byte flashType);
 void triggerTimer2();
 
+// Published so that we can access these during startup
 void IRAM_ATTR shiftOut24H(uint32_t _val1);
 void IRAM_ATTR shiftOut24M(uint32_t _val2);
 void IRAM_ATTR shiftOut24S(uint32_t _val3);
