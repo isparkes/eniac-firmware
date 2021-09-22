@@ -28,8 +28,7 @@ typedef struct {
   byte blankHourEnd;
   byte blankMode;
   bool useLDR;
-  int pirTimeout;
-  bool usePIRPullup;
+  int mdTimeout;
   byte ledMode;
   byte backlightMode;
   bool useBLPulse;
@@ -45,7 +44,7 @@ typedef struct {
   String webUsername;
   String webPassword;
   byte acpMode;
-  byte pirBlankMode;
+  byte mdBlankMode;
   byte alarmMode;
   byte alarmHour;
   byte alarmMinute;

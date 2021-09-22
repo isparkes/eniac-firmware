@@ -69,10 +69,6 @@ String ssid = "";
 String password = "";
 bool credentialsReceived = false;
 
-bool blanked;
-bool blankTubes;
-bool blankLEDs;
-
 unsigned int oledTime;
 
 // ToDo move into outputManager

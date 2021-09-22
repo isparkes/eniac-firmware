@@ -183,9 +183,9 @@ bool SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
         debugMsg("Loaded cycleSpeed: " + String(spiffs_config->cycleSpeed));
         #endif
 
-        spiffs_config->pirTimeout = json["pirTimeout"];
+        spiffs_config->mdTimeout = json["mdTimeout"];
         #ifdef DEBUG_ON
-        debugMsg("Loaded pirTimeout: " + String(spiffs_config->pirTimeout));
+        debugMsg("Loaded mdTimeout: " + String(spiffs_config->mdTimeout));
         #endif
 
         spiffs_config->useLDR = json["useLDR"];
@@ -213,11 +213,6 @@ bool SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
         debugMsg("Loaded slotsMode: " + String(spiffs_config->slotsMode));
         #endif
 
-        spiffs_config->usePIRPullup = json["usePIRPullup"];
-        #ifdef DEBUG_ON
-        debugMsg("Loaded usePIRPullup: " + String(spiffs_config->usePIRPullup));
-        #endif
-
         spiffs_config->webAuthentication = json["webAuthentication"].as<bool>();
         #ifdef DEBUG_ON
         debugMsg("Loaded webAuthentication: " + String(spiffs_config->webAuthentication));
@@ -238,9 +233,9 @@ bool SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
         debugMsg("Loaded acpMode: " + String(spiffs_config->acpMode));
         #endif
 
-        spiffs_config->pirBlankMode = json["pirBlankMode"];
+        spiffs_config->mdBlankMode = json["mdBlankMode"];
         #ifdef DEBUG_ON
-        debugMsg("Loaded pirBlankMode: " + String(spiffs_config->pirBlankMode));
+        debugMsg("Loaded mdBlankMode: " + String(spiffs_config->mdBlankMode));
         #endif
 
         spiffs_config->alarmMode = json["alarmMode"];
@@ -323,18 +318,17 @@ void SPIFFS_CLOCK::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
   json["blankHourStart"] = spiffs_config->blankHourStart;
   json["blankHourEnd"] = spiffs_config->blankHourEnd;
   json["cycleSpeed"] = spiffs_config->cycleSpeed;
-  json["pirTimeout"] = spiffs_config->pirTimeout;
+  json["mdTimeout"] = spiffs_config->mdTimeout;
   json["useLDR"] = spiffs_config->useLDR;
   json["thresholdBright"] = spiffs_config->thresholdBright;
   json["sensitivityLDR"] = spiffs_config->sensitivityLDR;
   json["sensorSmoothCountLDR"] = spiffs_config->sensorSmoothCountLDR;
   json["slotsMode"] = spiffs_config->slotsMode;
-  json["usePIRPullup"] = spiffs_config->usePIRPullup;
   json["webAuthentication"] = spiffs_config->webAuthentication;
   json["webUsername"] = spiffs_config->webUsername;
   json["webPassword"] = spiffs_config->webPassword;
   json["acpMode"] = spiffs_config->acpMode;
-  json["pirBlankMode"] = spiffs_config->pirBlankMode;
+  json["mdBlankMode"] = spiffs_config->mdBlankMode;
   json["alarmMode"] = spiffs_config->alarmMode;
   json["alarmHour"] = spiffs_config->alarmHour;
   json["alarmMinute"] = spiffs_config->alarmMinute;

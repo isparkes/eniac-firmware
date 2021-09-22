@@ -13,6 +13,7 @@
 #include <LEDManager.h>
 #include "MyLib.h"
 #include "GPSManager.h"
+#include "BlankingManager.h"
 
 // ToDo move to display manager
 const int PWMFreq = 1000; /* 1 KHz */
@@ -76,8 +77,6 @@ void setup()
   pinMode(LATCH2Pin, OUTPUT);
   pinMode(DATA3Pin, OUTPUT);
   pinMode(LATCH3Pin, OUTPUT);
-
-  pinMode(PIRPin, INPUT);
 
   pinMode(BLANKPin, OUTPUT);
 
@@ -414,6 +413,10 @@ void setup()
 
   // -------------------------------------------------------------------------
   
+  debugMsg("Start up Blanking" );
+  BlankingManager.begin();
+
+  // -------------------------------------------------------------------------
 
   MyLib.begin();
   MyLib.doStuff();
@@ -575,18 +578,6 @@ void performOncePerSecondProcessing() {
   // ************************************************************
   // send time display to the drivers
   // ************************************************************
-  numberArray[5] = second() % 10;
-  numberArray[4] = second() / 10;
-  numberArray[3] = minute() % 10;
-  numberArray[2] = minute() / 10;
-  if (cc->hourMode) {
-    numberArray[1] = hourFormat12() % 10;
-    numberArray[0] = hourFormat12() / 10;
-  } else {
-    numberArray[1] = hour() % 10;
-    numberArray[0] = hour() / 10;
-  }
-
   // ToDo move into output manager
   indLed1 = (second() % 2 == 0);
   indLed2 = (second() % 2 == 1);
@@ -656,6 +647,9 @@ void performOncePerSecondProcessing() {
 
   // debugMsg("val1: " + String(val1) + ":" + String(nextVal1));
 
+  BlankingManager.getBlankingStatus(nowMillis, weekday(), hour());
+
+  // Feed the GPS parser
   while (Serial.available()) {
     char c = Serial.read();
     gpsManager.parseNMEAMsg(c, nowMillis);
@@ -684,7 +678,7 @@ void performOncePerMinuteProcessing() {
   // Usage stats
   cs->uptimeMins++;
 
-  if (!blanked) {
+  if (!BlankingManager.getCurrentBlankingStatus()) {
     cs->tubeOnTimeMins++;
   }
 

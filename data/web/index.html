@@ -98,6 +98,10 @@
                             <td id="ldrvalue"></td>
                         </tr>
                         <tr>
+                            <td>Motion Detector</td>
+                            <td id="motiondetector"></td>
+                        </tr>
+                        <tr>
                             <td>Version</td>
                             <td id="version"></td>
                         </tr>
@@ -164,6 +168,11 @@
             $("#status").text(summary.status);
             $("#version").text(summary.version);
             $("#ldrvalue").text(summary.ldrvalue);
+            if (summary.motiondetectorinstalled) {
+                $("#motiondetector").text(summary.motiondetector  + ' ago');
+            } else {
+                $("#motiondetector").text(summary.motiondetector);
+            }
         })
         .then(() => removeLoader());
     };

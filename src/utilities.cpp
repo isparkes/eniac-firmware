@@ -5,6 +5,7 @@
 #include "clock_timers.h"
 #include "globals.h"
 #include "GPSManager.h"
+#include "BlankingManager.h"
 
 // --------------------------------------------------------------------------------------------------------
 // ----------------------------------------  Utility functions  -------------------------------------------
@@ -138,7 +139,7 @@ String getStatusString() {
     connectionInfo += "a";
   }
 
-  if (blanked) {
+  if (BlankingManager.getCurrentBlankingStatus()) {
     connectionInfo += "B";
   } else {
     connectionInfo += "b";
@@ -207,8 +208,7 @@ void resetOptions() {
   cc->blankHourStart = 0;
   cc->blankHourEnd = 7;
 
-  cc->pirTimeout = PIR_TIMEOUT_DEFAULT;
-  cc->usePIRPullup = USE_PIR_PULLUP_DEFAULT;
+  cc->mdTimeout = PIR_TIMEOUT_DEFAULT;
   
   // cc->webAuthentication = getWebAuthentication();
   // cc->webUsername = getWebUserName();
@@ -405,7 +405,7 @@ void outputDisplay() {
 
   for ( int i = DIGIT_COUNT - 1 ; i >= 0  ; i -- ) {
     // Blanking
-    if (blankTubes) {
+    if (BlankingManager.getCurrentBlankTubes()) {
       tmpDispType = BLANKED;
     } else {
       tmpDispType = displayType[i];
@@ -623,6 +623,14 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   float ldrPerc = (4095 - ldrValue) / 4095.0 * 100.0;
   root["ldrvalue"] = String(ldrPerc, 2) + "% (" + String(ldrValue) + ")";
 
+  bool pirInstalled = BlankingManager.getCurrentPIRInstalled();
+  root["motiondetectorinstalled"] = pirInstalled;
+  if (pirInstalled) {
+    root["motiondetector"] = secsToReadableString(BlankingManager.getBlankAge(nowMillis));
+  } else {
+    root["motiondetector"] = "PIR not installed";
+  }
+
   root["status"] = getStatusString();
   root["version"] = SOFTWARE_VERSION;
 
@@ -690,6 +698,9 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["thresholdBright"] = cc->thresholdBright;
   root["sensitivityLDR"] = cc->sensitivityLDR;
 
+  root["mdinstalled"] = BlankingManager.getCurrentPIRInstalled();
+  root["mdTimeout"] = cc->mdTimeout;
+  root["mdBlankMode"] = cc->mdBlankMode;
   root["dayBlanking"] = cc->dayBlanking;
   root["blankMode"] = cc->blankMode;
   root["blankHourStart"] = cc->blankHourStart;
@@ -891,6 +902,32 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     }
 
     // ------------------------------------------------------------
+
+    if (json.containsKey("mdTimeout")) {
+      int newmdTimeout = json["mdTimeout"];
+      if (cc->dayBlanking != newmdTimeout) {
+        #ifdef DEBUG_ON
+        debugMsg("mdTimeout before: " + String(cc->mdTimeout));
+        #endif
+        cc->mdTimeout = newmdTimeout;
+        #ifdef DEBUG_ON
+        debugMsg("Loaded new mdTimeout: " + String(cc->mdTimeout));
+        #endif
+      }
+    }
+
+    if (json.containsKey("mdBlankMode")) {
+      int newmdBlankMode = json["mdBlankMode"];
+      if (cc->mdBlankMode != newmdBlankMode) {
+        #ifdef DEBUG_ON
+        debugMsg("mdBlankMode before: " + String(cc->mdBlankMode));
+        #endif
+        cc->mdBlankMode = newmdBlankMode;
+        #ifdef DEBUG_ON
+        debugMsg("Loaded new mdBlankMode: " + String(cc->mdBlankMode));
+        #endif
+      }
+    }
 
     if (json.containsKey("dayBlanking")) {
       int newdayBlanking = json["dayBlanking"];

@@ -64,9 +64,6 @@ extern bool credentialsReceived;
 
 extern int ldrValue;
 
-extern bool blanked;
-extern bool blankTubes;
-extern bool blankLEDs;
 extern unsigned int oledTime;
 
 // ToDo move into outputManager
