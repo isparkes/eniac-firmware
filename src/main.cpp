@@ -648,6 +648,7 @@ void performOncePerSecondProcessing() {
   // debugMsg("val1: " + String(val1) + ":" + String(nextVal1));
 
   BlankingManager.getBlankingStatus(nowMillis, weekday(), hour());
+  ledManager.setBlanked(BlankingManager.getCurrentBlankLEDs());
 
   // Feed the GPS parser
   while (Serial.available()) {

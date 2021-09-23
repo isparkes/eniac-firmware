@@ -624,12 +624,13 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   root["ldrvalue"] = String(ldrPerc, 2) + "% (" + String(ldrValue) + ")";
 
   bool pirInstalled = BlankingManager.getCurrentPIRInstalled();
-  root["motiondetectorinstalled"] = pirInstalled;
+  root["mdInstalled"] = pirInstalled;
   if (pirInstalled) {
-    root["motiondetector"] = secsToReadableString(BlankingManager.getBlankAge(nowMillis));
+    root["mdLastSeen"] = secsToReadableString(BlankingManager.getBlankAge(nowMillis));
   } else {
-    root["motiondetector"] = "PIR not installed";
+    root["mdLastSeen"] = "Motion detector not installed";
   }
+  root["blankingReason"] = BlankingManager.getBlankingReason();
 
   root["status"] = getStatusString();
   root["version"] = SOFTWARE_VERSION;
@@ -1049,7 +1050,7 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     }
 
     if (json.containsKey("useBLPulse")) {
-      int newUseBLPulse = json["useBLDim"].as<bool>();
+      int newUseBLPulse = json["useBLPulse"].as<bool>();
       if (cc->useBLPulse != newUseBLPulse) {
         #ifdef DEBUG_ON
         debugMsg("useBLPulse before: " + String(cc->useBLPulse));

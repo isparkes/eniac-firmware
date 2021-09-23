@@ -99,7 +99,7 @@
                         </tr>
                         <tr>
                             <td>Motion Detector</td>
-                            <td id="motiondetector"></td>
+                            <td id="mdLastSeen"></td>
                         </tr>
                         <tr>
                             <td>Version</td>
@@ -168,10 +168,14 @@
             $("#status").text(summary.status);
             $("#version").text(summary.version);
             $("#ldrvalue").text(summary.ldrvalue);
-            if (summary.motiondetectorinstalled) {
-                $("#motiondetector").text(summary.motiondetector  + ' ago');
+            if (summary.mdInstalled) {
+                if (summary.blankingReason != 'Not blanked') {
+                    $("#mdLastSeen").text(summary.mdLastSeen  + ' ago (' + summary.blankingReason + ')');
+                } else {
+                    $("#mdLastSeen").text(summary.mdLastSeen  + ' ago');
+                }
             } else {
-                $("#motiondetector").text(summary.motiondetector);
+                $("#mdLastSeen").text(summary.mdLastSeen);
             }
         })
         .then(() => removeLoader());
