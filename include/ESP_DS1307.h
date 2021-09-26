@@ -1,7 +1,10 @@
-#ifndef __ESP_DS1307_H__
-#define __ESP_DS1307_H__
+#pragma once
 
 #include <Arduino.h>
+#include <Wire.h>
+#include "defs.h"
+#include "utilities.h"
+#include <TimeLib.h>
 
 // ----------------------- Defines -----------------------
 
@@ -19,27 +22,40 @@
 // ------------------------------------------- RTC Component ------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-class DS1307 {
-public:
+class DS1307_ {
+  public:
+    static DS1307_ &getInstance(); // Accessor for singleton instance
+    DS1307_(const DS1307_ &) = delete; // no copying
+    DS1307_ &operator=(const DS1307_ &) = delete;
+
     void begin();
     void startClock(void);
     void stopClock(void);
-    void setTime(void);
-    void getTime(void);
+    uint8_t isRunning();
+
+    bool testRTCTimeProvider();
+    String getRTCTime(bool setInternalTime);
+    void setRTCTime();
+    void setTimeFromServer(String timeString);
+private:
+    DS1307_() = default; // Make constructor private
+
+    uint8_t decToBcd(uint8_t val);
+    uint8_t bcdToDec(uint8_t val);
+    void setTimeInternal(void);
+    void getTimeInternal(void);
     void fillByHMS(uint8_t _hour, uint8_t _minute, uint8_t _second);
     void fillByYMD(uint8_t _year, uint8_t _month, uint8_t _day);
     void fillDayOfWeek(uint8_t _dow);
-    uint8_t isRunning();
-    uint8_t second;
-    uint8_t minute;
-    uint8_t hour; 
-    uint8_t dayOfWeek;// day of week, 1 = Monday
-    uint8_t dayOfMonth;
-    uint8_t month;
-    uint16_t year;
-private:
-    uint8_t decToBcd(uint8_t val);
-    uint8_t bcdToDec(uint8_t val);
+
+    bool _useRTC = false;
+    uint8_t _second;
+    uint8_t _minute;
+    uint8_t _hour; 
+    uint8_t _dayOfWeek;// day of week, 1 = Monday
+    uint8_t _dayOfMonth;
+    uint8_t _month;
+    uint16_t _year;
 };
 
-#endif
+extern DS1307_ &rtclock;

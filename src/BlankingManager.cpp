@@ -19,16 +19,12 @@ void BlankingManager_::begin() {
 bool BlankingManager_::checkPIR(unsigned long nowMillis) {
   _pirvalue = (digitalRead(PIRPin) == HIGH);
 
-  // Serial.println("PIR now: " + String(digitalRead(PIRPin)));
-  // Serial.println("PIR installed: " + String(_pirInstalled));
   if (_pirvalue) {
     _pirLastSeen = nowMillis;
     return false;
   } else {
     // Note that we have a pir
     _pirInstalled = true;
-    // Serial.println("PIR time: " + String(_pirLastSeen + (cc->mdTimeout * 1000)));
-    // Serial.println("Now time: " + String(nowMillis));
     if (nowMillis > (_pirLastSeen + (cc->mdTimeout * 1000))) {
       return true;
     } else {
@@ -41,7 +37,6 @@ bool BlankingManager_::checkPIR(unsigned long nowMillis) {
 // Check the blanking
 // ************************************************************
 bool BlankingManager_::checkTimeBasedBlanking(byte currentWeekday, byte currentHour) {
-//  Serial.println("DayBlanking: " + String(cc->dayBlanking));
   switch (cc->dayBlanking) {
     case DAY_BLANKING_NEVER:
       _blanked = false;
@@ -95,8 +90,6 @@ bool BlankingManager_::getBlankingStatus(unsigned long nowMillis, byte currentWe
   _pirBlanked = checkPIR(nowMillis);
   _timeBasedBlanked = checkTimeBasedBlanking(currentWeekday, currentHour);
 
-//  Serial.println("PIR: " + String(pirBlanked) + " time: " + String(timeBasedBlanked));
-  
   if (cc->mdBlankMode == MD_RESPECT_BLANK) {
     // respect quiet period: use PIR when not in time based blanking
     _blanked = _timeBasedBlanked || _pirBlanked;

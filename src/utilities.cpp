@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "GPSManager.h"
 #include "BlankingManager.h"
+#include <TimeLib.h>
 
 // --------------------------------------------------------------------------------------------------------
 // ----------------------------------------  Utility functions  -------------------------------------------
@@ -22,7 +23,7 @@ void debugMsgCont(String message) {
 }
 
 // ************************************************************
-// Set the time from the value we get back from the time server
+// Split a separated string into individual array elements
 // ************************************************************
 void grabInts(String s, int *dest, String sep) {
   int end = 0;
@@ -47,22 +48,26 @@ String timeToReadableString(int y, int m, int d, int h, int mi, int s) {
 }
 
 // ************************************************************
-// Format a time into an output string
+// Format a time into an output string - takes a string imput
+// like this: "yyyy,mm,dd,hh,mi,ss"
 // ************************************************************
-String timeStringToReadableString(String timeString){
-  char* ptr = strtok((char *)timeString.c_str(), ",");
-  int y = atoi(ptr);
-  ptr = strtok(NULL, ",");
-  int m = atoi(ptr);
-  ptr = strtok(NULL, ",");
-  int d = atoi(ptr);
-  ptr = strtok(NULL, ",");
-  int h = atoi(ptr);
-  ptr = strtok(NULL, ",");
-  int mi = atoi(ptr);
-  ptr = strtok(NULL, ",");
-  int s = atoi(ptr);
-  return timeToReadableString(y,m,d,h,mi,s);
+String timeStringToReadableString(String timeString) {
+  int intValues[6];
+  grabInts(timeString, &intValues[0], ",");
+
+  // char* ptr = strtok((char *)timeString.c_str(), ",");
+  // int y = atoi(ptr);
+  // ptr = strtok(NULL, ",");
+  // int m = atoi(ptr);
+  // ptr = strtok(NULL, ",");
+  // int d = atoi(ptr);
+  // ptr = strtok(NULL, ",");
+  // int h = atoi(ptr);
+  // ptr = strtok(NULL, ",");
+  // int mi = atoi(ptr);
+  // ptr = strtok(NULL, ",");
+  // int s = atoi(ptr);
+  return timeToReadableString(intValues[0],intValues[1],intValues[2],intValues[3],intValues[4],intValues[5]);
 }
 
 // ************************************************************
@@ -248,98 +253,6 @@ void wifiBeginWithCredentials() {
 
 //**********************************************************************************
 //**********************************************************************************
-//*                         RTC Module Time Provider                               *
-//**********************************************************************************
-//**********************************************************************************
-
-// ************************************************************
-// Check that we still have access to the time from the RTC
-// ************************************************************
-void testRTCTimeProvider() {
-  Wire.beginTransmission(DS1307_I2C_ADDRESS);
-  useRTC = (Wire.endTransmission(true) == 0);
-  #ifdef DEBUG_ON
-  debugMsg("Set useRTC to: " + String(useRTC));
-  if (!useRTC) {
-    debugMsg("I2C error: " + String(Wire.getErrorText(Wire.lastError())));
-  }
-  #endif
-}
-
-// ************************************************************
-// Get the time from the RTC
-// ************************************************************
-String getRTCTime(boolean setInternalTime) {
-  if (useRTC) {
-    rtclock.getTime();
-    int years = rtclock.year + 2000;
-    byte months = rtclock.month;
-    byte days = rtclock.dayOfMonth;
-    byte hours = rtclock.hour;
-    byte mins = rtclock.minute;
-    byte secs = rtclock.second;
-
-    String returnValue = timeToReadableString(years, months, days, hours, mins, secs);
-    #ifdef DEBUG_ON
-    debugMsg("Got RTC time: " + returnValue);
-    #endif
-
-    if (setInternalTime) {
-      // Set the internal time provider to the value we got
-      setTime(hours, mins, secs, days, months, years);
-      #ifdef DEBUG_ON
-      debugMsg("Set Internal time to: " + returnValue);
-      #endif
-    }
-
-    return returnValue;
-  } else {
-    return "";
-  }
-}
-
-// ************************************************************
-// Set the date/time in the RTC from the internal time
-// Always hold the time in 24 format, we convert to 12 in the
-// display.
-// ************************************************************
-void setRTCTime() {
-  if (useRTC) {
-    rtclock.fillByYMD(year() % 100, month(), day());
-    rtclock.fillByHMS(hour(), minute(), second());
-    rtclock.setTime();
-
-    #ifdef DEBUG_ON
-    debugMsg("Set RTC time to internal time: " + String(year()) + ":" + String(month()) + ":" + String(day()) + " " + String(hour()) + ":" + String(minute()) + ":" + String(second()));
-    #endif
-  }
-}
-
-// ************************************************************
-// Set the time from the value we get back from the time server
-// ************************************************************
-void setTimeFromServer(String timeString) {
-  #define SYNC_HOURS 3
-  #define SYNC_MINS 4
-  #define SYNC_SECS 5
-  #define SYNC_DAY 2
-  #define SYNC_MONTH 1
-  #define SYNC_YEAR 0
-
-  int intValues[6];
-  grabInts(timeString, &intValues[0], ",");
-  setTime(intValues[SYNC_HOURS], intValues[SYNC_MINS], intValues[SYNC_SECS], intValues[SYNC_DAY], intValues[SYNC_MONTH], intValues[SYNC_YEAR]);
-
-  // Push the update to the RTC chip
-  setRTCTime();
-  
-  #ifdef DEBUG_ON
-  debugMsg("Set RTC time to NTP time: " + String(year()) + ":" + String(month()) + ":" + String(day()) + " " + String(hour()) + ":" + String(minute()) + ":" + String(second()));
-  #endif
-}
-
-//**********************************************************************************
-//**********************************************************************************
 //*                                  NTP Callback                                  *
 //**********************************************************************************
 //**********************************************************************************
@@ -352,7 +265,7 @@ void newTimeUpdateReceived() {
   #ifdef DEBUG_ON
   debugMsg("Got a new time update: " + ntpAsync.getLastTimeFromServer());
   #endif
-  setTimeFromServer(ntpAsync.getLastTimeFromServer());
+  rtclock.setTimeFromServer(ntpAsync.getLastTimeFromServer());
 }
 
 //**********************************************************************************

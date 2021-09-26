@@ -26,35 +26,49 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
   switch (event)
   {
   case SYSTEM_EVENT_STA_START:
+    #ifdef DEBUG_ON
     debugMsg("Station Mode Started");
+    #endif
     break;
   case SYSTEM_EVENT_STA_GOT_IP:
+    #ifdef DEBUG_ON
     debugMsg("Connected to :" + WiFi.SSID() + ", password: " + WiFi.psk());
+    #endif
     break;
   case SYSTEM_EVENT_STA_DISCONNECTED:
+    #ifdef DEBUG_ON
     debugMsg("Disconnected from station, attempting reconnection");
+    #endif
     WiFi.reconnect();
     break;
   case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
+    #ifdef DEBUG_ON
     debugMsg("WPS Successfull, stopping WPS and connecting to: " + String(WiFi.SSID()));
+    #endif
     esp_wifi_wps_disable();
     delay(10);
     WiFi.begin();
     break;
   case SYSTEM_EVENT_STA_WPS_ER_FAILED:
+    #ifdef DEBUG_ON
     debugMsg("WPS Failed, retrying");
+    #endif
     esp_wifi_wps_disable();
     esp_wifi_wps_enable(&wps_config);
     esp_wifi_wps_start(0);
     break;
   case SYSTEM_EVENT_STA_WPS_ER_TIMEOUT:
+    #ifdef DEBUG_ON
     debugMsg("WPS Timedout, retrying");
+    #endif
     esp_wifi_wps_disable();
     esp_wifi_wps_enable(&wps_config);
     esp_wifi_wps_start(0);
     break;
   case SYSTEM_EVENT_STA_WPS_ER_PIN:
+    #ifdef DEBUG_ON
     debugMsg("WPS_PIN = " + wpspin2string(info.sta_er_pin.pin_code));
+    #endif
     break;
   default:
     break;
@@ -67,7 +81,9 @@ void setup()
 
   // -------------------------------------------------------------------------
 
-  debugMsg("Start up GPIOs");
+  #ifdef DEBUG_ON
+  debugMsg((("Start up GPIOs")));
+  #endif
   pinMode(LED_PIN, OUTPUT);
 
   pinMode(CLKPin, OUTPUT);
@@ -86,26 +102,34 @@ void setup()
 
   // -------------------------------------------------------------------------
   
+  #ifdef DEBUG_ON
   debugMsg("Start up dimming PWM");
+  #endif
   ledcSetup(LDRPWMChannel, PWMFreq, PWMResolution);
   ledcAttachPin(BLANKPin, LDRPWMChannel);
   ledcWrite(LDRPWMChannel, MAX_DUTY_CYCLE);
 
   // -------------------------------------------------------------------------
 
+  #ifdef DEBUG_ON
   debugMsg("Start up Timers" );
+  #endif
   startTimers();
 
   // -------------------------------------------------------------------------
   
+  #ifdef DEBUG_ON
   debugMsg("Starting OLED");
+  #endif
   oled.setUp();
   oled.clearDisplay();
   oledTime = OLED_ON_TIME;
 
   // -------------------------------------------------------------------------
 
+  #ifdef DEBUG_ON
   debugMsg("Start up neopixels");
+  #endif
   ledManager.setUp();
   ledManager.setLDRRange(LDR_VALUE_MAX);
 
@@ -123,8 +147,10 @@ void setup()
   
   // -------------------------------------------------------------------------
   
+  #ifdef DEBUG_ON
   debugMsg("");
   debugMsg("Starting WiFi");
+  #endif
   oled.showScrollingMessage("Starting WiFi");
 
   WiFi.onEvent(WiFiEvent);
@@ -133,13 +159,17 @@ void setup()
   mac.replace(":","");
   String uniqHostname = "ESP32-"+mac.substring(6);
 
+  #ifdef DEBUG_ON
   debugMsg("Unique hostname: " + uniqHostname);
+  #endif
 
   WiFi.setHostname(uniqHostname.c_str());
   WiFi.begin();
 
+  #ifdef DEBUG_ON
   debugMsg("");
   debugMsg("Trying to reconnect to last known AP");
+  #endif
   oled.showScrollingMessage("Connect to last AP");
 
   unsigned long maxMillisWiFiWait = millis() + INTERVAL_WIFI;
@@ -148,14 +178,18 @@ void setup()
     if (previousMillisWiFi < maxMillisWiFiWait)
     {
       previousMillisWiFi = millis();
-      Serial.print(".");
+      #ifdef DEBUG_ON
+      debugMsgCont(".");
+      #endif
 
       delay(500);
     }
     else {
+        #ifdef DEBUG_ON
         debugMsg("");
         debugMsg("Failed to connect");
         debugMsg("");
+        #endif
         break;
     }
   }
@@ -164,8 +198,10 @@ void setup()
   
   // Try WPS
   if (WiFi.status() != WL_CONNECTED) {  
+    #ifdef DEBUG_ON
     debugMsg("");
     debugMsg("Connect using WPS");
+    #endif
     oled.showScrollingMessage("Connect using WPS");
     maxMillisWiFiWait = millis() + INTERVAL_WPS;
     while (WiFi.status() != WL_CONNECTED)
@@ -176,14 +212,18 @@ void setup()
       if (previousMillisWiFi < maxMillisWiFiWait)
       {
         previousMillisWiFi = millis();
-        Serial.print(".");
+        #ifdef DEBUG_ON
+        debugMsgCont(".");
+        #endif
 
         esp_wifi_wps_start(500);
         delay(500);
       } else {
+        #ifdef DEBUG_ON
         debugMsg("");
         debugMsg("Failed to connect");
         debugMsg("");
+        #endif
         break;
       }
     }
@@ -193,8 +233,10 @@ void setup()
   
   // Captive portal
   if (WiFi.status() != WL_CONNECTED) {  
+    #ifdef DEBUG_ON
     debugMsg("");
     debugMsg("Portal mode");
+    #endif
     oled.showScrollingMessage("Portal mode");
 
     WiFi.disconnect();
@@ -203,11 +245,15 @@ void setup()
     delay(100);
     // WiFi.softAPsetHostname(uniqHostname.c_str());
     delay(100);
+    #ifdef DEBUG_ON
     debugMsg("Setting soft-AP configuration ... ");
+    #endif
     WiFi.softAP(uniqHostname.c_str());
     delay(100);
+    #ifdef DEBUG_ON
     debugMsg("Soft-AP IP address = ");
     debugMsg(WiFi.softAPIP().toString());
+    #endif
    oled.showScrollingMessage("IP: " + WiFi.softAPIP().toString());
     delay(500);
     server.on("/api/credentials", HTTP_GET, getCredentialsHandler);
@@ -226,27 +272,35 @@ void setup()
     {
       previousMillisWiFi = millis();
       if (gotCredentials()) {
-        Serial.print("o");
+        #ifdef DEBUG_ON
+        debugMsgCont("o");
+        #endif
         wifiBeginWithCredentials();
       } else {
-        Serial.print(".");
+        #ifdef DEBUG_ON
+        debugMsgCont(".");
+        #endif
       }
       delay(500);
     } else {
+      #ifdef DEBUG_ON
       debugMsg("");
       debugMsg("Failed to connect");
       debugMsg("");
+      #endif
       break;
     }
   }
 
   // -------------------------------------------------------------------------
   
+  #ifdef DEBUG_ON
   debugMsg("");
   debugMsg("Connected to: " + WiFi.SSID());
   debugMsg("IP Address: " + WiFi.localIP().toString());
   debugMsg("MAC Address: " + WiFi.macAddress());
   debugMsg("Host name: " + String(WiFi.getHostname()));
+  #endif
 
   // Connected, show only the IP
   oled.clearDisplay();
@@ -255,42 +309,56 @@ void setup()
   
   // -------------------------------------------------------------------------
   
+  #ifdef DEBUG_ON
   debugMsg("Start up SPIFFS");
 
   // define the debug callback
   DebugCallback dbcb = debugMsg;
+  #endif
 
   // Initialize SPIFFS
   if(!SPIFFS.begin(true)){
+    #ifdef DEBUG_ON
     debugMsg("An Error has occurred while mounting SPIFFS");
+    #endif
     return;
   }
 
+  #ifdef DEBUG_ON
   debugMsg("Startup SPIFFS storage");
   spiffsStorage.setDebugCallback(dbcb);
   spiffsStorage.setDebugOutput(true);
+  #endif
   bool statsLoaded = spiffsStorage.getStatsFromSpiffs(cs);
 
   if (!statsLoaded) {
+    #ifdef DEBUG_ON
     debugMsg("SPIFFS storage: read stats failed");
+    #endif
     spiffsStorage.saveStatsToSpiffs(cs);
   }
 
   bool configloaded = spiffsStorage.getConfigFromSpiffs(cc);
 
   if (configloaded) {
+    #ifdef DEBUG_ON
     debugMsg("Got TZS: " + cc->tzs);
+    #endif
     ntpAsync.setTZS(cc->tzs);
     ntpAsync.setNtpPool(cc->ntpPool);
     ntpAsync.setUpdateInterval(cc->ntpUpdateInterval);
   } else {
+    #ifdef DEBUG_ON
     debugMsg("SPIFFS storage: read config failed - do factory reset");
+    #endif
     resetOptions();
   }
 
   // -------------------------------------------------------------------------
   
+  #ifdef DEBUG_ON
   debugMsg("Start up WebServer" );
+  #endif
 
   server.serveStatic("/", SPIFFS, "/web/").setDefaultFile("index.html");
 
@@ -337,27 +405,37 @@ void setup()
 
   // -------------------------------------------------------------------------
   
+  #ifdef DEBUG_ON
   debugMsg("Start up OTA");
+  #endif
   AsyncElegantOTA.begin(&server, "admin", "update");
 
   server.begin();
 
   // -------------------------------------------------------------------------
   
+  #ifdef DEBUG_ON
   debugMsg("Start up mDNS on http://" + String(WiFi.getHostname()) + ".local");
+  #endif
 
   // The MDNS host name does not seem to work at the moment - it is being set by OTA
   if(!MDNS.begin(uniqHostname.c_str())) {
+      #ifdef DEBUG_ON
       debugMsg("Error starting mDNS");
+      #endif
       return;
   }
 
   MDNS.addService("http", "tcp", 80);
 
+  // -------------------------------------------------------------------------
+  
+  #ifdef DEBUG_ON
   debugMsg("Start up NTP" );
 
   ntpAsync.setDebugCallback(dbcb);
   ntpAsync.setDebugOutput(true);
+  #endif
 
   NewTimeCallback ntcb = newTimeUpdateReceived;
   ntpAsync.setNewTimeCallback(ntcb);
@@ -365,17 +443,26 @@ void setup()
   // -------------------------------------------------------------------------
   
   // Default pins SDA 21, SCL 22 Frequency 400kHz 
+  #ifdef DEBUG_ON
   debugMsg("Start up I2C...");
+  #endif
   Wire.begin(SDAint, SCLint, 400000L);
 
   // -------------------------------------------------------------------------
+  
+  #ifdef DEBUG_ON
   debugMsg("Start up RTC...");
-  testRTCTimeProvider();
+  #endif
+  rtclock.testRTCTimeProvider();
   if (useRTC) {
-    getRTCTime(true);
+    rtclock.getRTCTime(true);
+    #ifdef DEBUG_ON
     debugMsg("RTC found");
+    #endif
   } else {
+    #ifdef DEBUG_ON
     debugMsg("RTC NOT found");
+    #endif
   }
 
   // -------------------------------------------------------------------------
@@ -388,7 +475,9 @@ void setup()
 
   // -------------------------------------------------------------------------
 
+  #ifdef DEBUG_ON
   debugMsg("Start up encoder");
+  #endif
 	ESP32Encoder::useInternalWeakPullResistors=UP;
 	encoder.attachHalfQuad(ENC_APin, ENC_BPin);
 		
@@ -397,23 +486,31 @@ void setup()
 
   // -------------------------------------------------------------------------
   
+  #ifdef DEBUG_ON
   debugMsg("Start up LDR...");
+  #endif
   // Not managing sensorSmoothCountLDR yet
   cc->sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
+  #ifdef DEBUG_ON
   ldrManager.setDebugOutput(true);
   ldrManager.setDebugCallback(dbcb);
+  #endif
   ldrManager.setUp();
   ldrManager.setDebugOutput(false);
 
   // -------------------------------------------------------------------------
 
+  #ifdef DEBUG_ON
   debugMsg("GPS/Serial...");
+  #endif
   gpsManager.getCurrentUTCOffset();
   // Serial.begin(115200);
 
   // -------------------------------------------------------------------------
   
-  debugMsg("Start up Blanking" );
+  #ifdef DEBUG_ON
+  debugMsg("Start up Blanking");
+  #endif
   BlankingManager.begin();
 
   // -------------------------------------------------------------------------
@@ -421,7 +518,9 @@ void setup()
   MyLib.begin();
   MyLib.doStuff();
 
+  #ifdef DEBUG_ON
   debugMsg("Start up WDT...");
+  #endif
   esp_task_wdt_init(WDT_TIMEOUT, true);
   esp_task_wdt_add(NULL);
 }
@@ -509,16 +608,6 @@ void setLeds()
 }
 
 int encoderCount;
-
-void print64(uint64_t value)
-{
-    if ( value >= 10 )
-    {
-        print64(value / 10);
-    }
-    
-    Serial.print(value % 10);
-}
 
 // ************************************************************
 // Called once per second
@@ -667,13 +756,14 @@ void performOncePerSecondProcessing() {
 // Called once per minute
 // ************************************************************
 void performOncePerMinuteProcessing() {
+  #ifdef DEBUG_ON
   debugMsg("---> OncePerMinuteProcessing");
-
   debugMsg("nu: " + String(ntpAsync.getNextUpdate(nowMillis)));
+  #endif
 
   // Set the internal time to the time from the RTC even if we are still in
   // NTP valid time. This is more accurate than using the internal time source
-  lastRTCTime = getRTCTime(true);
+  lastRTCTime = rtclock.getRTCTime(true);
   lastRTCReadTime = nowMillis;
 
   // Usage stats
@@ -691,7 +781,9 @@ void performOncePerMinuteProcessing() {
 // Called once per hour
 // ************************************************************
 void performOncePerHourProcessing() {
+  #ifdef DEBUG_ON
   debugMsg("---> OncePerHourProcessing");
+  #endif
   oled.setAMStatus(isAM());
 }
 
@@ -699,7 +791,9 @@ void performOncePerHourProcessing() {
 // Called once per day
 // ************************************************************
 void performOncePerDayProcessing() {
+  #ifdef DEBUG_ON
   debugMsg("---> OncePerDayProcessing");
+  #endif
   spiffsStorage.saveStatsToSpiffs(cs);
 }
 

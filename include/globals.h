@@ -20,8 +20,6 @@ extern SPIFFS_CLOCK spiffsStorage;
 
 extern ESP32Encoder encoder;
 
-extern DS1307 rtclock;
-
 extern unsigned long nowMillis;
 extern unsigned long lastMillis;
 extern unsigned long previousMillisWiFi;

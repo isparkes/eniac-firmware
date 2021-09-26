@@ -49,8 +49,6 @@ bool SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
       configFile.readBytes(buf.get(), size);
       DynamicJsonBuffer jsonBuffer;
       JsonObject &json = jsonBuffer.parseObject(buf.get());
-      //        json.printTo(Serial);
-      //        debugMsg("");
 
       if (json.success())
       {
@@ -347,9 +345,6 @@ void SPIFFS_CLOCK::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
     return;
   }
 
-  //    json.printTo(Serial);
-  //    debugMsg("");
-
   json.printTo(configFile);
   configFile.close();
   #ifdef DEBUG_ON
@@ -382,8 +377,6 @@ bool SPIFFS_CLOCK::getStatsFromSpiffs(spiffs_stats_t *spiffs_stats)
       statsFile.readBytes(buf.get(), size);
       DynamicJsonBuffer jsonBuffer;
       JsonObject &json = jsonBuffer.parseObject(buf.get());
-      // json.printTo(Serial);
-      // debugMsg("");
 
       if (json.success())
       {
