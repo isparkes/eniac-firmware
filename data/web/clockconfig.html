@@ -197,7 +197,7 @@
                 <div class="form-group">
                     <label class="control-label col-xs-3" for="blankHourStart">Motion Detector Timeout:</label>
                     <div class="col-xs-2">
-                        <input type="number" class="form-control" name="mdTimeout" id="mdTimeout" min="60" max="3600" value="360" disabled>
+                        <input type="number" class="form-control" name="mdTimeout" id="mdTimeout" min="60" max="3600" value="360">
                     </div>
                 </div>
                 <div class="form-group">
@@ -504,6 +504,14 @@
         }
 
         // ------------ Blanking ------------
+        if (localConfig.mdTimeout!=$("#mdTimeout").val()) {
+            postBody["mdTimeout"] = $("#mdTimeout").val();
+        }
+
+        if (localConfig.mdBlankMode!=$("#mdBlankMode").val()) {
+            postBody["mdBlankMode"] = $("#mdBlankMode").val();
+        }
+
         if (localConfig.dayBlanking!=$("#dayBlanking").val()) {
             postBody["dayBlanking"] = $("#dayBlanking").val();
         }

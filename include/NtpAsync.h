@@ -6,6 +6,7 @@
 #include <AsyncUDP.h>
 #include <WiFi.h>
 #include <DNSServer.h>          //https://github.com/esp8266/Arduino/tree/master/libraries/DNSServer
+#include "defs.h"               // for DEBUG setting
 
 typedef void (*DebugCallback) (String);
 typedef void (*NewTimeCallback) ();
@@ -42,6 +43,7 @@ class NtpAsync
     void resetNextUpdate();
     
     String getLastTimeFromServer();
+    String getEstimatedCurrentTime(unsigned long nowMillis);
     
     bool ntpTimeValid(unsigned long nowMillis);
     
@@ -53,10 +55,9 @@ class NtpAsync
   private:
     String _ntpPool = NTP_POOL_DEFAULT;                   // The pool name we are using
     String _tzs = TIME_ZONE_STRING_DEFAULT;               // The TZ value to use
+    time_t _ntpTime;                                      // The time we retrieved
     unsigned long _lastUpdateFromServer = 0;              // The last millis() we got an update at
-    String _lastTimeFromServer = "";                      // The last time we got
     int _ntpUpdateInterval = NTP_UPDATE_INTERVAL_DEFAULT; // The interval between updates in SECONDS
-    unsigned long _ntpStarted = 0;
     bool _debug = false;
     AsyncUDP _udp;
     DebugCallback _dbcb;

@@ -35,6 +35,8 @@ class DS1307_ {
 
     bool testRTCTimeProvider();
     String getRTCTime(bool setInternalTime);
+    bool getRTCValid();
+
     void setRTCTime();
     void setTimeFromServer(String timeString);
 private:

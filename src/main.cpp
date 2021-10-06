@@ -453,8 +453,7 @@ void setup()
   #ifdef DEBUG_ON
   debugMsg("Start up RTC...");
   #endif
-  rtclock.testRTCTimeProvider();
-  if (useRTC) {
+  if (rtclock.testRTCTimeProvider()) {
     rtclock.getRTCTime(true);
     #ifdef DEBUG_ON
     debugMsg("RTC found");
@@ -763,8 +762,7 @@ void performOncePerMinuteProcessing() {
 
   // Set the internal time to the time from the RTC even if we are still in
   // NTP valid time. This is more accurate than using the internal time source
-  lastRTCTime = rtclock.getRTCTime(true);
-  lastRTCReadTime = nowMillis;
+  rtclock.getRTCTime(true);
 
   // Usage stats
   cs->uptimeMins++;

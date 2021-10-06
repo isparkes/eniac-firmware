@@ -116,8 +116,8 @@ bool DS1307_::testRTCTimeProvider() {
   Wire.beginTransmission(DS1307_I2C_ADDRESS);
   _useRTC = (Wire.endTransmission(true) == 0);
   #ifdef DEBUG_ON
-  debugMsg("Set useRTC to: " + String(useRTC));
-  if (!useRTC) {
+  debugMsg("Set useRTC to: " + String(_useRTC));
+  if (!_useRTC) {
     debugMsg("I2C error: " + String(Wire.getErrorText(Wire.lastError())));
   }
   #endif
@@ -157,7 +157,7 @@ String DS1307_::getRTCTime(bool setInternalTime) {
 // display.
 // ************************************************************
 void DS1307_::setRTCTime() {
-  if (useRTC) {
+  if (_useRTC) {
     fillByYMD(year() % 100, month(), day());
     fillByHMS(hour(), minute(), second());
     setTimeInternal();
@@ -190,6 +190,14 @@ void DS1307_::setTimeFromServer(String timeString) {
   debugMsg("Set RTC time to NTP time: " + String(year()) + ":" + String(month()) + ":" + String(day()) + " " + String(hour()) + ":" + String(minute()) + ":" + String(second()));
   #endif
 }
+
+// ************************************************************
+// Was the RTC valid the last time we checked
+// ************************************************************
+bool DS1307_::getRTCValid() {
+  return _useRTC;
+}
+
 
 // ************************************************************
 // Get singleton instance

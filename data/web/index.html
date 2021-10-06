@@ -82,6 +82,10 @@
                             <td id="lastntptime"></td>
                         </tr>
                         <tr>
+                            <td>Current NTP time</td>
+                            <td id="currentntptime"></td>
+                        </tr>
+                        <tr>
                             <td>RTC Time</td>
                             <td id="lastrtctime"></td>
                         </tr>
@@ -143,18 +147,16 @@
             $("#tz").text(summary.tz);
             $("#clockurl").html("<a href=\""+summary.clockurl+"\">"+summary.clockurl+"</a>");
             if (summary.ntpvalid) {
+                $("#currentntptime").text(summary.currentntptime);
                 $("#lastntptime").text(summary.lastntptime + ' ('+summary.lastntpupdate + ' ago, valid)');
             } else {
+                $("#currentntptime").text(summary.currentntptime);
                 $("#lastntptime").text(summary.lastntptime + ' ('+summary.lastntpupdate + ' ago, invalid)');
             }
             $("#nextupdate").text(summary.nextupdate);
             $("#displaytime").text(summary.displaytime);
 
-            if (summary.lastrtctime !== 'RTC not installed') {
-                $("#lastrtctime").text(summary.lastrtctime + ' ('+summary.lastrtcupdate + ' ago)');
-            } else {
-                $("#lastrtctime").text(summary.lastrtctime);
-            }
+            $("#lastrtctime").text(summary.lastrtctime);
 
             if (summary.lastgpstime !== 'GPS Receiver not installed') {
                 if (summary.gpsvalid) {

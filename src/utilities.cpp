@@ -502,6 +502,7 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   clockUrl.toLowerCase();
   root["clockurl"] = clockUrl;
   root["lastntptime"] = timeStringToReadableString(ntpAsync.getLastTimeFromServer());
+  root["currentntptime"] = timeStringToReadableString(ntpAsync.getEstimatedCurrentTime(nowMillis));
   root["lastntpupdate"] = secsToReadableString(ntpAsync.getLastUpdateTimeSecs(nowMillis));
   root["nextupdate"] = secsToReadableString(absNextUpdate) + overdueInd;
   if (ntpAsync.ntpTimeValid(nowMillis)) {
@@ -525,12 +526,10 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
     root["lastgpsupdate"] = "";
   }
 
-  if (useRTC) {
-    root["lastrtctime"] = lastRTCTime;
-    root["lastrtcupdate"] = secsToReadableString((nowMillis - lastRTCReadTime)/1000);
+  if (rtclock.getRTCValid()) {
+    root["lastrtctime"] = "soon"; // rtclock.getCurrentRTCTime(false);
   } else {
     root["lastrtctime"] = "RTC not installed";
-    root["lastrtcupdate"] = "";
   }
 
   float ldrPerc = (4095 - ldrValue) / 4095.0 * 100.0;
@@ -819,7 +818,7 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
 
     if (json.containsKey("mdTimeout")) {
       int newmdTimeout = json["mdTimeout"];
-      if (cc->dayBlanking != newmdTimeout) {
+      if (cc->mdTimeout != newmdTimeout) {
         #ifdef DEBUG_ON
         debugMsg("mdTimeout before: " + String(cc->mdTimeout));
         #endif

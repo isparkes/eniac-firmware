@@ -93,7 +93,32 @@ void NtpAsync::resetNextUpdate() {
 // get the last time we got back
 // ************************************************************
 String NtpAsync::getLastTimeFromServer() {
-  return _lastTimeFromServer;
+  const tm* tm = localtime(&_ntpTime);
+
+  String timeString = String(tm->tm_year + 1900) + "," + String(tm->tm_mon + 1) + "," + String(tm->tm_mday) + "," + String(tm->tm_hour) + "," + String(tm->tm_min) + "," + String(tm->tm_sec);
+  #ifdef DEBUG_ON
+  debugMsg("NTP Update time str: " + timeString);
+  #endif
+
+  return timeString;
+}
+
+// ************************************************************
+// get the time we think it is now (Last time plus the number 
+// seconds since last update)
+// ************************************************************
+String NtpAsync::getEstimatedCurrentTime(unsigned long nowMillis) {
+  int secondsSinceUpdate = (nowMillis - _lastUpdateFromServer) / 1000;
+
+  time_t now_t = _ntpTime + secondsSinceUpdate;
+  const tm* tm = localtime(&now_t);
+
+  String timeString = String(tm->tm_year + 1900) + "," + String(tm->tm_mon + 1) + "," + String(tm->tm_mday) + "," + String(tm->tm_hour) + "," + String(tm->tm_min) + "," + String(tm->tm_sec);
+  #ifdef DEBUG_ON
+  debugMsg("NTP Update time str: " + timeString);
+  #endif
+
+  return timeString;
 }
 
 // ************************************************************
@@ -122,6 +147,8 @@ void NtpAsync::setDebugOutput(bool newDebug) {
 // ************************************************************
 void NtpAsync::getTimeFromNTP(unsigned long nowMillis) {
   debugMsg("Async NTP in");
+
+  unsigned long _ntpStarted = 0;
 
   if (WiFi.status() != WL_CONNECTED) {
     #ifdef DEBUG_ON
@@ -233,19 +260,11 @@ void NtpAsync::getTimeFromNTP(unsigned long nowMillis) {
       debugMsg("_lastUpdateFromServer: " + String(_lastUpdateFromServer) + " - latency: " + String(measured_at));
       #endif
       
-      time_t ntpTime = t;
+      _ntpTime = t;
 
       #ifdef DEBUG_ON
-      debugMsg("Raw time: " + String(ntpTime));
+      debugMsg("Raw time: " + String(_ntpTime));
       #endif
-
-      const tm* tm = localtime(&ntpTime);
-
-      String timeString = String(tm->tm_year + 1900) + "," + String(tm->tm_mon + 1) + "," + String(tm->tm_mday) + "," + String(tm->tm_hour) + "," + String(tm->tm_min) + "," + String(tm->tm_sec);
-      #ifdef DEBUG_ON
-      debugMsg("NTP Update time str: " + timeString);
-      #endif
-      _lastTimeFromServer = timeString;
 
       // Reset when we last started.
       _ntpStarted = 0;

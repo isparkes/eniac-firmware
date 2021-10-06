@@ -84,8 +84,3 @@ bool bl3;
 bool bl4;
 bool bl5;
 bool bl6;
-
-bool useRTC;
-
-String lastRTCTime = "";
-unsigned long lastRTCReadTime = 0;
