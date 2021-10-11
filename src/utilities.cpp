@@ -265,7 +265,7 @@ void newTimeUpdateReceived() {
   #ifdef DEBUG_ON
   debugMsg("Got a new time update: " + ntpAsync.getLastTimeFromServer());
   #endif
-  rtclock.setTimeFromServer(ntpAsync.getLastTimeFromServer());
+  rtclock.setTimeFromServer(ntpAsync.getLastTimeFromServer(), nowMillis);
 }
 
 //**********************************************************************************
@@ -337,11 +337,9 @@ void outputDisplay() {
       // Do scrollback when we are going to 0
       if ((numberArray[i] == 0) && cc->scrollback && (scrollCounter[i] == 0)) {
         scrollCounter[i] = (currNumberArray[i]+1) * cc->scrollSteps;
-//        debugMsg("Scroll triggered: ");
       } else if ((fadeState == 0) && cc->fade) {
         // if we are not going to 0, set up the fade steps
         fadeState = cc->fadeSteps;
-//        debugMsg("Fade triggered: " + String(fadeState));
       } else if (fadeState == 0) {
         currNumberArray[i] = numberArray[i];
       }
@@ -369,7 +367,6 @@ void outputDisplay() {
   } else if (fadeState > 0) {
     fadeState--;
     switchTime = PHASE_MAX - (PHASE_MAX * fadeState / cc->fadeSteps) - 1;
-//     debugMsg("switch: " + String(switchTime));
   }
 
   val1 = decodeFromNumberArray( tmpNumberArray[H10], 
@@ -501,7 +498,6 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   String clockUrl = "http://" + String(WiFi.getHostname()) + ".local";
   clockUrl.toLowerCase();
   root["clockurl"] = clockUrl;
-  root["lastntptime"] = timeStringToReadableString(ntpAsync.getLastTimeFromServer());
   root["currentntptime"] = timeStringToReadableString(ntpAsync.getEstimatedCurrentTime(nowMillis));
   root["lastntpupdate"] = secsToReadableString(ntpAsync.getLastUpdateTimeSecs(nowMillis));
   root["nextupdate"] = secsToReadableString(absNextUpdate) + overdueInd;
@@ -527,9 +523,12 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   }
 
   if (rtclock.getRTCValid()) {
-    root["lastrtctime"] = "soon"; // rtclock.getCurrentRTCTime(false);
+    unsigned long rtcAge = (nowMillis - rtclock.getLastRTCSetTime())/1000;
+    root["lastrtctime"] = timeStringToReadableString(rtclock.getEstimatedCurrentRTCTime(nowMillis));
+    root["lastrtcupdate"] = secsToReadableString(rtcAge);
   } else {
     root["lastrtctime"] = "RTC not installed";
+    root["lastrtcupdate"] = "";
   }
 
   float ldrPerc = (4095 - ldrValue) / 4095.0 * 100.0;

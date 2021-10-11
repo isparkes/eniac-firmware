@@ -34,11 +34,13 @@ class DS1307_ {
     uint8_t isRunning();
 
     bool testRTCTimeProvider();
-    String getRTCTime(bool setInternalTime);
+    String getRTCTime(bool setInternalTime, unsigned long nowMillis);
     bool getRTCValid();
 
-    void setRTCTime();
-    void setTimeFromServer(String timeString);
+    void setRTCTime(unsigned long nowMillis);
+    void setTimeFromServer(String timeString, unsigned long nowMillis);
+    String getEstimatedCurrentRTCTime(unsigned long nowMillis);
+    unsigned long getLastRTCSetTime();
 private:
     DS1307_() = default; // Make constructor private
 
@@ -58,6 +60,7 @@ private:
     uint8_t _dayOfMonth;
     uint8_t _month;
     uint16_t _year;
+    unsigned long _lastRTCSetTime = 0;
 };
 
 extern DS1307_ &rtclock;

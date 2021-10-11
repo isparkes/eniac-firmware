@@ -165,7 +165,7 @@ bool GPSManager::getGPSTimeValid(unsigned long nowMillis) {
 }
 
 // ************************************************************
-// Get if we are still in the GPS valid time
+// The last time we last got a GPS update
 // ************************************************************
 unsigned long GPSManager::getLastGPSReadTime() {
   return _lastGPSReadTime;
