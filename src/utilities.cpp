@@ -369,7 +369,7 @@ void outputDisplay() {
     switchTime = PHASE_MAX - (PHASE_MAX * fadeState / cc->fadeSteps) - 1;
   }
 
-  val1 = decodeFromNumberArray( tmpNumberArray[H10], 
+  uint32_t tmpval1 = decodeFromNumberArray( tmpNumberArray[H10], 
                                 tmpNumberArray[H1],
                                 tmpDispTypeArray[H10] == BLANKED,
                                 tmpDispTypeArray[H1] == BLANKED,
@@ -377,7 +377,7 @@ void outputDisplay() {
                                 bl2,
                                 led1State,
                                 led2State);
-  val2 = decodeFromNumberArray( tmpNumberArray[M10], 
+  uint32_t tmpval2 = decodeFromNumberArray( tmpNumberArray[M10], 
                                 tmpNumberArray[M1],
                                 tmpDispTypeArray[M10] == BLANKED,
                                 tmpDispTypeArray[M1] == BLANKED,
@@ -385,7 +385,7 @@ void outputDisplay() {
                                 bl4,
                                 led1State,
                                 led2State);
-  val3 = decodeFromNumberArray( tmpNumberArray[S10], 
+  uint32_t tmpval3 = decodeFromNumberArray( tmpNumberArray[S10], 
                                 tmpNumberArray[S1],
                                 tmpDispTypeArray[S10] == BLANKED,
                                 tmpDispTypeArray[S1] == BLANKED,
@@ -395,7 +395,7 @@ void outputDisplay() {
                                 indLed2);
 
   // ToDo fading/scrolling
-  nextVal1 = decodeFromNumberArray( currNumberArray[H10], 
+  uint32_t tmpnextVal1 = decodeFromNumberArray( currNumberArray[H10], 
                                 currNumberArray[H1],
                                 tmpDispTypeArray[H10] == BLANKED,
                                 tmpDispTypeArray[H1] == BLANKED,
@@ -403,7 +403,7 @@ void outputDisplay() {
                                 bl2,
                                 led1State,
                                 led2State);
-  nextVal2 = decodeFromNumberArray( currNumberArray[M10], 
+  uint32_t tmpnextVal2 = decodeFromNumberArray( currNumberArray[M10], 
                                 currNumberArray[M1],
                                 tmpDispTypeArray[M10] == BLANKED,
                                 tmpDispTypeArray[M1] == BLANKED,
@@ -411,7 +411,7 @@ void outputDisplay() {
                                 bl4,
                                 led1State,
                                 led2State);
-  nextVal3 = decodeFromNumberArray( currNumberArray[S10], 
+  uint32_t tmpnextVal3 = decodeFromNumberArray( currNumberArray[S10], 
                                 currNumberArray[S1],
                                 tmpDispTypeArray[S10] == BLANKED,
                                 tmpDispTypeArray[S1] == BLANKED,
@@ -419,6 +419,16 @@ void outputDisplay() {
                                 bl6,
                                 indLed1,
                                 indLed2);
+
+  // move the values over, respect the MUTEX on the interrupt
+  portENTER_CRITICAL_ISR(&timerMux1);
+  val1 = tmpval1;
+  val2 = tmpval2;
+  val3 = tmpval3;
+  nextVal1 = tmpnextVal1;
+  nextVal2 = tmpnextVal2;
+  nextVal3 = tmpnextVal3;
+  portEXIT_CRITICAL_ISR(&timerMux1);
 }
 
 //**********************************************************************************
@@ -581,7 +591,7 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["minfreeheap"] = ESP.getMinFreeHeap();
   root["resetreason"] = String(rtc_get_reset_reason(0)) + "/" + String(rtc_get_reset_reason(1));
   root["lastgpsraw"] = gpsManager.getLastGPSTimeRaw();
-  root["utcoffset"] = String(gpsManager.getCurrentUTCOffset());
+  root["utcoffset"] = String(tzManager.getCurrentUTCOffset());
 
   response->setLength();
   request->send(response);

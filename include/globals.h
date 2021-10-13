@@ -40,12 +40,7 @@ extern volatile uint32_t nextVal3;
 extern volatile uint8_t switchTime;
 
 extern volatile uint16_t impressions;
-extern volatile uint16_t outputs1;
-extern volatile uint16_t outputs2;
-extern volatile uint16_t outputs3;
-extern volatile uint16_t switches1;
-extern volatile uint16_t switches2;
-extern volatile uint16_t switches3;
+extern portMUX_TYPE timerMux1;
 
 extern int blinkState;
 extern float fadeStepsInternal;

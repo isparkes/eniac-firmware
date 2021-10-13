@@ -14,6 +14,7 @@
 #include "MyLib.h"
 #include "GPSManager.h"
 #include "BlankingManager.h"
+#include "TZManager.h"
 
 // ToDo move to display manager
 const int PWMFreq = 1000; /* 1 KHz */
@@ -500,9 +501,8 @@ void setup()
   // -------------------------------------------------------------------------
 
   #ifdef DEBUG_ON
-  debugMsg("GPS/Serial...");
+  debugMsg("Start up GPS/Serial...");
   #endif
-  gpsManager.getCurrentUTCOffset();
   // Serial.begin(115200);
 
   // -------------------------------------------------------------------------
@@ -772,7 +772,7 @@ void performOncePerMinuteProcessing() {
   }
 
   // recalculate the UTC offset
-  gpsManager.calculateCurrentOffset(year(),month(),day(),hour(),minute(),second());
+  tzManager.calculateCurrentOffset(year(),month(),day(),hour(),minute(),second());
 }
 
 // ************************************************************

@@ -5,7 +5,7 @@ hw_timer_t * timer0 = NULL;
 portMUX_TYPE timerMux0 = portMUX_INITIALIZER_UNLOCKED;
 
 hw_timer_t * timer1 = NULL;
-portMUX_TYPE timerMux1 = portMUX_INITIALIZER_UNLOCKED;
+extern portMUX_TYPE timerMux1;
 
 hw_timer_t * timer2 = NULL;
 portMUX_TYPE timerMux2 = portMUX_INITIALIZER_UNLOCKED;
@@ -27,12 +27,12 @@ extern volatile uint8_t switchTime;
 
 // These are for debugging
 extern volatile uint16_t impressions;
-extern volatile uint16_t outputs1;
-extern volatile uint16_t outputs2;
-extern volatile uint16_t outputs3;
-extern volatile uint16_t switches1;
-extern volatile uint16_t switches2;
-extern volatile uint16_t switches3;
+// extern volatile uint16_t outputs1;
+// extern volatile uint16_t outputs2;
+// extern volatile uint16_t outputs3;
+// extern volatile uint16_t switches1;
+// extern volatile uint16_t switches2;
+// extern volatile uint16_t switches3;
 
 // These strange values are to provoke that the first call to
 // the interrups detects a change in the buffer and outputs
@@ -137,17 +137,17 @@ void IRAM_ATTR onTimer1() {
     if (val1 != _val1curr) {
       shiftOut24H(val1);
       _val1curr = val1;
-      outputs1++;
+//      outputs1++;
     } 
     if (val2 != _val2curr) {
       shiftOut24M(val2);
       _val2curr = val2;
-      outputs2++;
+//      outputs2++;
     }
     if (val3 != _val3curr) {
       shiftOut24S(val3);
       _val3curr = val3;
-      outputs3++;
+//      outputs3++;
     }
   }
 
@@ -155,17 +155,17 @@ void IRAM_ATTR onTimer1() {
     if (nextVal1 != _val1curr) {
       shiftOut24H(nextVal1);
       _val1curr = nextVal1;
-      switches1++;
+//      switches1++;
     } 
     if (nextVal2 != _val2curr) {
       shiftOut24M(nextVal2);
       _val2curr = nextVal2;
-      switches2++;
+//      switches2++;
     }
     if (nextVal3 != _val3curr) {
       shiftOut24S(nextVal3);
       _val3curr = nextVal3;
-      switches3++;
+//      switches3++;
     }
   }
   portEXIT_CRITICAL_ISR(&timerMux1);

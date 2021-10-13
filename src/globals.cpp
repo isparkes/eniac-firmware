@@ -33,12 +33,8 @@ volatile uint32_t nextVal3 = 0x81;
 volatile uint8_t switchTime = 0;
 
 volatile uint16_t impressions;
-volatile uint16_t outputs1;
-volatile uint16_t outputs2;
-volatile uint16_t outputs3;
-volatile uint16_t switches1;
-volatile uint16_t switches2;
-volatile uint16_t switches3;
+
+portMUX_TYPE timerMux1 = portMUX_INITIALIZER_UNLOCKED;
 
 int blinkState = 0;
 float fadeStepsInternal = 0;
