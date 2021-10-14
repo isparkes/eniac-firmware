@@ -57,9 +57,9 @@ void LDRManager::getDimmingFromLDR() {
     }
     _ldrValue = returnValue;
   } else {
+    _ldrValue = LDR_VALUE_MAX - (cc->minDim * LDR_VALUE_MAX / 100);
     #ifdef DEBUG_ON
     debugMsg("Not using _ldrValue setting to min: " + String(cc->minDim));
-    _ldrValue = LDR_VALUE_MAX - (cc->minDim * LDR_VALUE_MAX / 100);
     #endif
   }
 }

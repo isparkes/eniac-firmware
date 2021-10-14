@@ -182,8 +182,8 @@ void LEDManager::processLedStatus() {
         }
       case BACKLIGHT_COLOUR_TIME: {
           if (!_syncColourTime) {
-            for (byte i = 0 ; i < DIGIT_COUNT ; i++) {
-              byte numVal = numberArray[i];
+            for (byte i = 0 ; i < NUM_BL_PIXELS ; i++) {
+              byte numVal = numberArray[i%DIGIT_COUNT];
               setBacklightLED(i, 
                               getLEDAdjustedBL(colourTimeR[numVal]),
                               getLEDAdjustedBL(colourTimeG[numVal]),
