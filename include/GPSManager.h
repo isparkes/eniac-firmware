@@ -19,6 +19,7 @@ class GPSManager {
     void setDebugOutput(bool newDebug);
     unsigned long getLastGPSReadTime();
     bool getGPSTimeValid(unsigned long nowMillis);
+    bool getGPSSyncStarted(unsigned long nowMillis);
     String getLastGPSTime();
     String getLastGPSTimeRaw();
 
@@ -36,6 +37,7 @@ class GPSManager {
     String _lastGPSTime = "";
     String _lastGPSTimeRaw = "";
     unsigned long _lastGPSReadTime = 0;
+    unsigned long _lastGPSSyncTime = 0;
     bool _gpsTimeValid = false;
 
     DebugCallback _dbcb;

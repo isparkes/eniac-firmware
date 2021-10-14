@@ -173,4 +173,4 @@ BlankingManager_ &BlankingManager_::getInstance() {
   return instance;
 }
 
-BlankingManager_ &BlankingManager = BlankingManager.getInstance();
+BlankingManager_ &blankingManager = blankingManager.getInstance();

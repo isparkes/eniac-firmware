@@ -510,7 +510,7 @@ void setup()
   #ifdef DEBUG_ON
   debugMsg("Start up Blanking");
   #endif
-  BlankingManager.begin();
+  blankingManager.begin();
 
   // -------------------------------------------------------------------------
 
@@ -670,41 +670,20 @@ void performOncePerSecondProcessing() {
   indLed1 = (second() % 2 == 0);
   indLed2 = (second() % 2 == 1);
 
-  bl1 = false;
-  bl2 = false;
-  bl3 = false;
-  bl4 = false;
-  bl5 = false;
-  bl6 = false;
+  bl1 = blankingManager.getCurrentBlankingStatus();
+  bl2 = blankingManager.getCurrentPIRStatus();
+  
+  if (gpsManager.getGPSTimeValid(nowMillis)) {
+    bl3 = true;
+  } else if (gpsManager.getGPSSyncStarted(nowMillis)) {
+    bl3 = (second() % 2 == 0);
+  }
+  bl4 = ntpAsync.ntpTimeValid(nowMillis);
+  
+  bl5 = WiFi.isConnected();
+  bl6 = blankingManager.getCurrentPIRInstalled();
 
   encoderCount = encoder.getCount()/2 % 6;
-
-  switch (second() % 6) {
-    case 0: {
-      bl1 = true;
-      break;
-    }
-    case 1: {
-      bl2 = true;
-      break;
-    }
-    case 2: {
-      bl3 = true;
-      break;
-    }
-    case 3: {
-      bl4 = true;
-      break;
-    }
-    case 4: {
-      bl5 = true;
-      break;
-    }
-    case 5: {
-      bl6 = true;
-      break;
-    }
-  }
 
   loadNumberArrayTime();
 
@@ -735,8 +714,8 @@ void performOncePerSecondProcessing() {
 
   // debugMsg("val1: " + String(val1) + ":" + String(nextVal1));
 
-  BlankingManager.getBlankingStatus(nowMillis, weekday(), hour());
-  ledManager.setBlanked(BlankingManager.getCurrentBlankLEDs());
+  blankingManager.getBlankingStatus(nowMillis, weekday(), hour());
+  ledManager.setBlanked(blankingManager.getCurrentBlankLEDs());
 
   // Feed the GPS parser
   while (Serial.available()) {
@@ -767,7 +746,7 @@ void performOncePerMinuteProcessing() {
   // Usage stats
   cs->uptimeMins++;
 
-  if (!BlankingManager.getCurrentBlankingStatus()) {
+  if (!blankingManager.getCurrentBlankingStatus()) {
     cs->tubeOnTimeMins++;
   }
 

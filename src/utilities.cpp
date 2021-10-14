@@ -144,7 +144,7 @@ String getStatusString() {
     connectionInfo += "a";
   }
 
-  if (BlankingManager.getCurrentBlankingStatus()) {
+  if (blankingManager.getCurrentBlankingStatus()) {
     connectionInfo += "B";
   } else {
     connectionInfo += "b";
@@ -318,7 +318,7 @@ void outputDisplay() {
 
   for ( int i = DIGIT_COUNT - 1 ; i >= 0  ; i -- ) {
     // Blanking
-    if (BlankingManager.getCurrentBlankTubes()) {
+    if (blankingManager.getCurrentBlankTubes()) {
       tmpDispType = BLANKED;
     } else {
       tmpDispType = displayType[i];
@@ -544,14 +544,14 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   float ldrPerc = (4095 - ldrValue) / 4095.0 * 100.0;
   root["ldrvalue"] = String(ldrPerc, 2) + "% (" + String(ldrValue) + ")";
 
-  bool pirInstalled = BlankingManager.getCurrentPIRInstalled();
+  bool pirInstalled = blankingManager.getCurrentPIRInstalled();
   root["mdInstalled"] = pirInstalled;
   if (pirInstalled) {
-    root["mdLastSeen"] = secsToReadableString(BlankingManager.getBlankAge(nowMillis));
+    root["mdLastSeen"] = secsToReadableString(blankingManager.getBlankAge(nowMillis));
   } else {
     root["mdLastSeen"] = "Motion detector not installed";
   }
-  root["blankingReason"] = BlankingManager.getBlankingReason();
+  root["blankingReason"] = blankingManager.getBlankingReason();
 
   root["status"] = getStatusString();
   root["version"] = SOFTWARE_VERSION;
@@ -620,7 +620,7 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["thresholdBright"] = cc->thresholdBright;
   root["sensitivityLDR"] = cc->sensitivityLDR;
 
-  root["mdinstalled"] = BlankingManager.getCurrentPIRInstalled();
+  root["mdinstalled"] = blankingManager.getCurrentPIRInstalled();
   root["mdTimeout"] = cc->mdTimeout;
   root["mdBlankMode"] = cc->mdBlankMode;
   root["dayBlanking"] = cc->dayBlanking;

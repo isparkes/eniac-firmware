@@ -50,4 +50,4 @@ class BlankingManager_ {
     String getBlankingReason();
 };
 
-extern BlankingManager_ &BlankingManager;
+extern BlankingManager_ &blankingManager;

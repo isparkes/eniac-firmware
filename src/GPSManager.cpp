@@ -54,10 +54,11 @@ void GPSManager::parseNMEAMsg(char c, unsigned long nowMillis) {
       _msgBuffer[sizeof(_msgBuffer)-1] = 0;
       String lastMessage = String(_msgBuffer);
       if (lastMessage.indexOf("$GPZDA") >= 0) {
+        _lastGPSTimeRaw = lastMessage;
+        _lastGPSSyncTime = nowMillis;
         #ifdef DEBUG_ON 
         debugMsg("Got GPS ZDA msg: " + _lastGPSTime);
         #endif
-        _lastGPSTimeRaw = lastMessage;
         _lastGPSTime = parseGPZDAMsgToLocaltime(lastMessage);
         if (_lastGPSTime != "") {
           _lastGPSReadTime = nowMillis;
@@ -108,6 +109,17 @@ void GPSManager::setDebugOutput(bool newDebug) {
 bool GPSManager::getGPSTimeValid(unsigned long nowMillis) {
   if (_lastGPSReadTime > 0) {
     return ((nowMillis - _lastGPSReadTime)/1000 < GPS_READING_VALIDITY_SECS);
+  } else {
+    return false;
+  }
+}
+
+// ************************************************************
+// Get if we have started to synch, but are not yet ready
+// ************************************************************
+bool GPSManager::getGPSSyncStarted(unsigned long nowMillis) {
+  if (_lastGPSSyncTime > 0) {
+    return ((nowMillis - _lastGPSSyncTime)/1000 < GPS_READING_VALIDITY_SECS);
   } else {
     return false;
   }
