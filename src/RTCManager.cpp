@@ -1,4 +1,4 @@
-#include "ESP_DS1307.h"
+#include "RTCManager.h"
 
 uint8_t DS1307_::decToBcd(uint8_t val)
 {
@@ -252,4 +252,4 @@ DS1307_ &DS1307_::getInstance() {
   return instance;
 }
 
-DS1307_ &rtclock = rtclock.getInstance();
+DS1307_ &rtcManager = rtcManager.getInstance();

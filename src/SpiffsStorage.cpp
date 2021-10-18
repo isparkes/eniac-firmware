@@ -9,7 +9,7 @@
 // ************************************************************
 // Test SPIFFS
 // ************************************************************
-bool SPIFFS_CLOCK::testMountSpiffs()
+bool SpiffsStorage_::testMountSpiffs()
 {
   bool mounted = false;
   if (SPIFFS.begin())
@@ -23,7 +23,7 @@ bool SPIFFS_CLOCK::testMountSpiffs()
 // ************************************************************
 // Retrieve the config from the SPIFFS
 // ************************************************************
-bool SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
+bool SpiffsStorage_::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
 {
   bool loaded = false;
 
@@ -287,7 +287,7 @@ bool SPIFFS_CLOCK::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
 // ************************************************************
 // Save config back to the SPIFFS
 // ************************************************************
-void SPIFFS_CLOCK::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
+void SpiffsStorage_::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
 {
   #ifdef DEBUG_ON
   debugMsg("saving config");
@@ -355,7 +355,7 @@ void SPIFFS_CLOCK::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
 // ************************************************************
 // Get the statistics from the SPIFFS
 // ************************************************************
-bool SPIFFS_CLOCK::getStatsFromSpiffs(spiffs_stats_t *spiffs_stats)
+bool SpiffsStorage_::getStatsFromSpiffs(spiffs_stats_t *spiffs_stats)
 {
   bool loaded = false;
   if (SPIFFS.exists("/stats.json"))
@@ -414,7 +414,7 @@ bool SPIFFS_CLOCK::getStatsFromSpiffs(spiffs_stats_t *spiffs_stats)
 // ************************************************************
 // Save the statistics back to the SPIFFS
 // ************************************************************
-void SPIFFS_CLOCK::saveStatsToSpiffs(spiffs_stats_t *spiffs_stats)
+void SpiffsStorage_::saveStatsToSpiffs(spiffs_stats_t *spiffs_stats)
 {
   #ifdef DEBUG_ON
   debugMsg("saving stats");
@@ -445,7 +445,7 @@ void SPIFFS_CLOCK::saveStatsToSpiffs(spiffs_stats_t *spiffs_stats)
 // ************************************************************
 // Output a logging message to the debug output, if set
 // ************************************************************
-void SPIFFS_CLOCK::debugMsg(String message)
+void SpiffsStorage_::debugMsg(String message)
 {
   if (_dbcb != NULL && _debug)
   {
@@ -456,7 +456,7 @@ void SPIFFS_CLOCK::debugMsg(String message)
 // ************************************************************
 // Set the callback for outputting debug messages
 // ************************************************************
-void SPIFFS_CLOCK::setDebugCallback(DebugCallback dbcb)
+void SpiffsStorage_::setDebugCallback(DebugCallback dbcb)
 {
   _dbcb = dbcb;
   #ifdef DEBUG_ON
@@ -467,7 +467,14 @@ void SPIFFS_CLOCK::setDebugCallback(DebugCallback dbcb)
 // ************************************************************
 // set the update interval
 // ************************************************************
-void SPIFFS_CLOCK::setDebugOutput(bool newDebug)
+void SpiffsStorage_::setDebugOutput(bool newDebug)
 {
   _debug = newDebug;
 }
+
+SpiffsStorage_ &SpiffsStorage_::getInstance() {
+  static SpiffsStorage_ instance;
+  return instance;
+}
+
+SpiffsStorage_ &spiffsStorage = spiffsStorage.getInstance();

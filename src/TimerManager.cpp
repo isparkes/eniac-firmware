@@ -1,4 +1,4 @@
-#include "clock_timers.h"
+#include "TimerManager.h"
 #include "defs.h"
 
 hw_timer_t * timer0 = NULL;

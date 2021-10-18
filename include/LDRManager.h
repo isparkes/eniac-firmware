@@ -1,5 +1,4 @@
-#ifndef ldrmanager_h
-#define ldrmanager_h
+#pragma once
 
 #include "defs.h"
 #include "Arduino.h"
@@ -27,8 +26,17 @@
 #define SENSOR_SMOOTH_READINGS_MAX     255
 #define SENSOR_SMOOTH_READINGS_DEFAULT 100  // Speed at which the brighness adapts to changes
 
-class LDRManager
+class LDRManager_
 {
+  private:
+    LDRManager_() = default; // Make constructor private
+
+  public:
+    static LDRManager_ &getInstance(); // Accessor for singleton instance
+
+    LDRManager_(const LDRManager_ &) = delete; // no copying
+    LDRManager_ &operator=(const LDRManager_ &) = delete;
+
   public:
     void setUp();
 
@@ -51,8 +59,4 @@ class LDRManager
     void debugMsg(String message);                        // print a debug message to the callback
 };
 
-// ----------------- Exported Variables ------------------
-
-static LDRManager ldrManager;
-
-#endif
+extern LDRManager_ &ldrManager;

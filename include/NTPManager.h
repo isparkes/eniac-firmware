@@ -1,5 +1,4 @@
-#ifndef NtpAsync_h
-#define NtpAsync_h
+#pragma once
 
 #include <memory>
 #include <Arduino.h>
@@ -21,8 +20,17 @@ typedef void (*NewTimeCallback) ();
 #define NTP_UPDATE_INTERVAL_MAX 86400
 #define NTP_RETRY_INTERVAL_MS 30000
 
-class NtpAsync
+class NtpManager_
 {
+  private:
+    NtpManager_() = default; // Make constructor private
+
+  public:
+    static NtpManager_ &getInstance(); // Accessor for singleton instance
+
+    NtpManager_(const NtpManager_ &) = delete; // no copying
+    NtpManager_ &operator=(const NtpManager_ &) = delete;
+
   public:
     void setDebugOutput(bool newDebug);
     void getTimeFromNTP(unsigned long nowMillis);
@@ -67,4 +75,4 @@ class NtpAsync
     void debugMsg(String message);
 };
 
-#endif
+extern NtpManager_ &ntpManager;

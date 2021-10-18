@@ -1,12 +1,13 @@
-#ifndef utilities_h
-#define utilities_h
+#pragma once
 
 #include <Arduino.h>
+#include <ESPAsyncWebServer.h>
+
+#include <TimeLib.h>
+#include <rom/rtc.h>
+
 #include "defs.h"
 #include "globals.h"
-#include "NtpAsync.h"
-
-#include <ESPAsyncWebServer.h>
 
 #include "AsyncJson.h"
 #include "ArduinoJson.h"
@@ -14,6 +15,14 @@
 #include <Wire.h>
 #include "SpiffsStorage.h"
 #include "LDRManager.h"
+
+#include "LDRManager.h"
+#include "TimerManager.h"
+#include "globals.h"
+#include "GPSManager.h"
+#include "BlankingManager.h"
+#include "RTCManager.h"
+#include "NTPManager.h"
 
 // -------------------------------------------------------------------------------
 
@@ -70,5 +79,3 @@ void calculateCurrentOffset(int year, int mon, int day, int hour, int min, int s
 
 void loadNumberArrayTime();
 void outputDisplay();
-
-#endif

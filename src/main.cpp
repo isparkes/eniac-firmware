@@ -8,13 +8,17 @@
 #include <esp_task_wdt.h>
 #include "OLED.h"
 #include <AsyncElegantOTA.h>
-#include "clock_timers.h"
-#include <LDRManager.h>
-#include <LEDManager.h>
+#include "TimerManager.h"
+#include "LDRManager.h"
+#include "LEDManager.h"
 #include "MyLib.h"
 #include "GPSManager.h"
 #include "BlankingManager.h"
 #include "TZManager.h"
+#include "EncoderManager.h"
+#include "RTCManager.h"
+#include "BlinkenlightsManager.h"
+#include "NTPManager.h"
 
 // ToDo move to display manager
 const int PWMFreq = 1000; /* 1 KHz */
@@ -345,9 +349,9 @@ void setup()
     #ifdef DEBUG_ON
     debugMsg("Got TZS: " + cc->tzs);
     #endif
-    ntpAsync.setTZS(cc->tzs);
-    ntpAsync.setNtpPool(cc->ntpPool);
-    ntpAsync.setUpdateInterval(cc->ntpUpdateInterval);
+    ntpManager.setTZS(cc->tzs);
+    ntpManager.setNtpPool(cc->ntpPool);
+    ntpManager.setUpdateInterval(cc->ntpUpdateInterval);
   } else {
     #ifdef DEBUG_ON
     debugMsg("SPIFFS storage: read config failed - do factory reset");
@@ -383,7 +387,7 @@ void setup()
   server.on("/utils/scanI2C", HTTP_GET, getI2CScanHandler);
   server.on("/utils/saveStats", HTTP_GET, saveStatsHandler);
   server.on("/utils/ntpupdate", HTTP_GET, [] (AsyncWebServerRequest *request) {
-    ntpAsync.resetNextUpdate();
+    ntpManager.resetNextUpdate();
         request->redirect("/utility.html");;
     });
   server.on("/utils/resetwifi", HTTP_GET, [] (AsyncWebServerRequest *request) {
@@ -434,12 +438,12 @@ void setup()
   #ifdef DEBUG_ON
   debugMsg("Start up NTP" );
 
-  ntpAsync.setDebugCallback(dbcb);
-  ntpAsync.setDebugOutput(true);
+  ntpManager.setDebugCallback(dbcb);
+  ntpManager.setDebugOutput(true);
   #endif
 
   NewTimeCallback ntcb = newTimeUpdateReceived;
-  ntpAsync.setNewTimeCallback(ntcb);
+  ntpManager.setNewTimeCallback(ntcb);
 
   // -------------------------------------------------------------------------
   
@@ -454,8 +458,8 @@ void setup()
   #ifdef DEBUG_ON
   debugMsg("Start up RTC...");
   #endif
-  if (rtclock.testRTCTimeProvider()) {
-    rtclock.getRTCTime(true, nowMillis);
+  if (rtcManager.testRTCTimeProvider()) {
+    rtcManager.getRTCTime(true, nowMillis);
     #ifdef DEBUG_ON
     debugMsg("RTC found");
     #endif
@@ -469,7 +473,7 @@ void setup()
   
   // kick off NTP updates
   nowMillis = millis();
-  ntpAsync.getTimeFromNTP(nowMillis);
+  ntpManager.getTimeFromNTP(nowMillis);
 
   // debugMsg("Current uptime: " + String(cs->uptimeMins));
 
@@ -478,11 +482,8 @@ void setup()
   #ifdef DEBUG_ON
   debugMsg("Start up encoder");
   #endif
-	ESP32Encoder::useInternalWeakPullResistors=UP;
-	encoder.attachHalfQuad(ENC_APin, ENC_BPin);
-		
-	// clear the encoder's raw count and set the tracked count to zero
-	encoder.clearCount();
+
+  encoderManager.setup();
 
   // -------------------------------------------------------------------------
   
@@ -614,8 +615,8 @@ int encoderCount;
 void performOncePerSecondProcessing() {
   lastMillis = nowMillis;
 
-  if (ntpAsync.getNextUpdate(nowMillis) < 0) {
-    ntpAsync.getTimeFromNTP(nowMillis);
+  if (ntpManager.getNextUpdate(nowMillis) < 0) {
+    ntpManager.getTimeFromNTP(nowMillis);
   }
 
   bool connected = (WiFi.status() == WL_CONNECTED);
@@ -652,7 +653,7 @@ void performOncePerSecondProcessing() {
 
     oled.setWiFiStatus(connected);
     oled.setBlankStatus(false);
-    oled.setNTPStatus(ntpAsync.ntpTimeValid(nowMillis));
+    oled.setNTPStatus(ntpManager.ntpTimeValid(nowMillis));
     if (digitalRead(PIRPin) == false) {
       oled.setPIRInstalled(true);  
     }
@@ -670,20 +671,9 @@ void performOncePerSecondProcessing() {
   indLed1 = (second() % 2 == 0);
   indLed2 = (second() % 2 == 1);
 
-  bl1 = blankingManager.getCurrentBlankingStatus();
-  bl2 = blankingManager.getCurrentPIRStatus();
-  
-  if (gpsManager.getGPSTimeValid(nowMillis)) {
-    bl3 = true;
-  } else if (gpsManager.getGPSSyncStarted(nowMillis)) {
-    bl3 = (second() % 2 == 0);
-  }
-  bl4 = ntpAsync.ntpTimeValid(nowMillis);
-  
-  bl5 = WiFi.isConnected();
-  bl6 = blankingManager.getCurrentPIRInstalled();
+  blinkenlightsManager.setBlinkenlightsStatus(bl);
 
-  encoderCount = encoder.getCount()/2 % 6;
+  encoderCount = encoderManager.getCount();
 
   loadNumberArrayTime();
 
@@ -736,12 +726,12 @@ void performOncePerSecondProcessing() {
 void performOncePerMinuteProcessing() {
   #ifdef DEBUG_ON
   debugMsg("---> OncePerMinuteProcessing");
-  debugMsg("nu: " + String(ntpAsync.getNextUpdate(nowMillis)));
+  debugMsg("nu: " + String(ntpManager.getNextUpdate(nowMillis)));
   #endif
 
   // Set the internal time to the time from the RTC even if we are still in
   // NTP valid time. This is more accurate than using the internal time source
-  rtclock.getRTCTime(true, nowMillis);
+  rtcManager.getRTCTime(true, nowMillis);
 
   // Usage stats
   cs->uptimeMins++;

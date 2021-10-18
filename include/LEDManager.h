@@ -1,11 +1,11 @@
-#ifndef ledmanager_h
-#define ledmanager_h
+#pragma once
 
 #include "Arduino.h"
 #include "defs.h"
 #include "globals.h"
-#include <NeoPixelBus.h>            // https://github.com/Makuna/NeoPixelBus (Makuna 2.3.4)
 #include "SpiffsStorage.h"
+
+#include <NeoPixelBus.h>            // https://github.com/Makuna/NeoPixelBus (Makuna 2.6.6)
 
 #define FEATURE_SEP_LED             // include the NeoPixels in the separator towers
 
@@ -93,8 +93,17 @@
 // ************************** Pin Allocations *************************
 #define LED_DOUT               13
 
-class LEDManager
+class LEDManager_
 {
+  private:
+    LEDManager_() = default; // Make constructor private
+
+  public:
+    static LEDManager_ &getInstance(); // Accessor for singleton instance
+
+    LEDManager_(const LEDManager_ &) = delete; // no copying
+    LEDManager_ &operator=(const LEDManager_ &) = delete;
+
   public:
     void setUp();
 
@@ -229,8 +238,4 @@ const byte LED_ADDR[] = { 0, 1, 2, 3, 5, 6, 7, 8, 10, 11, 12, 13 };
 const byte LED_ADDR[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 #endif
 
-// ----------------- Exported Variables ------------------
-
-static LEDManager ledManager;
-
-#endif
+extern LEDManager_ &ledManager;

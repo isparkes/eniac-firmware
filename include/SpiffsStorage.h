@@ -64,8 +64,17 @@ typedef struct {
 // ------------------------------------- SPIFFS Clock Component ---------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-class SPIFFS_CLOCK
+class SpiffsStorage_
 {
+  private:
+    SpiffsStorage_() = default; // Make constructor private
+
+  public:
+    static SpiffsStorage_ &getInstance(); // Accessor for singleton instance
+
+    SpiffsStorage_(const SpiffsStorage_ &) = delete; // no copying
+    SpiffsStorage_ &operator=(const SpiffsStorage_ &) = delete;
+
   public:
     void setDebugOutput(bool newDebug);
 
@@ -73,10 +82,10 @@ class SPIFFS_CLOCK
     bool getSpiffsMounted();
 
     bool getConfigFromSpiffs(spiffs_config_t* spiffs_config);
-    void    saveConfigToSpiffs(spiffs_config_t* spiffs_config);
+    void saveConfigToSpiffs(spiffs_config_t* spiffs_config);
 
     bool getStatsFromSpiffs(spiffs_stats_t* spiffs_stats);
-    void    saveStatsToSpiffs(spiffs_stats_t* spiffs_stats);
+    void saveStatsToSpiffs(spiffs_stats_t* spiffs_stats);
 
     JsonObject& getConfigAsJsonObject(spiffs_config_t* spiffs_config);
 
@@ -89,3 +98,5 @@ class SPIFFS_CLOCK
 
     void debugMsg(String message);                        // print a debug message to the callback
 };
+
+extern SpiffsStorage_ &spiffsStorage;

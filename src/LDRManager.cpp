@@ -1,6 +1,6 @@
 #include "LDRManager.h"
 
-void LDRManager::setUp()
+void LDRManager_::setUp()
 {
   pinMode(LDRPin, INPUT);
   #ifdef DEBUG_ON
@@ -15,7 +15,7 @@ void LDRManager::setUp()
 // ************************************************************
 // Gets the smoothed LDR Reading and store it
 // ************************************************************
-void LDRManager::getDimmingFromLDR() {
+void LDRManager_::getDimmingFromLDR() {
   if (cc->useLDR) {
     int rawLDR = analogRead(LDRPin);
     #ifdef DEBUG_ON
@@ -67,14 +67,14 @@ void LDRManager::getDimmingFromLDR() {
 // ************************************************************
 // Return previously calculated value
 // ************************************************************
-int LDRManager::getLDRValue() {
+int LDRManager_::getLDRValue() {
   return _ldrValue;
 }
 
 // ************************************************************
 // Output a logging message to the debug output, if set
 // ************************************************************
-void LDRManager::debugMsg(String message) {
+void LDRManager_::debugMsg(String message) {
   if (_dbcb != NULL && _debug) {
     _dbcb("LDR: " + message);
   }
@@ -83,7 +83,7 @@ void LDRManager::debugMsg(String message) {
 // ************************************************************
 // Set the callback for outputting debug messages
 // ************************************************************
-void LDRManager::setDebugCallback(DebugCallback dbcb) {
+void LDRManager_::setDebugCallback(DebugCallback dbcb) {
   _dbcb = dbcb;
   debugMsg("Debugging started, callback set");
 }
@@ -91,6 +91,13 @@ void LDRManager::setDebugCallback(DebugCallback dbcb) {
 // ************************************************************
 // set the update interval
 // ************************************************************
-void LDRManager::setDebugOutput(bool newDebug) {
+void LDRManager_::setDebugOutput(bool newDebug) {
   _debug = newDebug;
 }
+
+LDRManager_ &LDRManager_::getInstance() {
+  static LDRManager_ instance;
+  return instance;
+}
+
+LDRManager_ &ldrManager = ldrManager.getInstance();

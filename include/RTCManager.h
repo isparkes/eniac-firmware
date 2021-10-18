@@ -63,4 +63,4 @@ private:
     unsigned long _lastRTCSetTime = 0;
 };
 
-extern DS1307_ &rtclock;
+extern DS1307_ &rtcManager;

@@ -1,12 +1,4 @@
 #include "utilities.h"
-#include "LDRManager.h"
-#include "ESP_DS1307.h"
-#include <rom/rtc.h>
-#include "clock_timers.h"
-#include "globals.h"
-#include "GPSManager.h"
-#include "BlankingManager.h"
-#include <TimeLib.h>
 
 // --------------------------------------------------------------------------------------------------------
 // ----------------------------------------  Utility functions  -------------------------------------------
@@ -121,7 +113,7 @@ String getStatusString() {
   } else {
     connectionInfo += "w";
   }
-  if (ntpAsync.ntpTimeValid(nowMillis)) {
+  if (ntpManager.ntpTimeValid(nowMillis)) {
     connectionInfo += "N";
   } else {
     connectionInfo += "n";
@@ -263,9 +255,9 @@ void wifiBeginWithCredentials() {
 // ************************************************************
 void newTimeUpdateReceived() {
   #ifdef DEBUG_ON
-  debugMsg("Got a new time update: " + ntpAsync.getLastTimeFromServer());
+  debugMsg("Got a new time update: " + ntpManager.getLastTimeFromServer());
   #endif
-  rtclock.setTimeFromServer(ntpAsync.getLastTimeFromServer(), nowMillis);
+  rtcManager.setTimeFromServer(ntpManager.getLastTimeFromServer(), nowMillis);
 }
 
 //**********************************************************************************
@@ -373,24 +365,24 @@ void outputDisplay() {
                                 tmpNumberArray[H1],
                                 tmpDispTypeArray[H10] == BLANKED,
                                 tmpDispTypeArray[H1] == BLANKED,
-                                bl1,
-                                bl2,
+                                bl->bl1,
+                                bl->bl2,
                                 led1State,
                                 led2State);
   uint32_t tmpval2 = decodeFromNumberArray( tmpNumberArray[M10], 
                                 tmpNumberArray[M1],
                                 tmpDispTypeArray[M10] == BLANKED,
                                 tmpDispTypeArray[M1] == BLANKED,
-                                bl3,
-                                bl4,
+                                bl->bl3,
+                                bl->bl4,
                                 led1State,
                                 led2State);
   uint32_t tmpval3 = decodeFromNumberArray( tmpNumberArray[S10], 
                                 tmpNumberArray[S1],
                                 tmpDispTypeArray[S10] == BLANKED,
                                 tmpDispTypeArray[S1] == BLANKED,
-                                bl5,
-                                bl6,
+                                bl->bl5,
+                                bl->bl6,
                                 indLed1,
                                 indLed2);
 
@@ -399,24 +391,24 @@ void outputDisplay() {
                                 currNumberArray[H1],
                                 tmpDispTypeArray[H10] == BLANKED,
                                 tmpDispTypeArray[H1] == BLANKED,
-                                bl1,
-                                bl2,
+                                bl->bl1,
+                                bl->bl2,
                                 led1State,
                                 led2State);
   uint32_t tmpnextVal2 = decodeFromNumberArray( currNumberArray[M10], 
                                 currNumberArray[M1],
                                 tmpDispTypeArray[M10] == BLANKED,
                                 tmpDispTypeArray[M1] == BLANKED,
-                                bl3,
-                                bl4,
+                                bl->bl3,
+                                bl->bl4,
                                 led1State,
                                 led2State);
   uint32_t tmpnextVal3 = decodeFromNumberArray( currNumberArray[S10], 
                                 currNumberArray[S1],
                                 tmpDispTypeArray[S10] == BLANKED,
                                 tmpDispTypeArray[S1] == BLANKED,
-                                bl5,
-                                bl6,
+                                bl->bl5,
+                                bl->bl6,
                                 indLed1,
                                 indLed2);
 
@@ -490,7 +482,7 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   debugMsg("Got api summary GET request");
   #endif
   
-  signed long absNextUpdate = abs(ntpAsync.getNextUpdate(nowMillis));
+  signed long absNextUpdate = abs(ntpManager.getNextUpdate(nowMillis));
   String overdueInd = "";
   if (absNextUpdate < 0) {
     overdueInd = " overdue";
@@ -503,15 +495,15 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   root["ip"] = WiFi.localIP().toString();
   root["mac"] = WiFi.macAddress();
   root["ssid"] = WiFi.SSID();
-  root["tz"] = ntpAsync.getTZS();
-  root["ntppool"] = ntpAsync.getNtpPool();
+  root["tz"] = ntpManager.getTZS();
+  root["ntppool"] = ntpManager.getNtpPool();
   String clockUrl = "http://" + String(WiFi.getHostname()) + ".local";
   clockUrl.toLowerCase();
   root["clockurl"] = clockUrl;
-  root["currentntptime"] = timeStringToReadableString(ntpAsync.getEstimatedCurrentTime(nowMillis));
-  root["lastntpupdate"] = secsToReadableString(ntpAsync.getLastUpdateTimeSecs(nowMillis));
+  root["currentntptime"] = timeStringToReadableString(ntpManager.getEstimatedCurrentTime(nowMillis));
+  root["lastntpupdate"] = secsToReadableString(ntpManager.getLastUpdateTimeSecs(nowMillis));
   root["nextupdate"] = secsToReadableString(absNextUpdate) + overdueInd;
-  if (ntpAsync.ntpTimeValid(nowMillis)) {
+  if (ntpManager.ntpTimeValid(nowMillis)) {
     root["ntpvalid"] = 1;
   } else {
     root["ntpvalid"] = 0;
@@ -532,9 +524,9 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
     root["lastgpsupdate"] = "";
   }
 
-  if (rtclock.getRTCValid()) {
-    unsigned long rtcAge = (nowMillis - rtclock.getLastRTCSetTime())/1000;
-    root["lastrtctime"] = timeStringToReadableString(rtclock.getEstimatedCurrentRTCTime(nowMillis));
+  if (rtcManager.getRTCValid()) {
+    unsigned long rtcAge = (nowMillis - rtcManager.getLastRTCSetTime())/1000;
+    root["lastrtctime"] = timeStringToReadableString(rtcManager.getEstimatedCurrentRTCTime(nowMillis));
     root["lastrtcupdate"] = secsToReadableString(rtcAge);
   } else {
     root["lastrtctime"] = "RTC not installed";
@@ -1057,9 +1049,9 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
     #endif
 
     // Now apply the new confog
-    ntpAsync.setNtpPool(cc->ntpPool);
-    ntpAsync.setUpdateInterval(cc->ntpUpdateInterval);
-    ntpAsync.setTZS(cc->tzs);
+    ntpManager.setNtpPool(cc->ntpPool);
+    ntpManager.setUpdateInterval(cc->ntpUpdateInterval);
+    ntpManager.setTZS(cc->tzs);
     #ifdef DEBUG_ON
     debugMsg("Applied new time config");
     #endif

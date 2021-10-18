@@ -1,4 +1,4 @@
-#include "NtpAsync.h"
+#include "NTPManager.h"
 
 // Suppress Intellisense "setenv" error
 _VOID      _EXFUN(tzset,	(_VOID));
@@ -7,7 +7,7 @@ int	_EXFUN(setenv,(const char *__string, const char *__value, int __overwrite));
 // ************************************************************
 // reset all the internal defaults
 // ************************************************************
-void NtpAsync::resetDefaults() {
+void NtpManager_::resetDefaults() {
   setNtpPool(NTP_POOL_DEFAULT);
   setUpdateInterval(NTP_UPDATE_INTERVAL_DEFAULT);
   setTZS(TIME_ZONE_STRING_DEFAULT);
@@ -19,7 +19,7 @@ void NtpAsync::resetDefaults() {
 // ************************************************************
 // Set the time zone string
 // ************************************************************
-void NtpAsync::setTZS(String tzs) {
+void NtpManager_::setTZS(String tzs) {
   _tzs = tzs;
   setenv("TZ", _tzs.c_str(), 1);
 
@@ -30,42 +30,42 @@ void NtpAsync::setTZS(String tzs) {
 // ************************************************************
 // get the time zone string
 // ************************************************************
-String NtpAsync::getTZS() {
+String NtpManager_::getTZS() {
   return _tzs;
 }
 
 // ************************************************************
 // set the update interval
 // ************************************************************
-void NtpAsync::setUpdateInterval(int updateInterval) {
+void NtpManager_::setUpdateInterval(int updateInterval) {
   _ntpUpdateInterval = updateInterval;
 }
 
 // ************************************************************
 // get the update interval
 // ************************************************************
-int NtpAsync::getUpdateInterval() {
+int NtpManager_::getUpdateInterval() {
   return _ntpUpdateInterval;
 }
 
 // ************************************************************
 // set the update interval
 // ************************************************************
-void NtpAsync::setNtpPool(String ntpPool) {
+void NtpManager_::setNtpPool(String ntpPool) {
   _ntpPool = ntpPool;
 }
 
 // ************************************************************
 // get the update interval
 // ************************************************************
-String NtpAsync::getNtpPool() {
+String NtpManager_::getNtpPool() {
   return _ntpPool;
 }
 
 // ************************************************************
 // get the number of millis until the next update is due in seconds
 // ************************************************************
-signed int NtpAsync::getNextUpdate(unsigned long nowMillis) {
+signed int NtpManager_::getNextUpdate(unsigned long nowMillis) {
   // deal with the startup case - we always want to update 
   if (_lastUpdateFromServer == 0) {
     return -1;
@@ -77,7 +77,7 @@ signed int NtpAsync::getNextUpdate(unsigned long nowMillis) {
 // ************************************************************
 // get the update interval
 // ************************************************************
-unsigned long NtpAsync::getLastUpdate() {
+unsigned long NtpManager_::getLastUpdate() {
   return _lastUpdateFromServer;
 }
 
@@ -85,14 +85,14 @@ unsigned long NtpAsync::getLastUpdate() {
 // ************************************************************
 // Invalidate the last update time and trigger a new NTP update
 // ************************************************************
-void NtpAsync::resetNextUpdate() {
+void NtpManager_::resetNextUpdate() {
   _lastUpdateFromServer = 0;
 }
 
 // ************************************************************
 // get the last time we got back
 // ************************************************************
-String NtpAsync::getLastTimeFromServer() {
+String NtpManager_::getLastTimeFromServer() {
   const tm* tm = localtime(&_ntpTime);
 
   String timeString = String(tm->tm_year + 1900) + "," + String(tm->tm_mon + 1) + "," + String(tm->tm_mday) + "," + String(tm->tm_hour) + "," + String(tm->tm_min) + "," + String(tm->tm_sec);
@@ -107,7 +107,7 @@ String NtpAsync::getLastTimeFromServer() {
 // get the time we think it is now (Last time plus the number 
 // seconds since last update)
 // ************************************************************
-String NtpAsync::getEstimatedCurrentTime(unsigned long nowMillis) {
+String NtpManager_::getEstimatedCurrentTime(unsigned long nowMillis) {
   int secondsSinceUpdate = (nowMillis - _lastUpdateFromServer) / 1000;
 
   time_t now_t = _ntpTime + secondsSinceUpdate;
@@ -124,28 +124,28 @@ String NtpAsync::getEstimatedCurrentTime(unsigned long nowMillis) {
 // ************************************************************
 // see if the NTP we got is still to be condsidered valid
 // ************************************************************
-bool NtpAsync::ntpTimeValid(unsigned long nowMillis) {
+bool NtpManager_::ntpTimeValid(unsigned long nowMillis) {
   return _lastUpdateFromServer != 0 && ((nowMillis - _lastUpdateFromServer) < (2000 * _ntpUpdateInterval));
 }
 
 // ************************************************************
 // get the number of seconds since the last update for display
 // ************************************************************
-long NtpAsync::getLastUpdateTimeSecs(unsigned long nowMillis) {
+long NtpManager_::getLastUpdateTimeSecs(unsigned long nowMillis) {
   return (nowMillis - _lastUpdateFromServer)/1000;
 }
 
 // ************************************************************
 // set the update interval
 // ************************************************************
-void NtpAsync::setDebugOutput(bool newDebug) {
+void NtpManager_::setDebugOutput(bool newDebug) {
   _debug = newDebug;
 }
 
 // ************************************************************
 // Asynchronous NTP query
 // ************************************************************
-void NtpAsync::getTimeFromNTP(unsigned long nowMillis) {
+void NtpManager_::getTimeFromNTP(unsigned long nowMillis) {
   debugMsg("Async NTP in");
 
   unsigned long _ntpStarted = 0;
@@ -284,7 +284,7 @@ void NtpAsync::getTimeFromNTP(unsigned long nowMillis) {
 // ************************************************************
 // Output a logging message to the debug output, if set
 // ************************************************************
-void NtpAsync::debugMsg(String message) {
+void NtpManager_::debugMsg(String message) {
   if (_dbcb != NULL && _debug) {
     _dbcb("NTP: " + message);
   }
@@ -293,7 +293,7 @@ void NtpAsync::debugMsg(String message) {
 // ************************************************************
 // Set the callback for outputting debug messages
 // ************************************************************
-void NtpAsync::setDebugCallback(DebugCallback dbcb) {
+void NtpManager_::setDebugCallback(DebugCallback dbcb) {
   _dbcb = dbcb;
   #ifdef DEBUG_ON
   debugMsg("Debugging started, callback set");
@@ -303,9 +303,16 @@ void NtpAsync::setDebugCallback(DebugCallback dbcb) {
 // ************************************************************
 // Set the callback for informing that a new time update is there
 // ************************************************************
-void NtpAsync::setNewTimeCallback(NewTimeCallback ntcb) {
+void NtpManager_::setNewTimeCallback(NewTimeCallback ntcb) {
   _ntcb = ntcb;
   #ifdef DEBUG_ON
   debugMsg("Time update callback set");
   #endif
 }
+
+NtpManager_ &NtpManager_::getInstance() {
+  static NtpManager_ instance;
+  return instance;
+}
+
+NtpManager_ &ntpManager = ntpManager.getInstance();

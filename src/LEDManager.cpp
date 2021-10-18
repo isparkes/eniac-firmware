@@ -6,7 +6,7 @@ NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> leds(NUM_PIXELS_TOTAL, LED_DOUT);
 NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> leds(NUM_PIXELS_TOTAL, LED_DOUT);
 #endif
 
-void LEDManager::setUp()
+void LEDManager_::setUp()
 {
   // Set up the LED output
   leds.Begin();
@@ -15,7 +15,7 @@ void LEDManager::setUp()
 // ************************************************************
 // recalculate "slow moving" parameters
 // ************************************************************
-void LEDManager::recalculateVariables() {
+void LEDManager_::recalculateVariables() {
   _backlightDim = (float) cc->backlightDimFactor / (float) 100;
 #ifdef FEATURE_EXT_LEDS
   _underlightDim = (float) cc->extDimFactor / (float) 100;
@@ -25,7 +25,7 @@ void LEDManager::recalculateVariables() {
 // ************************************************************
 // Set the LDR dimming value
 // ************************************************************
-void LEDManager::setLDRValue(unsigned int ldrValue)
+void LEDManager_::setLDRValue(unsigned int ldrValue)
 {
   if (cc->useBLDim) {
     // calculate the PWM factor, goes between current_config.minDim% and 100%
@@ -36,7 +36,7 @@ void LEDManager::setLDRValue(unsigned int ldrValue)
 // ************************************************************
 // Set the LDR dimming value
 // ************************************************************
-void LEDManager::setLDRRange(unsigned int ldrRange)
+void LEDManager_::setLDRRange(unsigned int ldrRange)
 {
     _ldrRange = (float) ldrRange;
 }
@@ -44,7 +44,7 @@ void LEDManager::setLDRRange(unsigned int ldrRange)
 // ************************************************************
 // Set the pulse current value
 // ************************************************************
-void LEDManager::setPulseValue(unsigned int secsDelta)
+void LEDManager_::setPulseValue(unsigned int secsDelta)
 {
   if (cc->useBLPulse) {
     // Calculate the brightness factor based on the "pulse"
@@ -55,7 +55,7 @@ void LEDManager::setPulseValue(unsigned int secsDelta)
 // ************************************************************
 // Set blank status
 // ************************************************************
-void LEDManager::setBlanked(boolean blanked)
+void LEDManager_::setBlanked(boolean blanked)
 {
   _blanked = blanked;
 }
@@ -63,7 +63,7 @@ void LEDManager::setBlanked(boolean blanked)
 // ************************************************************
 // Set back light LEDs to the same colour
 // ************************************************************
-void LEDManager::setBacklightLEDs(byte red, byte green, byte blue) {
+void LEDManager_::setBacklightLEDs(byte red, byte green, byte blue) {
   for (int i = 0 ; i < NUM_BL_PIXELS ; i++) {
     setBacklightLED(i, red, green, blue);
   }
@@ -72,7 +72,7 @@ void LEDManager::setBacklightLEDs(byte red, byte green, byte blue) {
 // ************************************************************
 // Set a single back light LEDs to a colour
 // ************************************************************
-void LEDManager::setBacklightLED(byte index, byte red, byte green, byte blue) {  
+void LEDManager_::setBacklightLED(byte index, byte red, byte green, byte blue) {  
     ledRb[LED_ADDR[index]] = red;
     ledGb[LED_ADDR[index]] = green;
     ledBb[LED_ADDR[index]] = blue;
@@ -81,7 +81,7 @@ void LEDManager::setBacklightLED(byte index, byte red, byte green, byte blue) {
 // ************************************************************
 // Set a single back light LEDs to a colour
 // ************************************************************
-void LEDManager::setTowerLEDs(byte red, byte green, byte blue) {
+void LEDManager_::setTowerLEDs(byte red, byte green, byte blue) {
   #ifdef FEATURE_SEP_LED
     ledRb[4] = red;
     ledGb[4] = green;
@@ -96,7 +96,7 @@ void LEDManager::setTowerLEDs(byte red, byte green, byte blue) {
 // ************************************************************
 // Set under light LEDs to the same colour
 // ************************************************************
-void LEDManager::setUnderlightLEDs(byte red, byte green, byte blue) {
+void LEDManager_::setUnderlightLEDs(byte red, byte green, byte blue) {
   #ifdef FEATURE_EXT_LEDS
   for (int i = 0 ; i < DIGIT_COUNT ; i++) {
     setUnderlightLED(i, red, green, blue);
@@ -107,7 +107,7 @@ void LEDManager::setUnderlightLEDs(byte red, byte green, byte blue) {
 // ************************************************************
 // Set under light LEDs to the same colour
 // ************************************************************
-void LEDManager::setUnderlightLED(byte index, byte red, byte green, byte blue) {
+void LEDManager_::setUnderlightLED(byte index, byte red, byte green, byte blue) {
   #ifdef FEATURE_EXT_LEDS
   ledRu[index] = red;
   ledGu[index] = green;
@@ -118,14 +118,14 @@ void LEDManager::setUnderlightLED(byte index, byte red, byte green, byte blue) {
 // ************************************************************
 // Set day of week for the 'day of week' backlight mode
 // ************************************************************
-void LEDManager::setDayOfWeek(byte dow) {
+void LEDManager_::setDayOfWeek(byte dow) {
   _dow = dow-1;
 }
 
 // ************************************************************
 // Put the led buffers out
 // ************************************************************
-void LEDManager::outputLEDBuffer() {
+void LEDManager_::outputLEDBuffer() {
   for (int i = 0 ; i < NUM_PIXELS_TOTAL - NUM_UL_PIXELS ; i++) {
 #ifdef REVERSE_BL_OUTPUT
     RgbColor color(ledRb[NUM_BL_PIXELS - i - 1], ledGb[NUM_BL_PIXELS - i - 1], ledBb[NUM_BL_PIXELS - i - 1]);
@@ -149,7 +149,7 @@ void LEDManager::outputLEDBuffer() {
 // ************************************************************
 // Process the options and create a new buffer
 // ************************************************************
-void LEDManager::processLedStatus() {
+void LEDManager_::processLedStatus() {
   // -------------------------------- Backlights / Underlights -------------------------------
 
   if (_blanked) {
@@ -217,7 +217,7 @@ void LEDManager::processLedStatus() {
 // ************************************************************
 // Process the options and create a new buffer
 // ************************************************************
-void LEDManager::setTestValue(byte value) {
+void LEDManager_::setTestValue(byte value) {
   // -------------------------------- Backlights / Underlights -------------------------------
 
   byte numVal = value%10;
@@ -243,7 +243,7 @@ void LEDManager::setTestValue(byte value) {
 // output a PWM LED channel, adjusting for dimming, PWM
 // and user back light brightness
 // ************************************************************
-byte LEDManager::getLEDAdjustedBL(byte rawValue) {
+byte LEDManager_::getLEDAdjustedBL(byte rawValue) {
   byte dimmedPWMVal;
   if (cc->useBLDim) {
     if (cc->useBLPulse) {
@@ -265,7 +265,7 @@ byte LEDManager::getLEDAdjustedBL(byte rawValue) {
 // output a PWM LED channel, adjusting for dimming, PWM
 // and user under light brightness
 // ************************************************************
-byte LEDManager::getLEDAdjustedUL(byte rawValue) {
+byte LEDManager_::getLEDAdjustedUL(byte rawValue) {
   byte dimmedPWMVal;
   if (cc->useBLDim) {
     if (cc->useBLPulse) {
@@ -286,7 +286,7 @@ byte LEDManager::getLEDAdjustedUL(byte rawValue) {
 // ************************************************************
 // Colour cycling 3: one colour dominates
 // ************************************************************
-void LEDManager::cycleColours3(int colors[3]) {
+void LEDManager_::cycleColours3(int colors[3]) {
   _cycleCount++;
   if (_cycleCount > cc->cycleSpeed) {
     _cycleCount = 0;
@@ -342,7 +342,7 @@ void LEDManager::cycleColours3(int colors[3]) {
   }
 }
 
-void LEDManager::setSyncColourTime(boolean value) {
+void LEDManager_::setSyncColourTime(boolean value) {
   _syncColourTime = value;
 }
 
@@ -351,7 +351,7 @@ void LEDManager::setSyncColourTime(boolean value) {
 // Set the diagnostic LED colour - progressively setting the
 // LEDs to dignostic colours
 // ************************************************************
-void LEDManager::setDiagnosticLED(byte stepNumber, byte state) {
+void LEDManager_::setDiagnosticLED(byte stepNumber, byte state) {
   for (int i = 0 ; i < DIGIT_COUNT ; i++) {
     if (i > stepNumber) {
       setBacklightLED(i, 0x1f, 0x1f, 0x1f);
@@ -374,3 +374,10 @@ void LEDManager::setDiagnosticLED(byte stepNumber, byte state) {
   }
   outputLEDBuffer();
 }
+
+LEDManager_ &LEDManager_::getInstance() {
+  static LEDManager_ instance;
+  return instance;
+}
+
+LEDManager_ &ledManager = ledManager.getInstance();

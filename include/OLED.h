@@ -1,5 +1,4 @@
-#ifndef oled_h
-#define oled_h
+#pragma once
 
 #include <memory>
 #include <Adafruit_GFX.h>       // v1.6.1
@@ -31,8 +30,17 @@
 // ------------------------------------------ OLED Component ------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-class OLED
+class OLED_
 {
+  private:
+    OLED_() = default; // Make constructor private
+
+  public:
+    static OLED_ &getInstance(); // Accessor for singleton instance
+
+    OLED_(const OLED_ &) = delete; // no copying
+    OLED_ &operator=(const OLED_ &) = delete;
+
   public:
     void setUp();
     void showStatusLine();
@@ -76,8 +84,4 @@ class OLED
     void drawTimeInd();
 };
 
-// ----------------- Exported Variables ------------------
-
-static OLED oled;
-
-#endif
+extern OLED_ &oled;
