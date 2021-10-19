@@ -807,13 +807,9 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
 
 void restartHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got api restat request");
+  debugMsg("Got api restart request");
   #endif
   
-  #ifdef DEBUG_ON
-  dumpArgs(request);
-  #endif
-
   AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"Restart in 1s\"}");
   request->send(response);
 
@@ -930,5 +926,20 @@ void getCredentialsHandler(AsyncWebServerRequest *request) {
   }
 
   AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"OK\"}");
+  request->send(response);        
+}
+
+void getWifiConnected(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
+  debugMsg("Got api wifi connected request");
+  #endif
+  
+  String isConnected = "";
+  if (WiFi.status() == WL_CONNECTED) {
+    isConnected = "Connected";
+  } else {
+    isConnected = "Offlne";
+  }
+  AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"" + isConnected + "\"}");
   request->send(response);        
 }

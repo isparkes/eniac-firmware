@@ -381,6 +381,7 @@ void setup()
 
   // wifi credentials
   server.on("/api/postWiFiCredentials", HTTP_POST, postWiFiDataHandler);
+  server.on("/api/getWiFiConnected", HTTP_GET, getWifiConnected);
 
   // Utilities
   server.on("/utils/resetWifi", HTTP_GET, resetWifiHandler);
@@ -415,6 +416,9 @@ void setup()
   #endif
   AsyncElegantOTA.begin(&server, "admin", "update");
 
+  // -------------------------------------------------------------------------
+  
+  debugMsg("Start up web server");
   server.begin();
 
   // -------------------------------------------------------------------------

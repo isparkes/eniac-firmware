@@ -52,6 +52,7 @@ uint32_t decodeBCD(byte valueToDecode, bool bl1, bool bl2, bool led1, bool led2)
 
 // Web handlers
 void getCredentialsHandler(AsyncWebServerRequest *request);
+void getWifiConnected(AsyncWebServerRequest *request);
 bool gotCredentials();
 void wifiBeginWithCredentials();
 
@@ -76,6 +77,7 @@ void resetWifi();
 void resetOptions();
 void resetAll();
 
+// TZ Offset handling
 void calculateCurrentOffset(int year, int mon, int day, int hour, int min, int sec);
 
 void loadNumberArrayTime();
