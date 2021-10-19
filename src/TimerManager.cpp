@@ -27,12 +27,6 @@ extern volatile uint8_t switchTime;
 
 // These are for debugging
 extern volatile uint16_t impressions;
-// extern volatile uint16_t outputs1;
-// extern volatile uint16_t outputs2;
-// extern volatile uint16_t outputs3;
-// extern volatile uint16_t switches1;
-// extern volatile uint16_t switches2;
-// extern volatile uint16_t switches3;
 
 // These strange values are to provoke that the first call to
 // the interrups detects a change in the buffer and outputs

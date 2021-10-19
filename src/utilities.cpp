@@ -403,12 +403,12 @@ void outputDisplay() {
 
   // move the values over, respect the MUTEX on the interrupt
   portENTER_CRITICAL_ISR(&timerMux1);
-  val1 = tmpval1;
-  val2 = tmpval2;
-  val3 = tmpval3;
-  nextVal1 = tmpnextVal1;
-  nextVal2 = tmpnextVal2;
-  nextVal3 = tmpnextVal3;
+  if (val1 != tmpval1) val1 = tmpval1;
+  if (val2 != tmpval2) val2 = tmpval2;
+  if (val3 != tmpval3) val3 = tmpval3;
+  if (nextVal1 != tmpnextVal1) nextVal1 = tmpnextVal1;
+  if (nextVal2 != tmpnextVal2) nextVal2 = tmpnextVal2;
+  if (nextVal3 != tmpnextVal3)nextVal3 = tmpnextVal3;
   portEXIT_CRITICAL_ISR(&timerMux1);
 }
 

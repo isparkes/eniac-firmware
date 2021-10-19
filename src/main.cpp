@@ -101,6 +101,11 @@ void setup()
 
   pinMode(BLANKPin, OUTPUT);
 
+  // make sure no ghosts are displayed
+  shiftOut24S(0);
+  shiftOut24M(0);
+  shiftOut24H(0);
+
   pinMode(ENC_BTN, INPUT_PULLUP);
 
   pinMode(PPSPin, OUTPUT);
@@ -768,11 +773,11 @@ void performOncePerDayProcessing() {
   spiffsStorage.saveStatsToSpiffs(cs);
 }
 
+// ************************************************************
+// Main loop
+// ************************************************************
 void loop()
 {
-  AsyncElegantOTA.loop();
-
-  // See if it is time to update the Clock
   nowMillis = millis();
 
   if (lastMillis > nowMillis) {
@@ -808,8 +813,6 @@ void loop()
 
   ldrManager.getDimmingFromLDR();
   ldrValue = ldrManager.getLDRValue();
-
-  // set the digit brightness
   ledcWrite(LDRPWMChannel, ldrValue);
   ledManager.setLDRValue(ldrValue);
 
@@ -822,5 +825,3 @@ void loop()
 
   delay(10);
 }
-
-
