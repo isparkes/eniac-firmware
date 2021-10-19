@@ -403,12 +403,12 @@ void outputDisplay() {
 
   // move the values over, respect the MUTEX on the interrupt
   portENTER_CRITICAL_ISR(&timerMux1);
-  if (val1 != tmpval1) val1 = tmpval1;
-  if (val2 != tmpval2) val2 = tmpval2;
-  if (val3 != tmpval3) val3 = tmpval3;
-  if (nextVal1 != tmpnextVal1) nextVal1 = tmpnextVal1;
-  if (nextVal2 != tmpnextVal2) nextVal2 = tmpnextVal2;
-  if (nextVal3 != tmpnextVal3)nextVal3 = tmpnextVal3;
+  val1 = tmpval1;
+  val2 = tmpval2;
+  val3 = tmpval3;
+  nextVal1 = tmpnextVal1;
+  nextVal2 = tmpnextVal2;
+  nextVal3 = tmpnextVal3;
   portEXIT_CRITICAL_ISR(&timerMux1);
 }
 
@@ -680,42 +680,43 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
 
     // ------------------------------------------------------------
 
-    compareAndUpdateBool(json, "hourMode", &cc->hourMode);
+    compareAndUpdateBool(json, "hourMode",     &cc->hourMode);
     compareAndUpdateBool(json, "blankLeading", &cc->blankLeading);
-    compareAndUpdateByte(json, "dateFormat", &cc->dateFormat);
+    compareAndUpdateByte(json, "dateFormat",   &cc->dateFormat);
     compareAndUpdateBool(json, "blankLeading", &cc->blankLeading);
-    compareAndUpdateByte(json, "scrollSteps", &cc->scrollSteps);
-    compareAndUpdateBool(json, "fade", &cc->fade);
-    compareAndUpdateByte(json, "fadeSteps", &cc->fadeSteps);
-    compareAndUpdateByte(json, "slotsMode", &cc->slotsMode);
-    compareAndUpdateBool(json, "suppressACP", &cc->suppressACP);
+    compareAndUpdateBool(json, "scrollback",   &cc->scrollback);
+    compareAndUpdateByte(json, "scrollSteps",  &cc->scrollSteps);
+    compareAndUpdateBool(json, "fade",         &cc->fade);
+    compareAndUpdateByte(json, "fadeSteps",    &cc->fadeSteps);
+    compareAndUpdateByte(json, "slotsMode",    &cc->slotsMode);
+    compareAndUpdateBool(json, "suppressACP",  &cc->suppressACP);
 
     // ------------------------------------------------------------
 
-    compareAndUpdateBool(json, "useLDR", &cc->useLDR);
-    compareAndUpdateInt (json, "minDim", &cc->minDim);
+    compareAndUpdateBool(json, "useLDR",          &cc->useLDR);
+    compareAndUpdateInt (json, "minDim",          &cc->minDim);
     compareAndUpdateInt (json, "thresholdBright", &cc->thresholdBright);
-    compareAndUpdateInt (json, "sensitivityLDR", &cc->sensitivityLDR);
+    compareAndUpdateInt (json, "sensitivityLDR",  &cc->sensitivityLDR);
 
     // ------------------------------------------------------------
 
-    compareAndUpdateInt (json, "mdTimeout", &cc->mdTimeout);
-    compareAndUpdateByte(json, "mdBlankMode", &cc->mdBlankMode);
-    compareAndUpdateByte(json, "dayBlanking", &cc->dayBlanking);
-    compareAndUpdateByte(json, "blankMode", &cc->blankMode);
+    compareAndUpdateInt (json, "mdTimeout",      &cc->mdTimeout);
+    compareAndUpdateByte(json, "mdBlankMode",    &cc->mdBlankMode);
+    compareAndUpdateByte(json, "dayBlanking",    &cc->dayBlanking);
+    compareAndUpdateByte(json, "blankMode",      &cc->blankMode);
     compareAndUpdateByte(json, "blankHourStart", &cc->blankHourStart);
-    compareAndUpdateByte(json, "blankHourEnd", &cc->blankHourEnd);
+    compareAndUpdateByte(json, "blankHourEnd",   &cc->blankHourEnd);
 
     // ------------------------------------------------------------
 
     compareAndUpdateByte(json, "backlightMode", &cc->backlightMode);
-    compareAndUpdateByte(json, "redCnl", &cc->redCnl);
-    compareAndUpdateByte(json, "grnCnl", &cc->grnCnl);
-    compareAndUpdateByte(json, "bluCnl", &cc->bluCnl);
-    compareAndUpdateBool(json, "useBLDim", &cc->useBLDim);
-    compareAndUpdateBool(json, "useBLPulse", &cc->useBLPulse);
-    compareAndUpdateByte(json, "cycleSpeed", &cc->cycleSpeed);
-    compareAndUpdateInt (json, "hueOffset", &cc->hueOffset);
+    compareAndUpdateByte(json, "redCnl",        &cc->redCnl);
+    compareAndUpdateByte(json, "grnCnl",        &cc->grnCnl);
+    compareAndUpdateByte(json, "bluCnl",        &cc->bluCnl);
+    compareAndUpdateBool(json, "useBLDim",      &cc->useBLDim);
+    compareAndUpdateBool(json, "useBLPulse",    &cc->useBLPulse);
+    compareAndUpdateByte(json, "cycleSpeed",    &cc->cycleSpeed);
+    compareAndUpdateInt (json, "hueOffset",     &cc->hueOffset);
 
     // ------------------------------------------------------------
 

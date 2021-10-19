@@ -75,6 +75,7 @@ void IRAM_ATTR shiftOut24H(uint32_t _val1) {
     digitalWrite(CLKPin, LOW);
   }
   digitalWrite(LATCH1Pin, HIGH);
+  for (i = 0; i < 8; i++) NOP();
   digitalWrite(LATCH1Pin, LOW);
 }
 
@@ -90,6 +91,7 @@ void IRAM_ATTR shiftOut24M(uint32_t _val1) {
     digitalWrite(CLKPin, LOW);
   }
   digitalWrite(LATCH2Pin, HIGH);
+  for (i = 0; i < 8; i++) NOP();
   digitalWrite(LATCH2Pin, LOW);
 }
 
@@ -105,6 +107,7 @@ void IRAM_ATTR shiftOut24S(uint32_t _val1) {
     digitalWrite(CLKPin, LOW);
   }
   digitalWrite(LATCH3Pin, HIGH);
+  for (i = 0; i < 8; i++) NOP();
   digitalWrite(LATCH3Pin, LOW);
 }
 
@@ -127,21 +130,17 @@ void IRAM_ATTR onTimer1() {
     _val2Next = nextVal2;
     _val3Next = nextVal3;
 
-    // Update if there was a display change
     if (val1 != _val1curr) {
       shiftOut24H(val1);
       _val1curr = val1;
-//      outputs1++;
     } 
     if (val2 != _val2curr) {
       shiftOut24M(val2);
       _val2curr = val2;
-//      outputs2++;
     }
     if (val3 != _val3curr) {
       shiftOut24S(val3);
       _val3curr = val3;
-//      outputs3++;
     }
   }
 
@@ -149,17 +148,14 @@ void IRAM_ATTR onTimer1() {
     if (nextVal1 != _val1curr) {
       shiftOut24H(nextVal1);
       _val1curr = nextVal1;
-//      switches1++;
     } 
     if (nextVal2 != _val2curr) {
       shiftOut24M(nextVal2);
       _val2curr = nextVal2;
-//      switches2++;
     }
     if (nextVal3 != _val3curr) {
       shiftOut24S(nextVal3);
       _val3curr = nextVal3;
-//      switches3++;
     }
   }
   portEXIT_CRITICAL_ISR(&timerMux1);
