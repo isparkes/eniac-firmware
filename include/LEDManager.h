@@ -69,6 +69,11 @@
 #define EXT_DIM_FACTOR_DEFAULT          100
 
 // -------------------------------------------------------------------------------
+#define HUE_OFFSET_MIN                  0
+#define HUE_OFFSET_MAX                  360
+#define HUE_OFFSET_DEFAULT              30
+
+// -------------------------------------------------------------------------------
 #define LED_MODE_MIN        0
 #define LED_RAILROAD        0
 #define LED_BLINK_SLOW      1
@@ -91,7 +96,6 @@
 #define STATUS_LED_MODE_MAX    5
 
 // ************************** Pin Allocations *************************
-#define LED_DOUT               13
 
 class LEDManager_
 {
@@ -134,18 +138,21 @@ class LEDManager_
     // Set the LEDs to a test value
     void setTestValue(byte value);
 
+    // Use colour inverting for the second LED of each tube
+    void setInvertLEDs(boolean value);
   private:
     float _backlightDim = 1.0;
     float _underlightDim = 1.0;
     float _ldrDimFactor = 1.0;
     float _ldrRange = 100.0;
     float _pwmFactor = 1.0;
-    boolean _blanked = false;
+    bool _blanked = false;
     byte _ledMode = BACKLIGHT_DEFAULT;
     byte _cycleCount = 0;
     byte _cycleSpeed = CYCLE_SPEED_DEFAULT;
-    boolean _syncColourTime = false;
+    bool _syncColourTime = false;
     byte _dow = 0;
+    bool _invertSecondLed = true;
 
     // Strategy 3
     int changeSteps = 0;
@@ -173,6 +180,9 @@ class LEDManager_
     byte getLEDAdjustedBL(byte rawValue);
     byte getLEDAdjustedUL(byte rawValue);
     void cycleColours3(int colors[3]);
+    bool isSecondLED(byte index);
+    void InvertRGB(uint8_t red, uint8_t green, uint8_t blue, uint8_t& inv_red, uint8_t& inv_green, uint8_t& inv_blue);
+
 };
 
 // ************************************************************

@@ -72,10 +72,20 @@ void LEDManager_::setBacklightLEDs(byte red, byte green, byte blue) {
 // ************************************************************
 // Set a single back light LEDs to a colour
 // ************************************************************
-void LEDManager_::setBacklightLED(byte index, byte red, byte green, byte blue) {  
+void LEDManager_::setBacklightLED(byte index, byte red, byte green, byte blue) {
+  if ((_invertSecondLed) && isSecondLED(index)) {
+    uint8_t inv_red = 0;
+    uint8_t inv_green = 0;
+    uint8_t inv_blue = 0;
+    InvertRGB(red, green, blue, inv_red, inv_green, inv_blue);
+    ledRb[LED_ADDR[index]] = inv_red;
+    ledGb[LED_ADDR[index]] = inv_green;
+    ledBb[LED_ADDR[index]] = inv_blue;
+  } else {
     ledRb[LED_ADDR[index]] = red;
     ledGb[LED_ADDR[index]] = green;
     ledBb[LED_ADDR[index]] = blue;
+  }
 }
 
 // ************************************************************
@@ -373,6 +383,84 @@ void LEDManager_::setDiagnosticLED(byte stepNumber, byte state) {
     }
   }
   outputLEDBuffer();
+}
+
+// ************************************************************
+// See if the led should be inverted
+// ************************************************************
+bool LEDManager_::isSecondLED(byte index) {
+  return (index %2 == 1);
+}
+
+// ************************************************************
+// Find the colour wheel inverse of the input RGB colour
+// ************************************************************
+void LEDManager_::InvertRGB(uint8_t red, uint8_t green, uint8_t blue, uint8_t& inv_red, uint8_t& inv_green, uint8_t& inv_blue) {
+  double hue, saturation, value;
+  
+	auto rd = static_cast<double>(red) / 255;
+	auto gd = static_cast<double>(green) / 255;
+	auto bd = static_cast<double>(blue) / 255;
+	auto max_val = max(rd, max(gd, bd));
+  auto min_val = min(rd, min(gd, bd));
+	 
+	value = max_val;
+
+	auto d = max_val - min_val;
+	saturation = max_val == 0 ? 0 : d / max_val;
+
+	hue = 0;
+	if (max_val != min_val)
+	{
+		if (max_val == rd)
+		{
+			hue = (gd - bd) / d + (gd < bd ? 6 : 0);
+		}
+		else if (max_val == gd)
+		{
+			hue = (bd - rd) / d + 2;
+		}
+		else if (max_val == bd)
+		{
+			hue = (rd - gd) / d + 4;
+		}
+		hue /= 6;
+	}
+
+  // move the hue round
+  double offset = cc->hueOffset / 360.0;
+  hue += offset;
+  if (hue >= 1.0) {hue-=1.0;}
+
+  // Serial.println("Hue: " + String(hue));
+
+	double r = 0.0, g = 0.0, b = 0.0;
+
+	auto i = static_cast<int>(hue * 6);
+	auto f = hue * 6 - i;
+	auto p = value * (1 - saturation);
+	auto q = value * (1 - f * saturation);
+	auto t = value * (1 - (1 - f) * saturation);
+
+	switch (i % 6)
+	{
+	case 0: r = value , g = t , b = p;
+		break;
+	case 1: r = q , g = value , b = p;
+		break;
+	case 2: r = p , g = value , b = t;
+		break;
+	case 3: r = p , g = q , b = value;
+		break;
+	case 4: r = t , g = p , b = value;
+		break;
+	case 5: r = value , g = p , b = q;
+		break;
+	}
+
+	inv_red = static_cast<uint8_t>(r * 255);
+	inv_green = static_cast<uint8_t>(g * 255);
+	inv_blue = static_cast<uint8_t>(b * 255);
 }
 
 LEDManager_ &LEDManager_::getInstance() {

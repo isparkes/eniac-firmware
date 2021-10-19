@@ -47,18 +47,6 @@ String timeStringToReadableString(String timeString) {
   int intValues[6];
   grabInts(timeString, &intValues[0], ",");
 
-  // char* ptr = strtok((char *)timeString.c_str(), ",");
-  // int y = atoi(ptr);
-  // ptr = strtok(NULL, ",");
-  // int m = atoi(ptr);
-  // ptr = strtok(NULL, ",");
-  // int d = atoi(ptr);
-  // ptr = strtok(NULL, ",");
-  // int h = atoi(ptr);
-  // ptr = strtok(NULL, ",");
-  // int mi = atoi(ptr);
-  // ptr = strtok(NULL, ",");
-  // int s = atoi(ptr);
   return timeToReadableString(intValues[0],intValues[1],intValues[2],intValues[3],intValues[4],intValues[5]);
 }
 
@@ -213,6 +201,7 @@ void resetOptions() {
   // setWebAuthentication(WEB_AUTH_DEFAULT);
   // setWebUserName(WEB_USERNAME_DEFAULT);
   // setWebPassword(WEB_PASSWORD_DEFAULT);
+  cc->hueOffset = HUE_OFFSET_DEFAULT;
   
   cc->testMode = true;
   cc->wasSetup = true;
@@ -627,9 +616,54 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["useBLDim"] = cc->useBLDim;
   root["useBLPulse"] = cc->useBLPulse;
   root["cycleSpeed"] = cc->cycleSpeed;
+  root["hueOffset"] = cc->hueOffset;
 
   response->setLength();
   request->send(response);
+}
+
+void compareAndUpdateByte(JsonObject& json, const char* key, byte* variable) {
+  if (json.containsKey(key)) {
+    byte newVal = json[key];
+    if (*variable != newVal) {
+      #ifdef DEBUG_ON
+      debugMsg(String(key) + " old: " + String(*variable));
+      #endif
+      *variable = newVal;
+      #ifdef DEBUG_ON
+      debugMsg(String(key) + " new: " + String(*variable));
+      #endif
+    }
+  }
+}
+
+void compareAndUpdateInt(JsonObject& json, const char* key, int* variable) {
+  if (json.containsKey(key)) {
+    int newVal = json[key];
+    if (*variable != newVal) {
+      #ifdef DEBUG_ON
+      debugMsg(String(key) + " old: " + String(*variable));
+      #endif
+      *variable = newVal;
+      #ifdef DEBUG_ON
+      debugMsg(String(key) + " new: " + String(*variable));
+      #endif
+    }
+  }
+}
+void compareAndUpdateBool(JsonObject& json, const char* key, bool* variable) {
+  if (json.containsKey(key)) {
+    bool newVal = json[key].as<bool>();
+    if (*variable != newVal) {
+      #ifdef DEBUG_ON
+      debugMsg(String(key) + " old: " + String(*variable));
+      #endif
+      *variable = newVal;
+      #ifdef DEBUG_ON
+      debugMsg(String(key) + " new: " + String(*variable));
+      #endif
+    }
+  }
 }
 
 void postConfigDataHandler(AsyncWebServerRequest *request) {
@@ -644,349 +678,44 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
 
   if (json.success()) {
 
-    if (json.containsKey("hourMode")) {
-      int newhourMode = json["hourMode"];
-      if (cc->hourMode != newhourMode) {
-        #ifdef DEBUG_ON
-        debugMsg("hourMode before: " + String(cc->hourMode));
-        #endif
-        cc->hourMode = newhourMode;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new hourMode: " + String(cc->hourMode));
-        #endif
-      }
-    }
+    // ------------------------------------------------------------
 
-    if (json.containsKey("blankLeading")) {
-      int newblankLeading = json["blankLeading"];
-      if (cc->blankLeading != newblankLeading) {
-        #ifdef DEBUG_ON
-        debugMsg("blankLeading before: " + String(cc->blankLeading));
-        #endif
-        cc->blankLeading = newblankLeading;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new blankLeading: " + String(cc->blankLeading));
-        #endif
-      }
-    }
-
-    if (json.containsKey("dateFormat")) {
-      int newdateFormat = json["dateFormat"];
-      if (cc->dateFormat != newdateFormat) {
-        #ifdef DEBUG_ON
-        debugMsg("dateFormat before: " + String(cc->dateFormat));
-        #endif
-        cc->dateFormat = newdateFormat;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new dateFormat: " + String(cc->dateFormat));
-        #endif
-      }
-    }
-
-    if (json.containsKey("scrollback")) {
-      int newscrollback = json["scrollback"];
-      if (cc->scrollback != newscrollback) {
-        #ifdef DEBUG_ON
-        debugMsg("scrollback before: " + String(cc->scrollback));
-        #endif
-        cc->scrollback = newscrollback;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new scrollback: " + String(cc->scrollback));
-        #endif
-      }
-    }
-
-    if (json.containsKey("scrollSteps")) {
-      int newscrollSteps = json["scrollSteps"];
-      if (cc->scrollSteps != newscrollSteps) {
-        #ifdef DEBUG_ON
-        debugMsg("scrollSteps before: " + String(cc->scrollSteps));
-        #endif
-        cc->scrollSteps = newscrollSteps;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new scrollSteps: " + String(cc->scrollSteps));
-        #endif
-      }
-    }
-
-    if (json.containsKey("fade")) {
-      int newfade = json["fade"];
-      if (cc->fade != newfade) {
-        #ifdef DEBUG_ON
-        debugMsg("fade before: " + String(cc->fade));
-        #endif
-        cc->fade = newfade;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new fade: " + String(cc->fade));
-        #endif
-      }
-    }
-
-    if (json.containsKey("fadeSteps")) {
-      int newfadeSteps = json["fadeSteps"];
-      if (cc->fadeSteps != newfadeSteps) {
-        #ifdef DEBUG_ON
-        debugMsg("fadeSteps before: " + String(cc->fadeSteps));
-        #endif
-        cc->fadeSteps = newfadeSteps;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new fadeSteps: " + String(cc->fadeSteps));
-        #endif
-      }
-    }
-
-    if (json.containsKey("slotsMode")) {
-      int newslotsMode = json["slotsMode"];
-      if (cc->slotsMode != newslotsMode) {
-        #ifdef DEBUG_ON
-        debugMsg("slotsMode before: " + String(cc->slotsMode));
-        #endif
-        cc->slotsMode = newslotsMode;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new slotsMode: " + String(cc->slotsMode));
-        #endif
-      }
-    }
-
-    if (json.containsKey("suppressACP")) {
-      int newsuppressACP = json["suppressACP"];
-      if (cc->suppressACP != newsuppressACP) {
-        #ifdef DEBUG_ON
-        debugMsg("suppressACP before: " + String(cc->suppressACP));
-        #endif
-        cc->suppressACP = newsuppressACP;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new suppressACP: " + String(cc->suppressACP));
-        #endif
-      }
-    }
+    compareAndUpdateBool(json, "hourMode", &cc->hourMode);
+    compareAndUpdateBool(json, "blankLeading", &cc->blankLeading);
+    compareAndUpdateByte(json, "dateFormat", &cc->dateFormat);
+    compareAndUpdateBool(json, "blankLeading", &cc->blankLeading);
+    compareAndUpdateByte(json, "scrollSteps", &cc->scrollSteps);
+    compareAndUpdateBool(json, "fade", &cc->fade);
+    compareAndUpdateByte(json, "fadeSteps", &cc->fadeSteps);
+    compareAndUpdateByte(json, "slotsMode", &cc->slotsMode);
+    compareAndUpdateBool(json, "suppressACP", &cc->suppressACP);
 
     // ------------------------------------------------------------
 
-    if (json.containsKey("useLDR")) {
-      int newUseLDR = json["useLDR"].as<bool>();
-      if (cc->useLDR != newUseLDR) {
-        #ifdef DEBUG_ON
-        debugMsg("useLDR before: " + String(cc->useLDR));
-        #endif
-        cc->useLDR = newUseLDR;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new useLDR: " + String(cc->useLDR));
-        #endif
-      }
-    }
-
-    if (json.containsKey("minDim")) {
-      int newMinDim = json["minDim"];
-      if (cc->minDim != newMinDim) {
-        #ifdef DEBUG_ON
-        debugMsg("minDim before: " + String(cc->minDim));
-        #endif
-        cc->minDim = newMinDim;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new minDim: " + String(cc->minDim));
-        #endif
-      }
-    }
-
-    if (json.containsKey("thresholdBright")) {
-      int newthresholdBright = json["thresholdBright"];
-      if (cc->thresholdBright != newthresholdBright) {
-        #ifdef DEBUG_ON
-        debugMsg("thresholdBright before: " + String(cc->thresholdBright));
-        #endif
-        cc->thresholdBright = newthresholdBright;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new thresholdBright: " + String(cc->thresholdBright));
-        #endif
-      }
-    }
-
-    if (json.containsKey("sensitivityLDR")) {
-      int newsensitivityLDR = json["sensitivityLDR"];
-      if (cc->sensitivityLDR != newsensitivityLDR) {
-        #ifdef DEBUG_ON
-        debugMsg("sensitivityLDR before: " + String(cc->sensitivityLDR));
-        #endif
-        cc->sensitivityLDR = newsensitivityLDR;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new sensitivityLDR: " + String(cc->sensitivityLDR));
-        #endif
-      }
-    }
+    compareAndUpdateBool(json, "useLDR", &cc->useLDR);
+    compareAndUpdateInt (json, "minDim", &cc->minDim);
+    compareAndUpdateInt (json, "thresholdBright", &cc->thresholdBright);
+    compareAndUpdateInt (json, "sensitivityLDR", &cc->sensitivityLDR);
 
     // ------------------------------------------------------------
 
-    if (json.containsKey("mdTimeout")) {
-      int newmdTimeout = json["mdTimeout"];
-      if (cc->mdTimeout != newmdTimeout) {
-        #ifdef DEBUG_ON
-        debugMsg("mdTimeout before: " + String(cc->mdTimeout));
-        #endif
-        cc->mdTimeout = newmdTimeout;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new mdTimeout: " + String(cc->mdTimeout));
-        #endif
-      }
-    }
-
-    if (json.containsKey("mdBlankMode")) {
-      int newmdBlankMode = json["mdBlankMode"];
-      if (cc->mdBlankMode != newmdBlankMode) {
-        #ifdef DEBUG_ON
-        debugMsg("mdBlankMode before: " + String(cc->mdBlankMode));
-        #endif
-        cc->mdBlankMode = newmdBlankMode;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new mdBlankMode: " + String(cc->mdBlankMode));
-        #endif
-      }
-    }
-
-    if (json.containsKey("dayBlanking")) {
-      int newdayBlanking = json["dayBlanking"];
-      if (cc->dayBlanking != newdayBlanking) {
-        #ifdef DEBUG_ON
-        debugMsg("dayBlanking before: " + String(cc->dayBlanking));
-        #endif
-        cc->dayBlanking = newdayBlanking;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new dayBlanking: " + String(cc->dayBlanking));
-        #endif
-      }
-    }
-
-    if (json.containsKey("blankMode")) {
-      int newblankMode = json["blankMode"];
-      if (cc->blankMode != newblankMode) {
-        #ifdef DEBUG_ON
-        debugMsg("blankMode before: " + String(cc->blankMode));
-        #endif
-        cc->blankMode = newblankMode;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new blankMode: " + String(cc->blankMode));
-        #endif
-      }
-    }
-
-    if (json.containsKey("blankHourStart")) {
-      int newblankHourStart = json["blankHourStart"];
-      if (cc->blankHourStart != newblankHourStart) {
-        #ifdef DEBUG_ON
-        debugMsg("blankHourStart before: " + String(cc->blankHourStart));
-        #endif
-        cc->blankHourStart = newblankHourStart;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new blankHourStart: " + String(cc->blankHourStart));
-        #endif
-      }
-    }
-
-    if (json.containsKey("blankHourEnd")) {
-      int newblankHourEnd = json["blankHourEnd"];
-      if (cc->blankHourEnd != newblankHourEnd) {
-        #ifdef DEBUG_ON
-        debugMsg("blankHourEnd before: " + String(cc->blankHourEnd));
-        #endif
-        cc->blankHourEnd = newblankHourEnd;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new blankHourEnd: " + String(cc->blankHourEnd));
-        #endif
-      }
-    }
+    compareAndUpdateInt (json, "mdTimeout", &cc->mdTimeout);
+    compareAndUpdateByte(json, "mdBlankMode", &cc->mdBlankMode);
+    compareAndUpdateByte(json, "dayBlanking", &cc->dayBlanking);
+    compareAndUpdateByte(json, "blankMode", &cc->blankMode);
+    compareAndUpdateByte(json, "blankHourStart", &cc->blankHourStart);
+    compareAndUpdateByte(json, "blankHourEnd", &cc->blankHourEnd);
 
     // ------------------------------------------------------------
 
-    if (json.containsKey("backlightMode")) {
-      int newbacklightMode = json["backlightMode"];
-      if (cc->backlightMode != newbacklightMode) {
-        #ifdef DEBUG_ON
-        debugMsg("backlightMode before: " + String(cc->backlightMode));
-        #endif
-        cc->backlightMode = newbacklightMode;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new backlightMode: " + String(cc->backlightMode));
-        #endif
-      }
-    }
-
-    if (json.containsKey("redCnl")) {
-      int newredCnl = json["redCnl"];
-      if (cc->redCnl != newredCnl) {
-        #ifdef DEBUG_ON
-        debugMsg("redCnl before: " + String(cc->redCnl));
-        #endif
-        cc->redCnl = newredCnl;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new redCnl: " + String(cc->redCnl));
-        #endif
-      }
-    }
-
-    if (json.containsKey("grnCnl")) {
-      int newgrnCnl = json["grnCnl"];
-      if (cc->grnCnl != newgrnCnl) {
-        #ifdef DEBUG_ON
-        debugMsg("grnCnl before: " + String(cc->grnCnl));
-        #endif
-        cc->grnCnl = newgrnCnl;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new grnCnl: " + String(cc->grnCnl));
-        #endif
-      }
-    }
-
-    if (json.containsKey("bluCnl")) {
-      int newbluCnl = json["bluCnl"];
-      if (cc->bluCnl != newbluCnl) {
-        #ifdef DEBUG_ON
-        debugMsg("bluCnl before: " + String(cc->bluCnl));
-        #endif
-        cc->bluCnl = newbluCnl;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new bluCnl: " + String(cc->bluCnl));
-        #endif
-      }
-    }
-
-    if (json.containsKey("useBLDim")) {
-      int newUseBLDim = json["useBLDim"].as<bool>();
-      if (cc->useBLDim != newUseBLDim) {
-        #ifdef DEBUG_ON
-        debugMsg("useBLDim before: " + String(cc->useBLDim));
-        #endif
-        cc->useBLDim = newUseBLDim;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new useBLDim: " + String(cc->useBLDim));
-        #endif
-      }
-    }
-
-    if (json.containsKey("useBLPulse")) {
-      int newUseBLPulse = json["useBLPulse"].as<bool>();
-      if (cc->useBLPulse != newUseBLPulse) {
-        #ifdef DEBUG_ON
-        debugMsg("useBLPulse before: " + String(cc->useBLPulse));
-        #endif
-        cc->useBLPulse = newUseBLPulse;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new useBLPulse: " + String(cc->useBLPulse));
-        #endif
-      }
-    }
-
-    if (json.containsKey("cycleSpeed")) {
-      int newcycleSpeed = json["cycleSpeed"];
-      if (cc->cycleSpeed != newcycleSpeed) {
-        #ifdef DEBUG_ON
-        debugMsg("cycleSpeed before: " + String(cc->cycleSpeed));
-        #endif
-        cc->cycleSpeed = newcycleSpeed;
-        #ifdef DEBUG_ON
-        debugMsg("Loaded new cycleSpeed: " + String(cc->cycleSpeed));
-        #endif
-      }
-    } 
+    compareAndUpdateByte(json, "backlightMode", &cc->backlightMode);
+    compareAndUpdateByte(json, "redCnl", &cc->redCnl);
+    compareAndUpdateByte(json, "grnCnl", &cc->grnCnl);
+    compareAndUpdateByte(json, "bluCnl", &cc->bluCnl);
+    compareAndUpdateBool(json, "useBLDim", &cc->useBLDim);
+    compareAndUpdateBool(json, "useBLPulse", &cc->useBLPulse);
+    compareAndUpdateByte(json, "cycleSpeed", &cc->cycleSpeed);
+    compareAndUpdateInt (json, "hueOffset", &cc->hueOffset);
 
     // ------------------------------------------------------------
 

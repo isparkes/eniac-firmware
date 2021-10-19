@@ -256,6 +256,11 @@ bool SpiffsStorage_::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
         debugMsg("Loaded sepMode: " + String(spiffs_config->sepMode));
         #endif
 
+        spiffs_config->hueOffset = json["hueOffset"];
+        #ifdef DEBUG_ON
+        debugMsg("Loaded hueOffset: " + String(spiffs_config->hueOffset));
+        #endif
+
         spiffs_config->testMode = json["testMode"].as<bool>();
         #ifdef DEBUG_ON
         debugMsg("Loaded testMode: " + String(spiffs_config->testMode));
@@ -331,6 +336,7 @@ void SpiffsStorage_::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
   json["alarmHour"] = spiffs_config->alarmHour;
   json["alarmMinute"] = spiffs_config->alarmMinute;
   json["sepMode"] = spiffs_config->sepMode;
+  json["hueOffset"] = spiffs_config->hueOffset;
 
   json["testMode"] = spiffs_config->testMode;
   json["wasSetup"] = spiffs_config->wasSetup;

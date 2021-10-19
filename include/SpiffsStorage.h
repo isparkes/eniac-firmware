@@ -50,6 +50,7 @@ typedef struct {
   byte alarmMinute;
   byte sepMode;
   byte backlightDimFactor;
+  int  hueOffset;
   
   bool testMode;
   bool wasSetup;
