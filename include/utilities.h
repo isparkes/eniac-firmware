@@ -58,6 +58,7 @@ void wifiBeginWithCredentials();
 
 void getSummaryDataHandler(AsyncWebServerRequest *request);
 void getDiagsDataHandler(AsyncWebServerRequest *request);
+void postDiagsDataHandler(AsyncWebServerRequest *request);
 
 void getTimeserverDataHandler(AsyncWebServerRequest *request);
 void postTimeserverDataHandler(AsyncWebServerRequest *request);
@@ -81,4 +82,5 @@ void resetAll();
 void calculateCurrentOffset(int year, int mon, int day, int hour, int min, int sec);
 
 void loadNumberArrayTime();
+void loadNumberArraySameValue(byte value);
 void outputDisplay();

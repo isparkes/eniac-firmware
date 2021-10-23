@@ -11,7 +11,6 @@
 // ************************************************************
 // Global shared components and objects
 // ************************************************************
-extern AsyncWebServer server;
 extern esp_wps_config_t wps_config;
 
 extern unsigned long nowMillis;

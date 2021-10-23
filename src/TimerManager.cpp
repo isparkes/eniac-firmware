@@ -91,7 +91,7 @@ void IRAM_ATTR shiftOut24M(uint32_t _val1) {
     digitalWrite(CLKPin, LOW);
   }
   digitalWrite(LATCH2Pin, HIGH);
-  for (i = 0; i < 8; i++) NOP();
+  for (i = 0; i < 12; i++) NOP();
   digitalWrite(LATCH2Pin, LOW);
 }
 
@@ -107,7 +107,7 @@ void IRAM_ATTR shiftOut24S(uint32_t _val1) {
     digitalWrite(CLKPin, LOW);
   }
   digitalWrite(LATCH3Pin, HIGH);
-  for (i = 0; i < 8; i++) NOP();
+  for (i = 0; i < 16; i++) NOP();
   digitalWrite(LATCH3Pin, LOW);
 }
 

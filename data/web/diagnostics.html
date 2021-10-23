@@ -2,7 +2,6 @@
 <html>
     <head>
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-        <link href="http://www.open-rate.com/wl.css" rel="stylesheet" type="text/css">
         <script src="http://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ=" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
@@ -102,6 +101,27 @@
                 </table>
             </div>
         </div>
+
+        <div class="container" role="main" id="digitDiagsContainer" hidden>
+            <h3 class="sub-header">Diagnostics Settings</h3>
+            <div class="form-horizontal">
+                <div class="form-group">
+                    <label class="control-label col-xs-3">Digit / LED Test mode:</label>
+                    <div class="col-xs-4">
+                        <select class="form-control" name="diagsMode" id="diagsMode">
+                            <option selected value="0">No diagnostics</option>
+                            <option value="1">Slow Diags</option>
+                            <option value="2">Fast Diags</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-xs-offset-3 col-xs-9">
+                        <input type="submit" class="btn btn-primary" value="Use"  onclick="saveConfig()">
+                    </div>
+                </div>
+            </div>
+        </div>        
     </body>
 
 <script>
@@ -141,7 +161,43 @@
         return deferred;
     };
 
+    postDiagsSettings = function postDiagsSettings() {
+        var deferred = $.Deferred();
+        console.log('post diags settings');
+
+        var postBody = {
+        };
+
+        postBody["diagsMode"] = $("#diagsMode").val();
+
+        // ----------------------------------
+
+        var ajaxOptions = {
+            url: '/api/postDiags',
+            type: 'POST',
+            data: JSON.stringify(postBody)
+        };
+        $.ajax(ajaxOptions).done(function (res) {
+            console.log("Saved diags");
+            deferred.resolve(res);
+        }).fail(function (jqXHR) {
+            console.log("Post api error " + jqXHR.status);
+            deferred.reject(jqXHR.status);
+        });
+        return deferred;
+    };
+
+    saveConfig = function () {
+        addLoader();
+        postDiagsSettings()
+        .then(function (config) {
+            console.log("Saved diags");
+            removeLoader();
+        });
+    };
+
     getDiags = function() {
+        addLoader();
         getClockDiags().then(function(diags){
             const totalMem = diags.freesketch + diags.sketchsize;
             let OTAFlag = '';
@@ -166,17 +222,23 @@
             $("#sdkversion").text(diags.sdkversion);
             $("#sketchmd5").text(diags.sketchmd5);
             $("#utcoffset").text(diags.utcoffset);
+
+            if (diags.diagsMode != undefined) {
+                $("#digitDiagsContainer").prop('hidden', false);
+            }
         })
         .then(() => removeLoader());
     };
 
-    $('body').append('<div style="" id="loadingDiv"><div class="loader">Loading...</div></div>');
+    function addLoader(){
+        $('body').append('<div style="" id="loadingDiv"><div class="loader">Loading...</div></div>');
+    };
 
     function removeLoader(){
         $( "#loadingDiv" ).fadeOut(500, function() {
             $( "#loadingDiv" ).remove();
         });
-    }
+    };
 
     getDiags();
 

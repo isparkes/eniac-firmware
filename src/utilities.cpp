@@ -273,17 +273,30 @@ uint32_t decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, 
 // Break the time into displayable digits
 // ************************************************************
 void loadNumberArrayTime() {
-  numberArray[S1] = second() % 10;
+  numberArray[S1]  = second() % 10;
   numberArray[S10] = second() / 10;
-  numberArray[M1] = minute() % 10;
+  numberArray[M1]  = minute() % 10;
   numberArray[M10] = minute() / 10;
   if (cc->hourMode) {
-    numberArray[H1] = hourFormat12() % 10;
+    numberArray[H1]  = hourFormat12() % 10;
     numberArray[H10] = hourFormat12() / 10;
   } else {
-    numberArray[H1] = hour() % 10;
+    numberArray[H1]  = hour() % 10;
     numberArray[H10] = hour() / 10;
   }
+}
+
+// ************************************************************
+// Break the time into displayable digits
+// ************************************************************
+void loadNumberArraySameValue(byte value) {
+  byte val = value % 10;
+  numberArray[S1]  = val;
+  numberArray[S10] = val;
+  numberArray[M1]  = val;
+  numberArray[M10] = val;
+  numberArray[H1]  = val;
+  numberArray[H10] = val;
 }
 
 // ************************************************************
@@ -466,6 +479,9 @@ void cssHandler(AsyncWebServerRequest *request) {
 	request->send(SPIFFS, "/web/style.css");
 }
 
+// ************************************************************
+// Summary page
+// ************************************************************
 void getSummaryDataHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
   debugMsg("Got api summary GET request");
@@ -541,6 +557,9 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   request->send(response);
 }
 
+// ************************************************************
+// Diags page
+// ************************************************************
 void getDiagsDataHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
   debugMsg("Got api diagnostics GET request");
@@ -573,11 +592,53 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["resetreason"] = String(rtc_get_reset_reason(0)) + "/" + String(rtc_get_reset_reason(1));
   root["lastgpsraw"] = gpsManager.getLastGPSTimeRaw();
   root["utcoffset"] = String(tzManager.getCurrentUTCOffset());
+#ifdef DIGIT_DIAGNOSTICS
+  root["diagsMode"] = cc->diagsMode;
+#endif
 
   response->setLength();
   request->send(response);
 }
 
+void postDiagsDataHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
+  debugMsg("Got diags POST request");
+  #endif
+  
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& json = jsonBuffer.parse(String(request->arg("body")));
+
+  if (json.success()) {
+    #ifdef DEBUG_ON
+    debugMsg("Diags mode before: " + String(cc->diagsMode));
+    #endif
+    cc->diagsMode = json["diagsMode"].as<int>();
+    #ifdef DEBUG_ON
+    debugMsg("Diags mode after: " + String(cc->diagsMode));
+    #endif
+  }
+   
+  AsyncJsonResponse * response = new AsyncJsonResponse();
+  response->addHeader("Server", "ESP Async Web Server");
+  JsonObject& root = response->getRoot();
+  root["diagsMode"] = cc->diagsMode;
+  response->setLength();
+  request->send(response);
+}
+
+void saveStatsHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
+  debugMsg("Got save stats request");
+  #endif
+
+  spiffsStorage.saveStatsToSpiffs(cs);
+  
+  request->send(200, "text/json", "{\"status\": \"Stats saved\"}");
+}
+
+// ************************************************************
+// Config page
+// ************************************************************
 void getConfigDataHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
   debugMsg("Got api config GET request");
@@ -734,6 +795,9 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
   getConfigDataHandler(request);
 }
 
+// ************************************************************
+// Time server page
+// ************************************************************
 void getTimeserverDataHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
   debugMsg("Got api timeserver GET request");
@@ -806,16 +870,41 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
   request->send(response);
 }
 
-void restartHandler(AsyncWebServerRequest *request) {
+// ************************************************************
+// WiFi
+// ************************************************************
+void getCredentialsHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got api restart request");
+  debugMsg("Got api wifi credentials request");
   #endif
   
-  AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"Restart in 1s\"}");
-  request->send(response);
+  #ifdef DEBUG_ON
+  dumpArgs(request);
+  #endif
 
-  delay(1000);
-  ESP.restart();
+  if ((request->hasArg("ssid")) && (request->hasArg("password"))) {
+    ssid = request->arg("ssid");
+    password = request->arg("password");
+    credentialsReceived = true;
+  }
+
+  AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"OK\"}");
+  request->send(response);        
+}
+
+void getWifiConnected(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
+  debugMsg("Got api wifi connected request");
+  #endif
+  
+  String isConnected = "";
+  if (WiFi.status() == WL_CONNECTED) {
+    isConnected = "Connected";
+  } else {
+    isConnected = "Offlne";
+  }
+  AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"" + isConnected + "\"}");
+  request->send(response);        
 }
 
 void postWiFiDataHandler(AsyncWebServerRequest *request) {
@@ -850,6 +939,32 @@ void postWiFiDataHandler(AsyncWebServerRequest *request) {
         
 }
 
+// ************************************************************
+// Reset / restart
+// ************************************************************
+void restartHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
+  debugMsg("Got api restart request");
+  #endif
+  
+  AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"Restart in 1s\"}");
+  request->send(response);
+
+  delay(1000);
+  ESP.restart();
+}
+
+void resetWifiHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
+  debugMsg("Got utils RESET request");
+  #endif
+  WiFi.disconnect();
+  request->send(200, "text/json", "{\"status\": \"WiFi was reset\"}");
+}
+
+// ************************************************************
+// Utilities
+// ************************************************************
 void getI2CScanHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
   debugMsg("Got I2C scan request");
@@ -891,56 +1006,4 @@ void getI2CScanHandler(AsyncWebServerRequest *request) {
 
   response->setLength();
   request->send(response);
-}
-
-void saveStatsHandler(AsyncWebServerRequest *request) {
-  #ifdef DEBUG_ON
-  debugMsg("Got save stats request");
-  #endif
-
-  spiffsStorage.saveStatsToSpiffs(cs);
-  
-  request->send(200, "text/json", "{\"status\": \"Stats saved\"}");
-}
-
-void resetWifiHandler(AsyncWebServerRequest *request) {
-  #ifdef DEBUG_ON
-  debugMsg("Got utils RESET request");
-  #endif
-  WiFi.disconnect();
-  request->send(200, "text/json", "{\"status\": \"WiFi was reset\"}");
-}
-
-void getCredentialsHandler(AsyncWebServerRequest *request) {
-  #ifdef DEBUG_ON
-  debugMsg("Got api wifi credentials request");
-  #endif
-  
-  #ifdef DEBUG_ON
-  dumpArgs(request);
-  #endif
-
-  if ((request->hasArg("ssid")) && (request->hasArg("password"))) {
-    ssid = request->arg("ssid");
-    password = request->arg("password");
-    credentialsReceived = true;
-  }
-
-  AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"OK\"}");
-  request->send(response);        
-}
-
-void getWifiConnected(AsyncWebServerRequest *request) {
-  #ifdef DEBUG_ON
-  debugMsg("Got api wifi connected request");
-  #endif
-  
-  String isConnected = "";
-  if (WiFi.status() == WL_CONNECTED) {
-    isConnected = "Connected";
-  } else {
-    isConnected = "Offlne";
-  }
-  AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"" + isConnected + "\"}");
-  request->send(response);        
 }

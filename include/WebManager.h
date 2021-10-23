@@ -1,0 +1,25 @@
+#pragma once
+
+#include <memory>
+#include <ESPAsyncWebServer.h>
+#include "globals.h"
+#include "utilities.h"
+
+class WebManager_ {
+  private:
+    WebManager_() = default; // Make constructor private
+
+  public:
+    static WebManager_ &getInstance(); // Accessor for singleton instance
+
+    WebManager_(const WebManager_ &) = delete; // no copying
+    WebManager_ &operator=(const WebManager_ &) = delete;
+
+  public:
+    void begin();
+    void doStuff();
+};
+
+extern AsyncWebServer server;
+
+extern WebManager_ &webServer;

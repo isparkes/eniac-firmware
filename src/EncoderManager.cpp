@@ -3,11 +3,13 @@
 #include "defs.h"
 
 void EncoderManager_::setup() {
-	ESP32Encoder::useInternalWeakPullResistors=UP;
-	_encoder.attachHalfQuad(ENC_APin, ENC_BPin);
-		
-	// clear the encoder's raw count and set the tracked count to zero
-	_encoder.clearCount();
+  pinMode(ENC_BTN, INPUT_PULLUP);
+
+  ESP32Encoder::useInternalWeakPullResistors=UP;
+  _encoder.attachHalfQuad(ENC_APin, ENC_BPin);
+  	
+  // clear the encoder's raw count and set the tracked count to zero
+  _encoder.clearCount();
 }
 
 int EncoderManager_::getCount() {

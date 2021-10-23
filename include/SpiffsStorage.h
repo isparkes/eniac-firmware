@@ -51,6 +51,9 @@ typedef struct {
   byte sepMode;
   byte backlightDimFactor;
   int  hueOffset;
+
+  // not saved
+  int diagsMode;
   
   bool testMode;
   bool wasSetup;
