@@ -202,6 +202,7 @@ void resetOptions() {
   // setWebUserName(WEB_USERNAME_DEFAULT);
   // setWebPassword(WEB_PASSWORD_DEFAULT);
   cc->hueOffset = HUE_OFFSET_DEFAULT;
+  cc->invertSecondLEDs = INVERT_SECOND_LEDS_DEFAULT;
   
   cc->testMode = true;
   cc->wasSetup = true;

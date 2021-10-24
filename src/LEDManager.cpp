@@ -20,6 +20,13 @@ void LEDManager_::recalculateVariables() {
 #ifdef FEATURE_EXT_LEDS
   _underlightDim = (float) cc->extDimFactor / (float) 100;
 #endif
+  if (cc->hueOffset == 0) {
+    _invertSecondLed = false;
+    _hueOffset = 0;
+  } else {
+    _invertSecondLed = true;
+    _hueOffset = cc->hueOffset / 360.0;
+  }
 }
 
 // ************************************************************
@@ -34,7 +41,7 @@ void LEDManager_::setLDRValue(unsigned int ldrValue)
 }
 
 // ************************************************************
-// Set the LDR dimming value
+// Set the LDR dimming range value
 // ************************************************************
 void LEDManager_::setLDRRange(unsigned int ldrRange)
 {
@@ -65,15 +72,15 @@ void LEDManager_::setBlanked(boolean blanked)
 // ************************************************************
 void LEDManager_::setBacklightLEDs(byte red, byte green, byte blue) {
   for (int i = 0 ; i < NUM_BL_PIXELS ; i++) {
-    setBacklightLED(i, red, green, blue);
+    setBacklightLED(i, red, green, blue, cc->invertSecondLEDs);
   }
 }
 
 // ************************************************************
 // Set a single back light LEDs to a colour
 // ************************************************************
-void LEDManager_::setBacklightLED(byte index, byte red, byte green, byte blue) {
-  if ((_invertSecondLed) && isSecondLED(index)) {
+void LEDManager_::setBacklightLED(byte index, byte red, byte green, byte blue, bool invert) {
+  if ((invert) && isSecondLED(index)) {
     uint8_t inv_red = 0;
     uint8_t inv_green = 0;
     uint8_t inv_blue = 0;
@@ -197,7 +204,8 @@ void LEDManager_::processLedStatus() {
               setBacklightLED(i,
                               getLEDAdjustedBL(colourTimeR[numVal]),
                               getLEDAdjustedBL(colourTimeG[numVal]),
-                              getLEDAdjustedBL(colourTimeB[numVal]));
+                              getLEDAdjustedBL(colourTimeB[numVal]),
+                              cc->invertSecondLEDs);
               setUnderlightLED(i, 
                               getLEDAdjustedUL(colourTimeR[numVal]),
                               getLEDAdjustedUL(colourTimeG[numVal]),
@@ -231,15 +239,16 @@ void LEDManager_::setTestValue(byte value) {
   // -------------------------------- Backlights / Underlights -------------------------------
 
   byte numVal = value%10;
-  for (byte i = 0 ; i < DIGIT_COUNT ; i++) {
+  for (byte i = 0 ; i < NUM_BL_PIXELS ; i++) {
     setBacklightLED(i, 
-                    getLEDAdjustedBL(testColoursR[numVal]),
-                    getLEDAdjustedBL(testColoursG[numVal]),
-                    getLEDAdjustedBL(testColoursB[numVal]));
+                    testColoursR[numVal],
+                    testColoursG[numVal],
+                    testColoursB[numVal],
+                    false);
     setUnderlightLED(i, 
-                    getLEDAdjustedUL(testColoursR[numVal]),
-                    getLEDAdjustedUL(testColoursG[numVal]),
-                    getLEDAdjustedUL(testColoursB[numVal]));
+                    testColoursR[numVal],
+                    testColoursG[numVal],
+                    testColoursB[numVal]);
   }
 
   setTowerLEDs(   getLEDAdjustedUL(255),
@@ -356,7 +365,6 @@ void LEDManager_::setSyncColourTime(boolean value) {
   _syncColourTime = value;
 }
 
-
 // ************************************************************
 // Set the diagnostic LED colour - progressively setting the
 // LEDs to dignostic colours
@@ -364,20 +372,20 @@ void LEDManager_::setSyncColourTime(boolean value) {
 void LEDManager_::setDiagnosticLED(byte stepNumber, byte state) {
   for (int i = 0 ; i < DIGIT_COUNT ; i++) {
     if (i > stepNumber) {
-      setBacklightLED(i, 0x1f, 0x1f, 0x1f);
+      setBacklightLED(i, 0x1f, 0x1f, 0x1f, false);
       setUnderlightLED(i, 0x1f, 0x1f, 0x1f);
     } else if (i == stepNumber) {
       if (state == STATUS_RED) {
-      setBacklightLED(i, 0xff, 0, 0);
+      setBacklightLED(i, 0xff, 0, 0, false);
       setUnderlightLED(i, 0xff, 0, 0);
       } else if (state == STATUS_YELLOW) {
-      setBacklightLED(i, 0xff, 0x7f, 0x0f);
+      setBacklightLED(i, 0xff, 0x7f, 0x0f, false);
       setUnderlightLED(i, 0xff, 0x7f, 0x0f);
       } else if (state == STATUS_GREEN) {
-      setBacklightLED(i, 0, 0xff, 0);
+      setBacklightLED(i, 0, 0xff, 0, false);
       setUnderlightLED(i, 0, 0xff, 0);
       } else if (state == STATUS_BLUE) {
-      setBacklightLED(i, 0, 0, 0xff);
+      setBacklightLED(i, 0, 0, 0xff, false);
       setUnderlightLED(i, 0, 0, 0xff);
       }
     }
@@ -428,8 +436,7 @@ void LEDManager_::InvertRGB(uint8_t red, uint8_t green, uint8_t blue, uint8_t& i
 	}
 
   // move the hue round
-  double offset = cc->hueOffset / 360.0;
-  hue += offset;
+  hue += _hueOffset;
   if (hue >= 1.0) {hue-=1.0;}
 
   // Serial.println("Hue: " + String(hue));

@@ -68,3 +68,8 @@ extern bool indLed2;
 extern String ssid;
 extern String password;
 extern bool credentialsReceived;
+
+#ifdef DIGIT_DIAGNOSTICS
+// Used for testing
+extern int digitValue;
+#endif

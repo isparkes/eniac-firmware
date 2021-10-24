@@ -6,6 +6,10 @@
 #include "SpiffsStorage.h"
 
 // -------------------------------------------------------------------------------
+// LDR Manager deals with the light sensor. Has the following functions:
+// 1) Set the blanking pin PWM value
+// 2) read and smooth the raw LDR readings
+// -------------------------------------------------------------------------------
 #define USE_LDR_DEFAULT true
 
 #define LDR_VALUE_MAX         4095 // The maximum LDR value - based on 12-bit ADC
@@ -41,7 +45,7 @@ class LDRManager_
     void setUp();
 
     void getDimmingFromLDR();
-    int getLDRValue();
+    int  getLDRValue();
 
     void setDebugOutput(bool newDebug);
     
@@ -50,8 +54,9 @@ class LDRManager_
   private:
     double sensorLDRSmoothed = 0;
     double sensorFactor = (double)SENSOR_SENSIT_DEFAULT / 100.0;
-    int sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
-    int _ldrValue = 0;
+    int    sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
+    int   _ldrValue = 0;
+    const int LDRPWMChannel = 0;
     
     DebugCallback _dbcb;
     bool _debug = false;

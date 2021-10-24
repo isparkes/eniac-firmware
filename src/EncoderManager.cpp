@@ -13,7 +13,7 @@ void EncoderManager_::setup() {
 }
 
 int EncoderManager_::getCount() {
-  return _encoder.getCount()/2 % 6;
+  return _encoder.getCount()/2;
 }
 
 EncoderManager_ &EncoderManager_::getInstance() {

@@ -20,12 +20,6 @@
 #include "WebManager.h"
 #include <AsyncElegantOTA.h>
 
-// ToDo move to display manager
-const int PWMFreq = 1000; /* 1 KHz */
-const int LDRPWMChannel = 0;
-const int PWMResolution = 12;
-const int MAX_DUTY_CYCLE = (int)(pow(2, PWMResolution) - 1);
-
 void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
 {
   switch (event)
@@ -105,23 +99,14 @@ void setup()
   shiftOut24H(0);
 
   pinMode(BLANKPin, OUTPUT);
-
   pinMode(PPSPin, OUTPUT);
-
-  // -------------------------------------------------------------------------
-  
-  #ifdef DEBUG_ON
-  debugMsg("Start up dimming PWM");
-  #endif
-  ledcSetup(LDRPWMChannel, PWMFreq, PWMResolution);
-  ledcAttachPin(BLANKPin, LDRPWMChannel);
-  ledcWrite(LDRPWMChannel, MAX_DUTY_CYCLE);
 
   // -------------------------------------------------------------------------
 
   #ifdef DEBUG_ON
   debugMsg("Start up Timers" );
   #endif
+  // Starts the display and the status LED flashing
   startTimers();
 
   // -------------------------------------------------------------------------
@@ -143,18 +128,6 @@ void setup()
 
   // -------------------------------------------------------------------------
 
-  // debugMsg("Test pattern");
-  // for (int j = 0 ; j < 10 ; j++) {
-  //   for (int i = 0 ; i < 10 ; i++) {
-  //     uint32_t val = decodeBCD(i*10+i, i%2 == 0, i %2 == 1);
-  //     val1 = val2 = val3 = decodeBCD(i*10+i, i%2 == 0, i %2 == 1);
-  //     ledManager.setTestValue(i);
-  //     delay(100);
-  //   }
-  // }
-  
-  // -------------------------------------------------------------------------
-  
   #ifdef DEBUG_ON
   debugMsg("");
   debugMsg("Starting WiFi");
@@ -428,8 +401,6 @@ void setup()
   nowMillis = millis();
   ntpManager.getTimeFromNTP(nowMillis);
 
-  // debugMsg("Current uptime: " + String(cs->uptimeMins));
-
   // -------------------------------------------------------------------------
 
   #ifdef DEBUG_ON
@@ -560,6 +531,16 @@ void setLeds()
   ledManager.processLedStatus();
 }
 
+#ifdef DIGIT_DIAGNOSTICS
+// ************************************************************
+// Set the seconds tick led(s) and the back lights for diags
+// ************************************************************
+void setLedsDiags()
+{
+  ledManager.setTestValue(second() % 10);
+}
+#endif
+
 int encoderCount;
 
 // ************************************************************
@@ -633,9 +614,13 @@ void performOncePerSecondProcessing() {
     loadNumberArrayTime();
   } else if (cc->diagsMode == 1) {
     loadNumberArraySameValue(second());
-  } else if (cc->diagsMode == 1) {
+  } else if (cc->diagsMode == 2) {
     loadNumberArraySameValue(minute());
+  } else if (cc->diagsMode == 3) {
+    digitValue += encoderManager.getCount();
+    loadNumberArraySameValue(digitValue);
   }
+
 #else
     loadNumberArrayTime();
 #endif
@@ -770,15 +755,22 @@ void loop()
 
   ldrManager.getDimmingFromLDR();
   ldrValue = ldrManager.getLDRValue();
-  ledcWrite(LDRPWMChannel, ldrValue);
   ledManager.setLDRValue(ldrValue);
 
   // -------------------------------------------------------------------------------
   
   outputDisplay();
 
+#ifdef DIGIT_DIAGNOSTICS
   // output the backlight/underlight LEDs
+  if (cc->diagsMode > 0) {
+    setLedsDiags();
+  } else {
+    setLeds();
+  }
+#else
   setLeds();
+#endif
 
   delay(10);
 }

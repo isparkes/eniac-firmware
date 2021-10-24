@@ -69,3 +69,8 @@ bool led1State;
 bool led2State;
 bool indLed1;
 bool indLed2;
+
+#ifdef DIGIT_DIAGNOSTICS
+// Used for testing
+int digitValue = 0;
+#endif

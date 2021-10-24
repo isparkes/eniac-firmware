@@ -74,6 +74,9 @@
 #define HUE_OFFSET_DEFAULT              30
 
 // -------------------------------------------------------------------------------
+#define INVERT_SECOND_LEDS_DEFAULT      false
+
+// -------------------------------------------------------------------------------
 #define LED_MODE_MIN        0
 #define LED_RAILROAD        0
 #define LED_BLINK_SLOW      1
@@ -153,6 +156,7 @@ class LEDManager_
     bool _syncColourTime = false;
     byte _dow = 0;
     bool _invertSecondLed = true;
+    double _hueOffset = 0.0;
 
     // Strategy 3
     int changeSteps = 0;
@@ -173,7 +177,7 @@ class LEDManager_
 
     void setBacklightLEDs(byte red, byte green, byte blue);
     void setUnderlightLEDs(byte red, byte green, byte blue);
-    void setBacklightLED(byte index, byte red, byte green, byte blue);
+    void setBacklightLED(byte index, byte red, byte green, byte blue, bool invert);
     void setUnderlightLED(byte index, byte red, byte green, byte blue);
     void setTowerLEDs(byte red, byte green, byte blue);
     void outputLEDBuffer();
@@ -223,9 +227,9 @@ const byte colourTimeB[] = {   0,   0,   0,   0,  51, 192, 255, 255, 255, 153};
 
 // Used to define "test" colours
 //                             0    1    2    3    4    5    6    7    8    9
-const byte testColoursR[] = { 255,   0,   0, 255,   0,   0, 128,   0,   0,   0};
-const byte testColoursG[] = {   0, 255,   0,   0, 255,   0,   0, 128,   0,   0};
-const byte testColoursB[] = {   0,   0, 255,   0,   0, 255,   0,   0, 128,   0};
+const byte testColoursR[] = { 255,   0,   0, 255, 255,   0, 255,   0,   0,   0};
+const byte testColoursG[] = { 255, 255,   0,   0, 255, 255,   0, 128,  32,   0};
+const byte testColoursB[] = { 255,   0, 255,   0,   0, 255, 255,   0,   0,   0};
 
 // Used to define "dayOfWeek" colours
 //                            0    1    2    3    4    5    6

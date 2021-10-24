@@ -10,6 +10,17 @@ void LDRManager_::setUp()
   debugMsg("Config sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
   debugMsg("Config minDim %: " + String(cc->minDim));
   #endif
+
+  #ifdef DEBUG_ON
+  debugMsg("Start up dimming PWM");
+  #endif
+  const int PWMFreq = 1000; /* 1 KHz */
+  const int PWMResolution = 12;
+  const int MAX_DUTY_CYCLE = (int)(pow(2, PWMResolution) - 1);
+
+  ledcSetup(LDRPWMChannel, PWMFreq, PWMResolution);
+  ledcAttachPin(BLANKPin, LDRPWMChannel);
+  ledcWrite(LDRPWMChannel, MAX_DUTY_CYCLE);
 }
 
 // ************************************************************
@@ -62,6 +73,8 @@ void LDRManager_::getDimmingFromLDR() {
     debugMsg("Not using _ldrValue setting to min: " + String(cc->minDim));
     #endif
   }
+
+  ledcWrite(LDRPWMChannel, _ldrValue);
 }
 
 // ************************************************************
