@@ -202,7 +202,6 @@ void resetOptions() {
   // setWebUserName(WEB_USERNAME_DEFAULT);
   // setWebPassword(WEB_PASSWORD_DEFAULT);
   cc->hueOffset = HUE_OFFSET_DEFAULT;
-  cc->invertSecondLEDs = INVERT_SECOND_LEDS_DEFAULT;
   
   cc->testMode = true;
   cc->wasSetup = true;
@@ -678,6 +677,7 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["useBLDim"] = cc->useBLDim;
   root["useBLPulse"] = cc->useBLPulse;
   root["cycleSpeed"] = cc->cycleSpeed;
+  root["backlightDimFactor"] = cc->backlightDimFactor;
   root["hueOffset"] = cc->hueOffset;
 
   response->setLength();
@@ -771,14 +771,15 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
 
     // ------------------------------------------------------------
 
-    compareAndUpdateByte(json, "backlightMode", &cc->backlightMode);
-    compareAndUpdateByte(json, "redCnl",        &cc->redCnl);
-    compareAndUpdateByte(json, "grnCnl",        &cc->grnCnl);
-    compareAndUpdateByte(json, "bluCnl",        &cc->bluCnl);
-    compareAndUpdateBool(json, "useBLDim",      &cc->useBLDim);
-    compareAndUpdateBool(json, "useBLPulse",    &cc->useBLPulse);
-    compareAndUpdateByte(json, "cycleSpeed",    &cc->cycleSpeed);
-    compareAndUpdateInt (json, "hueOffset",     &cc->hueOffset);
+    compareAndUpdateByte(json, "backlightMode",      &cc->backlightMode);
+    compareAndUpdateByte(json, "redCnl",             &cc->redCnl);
+    compareAndUpdateByte(json, "grnCnl",             &cc->grnCnl);
+    compareAndUpdateByte(json, "bluCnl",             &cc->bluCnl);
+    compareAndUpdateBool(json, "useBLDim",           &cc->useBLDim);
+    compareAndUpdateBool(json, "useBLPulse",         &cc->useBLPulse);
+    compareAndUpdateByte(json, "cycleSpeed",         &cc->cycleSpeed);
+    compareAndUpdateByte(json, "backlightDimFactor", &cc->backlightDimFactor);
+    compareAndUpdateInt (json, "hueOffset",          &cc->hueOffset);
 
     // ------------------------------------------------------------
 

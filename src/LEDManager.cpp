@@ -17,15 +17,17 @@ void LEDManager_::setUp()
 // ************************************************************
 void LEDManager_::recalculateVariables() {
   _backlightDim = (float) cc->backlightDimFactor / (float) 100;
+
 #ifdef FEATURE_EXT_LEDS
   _underlightDim = (float) cc->extDimFactor / (float) 100;
 #endif
+
   if (cc->hueOffset == 0) {
     _invertSecondLed = false;
     _hueOffset = 0;
   } else {
     _invertSecondLed = true;
-    _hueOffset = cc->hueOffset / 360.0;
+    _hueOffset = (cc->hueOffset % 360) / 360.0;
   }
 }
 
@@ -35,7 +37,6 @@ void LEDManager_::recalculateVariables() {
 void LEDManager_::setLDRValue(unsigned int ldrValue)
 {
   if (cc->useBLDim) {
-    // calculate the PWM factor, goes between current_config.minDim% and 100%
     _ldrDimFactor = (float) (_ldrRange - ldrValue) / _ldrRange;
   }
 }
@@ -72,7 +73,16 @@ void LEDManager_::setBlanked(boolean blanked)
 // ************************************************************
 void LEDManager_::setBacklightLEDs(byte red, byte green, byte blue) {
   for (int i = 0 ; i < NUM_BL_PIXELS ; i++) {
-    setBacklightLED(i, red, green, blue, cc->invertSecondLEDs);
+    setBacklightLED(i, red, green, blue, _invertSecondLed);
+  }
+}
+
+// ************************************************************
+// Set back light LEDs to the same colour
+// ************************************************************
+void LEDManager_::setTowerHueOffset(int value) {
+  if (value >= 0) {
+    _towerHueOffset = (value % 360) / 360.0;
   }
 }
 
@@ -84,7 +94,7 @@ void LEDManager_::setBacklightLED(byte index, byte red, byte green, byte blue, b
     uint8_t inv_red = 0;
     uint8_t inv_green = 0;
     uint8_t inv_blue = 0;
-    InvertRGB(red, green, blue, inv_red, inv_green, inv_blue);
+    adjustRGB(red, green, blue, inv_red, inv_green, inv_blue, _hueOffset);
     ledRb[LED_ADDR[index]] = inv_red;
     ledGb[LED_ADDR[index]] = inv_green;
     ledBb[LED_ADDR[index]] = inv_blue;
@@ -100,13 +110,17 @@ void LEDManager_::setBacklightLED(byte index, byte red, byte green, byte blue, b
 // ************************************************************
 void LEDManager_::setTowerLEDs(byte red, byte green, byte blue) {
   #ifdef FEATURE_SEP_LED
-    ledRb[4] = red;
-    ledGb[4] = green;
-    ledBb[4] = blue;
+    uint8_t inv_red = 0;
+    uint8_t inv_green = 0;
+    uint8_t inv_blue = 0;
+    adjustRGB(red, green, blue, inv_red, inv_green, inv_blue, _towerHueOffset);
+    ledRb[4] = inv_red;
+    ledGb[4] = inv_green;
+    ledBb[4] = inv_blue;
     
-    ledRb[9] = red;
-    ledGb[9] = green;
-    ledBb[9] = blue;
+    ledRb[9] = inv_red;
+    ledGb[9] = inv_green;
+    ledBb[9] = inv_blue;
   #endif
 }
 
@@ -205,7 +219,7 @@ void LEDManager_::processLedStatus() {
                               getLEDAdjustedBL(colourTimeR[numVal]),
                               getLEDAdjustedBL(colourTimeG[numVal]),
                               getLEDAdjustedBL(colourTimeB[numVal]),
-                              cc->invertSecondLEDs);
+                              _invertSecondLed);
               setUnderlightLED(i, 
                               getLEDAdjustedUL(colourTimeR[numVal]),
                               getLEDAdjustedUL(colourTimeG[numVal]),
@@ -361,6 +375,9 @@ void LEDManager_::cycleColours3(int colors[3]) {
   }
 }
 
+// ************************************************************
+// Decides if we pause the colout time or not (false = pause)
+// ************************************************************
 void LEDManager_::setSyncColourTime(boolean value) {
   _syncColourTime = value;
 }
@@ -403,7 +420,7 @@ bool LEDManager_::isSecondLED(byte index) {
 // ************************************************************
 // Find the colour wheel inverse of the input RGB colour
 // ************************************************************
-void LEDManager_::InvertRGB(uint8_t red, uint8_t green, uint8_t blue, uint8_t& inv_red, uint8_t& inv_green, uint8_t& inv_blue) {
+void LEDManager_::adjustRGB(uint8_t red, uint8_t green, uint8_t blue, uint8_t& inv_red, uint8_t& inv_green, uint8_t& inv_blue, double hueOffset) {
   double hue, saturation, value;
   
 	auto rd = static_cast<double>(red) / 255;
@@ -436,7 +453,7 @@ void LEDManager_::InvertRGB(uint8_t red, uint8_t green, uint8_t blue, uint8_t& i
 	}
 
   // move the hue round
-  hue += _hueOffset;
+  hue += hueOffset;
   if (hue >= 1.0) {hue-=1.0;}
 
   // Serial.println("Hue: " + String(hue));

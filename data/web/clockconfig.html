@@ -205,6 +205,7 @@
                         <select class="form-control" name="mdBlankMode" id="mdBlankMode">
                             <option selected value="0">Motion detector overrides day blanking</option>
                             <option value="1">Motion detector follows day blanking</option>
+                            <option value="2">Disable motion detector</option>
                         </select>
                     </div>
                 </div>
@@ -316,6 +317,13 @@
                     <label class="control-label col-xs-3" for="cycleSpeed">Backlight Cycle Speed:</label>
                     <div class="col-xs-2">
                         <input type="number" class="form-control" name="cycleSpeed" id="cycleSpeed" min="2" max="64" value="10">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="cycleSpeed">Backlight Dim Factor:</label>
+                    <div class="col-xs-2">
+                        <input type="number" class="form-control" name="backlightDimFactor" id="backlightDimFactor" min="10" max="100" value="100">
                     </div>
                 </div>
 
@@ -437,8 +445,9 @@
         setCurrentRadioValue("#useBLDim", "#useBLDimOff", config.useBLDim);
         setCurrentRadioValue("#useBLPulse", "#useBLPulseOff", config.useBLPulse);
         $("#cycleSpeed").val(config.cycleSpeed);
+        $("#backlightDimFactor").val(config.backlightDimFactor);
         $("#hueOffset").val(config.hueOffset);
-
+        
         // -- Triggers for dependent settings --
         handleScrollbackClick($("#scrollback"));
         handleFadeClick($("#fade"));
@@ -563,6 +572,10 @@
             postBody["cycleSpeed"] = $("#cycleSpeed").val();
         }
 
+        if (localConfig.backlightDimFactor!=$("#backlightDimFactor").val()) {
+            postBody["backlightDimFactor"] = $("#backlightDimFactor").val();
+        }
+        
         if (localConfig.hueOffset!=$("#hueOffset").val()) {
             postBody["hueOffset"] = $("#hueOffset").val();
         }

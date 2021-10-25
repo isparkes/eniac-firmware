@@ -16,6 +16,19 @@ int EncoderManager_::getCount() {
   return _encoder.getCount()/2;
 }
 
+bool EncoderManager_::getButtonState() {
+  return digitalRead(ENC_BTN);
+}
+
+bool EncoderManager_::isAttached() {
+  return _encoder.isAttached();
+}
+
+void EncoderManager_::clearCount() {
+  _encoder.clearCount();
+}
+
+
 EncoderManager_ &EncoderManager_::getInstance() {
   static EncoderManager_ instance;
   return instance;

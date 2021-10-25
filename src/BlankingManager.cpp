@@ -34,7 +34,7 @@ bool BlankingManager_::checkPIR(unsigned long nowMillis) {
 }
 
 // ************************************************************
-// Check the blanking
+// Check the blanking based on the day/time
 // ************************************************************
 bool BlankingManager_::checkTimeBasedBlanking(byte currentWeekday, byte currentHour) {
   switch (cc->dayBlanking) {
@@ -86,11 +86,17 @@ bool BlankingManager_::getHoursBlanked(byte currentHour) {
   }
 }
 
+// ************************************************************
+// Get the overall blanking status
+// ************************************************************
 bool BlankingManager_::getBlankingStatus(unsigned long nowMillis, byte currentWeekday, byte currentHour) {
   _pirBlanked = checkPIR(nowMillis);
   _timeBasedBlanked = checkTimeBasedBlanking(currentWeekday, currentHour);
 
-  if (cc->mdBlankMode == MD_RESPECT_BLANK) {
+  if (cc->mdBlankMode == MD_DISABLE) {
+    // don't take the MD into account at all
+    _blanked = _timeBasedBlanked;
+  } else if (cc->mdBlankMode == MD_RESPECT_BLANK) {
     // respect quiet period: use PIR when not in time based blanking
     _blanked = _timeBasedBlanked || _pirBlanked;
   } else {

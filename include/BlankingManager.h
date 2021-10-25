@@ -11,7 +11,8 @@
 #define MD_BLANK_MIN                   0
 #define MD_OVERRIDE_BLANK              0     // Motion detection overrides blanking period
 #define MD_RESPECT_BLANK               1     // Motion detection will not trigger during blanking period
-#define MD_BLANK_MAX                   1
+#define MD_DISABLE                     2     // Motion detection disabled
+#define MD_BLANK_MAX                   2
 #define MD_BLANK_DEFAULT               0
 
 class BlankingManager_ {

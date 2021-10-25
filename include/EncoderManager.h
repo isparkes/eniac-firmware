@@ -16,6 +16,9 @@ class EncoderManager_ {
   public:
     void setup();
     int getCount();
+    bool getButtonState();
+    bool isAttached();
+    void clearCount();
 
   private:
     ESP32Encoder _encoder;

@@ -261,9 +261,9 @@ bool SpiffsStorage_::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
         debugMsg("Loaded hueOffset: " + String(spiffs_config->hueOffset));
         #endif
 
-        spiffs_config->invertSecondLEDs = json["invertSecondLEDs"];
+        spiffs_config->backlightDimFactor = json["backlightDimFactor"];
         #ifdef DEBUG_ON
-        debugMsg("Loaded invertSecondLEDs: " + String(spiffs_config->invertSecondLEDs));
+        debugMsg("Loaded backlightDimFactor: " + String(spiffs_config->backlightDimFactor));
         #endif
 
         spiffs_config->testMode = json["testMode"].as<bool>();
@@ -341,8 +341,8 @@ void SpiffsStorage_::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
   json["alarmHour"] = spiffs_config->alarmHour;
   json["alarmMinute"] = spiffs_config->alarmMinute;
   json["sepMode"] = spiffs_config->sepMode;
+  json["backlightDimFactor"] = spiffs_config->backlightDimFactor;
   json["hueOffset"] = spiffs_config->hueOffset;
-  json["invertSecondLEDs"] = spiffs_config->invertSecondLEDs;
 
   json["testMode"] = spiffs_config->testMode;
   json["wasSetup"] = spiffs_config->wasSetup;

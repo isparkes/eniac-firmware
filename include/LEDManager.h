@@ -74,9 +74,6 @@
 #define HUE_OFFSET_DEFAULT              30
 
 // -------------------------------------------------------------------------------
-#define INVERT_SECOND_LEDS_DEFAULT      false
-
-// -------------------------------------------------------------------------------
 #define LED_MODE_MIN        0
 #define LED_RAILROAD        0
 #define LED_BLINK_SLOW      1
@@ -143,6 +140,9 @@ class LEDManager_
 
     // Use colour inverting for the second LED of each tube
     void setInvertLEDs(boolean value);
+
+    // Set the tower hue offset
+    void setTowerHueOffset(int value);
   private:
     float _backlightDim = 1.0;
     float _underlightDim = 1.0;
@@ -157,6 +157,7 @@ class LEDManager_
     byte _dow = 0;
     bool _invertSecondLed = true;
     double _hueOffset = 0.0;
+    double _towerHueOffset = 0.0;
 
     // Strategy 3
     int changeSteps = 0;
@@ -185,7 +186,7 @@ class LEDManager_
     byte getLEDAdjustedUL(byte rawValue);
     void cycleColours3(int colors[3]);
     bool isSecondLED(byte index);
-    void InvertRGB(uint8_t red, uint8_t green, uint8_t blue, uint8_t& inv_red, uint8_t& inv_green, uint8_t& inv_blue);
+    void adjustRGB(uint8_t red, uint8_t green, uint8_t blue, uint8_t& inv_red, uint8_t& inv_green, uint8_t& inv_blue, double hueOffset);
 
 };
 

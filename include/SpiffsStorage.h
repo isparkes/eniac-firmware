@@ -51,7 +51,6 @@ typedef struct {
   byte sepMode;
   byte backlightDimFactor;
   int  hueOffset;
-  bool invertSecondLEDs;
 
   // not saved
   int diagsMode;

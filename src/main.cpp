@@ -541,8 +541,6 @@ void setLedsDiags()
 }
 #endif
 
-int encoderCount;
-
 // ************************************************************
 // Called once per second
 // ************************************************************
@@ -607,8 +605,6 @@ void performOncePerSecondProcessing() {
 
   blinkenlightsManager.setBlinkenlightsStatus(bl);
 
-  encoderCount = encoderManager.getCount();
-
 #ifdef DIGIT_DIAGNOSTICS
   if (cc->diagsMode == 0) {
     loadNumberArrayTime();
@@ -634,26 +630,16 @@ void performOncePerSecondProcessing() {
     }
   }
 
-  // debugMsg("EncBTN: " + String(digitalRead(encBTN)));
-  // debugMsg("EncCount: " + String((int) encoder.getCount()));
-
-  // debugMsg("Enc Attached: " + String(encoder.isAttached()));
-
-  // if (useRTC) {
-  //   debugMsg("RTC Enabled");
-  //   debugMsg("RTC result: " + getRTCTime(false));
-  // } else {
-  //   debugMsg("RTC NOT Enabled");
-  // }
-
-  // debugMsg("Impressions: " + String(impressions));
-  // debugMsg("Outputs:  " + String(outputs1) + ":" + String(outputs2) + ":" + String(outputs3));
-  // debugMsg("Switches: " + String(switches1) + ":" + String(switches2) + ":" + String(switches3));
-
-  // debugMsg("val1: " + String(val1) + ":" + String(nextVal1));
+//  debugMsg("EncBTN: " + String(encoderManager.getButtonState()));
+//  debugMsg("EncCount: " + String((int) encoderManager.getCount()));
+//  debugMsg("Enc Attached: " + String(encoderManager.isAttached()));
 
   blankingManager.getBlankingStatus(nowMillis, weekday(), hour());
+
   ledManager.setBlanked(blankingManager.getCurrentBlankLEDs());
+
+  ledManager.setTowerHueOffset((int) encoderManager.getCount());
+  ledManager.recalculateVariables();
 
   // Feed the GPS parser
   while (Serial.available()) {
