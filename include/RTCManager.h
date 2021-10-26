@@ -5,6 +5,7 @@
 #include "defs.h"
 #include "utilities.h"
 #include <TimeLib.h>
+#include "DebugManager.h"
 
 // ----------------------- Defines -----------------------
 
@@ -41,6 +42,12 @@ class DS1307_ {
     void setTimeFromServer(String timeString, unsigned long nowMillis);
     String getEstimatedCurrentRTCTime(unsigned long nowMillis);
     unsigned long getLastRTCSetTime();
+    
+    // Turn off or on logging
+    void setDebugOutput(bool newDebug);
+    
+    // callbacks
+    void setDebugCallback(DebugCallback dbcb);
 private:
     DS1307_() = default; // Make constructor private
 
@@ -61,6 +68,11 @@ private:
     uint8_t _month;
     uint16_t _year;
     unsigned long _lastRTCSetTime = 0;
+
+    DebugCallback _dbcb;
+    bool _debug = false;
+
+    void debugMsg(String message);                        // print a debug message to the callback
 };
 
 extern DS1307_ &rtcManager;

@@ -4,6 +4,7 @@
 #include <ESPAsyncWebServer.h>
 #include "globals.h"
 #include "utilities.h"
+#include "DebugManager.h"
 
 class WebManager_ {
   private:
@@ -14,10 +15,20 @@ class WebManager_ {
 
     WebManager_(const WebManager_ &) = delete; // no copying
     WebManager_ &operator=(const WebManager_ &) = delete;
-
+    
+    // Turn off or on logging
+    void setDebugOutput(bool newDebug);
+    
+    // callbacks
+    void setDebugCallback(DebugCallback dbcb);
   public:
     void begin();
     void doStuff();
+  private:
+    DebugCallback _dbcb;
+    bool _debug = false;
+
+    void debugMsg(String message);      
 };
 
 extern AsyncWebServer server;

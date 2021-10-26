@@ -4,6 +4,7 @@
 #include "Arduino.h"
 #include "globals.h"
 #include "SpiffsStorage.h"
+#include "DebugManager.h"
 
 // -------------------------------------------------------------------------------
 // LDR Manager deals with the light sensor. Has the following functions:
@@ -47,6 +48,7 @@ class LDRManager_
     void getDimmingFromLDR();
     int  getLDRValue();
 
+    // Turn off or on logging
     void setDebugOutput(bool newDebug);
     
     // callbacks

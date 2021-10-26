@@ -6,8 +6,8 @@
 #include <WiFi.h>
 #include <DNSServer.h>          //https://github.com/esp8266/Arduino/tree/master/libraries/DNSServer
 #include "defs.h"               // for DEBUG setting
+#include "DebugManager.h"
 
-typedef void (*DebugCallback) (String);
 typedef void (*NewTimeCallback) ();
 
 // ------------------------ NTP ------------------------

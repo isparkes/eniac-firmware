@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <ESP32Encoder.h>
+#include "DebugManager.h"
 
 class EncoderManager_ {
   private:
@@ -19,9 +20,16 @@ class EncoderManager_ {
     bool getButtonState();
     bool isAttached();
     void clearCount();
+    void setDebugOutput(bool newDebug);
 
+    // callbacks
+    void setDebugCallback(DebugCallback dbcb);
   private:
     ESP32Encoder _encoder;
+    DebugCallback _dbcb;
+    bool _debug = false;
+
+    void debugMsg(String message);                        // print a debug message to the callback
 };
 
 extern EncoderManager_ &encoderManager;

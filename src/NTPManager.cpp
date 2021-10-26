@@ -286,7 +286,7 @@ void NtpManager_::getTimeFromNTP(unsigned long nowMillis) {
 // ************************************************************
 void NtpManager_::debugMsg(String message) {
   if (_dbcb != NULL && _debug) {
-    _dbcb("NTP: " + message);
+    _dbcb("[NTP]: " + message);
   }
 }
 

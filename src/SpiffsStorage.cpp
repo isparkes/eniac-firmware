@@ -461,7 +461,7 @@ void SpiffsStorage_::debugMsg(String message)
 {
   if (_dbcb != NULL && _debug)
   {
-    _dbcb("SPIFFS: " + message);
+    _dbcb("[SPF]: " + message);
   }
 }
 

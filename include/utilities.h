@@ -24,6 +24,7 @@
 #include "BlankingManager.h"
 #include "RTCManager.h"
 #include "NTPManager.h"
+#include "DebugManager.h"
 
 // -------------------------------------------------------------------------------
 
@@ -37,11 +38,6 @@
 const uint32_t DECODE_DIGIT[] = { 0x0200, 0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020, 0x0040, 0x0080, 0x0100};
 const uint32_t DECODE_LED[]          = { 0x800000, 0x400000};
 const uint32_t DECODE_BLINKENIGHTS[] = { 0x200000, 0x100000};
-
-#ifdef DEBUG_ON
-void debugMsg(String message);
-void debugMsgCont(String message);
-#endif
 
 void newTimeUpdateReceived();
 

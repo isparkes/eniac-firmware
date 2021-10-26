@@ -23,6 +23,33 @@ void MyLib_::doStuff() {
   delay(800);
 }
 
+// ************************************************************
+// Output a logging message to the debug output, if set
+// ************************************************************
+void MyLib_::debugMsg(String message) {
+  if (_dbcb != NULL && _debug) {
+    _dbcb("[LIB]: " + message);
+  }
+}
+
+// ************************************************************
+// Set the callback for outputting debug messages
+// ************************************************************
+void MyLib_::setDebugCallback(DebugCallback dbcb) {
+  _dbcb = dbcb;
+  debugMsg("Debugging started, callback set");
+}
+
+// ************************************************************
+// set the update interval
+// ************************************************************
+void MyLib_::setDebugOutput(bool newDebug) {
+  _debug = newDebug;
+}
+
+// ************************************************************
+// Library internal singleton wiring
+// ************************************************************
 MyLib_ &MyLib_::getInstance() {
   static MyLib_ instance;
   return instance;

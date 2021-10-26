@@ -4,16 +4,6 @@
 // ----------------------------------------  Utility functions  -------------------------------------------
 // --------------------------------------------------------------------------------------------------------
 
-void debugMsg(String message) {
-    Serial.println(message);
-    Serial.flush();
-}
-
-void debugMsgCont(String message) {
-    Serial.print(message);
-    Serial.flush();
-}
-
 // ************************************************************
 // Split a separated string into individual array elements
 // ************************************************************
@@ -208,7 +198,7 @@ void resetOptions() {
 
   spiffsStorage.saveConfigToSpiffs(cc);
   #ifdef DEBUG_ON
-  debugMsg("Saved factory config");
+  debugManager.debugMsg("Saved factory config");
   #endif
 }
 
@@ -244,7 +234,7 @@ void wifiBeginWithCredentials() {
 // ************************************************************
 void newTimeUpdateReceived() {
   #ifdef DEBUG_ON
-  debugMsg("Got a new time update: " + ntpManager.getLastTimeFromServer());
+  debugManager.debugMsg("Got a new time update: " + ntpManager.getLastTimeFromServer());
   #endif
   rtcManager.setTimeFromServer(ntpManager.getLastTimeFromServer(), nowMillis);
 }
@@ -441,19 +431,19 @@ void dumpArgs(AsyncWebServerRequest *request) {
   for(i=0;i<headers;i++){
     AsyncWebHeader* h = request->getHeader(i);
     String message = "HEADER[" + h->name() + ":" + h->value();
-    debugMsg(message);
+    debugManager.debugMsg(message);
   }
 
   if (request->hasArg("body")) {
-    debugMsg("Body found arg");
+    debugManager.debugMsg("Body found arg");
   }
   if (request->hasParam("body")) {
-    debugMsg("Body found param");
+    debugManager.debugMsg("Body found param");
   }
   int args = request->args();
   for(int i=0;i<args;i++){
     String message = "ARG[" + request->argName(i) + "]: " + request->arg(i); 
-    debugMsg(message);
+    debugManager.debugMsg(message);
   }  
 }
 #endif
@@ -464,7 +454,7 @@ void dumpArgs(AsyncWebServerRequest *request) {
 // ************************************************************
 void mainHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-	debugMsg("Got request");
+	debugManager.debugMsg("Got request");
   #endif
 	request->send(SPIFFS, "/web/index.html");
 }
@@ -474,7 +464,7 @@ void mainHandler(AsyncWebServerRequest *request) {
 // ************************************************************
 void cssHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-	debugMsg("Got css request");
+	debugManager.debugMsg("Got css request");
   #endif
 	request->send(SPIFFS, "/web/style.css");
 }
@@ -484,7 +474,7 @@ void cssHandler(AsyncWebServerRequest *request) {
 // ************************************************************
 void getSummaryDataHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got api summary GET request");
+  debugManager.debugMsg("Got api summary GET request");
   #endif
   
   signed long absNextUpdate = abs(ntpManager.getNextUpdate(nowMillis));
@@ -562,7 +552,7 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
 // ************************************************************
 void getDiagsDataHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got api diagnostics GET request");
+  debugManager.debugMsg("Got api diagnostics GET request");
   #endif
   
   AsyncJsonResponse * response = new AsyncJsonResponse();
@@ -602,7 +592,7 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
 
 void postDiagsDataHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got diags POST request");
+  debugManager.debugMsg("Got diags POST request");
   #endif
   
   DynamicJsonBuffer jsonBuffer;
@@ -610,11 +600,11 @@ void postDiagsDataHandler(AsyncWebServerRequest *request) {
 
   if (json.success()) {
     #ifdef DEBUG_ON
-    debugMsg("Diags mode before: " + String(cc->diagsMode));
+    debugManager.debugMsg("Diags mode before: " + String(cc->diagsMode));
     #endif
     cc->diagsMode = json["diagsMode"].as<int>();
     #ifdef DEBUG_ON
-    debugMsg("Diags mode after: " + String(cc->diagsMode));
+    debugManager.debugMsg("Diags mode after: " + String(cc->diagsMode));
     #endif
   }
    
@@ -628,7 +618,7 @@ void postDiagsDataHandler(AsyncWebServerRequest *request) {
 
 void saveStatsHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got save stats request");
+  debugManager.debugMsg("Got save stats request");
   #endif
 
   spiffsStorage.saveStatsToSpiffs(cs);
@@ -641,7 +631,7 @@ void saveStatsHandler(AsyncWebServerRequest *request) {
 // ************************************************************
 void getConfigDataHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got api config GET request");
+  debugManager.debugMsg("Got api config GET request");
   #endif
   
   AsyncJsonResponse * response = new AsyncJsonResponse();
@@ -689,11 +679,11 @@ void compareAndUpdateByte(JsonObject& json, const char* key, byte* variable) {
     byte newVal = json[key];
     if (*variable != newVal) {
       #ifdef DEBUG_ON
-      debugMsg(String(key) + " old: " + String(*variable));
+      debugManager.debugMsg(String(key) + " old: " + String(*variable));
       #endif
       *variable = newVal;
       #ifdef DEBUG_ON
-      debugMsg(String(key) + " new: " + String(*variable));
+      debugManager.debugMsg(String(key) + " new: " + String(*variable));
       #endif
     }
   }
@@ -704,11 +694,11 @@ void compareAndUpdateInt(JsonObject& json, const char* key, int* variable) {
     int newVal = json[key];
     if (*variable != newVal) {
       #ifdef DEBUG_ON
-      debugMsg(String(key) + " old: " + String(*variable));
+      debugManager.debugMsg(String(key) + " old: " + String(*variable));
       #endif
       *variable = newVal;
       #ifdef DEBUG_ON
-      debugMsg(String(key) + " new: " + String(*variable));
+      debugManager.debugMsg(String(key) + " new: " + String(*variable));
       #endif
     }
   }
@@ -718,11 +708,11 @@ void compareAndUpdateBool(JsonObject& json, const char* key, bool* variable) {
     bool newVal = json[key].as<bool>();
     if (*variable != newVal) {
       #ifdef DEBUG_ON
-      debugMsg(String(key) + " old: " + String(*variable));
+      debugManager.debugMsg(String(key) + " old: " + String(*variable));
       #endif
       *variable = newVal;
       #ifdef DEBUG_ON
-      debugMsg(String(key) + " new: " + String(*variable));
+      debugManager.debugMsg(String(key) + " new: " + String(*variable));
       #endif
     }
   }
@@ -730,7 +720,7 @@ void compareAndUpdateBool(JsonObject& json, const char* key, bool* variable) {
 
 void postConfigDataHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got api config POST request");
+  debugManager.debugMsg("Got api config POST request");
   #endif
 
   // dumpArgs(request);
@@ -785,11 +775,11 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
 
     spiffsStorage.saveConfigToSpiffs(cc);
     #ifdef DEBUG_ON
-    debugMsg("Saved new config");
+    debugManager.debugMsg("Saved new config");
     #endif
   } else {
     #ifdef DEBUG_ON
-    debugMsg("Json parse failure: " + String(request->arg("body")));
+    debugManager.debugMsg("Json parse failure: " + String(request->arg("body")));
     #endif
   }
 
@@ -802,7 +792,7 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
 // ************************************************************
 void getTimeserverDataHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got api timeserver GET request");
+  debugManager.debugMsg("Got api timeserver GET request");
   #endif
   
   AsyncJsonResponse * response = new AsyncJsonResponse();
@@ -817,7 +807,7 @@ void getTimeserverDataHandler(AsyncWebServerRequest *request) {
 
 void postTimeserverDataHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got api timeserver POST request");
+  debugManager.debugMsg("Got api timeserver POST request");
   #endif
   
   // dumpArgs(request);
@@ -827,21 +817,21 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
 
   if (json.success()) {
     #ifdef DEBUG_ON
-    debugMsg("NTP pool before: " + cc->ntpPool);
+    debugManager.debugMsg("NTP pool before: " + cc->ntpPool);
     #endif
     cc->ntpPool = json["ntpPool"].as<String>();
     #ifdef DEBUG_ON
-    debugMsg("Loaded NTP pool: " + cc->ntpPool);
+    debugManager.debugMsg("Loaded NTP pool: " + cc->ntpPool);
     #endif
 
     cc->ntpUpdateInterval = json["ntpUpdateInterval"].as<int>();
     #ifdef DEBUG_ON
-    debugMsg("Loaded NTP update interval: " + String(cc->ntpUpdateInterval));
+    debugManager.debugMsg("Loaded NTP update interval: " + String(cc->ntpUpdateInterval));
     #endif
 
     cc->tzs = json["tzs"].as<String>();
     #ifdef DEBUG_ON
-    debugMsg("Loaded time zone string: " + cc->tzs);
+    debugManager.debugMsg("Loaded time zone string: " + cc->tzs);
     #endif
 
     // Now apply the new confog
@@ -849,16 +839,16 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
     ntpManager.setUpdateInterval(cc->ntpUpdateInterval);
     ntpManager.setTZS(cc->tzs);
     #ifdef DEBUG_ON
-    debugMsg("Applied new time config");
+    debugManager.debugMsg("Applied new time config");
     #endif
 
     spiffsStorage.saveConfigToSpiffs(cc);
     #ifdef DEBUG_ON
-    debugMsg("Saved new time config");
+    debugManager.debugMsg("Saved new time config");
     #endif
   } else {
     #ifdef DEBUG_ON
-    debugMsg("Json parse failure: " + String(request->arg("body")));
+    debugManager.debugMsg("Json parse failure: " + String(request->arg("body")));
     #endif
   }
 
@@ -877,7 +867,7 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
 // ************************************************************
 void getCredentialsHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got api wifi credentials request");
+  debugManager.debugMsg("Got api wifi credentials request");
   #endif
   
   #ifdef DEBUG_ON
@@ -896,7 +886,7 @@ void getCredentialsHandler(AsyncWebServerRequest *request) {
 
 void getWifiConnected(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got api wifi connected request");
+  debugManager.debugMsg("Got api wifi connected request");
   #endif
   
   String isConnected = "";
@@ -911,7 +901,7 @@ void getWifiConnected(AsyncWebServerRequest *request) {
 
 void postWiFiDataHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got api wifi POST request");
+  debugManager.debugMsg("Got api wifi POST request");
   #endif
   
   // dumpArgs(request);
@@ -922,17 +912,17 @@ void postWiFiDataHandler(AsyncWebServerRequest *request) {
   if (json.success()) {
     String newSSID = json["SSID"].as<String>();
     #ifdef DEBUG_ON
-    debugMsg("Received SSID: " + newSSID);
+    debugManager.debugMsg("Received SSID: " + newSSID);
     #endif
 
     String newPassword = json["password"].as<String>();
     #ifdef DEBUG_ON
-    debugMsg("Received password: " + newPassword);
+    debugManager.debugMsg("Received password: " + newPassword);
     #endif
 
   } else {
     #ifdef DEBUG_ON
-    debugMsg("Json parse failure: " + String(request->arg("body")));
+    debugManager.debugMsg("Json parse failure: " + String(request->arg("body")));
     #endif
   }
 
@@ -946,7 +936,7 @@ void postWiFiDataHandler(AsyncWebServerRequest *request) {
 // ************************************************************
 void restartHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got api restart request");
+  debugManager.debugMsg("Got api restart request");
   #endif
   
   AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"Restart in 1s\"}");
@@ -958,7 +948,7 @@ void restartHandler(AsyncWebServerRequest *request) {
 
 void resetWifiHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got utils RESET request");
+  debugManager.debugMsg("Got utils RESET request");
   #endif
   WiFi.disconnect();
   request->send(200, "text/json", "{\"status\": \"WiFi was reset\"}");
@@ -969,7 +959,7 @@ void resetWifiHandler(AsyncWebServerRequest *request) {
 // ************************************************************
 void getI2CScanHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
-  debugMsg("Got I2C scan request");
+  debugManager.debugMsg("Got I2C scan request");
   #endif
   
   AsyncJsonResponse * response = new AsyncJsonResponse();
@@ -984,25 +974,25 @@ void getI2CScanHandler(AsyncWebServerRequest *request) {
     error = Wire.endTransmission();
     if (error == 0) {
       #ifdef DEBUG_ON
-      debugMsg("I2C device found at address 0x" + String(address, HEX));
+      debugManager.debugMsg("I2C device found at address 0x" + String(address, HEX));
       #endif
       root["I2C"+String(address)] = "found";
       nDevices++;
     }
     else if (error==4) {
       #ifdef DEBUG_ON
-      debugMsg("Unknown error at address 0x" + String(address, HEX));
+      debugManager.debugMsg("Unknown error at address 0x" + String(address, HEX));
       #endif
     }    
   }
   if (nDevices == 0) {
     #ifdef DEBUG_ON
-    debugMsg("No I2C devices found");
+    debugManager.debugMsg("No I2C devices found");
   #endif
   }
   else {
     #ifdef DEBUG_ON
-    debugMsg("done");
+    debugManager.debugMsg("done");
     #endif
   }
 

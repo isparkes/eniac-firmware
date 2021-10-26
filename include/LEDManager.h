@@ -4,6 +4,7 @@
 #include "defs.h"
 #include "globals.h"
 #include "SpiffsStorage.h"
+#include "DebugManager.h"
 
 #include <NeoPixelBus.h>            // https://github.com/Makuna/NeoPixelBus (Makuna 2.6.6)
 
@@ -143,6 +144,12 @@ class LEDManager_
 
     // Set the tower hue offset
     void setTowerHueOffset(int value);
+
+    // Turn off or on logging
+    void setDebugOutput(bool newDebug);
+    
+    // callbacks
+    void setDebugCallback(DebugCallback dbcb);
   private:
     float _backlightDim = 1.0;
     float _underlightDim = 1.0;
@@ -176,6 +183,9 @@ class LEDManager_
     byte ledGu[DIGIT_COUNT];
     byte ledBu[DIGIT_COUNT];
 
+    DebugCallback _dbcb;
+    bool _debug = false;
+
     void setBacklightLEDs(byte red, byte green, byte blue);
     void setUnderlightLEDs(byte red, byte green, byte blue);
     void setBacklightLED(byte index, byte red, byte green, byte blue, bool invert);
@@ -188,6 +198,7 @@ class LEDManager_
     bool isSecondLED(byte index);
     void adjustRGB(uint8_t red, uint8_t green, uint8_t blue, uint8_t& inv_red, uint8_t& inv_green, uint8_t& inv_blue, double hueOffset);
 
+    void debugMsg(String message);                        // print a debug message to the callback
 };
 
 // ************************************************************

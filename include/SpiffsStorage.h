@@ -3,10 +3,9 @@
 #include <FS.h>
 #include <ArduinoJson.h>
 #include "SPIFFS.h"
+#include "DebugManager.h"
 
 // ------------------------ Types ------------------------
-
-typedef void (*DebugCallback) (String);
 
 // Used for holding the config set
 typedef struct {

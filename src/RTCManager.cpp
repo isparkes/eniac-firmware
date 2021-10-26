@@ -243,6 +243,29 @@ bool DS1307_::getRTCValid() {
   return _useRTC;
 }
 
+// ************************************************************
+// Output a logging message to the debug output, if set
+// ************************************************************
+void DS1307_::debugMsg(String message) {
+  if (_dbcb != NULL && _debug) {
+    _dbcb("[RTC]: " + message);
+  }
+}
+
+// ************************************************************
+// Set the callback for outputting debug messages
+// ************************************************************
+void DS1307_::setDebugCallback(DebugCallback dbcb) {
+  _dbcb = dbcb;
+  debugMsg("Debugging started, callback set");
+}
+
+// ************************************************************
+// set the update interval
+// ************************************************************
+void DS1307_::setDebugOutput(bool newDebug) {
+  _debug = newDebug;
+}
 
 // ************************************************************
 // Get singleton instance

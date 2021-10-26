@@ -89,7 +89,7 @@ int LDRManager_::getLDRValue() {
 // ************************************************************
 void LDRManager_::debugMsg(String message) {
   if (_dbcb != NULL && _debug) {
-    _dbcb("LDR: " + message);
+    _dbcb("[LDR]: " + message);
   }
 }
 

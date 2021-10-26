@@ -3,7 +3,7 @@
 // ************************************************************
 // Turn the GPS string into a parsed string
 // ************************************************************
-String GPSManager::parseGPZDAMsg(String messageToParse) {
+String GPSManager_::parseGPZDAMsg(String messageToParse) {
   if (messageToParse.length() == 36) {
     String result = messageToParse.substring(23,27) + ":" +
                     messageToParse.substring(20,22) + ":" + 
@@ -20,7 +20,7 @@ String GPSManager::parseGPZDAMsg(String messageToParse) {
 // ************************************************************
 // Turn the GPS string into a time_t and then onto a time string
 // ************************************************************
-String GPSManager::parseGPZDAMsgToLocaltime(String messageToParse) {
+String GPSManager_::parseGPZDAMsgToLocaltime(String messageToParse) {
   if (messageToParse.length() == 36) {
     time_t tReceived;
     struct tm whenStart;
@@ -45,7 +45,7 @@ String GPSManager::parseGPZDAMsgToLocaltime(String messageToParse) {
 // ************************************************************
 // Picks messages like this "$GPZDA,184937.00,28,08,2021,00,00*65"
 // ************************************************************
-void GPSManager::parseNMEAMsg(char c, unsigned long nowMillis) {
+void GPSManager_::parseNMEAMsg(char c, unsigned long nowMillis) {
 //  debugMsgCont("GPS: " + String(c));
   switch(c) {
     case '\r':
@@ -82,16 +82,16 @@ void GPSManager::parseNMEAMsg(char c, unsigned long nowMillis) {
 // ************************************************************
 // Output a logging message to the debug output, if set
 // ************************************************************
-void GPSManager::debugMsg(String message) {
+void GPSManager_::debugMsg(String message) {
   if (_dbcb != NULL && _debug) {
-    _dbcb("LDR: " + message);
+    _dbcb("[GPS]: " + message);
   }
 }
 
 // ************************************************************
 // Set the callback for outputting debug messages
 // ************************************************************
-void GPSManager::setDebugCallback(DebugCallback dbcb) {
+void GPSManager_::setDebugCallback(DebugCallback dbcb) {
   _dbcb = dbcb;
   debugMsg("Debugging started, callback set");
 }
@@ -99,14 +99,14 @@ void GPSManager::setDebugCallback(DebugCallback dbcb) {
 // ************************************************************
 // set the update interval
 // ************************************************************
-void GPSManager::setDebugOutput(bool newDebug) {
+void GPSManager_::setDebugOutput(bool newDebug) {
   _debug = newDebug;
 }
 
 // ************************************************************
 // Get if we are still in the GPS valid time
 // ************************************************************
-bool GPSManager::getGPSTimeValid(unsigned long nowMillis) {
+bool GPSManager_::getGPSTimeValid(unsigned long nowMillis) {
   if (_lastGPSReadTime > 0) {
     return ((nowMillis - _lastGPSReadTime)/1000 < GPS_READING_VALIDITY_SECS);
   } else {
@@ -117,7 +117,7 @@ bool GPSManager::getGPSTimeValid(unsigned long nowMillis) {
 // ************************************************************
 // Get if we have started to synch, but are not yet ready
 // ************************************************************
-bool GPSManager::getGPSSyncStarted(unsigned long nowMillis) {
+bool GPSManager_::getGPSSyncStarted(unsigned long nowMillis) {
   if (_lastGPSSyncTime > 0) {
     return ((nowMillis - _lastGPSSyncTime)/1000 < GPS_READING_VALIDITY_SECS);
   } else {
@@ -128,30 +128,30 @@ bool GPSManager::getGPSSyncStarted(unsigned long nowMillis) {
 // ************************************************************
 // The last time we last got a GPS update
 // ************************************************************
-unsigned long GPSManager::getLastGPSReadTime() {
+unsigned long GPSManager_::getLastGPSReadTime() {
   return _lastGPSReadTime;
 }
 
 // ************************************************************
 // Get the last GPS time we read
 // ************************************************************
-String GPSManager::getLastGPSTime() {
+String GPSManager_::getLastGPSTime() {
   return _lastGPSTime;
 }
 
 // ************************************************************
 // Get the last raw GPS time string we read
 // ************************************************************
-String GPSManager::getLastGPSTimeRaw() {
+String GPSManager_::getLastGPSTimeRaw() {
   return _lastGPSTimeRaw;
 }
 
 // ************************************************************
 // Get the singleton instance
 // ************************************************************
-GPSManager &GPSManager::getInstance() {
-  static GPSManager instance;
+GPSManager_ &GPSManager_::getInstance() {
+  static GPSManager_ instance;
   return instance;
 }
 
-GPSManager &gpsManager = gpsManager.getInstance();
+GPSManager_ &gpsManager = gpsManager.getInstance();

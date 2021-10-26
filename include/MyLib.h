@@ -1,5 +1,9 @@
 #pragma once
 
+#include <Arduino.h>
+
+typedef void (*DebugCallback) (String);
+
 class MyLib_ {
   private:
     MyLib_() = default; // Make constructor private
@@ -13,6 +17,16 @@ class MyLib_ {
   public:
     void begin();
     void doStuff();
+
+    void setDebugOutput(bool newDebug);
+    
+    // callbacks
+    void setDebugCallback(DebugCallback dbcb);
+  private:
+    DebugCallback _dbcb;
+    bool _debug = false;
+
+    void debugMsg(String message);                        // print a debug message to the callback
 };
 
 extern MyLib_ &MyLib;

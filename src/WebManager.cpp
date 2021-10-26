@@ -63,6 +63,33 @@ void WebManager_::begin() {
 void WebManager_::doStuff() {
 }
 
+// ************************************************************
+// Output a logging message to the debug output, if set
+// ************************************************************
+void WebManager_::debugMsg(String message) {
+  if (_dbcb != NULL && _debug) {
+    _dbcb("[WEB]: " + message);
+  }
+}
+
+// ************************************************************
+// Set the callback for outputting debug messages
+// ************************************************************
+void WebManager_::setDebugCallback(DebugCallback dbcb) {
+  _dbcb = dbcb;
+  debugMsg("Debugging started, callback set");
+}
+
+// ************************************************************
+// set the update interval
+// ************************************************************
+void WebManager_::setDebugOutput(bool newDebug) {
+  _debug = newDebug;
+}
+
+// ************************************************************
+// Get singleton instance
+// ************************************************************
 WebManager_ &WebManager_::getInstance() {
   static WebManager_ instance;
   return instance;

@@ -19,6 +19,15 @@
 #include "NTPManager.h"
 #include "WebManager.h"
 #include <AsyncElegantOTA.h>
+#include "DebugManager.h"
+
+void debugMsg(String message) {
+  debugManager.debugMsg("[LNC]: " + message);
+}
+
+void debugMsgCont(String message) {
+  debugManager.debugMsgCont("[LNC]: " + message);
+}
 
 void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
 {
@@ -287,7 +296,7 @@ void setup()
   debugMsg("Start up SPIFFS");
 
   // define the debug callback
-  DebugCallback dbcb = debugMsg;
+  DebugCallback dbcb = debugManagerLink;
   #endif
 
   // Initialize SPIFFS
@@ -404,7 +413,8 @@ void setup()
   // -------------------------------------------------------------------------
 
   #ifdef DEBUG_ON
-  debugMsg("Start up encoder");
+  encoderManager.setDebugCallback(dbcb);
+  encoderManager.setDebugOutput(true);
   #endif
 
   encoderManager.setup();
@@ -631,7 +641,7 @@ void performOncePerSecondProcessing() {
   }
 
 //  debugMsg("EncBTN: " + String(encoderManager.getButtonState()));
-//  debugMsg("EncCount: " + String((int) encoderManager.getCount()));
+  debugMsg("EncCount: " + String((int) encoderManager.getCount()));
 //  debugMsg("Enc Attached: " + String(encoderManager.isAttached()));
 
   blankingManager.getBlankingStatus(nowMillis, weekday(), hour());

@@ -13,6 +13,7 @@ void EncoderManager_::setup() {
 }
 
 int EncoderManager_::getCount() {
+  debugMsg("Encoder count: " + String((int)_encoder.getCount()));
   return _encoder.getCount()/2;
 }
 
@@ -28,6 +29,29 @@ void EncoderManager_::clearCount() {
   _encoder.clearCount();
 }
 
+// ************************************************************
+// Output a logging message to the debug output, if set
+// ************************************************************
+void EncoderManager_::debugMsg(String message) {
+  if (_dbcb != NULL && _debug) {
+    _dbcb("[ENC]: " + message);
+  }
+}
+
+// ************************************************************
+// Set the callback for outputting debug messages
+// ************************************************************
+void EncoderManager_::setDebugCallback(DebugCallback dbcb) {
+  _dbcb = dbcb;
+  debugMsg("Debugging started, callback set");
+}
+
+// ************************************************************
+// set the update interval
+// ************************************************************
+void EncoderManager_::setDebugOutput(bool newDebug) {
+  _debug = newDebug;
+}
 
 EncoderManager_ &EncoderManager_::getInstance() {
   static EncoderManager_ instance;
