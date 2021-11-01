@@ -22,11 +22,15 @@
 #include "DebugManager.h"
 
 void debugMsg(String message) {
+  #ifdef DEBUG_ON
   debugManager.debugMsg("[LNC]: " + message);
+  #endif
 }
 
 void debugMsgCont(String message) {
+  #ifdef DEBUG_ON
   debugManager.debugMsgCont("[LNC]: " + message);
+  #endif
 }
 
 void WiFiEvent(WiFiEvent_t event, system_event_info_t info)

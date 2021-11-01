@@ -72,10 +72,13 @@ void IRAM_ATTR shiftOut24H(uint32_t _val1) {
   for (i = 0; i < 24; i++) {
     digitalWrite(DATA1Pin, !!(_val1 & (1 << (23 - i))));
     digitalWrite(CLKPin, HIGH);
+    digitalWrite(CLKPin, HIGH);
+    digitalWrite(CLKPin, LOW);
     digitalWrite(CLKPin, LOW);
   }
   digitalWrite(LATCH1Pin, HIGH);
-  for (i = 0; i < 8; i++) NOP();
+  digitalWrite(LATCH1Pin, HIGH);
+  digitalWrite(LATCH1Pin, LOW);
   digitalWrite(LATCH1Pin, LOW);
 }
 
@@ -88,10 +91,13 @@ void IRAM_ATTR shiftOut24M(uint32_t _val1) {
   for (i = 0; i < 24; i++) {
     digitalWrite(DATA2Pin, !!(_val1 & (1 << (23 - i))));
     digitalWrite(CLKPin, HIGH);
+    digitalWrite(CLKPin, HIGH);
+    digitalWrite(CLKPin, LOW);
     digitalWrite(CLKPin, LOW);
   }
   digitalWrite(LATCH2Pin, HIGH);
-  for (i = 0; i < 12; i++) NOP();
+  digitalWrite(LATCH2Pin, HIGH);
+  digitalWrite(LATCH2Pin, LOW);
   digitalWrite(LATCH2Pin, LOW);
 }
 
@@ -104,10 +110,13 @@ void IRAM_ATTR shiftOut24S(uint32_t _val1) {
   for (i = 0; i < 24; i++) {
     digitalWrite(DATA3Pin, !!(_val1 & (1 << (23 - i))));
     digitalWrite(CLKPin, HIGH);
+    digitalWrite(CLKPin, HIGH);
+    digitalWrite(CLKPin, LOW);
     digitalWrite(CLKPin, LOW);
   }
   digitalWrite(LATCH3Pin, HIGH);
-  for (i = 0; i < 16; i++) NOP();
+  digitalWrite(LATCH3Pin, HIGH);
+  digitalWrite(LATCH3Pin, LOW);
   digitalWrite(LATCH3Pin, LOW);
 }
 
@@ -117,7 +126,7 @@ void IRAM_ATTR shiftOut24S(uint32_t _val1) {
 void IRAM_ATTR onTimer1() {
   portENTER_CRITICAL_ISR(&timerMux1);
   _phase++;
-    if (_phase > PHASE_MAX) {
+    if (_phase >= PHASE_MAX) {
     _phase = 0;
     impressions++;
 
@@ -130,32 +139,32 @@ void IRAM_ATTR onTimer1() {
     _val2Next = nextVal2;
     _val3Next = nextVal3;
 
-    if (val1 != _val1curr) {
-      shiftOut24H(val1);
-      _val1curr = val1;
+    if (_val1 != _val1curr) {
+      shiftOut24H(_val1);
+      _val1curr = _val1;
     } 
-    if (val2 != _val2curr) {
-      shiftOut24M(val2);
-      _val2curr = val2;
+    if (_val2 != _val2curr) {
+      shiftOut24M(_val2);
+      _val2curr = _val2;
     }
-    if (val3 != _val3curr) {
-      shiftOut24S(val3);
-      _val3curr = val3;
+    if (_val3 != _val3curr) {
+      shiftOut24S(_val3);
+      _val3curr = _val3;
     }
   }
 
   if (_phase == _switchTime) {
-    if (nextVal1 != _val1curr) {
-      shiftOut24H(nextVal1);
-      _val1curr = nextVal1;
+    if (_val1Next != _val1curr) {
+      shiftOut24H(_val1Next);
+      _val1curr = _val1Next;
     } 
-    if (nextVal2 != _val2curr) {
-      shiftOut24M(nextVal2);
-      _val2curr = nextVal2;
+    if (_val2Next != _val2curr) {
+      shiftOut24M(_val2Next);
+      _val2curr = _val2Next;
     }
-    if (nextVal3 != _val3curr) {
-      shiftOut24S(nextVal3);
-      _val3curr = nextVal3;
+    if (_val3Next != _val3curr) {
+      shiftOut24S(_val3Next);
+      _val3curr = _val3Next;
     }
   }
   portEXIT_CRITICAL_ISR(&timerMux1);

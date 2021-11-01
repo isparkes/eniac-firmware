@@ -341,6 +341,7 @@ void outputDisplay() {
     tmpDispTypeArray[i] = tmpDispType;
   }
 
+  uint8_t tmpSwitchTime = 0;
   if (fadeState == 1) {
     fadeState = 0;
     for (byte j = 0 ; j < DIGIT_COUNT ; j++) {
@@ -350,7 +351,7 @@ void outputDisplay() {
     }
   } else if (fadeState > 0) {
     fadeState--;
-    switchTime = PHASE_MAX - (PHASE_MAX * fadeState / cc->fadeSteps) - 1;
+    tmpSwitchTime = PHASE_MAX - (PHASE_MAX * fadeState / cc->fadeSteps);
   }
 
   uint32_t tmpval1 = decodeFromNumberArray( tmpNumberArray[H10], 
@@ -412,6 +413,7 @@ void outputDisplay() {
   nextVal1 = tmpnextVal1;
   nextVal2 = tmpnextVal2;
   nextVal3 = tmpnextVal3;
+  switchTime = tmpSwitchTime;
   portEXIT_CRITICAL_ISR(&timerMux1);
 }
 
