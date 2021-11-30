@@ -8,7 +8,7 @@
 
 #include <NeoPixelBus.h>            // https://github.com/Makuna/NeoPixelBus (Makuna 2.6.6)
 
-#define FEATURE_SEP_LED             // include the NeoPixels in the separator towers
+#define FEATURE_SEP_LED_OFF             // include the NeoPixels in the separator towers
 
 // Led Manager
 #define WS2812B                     // APA106, WS2812B

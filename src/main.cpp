@@ -113,6 +113,10 @@ void setup()
 
   pinMode(BLANKPin, OUTPUT);
   pinMode(PPSPin, OUTPUT);
+  
+  pinMode(BTN1Pin, INPUT_PULLUP);
+  pinMode(BTN2Pin, INPUT_PULLUP);
+  pinMode(BTN3Pin, INPUT_PULLUP);
 
   // -------------------------------------------------------------------------
 
@@ -573,13 +577,8 @@ void performOncePerSecondProcessing() {
   }
 
   // Touch sensor
-  bool btn1 = touchRead(BTN1Pin) < TOUCH_THRESHOLD;
-  bool btn2 = touchRead(BTN2Pin) < TOUCH_THRESHOLD;
-  bool btn3 = touchRead(BTN3Pin) < TOUCH_THRESHOLD;
-
-  if (btn2) {
-    oledTime = 1;
-  }
+  bool btn1 = digitalRead(BTN1Pin);
+  bool btn2 = digitalRead(BTN2Pin);
 
   if (btn1 && oledTime == 0) {
     oledTime = OLED_ON_TIME;
@@ -607,7 +606,6 @@ void performOncePerSecondProcessing() {
 
     oled.setXStatus(btn1);
     oled.setYStatus(btn2);
-    oled.setZStatus(btn3);
   }
 
   // ************************************************************
@@ -617,7 +615,13 @@ void performOncePerSecondProcessing() {
   indLed1 = (second() % 2 == 0);
   indLed2 = (second() % 2 == 1);
 
-  blinkenlightsManager.setBlinkenlightsStatus(bl);
+  if (btn2) {
+    blinkenlightsManager.setBlinkenlightsMode(MODE_CHASE);  
+  } else {
+    blinkenlightsManager.setBlinkenlightsMode(MODE_STATUS);  
+  }
+
+  blinkenlightsManager.updateBlinkenlights();
 
 #ifdef DIGIT_DIAGNOSTICS
   if (cc->diagsMode == 0) {
@@ -630,7 +634,6 @@ void performOncePerSecondProcessing() {
     digitValue += encoderManager.getCount();
     loadNumberArraySameValue(digitValue);
   }
-
 #else
     loadNumberArrayTime();
 #endif

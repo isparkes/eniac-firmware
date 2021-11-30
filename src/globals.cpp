@@ -15,9 +15,6 @@ spiffs_stats_t current_stats;
 spiffs_config_t* cc = &current_config;
 spiffs_stats_t* cs = &current_stats;
 
-blinkelights_t current_blinkenlights;
-blinkelights_t* bl = &current_blinkenlights;
-
 // ************************************************************
 // Display values
 // ************************************************************

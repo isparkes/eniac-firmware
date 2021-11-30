@@ -10,9 +10,14 @@
 #include "TimeLib.h"
 
 void BlinkenlightsManager_::begin() {
+  mode = MODE_STATUS;
 }
 
-void BlinkenlightsManager_::setBlinkenlightsStatus(blinkelights_t *bl) {
+void BlinkenlightsManager_::setBlinkenlightsMode(uint8_t newMode) {
+  mode = newMode;
+}
+
+void BlinkenlightsManager_::setBlinkenlightsStatus() {
   bl->bl1 = blankingManager.getCurrentBlankingStatus();
   bl->bl2 = blankingManager.getCurrentPIRStatus();
   
@@ -28,7 +33,7 @@ void BlinkenlightsManager_::setBlinkenlightsStatus(blinkelights_t *bl) {
 
 }
 
-void BlinkenlightsManager_::setBlinkenlightsChase(blinkelights_t *bl) {
+void BlinkenlightsManager_::setBlinkenlightsChase() {
   switch (second() % 6) {
     case 0:
       bl->bl1 = true;
@@ -55,6 +60,30 @@ void BlinkenlightsManager_::setBlinkenlightsChase(blinkelights_t *bl) {
       bl->bl5 = false;
       break;
   }
+}
+
+void BlinkenlightsManager_::setBlinkenlightsExtern(blinkelights_t *blext) {
+  bl->bl1 = blext->bl1;
+  bl->bl2 = blext->bl2;
+  bl->bl3 = blext->bl3;
+  bl->bl4 = blext->bl4;
+  bl->bl5 = blext->bl5;
+  bl->bl6 = blext->bl6;
+}
+
+void BlinkenlightsManager_::updateBlinkenlights() {
+  switch (mode) {
+    case MODE_STATUS:
+      setBlinkenlightsStatus();
+      break;
+    case MODE_CHASE:
+      setBlinkenlightsChase();
+      break;
+  }
+}
+
+blinkelights_t* BlinkenlightsManager_::getBlinkenlights() {
+  return bl;
 }
 
 BlinkenlightsManager_ &BlinkenlightsManager_::getInstance() {

@@ -25,8 +25,6 @@ extern boolean triggeredThisSec;
 extern spiffs_config_t* cc;
 extern spiffs_stats_t* cs;
 
-extern blinkelights_t* bl;
-
 // ************************************************************
 // Display values
 // ************************************************************

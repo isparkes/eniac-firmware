@@ -1,5 +1,10 @@
 #pragma once
 
+#include "Arduino.h"
+
+#define MODE_STATUS 0
+#define MODE_CHASE  1
+
 typedef struct {
   bool bl1;
   bool bl2;
@@ -21,9 +26,16 @@ class BlinkenlightsManager_ {
 
   public:
     void begin();
-    void setBlinkenlightsStatus(blinkelights_t *bl);
-    void setBlinkenlightsChase(blinkelights_t *bl);
+    void setBlinkenlightsMode(uint8_t mode);
+    void setBlinkenlightsStatus();
+    void setBlinkenlightsChase();
+    void setBlinkenlightsExtern(blinkelights_t *blext);
+    void updateBlinkenlights();
+    blinkelights_t* getBlinkenlights();
   private:
+    blinkelights_t blinkenLights;
+    blinkelights_t *bl = &blinkenLights;
+    uint8_t mode;
 };
 
 extern BlinkenlightsManager_ &blinkenlightsManager;
