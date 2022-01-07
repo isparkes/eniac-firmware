@@ -38,7 +38,7 @@
 
 // Encoder
 #define ENC_APin  5
-#define ENC_BPin  12
+#define ENC_BPin  14
 #define ENC_BTN   16
 
 // Internally defined
@@ -48,7 +48,7 @@
 // Touch capable buttons
 #define BTN1Pin   15
 #define BTN2Pin   4
-#define BTN3Pin   14
+#define BTN3Pin   12
 
 // Analogue capable - no internal pullups
 #define LDRPin    34

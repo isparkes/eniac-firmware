@@ -8,6 +8,8 @@
 #include "defs.h"               // for DEBUG setting
 #include "DebugManager.h"
 
+// ------------------------ Types ------------------------
+
 typedef void (*NewTimeCallback) ();
 
 // ------------------------ NTP ------------------------
