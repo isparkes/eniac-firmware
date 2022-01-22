@@ -56,11 +56,12 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
     break;
   case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
     #ifdef DEBUG_ON
-    debugMsgWfm("WPS Successfull, stopping WPS and connecting to: " + String(WiFi.SSID()));
+    debugMsgWfm("WPS Successfull, stopping WPS and connecting to: " + WiFi.SSID() + ", password: " + WiFi.psk());
     #endif
+    saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
     esp_wifi_wps_disable();
     delay(10);
-    WiFi.begin();
+    WiFi.begin(cc->WiFiSSID.c_str(), cc->WiFiPassword.c_str());
     break;
   case SYSTEM_EVENT_STA_WPS_ER_FAILED:
     #ifdef DEBUG_ON
@@ -102,7 +103,9 @@ void setUpWiFi() {
 }
 
 void ScanWiFiNetworks() {
- int n = WiFi.scanNetworks();
+  WiFi.mode(WIFI_MODE_STA);
+  delay(1000);
+  int n = WiFi.scanNetworks();
   debugMsgWfm("scan done");
   if (n == 0) {
       debugMsgWfm("no networks found");
@@ -123,6 +126,7 @@ void ScanWiFiNetworks() {
 
 bool connectToLastAP() {
   if(cc->WiFiSSID.length() > 0) {
+    WiFi.mode(WIFI_MODE_STA);
     WiFi.begin(cc->WiFiSSID.c_str(), cc->WiFiPassword.c_str());
 
     #ifdef DEBUG_ON
@@ -170,11 +174,21 @@ void connectWithWPS() {
     debugMsgWfm("Connect using WPS");
     #endif
     oled.showScrollingMessage("Connect using WPS");
+
     unsigned long maxMillisWiFiWait = millis() + INTERVAL_WPS;
+
+    WiFi.onEvent(WiFiEvent);
+    WiFi.mode(WIFI_MODE_STA);
+    delay(1000);
+      
+    wpsInitConfig();
+
     while (WiFi.status() != WL_CONNECTED)
     {
-      wpsInitConfig();
-      esp_wifi_wps_enable(&wps_config);
+      esp_err_t retCode = esp_wifi_wps_enable(&wps_config);
+      #ifdef DEBUG_ON
+      debugMsgWfm("WPS Enable Result: " + String(retCode));
+      #endif
 
       if (previousMillisWiFi < maxMillisWiFiWait)
       {
@@ -183,8 +197,11 @@ void connectWithWPS() {
         debugMsgContWfm(".");
         #endif
 
-        esp_wifi_wps_start(500);
-        delay(500);
+        retCode = esp_wifi_wps_start(0);
+        #ifdef DEBUG_ON
+        debugMsgWfm("WPS Start Result: " + String(retCode));
+        #endif
+        delay(1000);
       } else {
         #ifdef DEBUG_ON
         debugMsgWfm("");

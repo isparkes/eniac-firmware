@@ -185,7 +185,6 @@ void setup()
   oled.showScrollingMessage("Starting WiFi");
 
   #ifdef DEBUG_ON
-  debugMsg("");
   debugMsg("Connecting to previous AP");
   #endif
   oled.showScrollingMessage("Starting WiFi");
@@ -194,7 +193,6 @@ void setup()
 
   if(connectToLastAP()) {
     #ifdef DEBUG_ON
-    debugMsg("");
     debugMsg("Connected to: " + WiFi.SSID());
     debugMsg("IP Address: " + WiFi.localIP().toString());
     debugMsg("MAC Address: " + WiFi.macAddress());
@@ -296,9 +294,15 @@ void setup()
 
   // -------------------------------------------------------------------------
 
-  ScanWiFiNetworks();
-  webManager.beginWiFiCredentials();
-  openAccessPortal();
+  if(!WiFi.isConnected()) {
+    // Try WPS first
+    connectWithWPS();
+
+    // Then via open access point
+    ScanWiFiNetworks();
+    webManager.beginWiFiCredentials();
+    openAccessPortal();
+  }
 
   // -------------------------------------------------------------------------
 

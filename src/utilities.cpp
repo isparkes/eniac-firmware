@@ -148,10 +148,6 @@ String getStatusString() {
   return connectionInfo;
 }
 
-void resetWifi() {
-  WiFi.disconnect(false, true);
-}
-
 void resetOptions() {
   cc->ntpPool = NTP_POOL_DEFAULT;
   cc->ntpUpdateInterval = NTP_UPDATE_INTERVAL_DEFAULT;
@@ -213,7 +209,8 @@ void resetOptions() {
 }
 
 void resetAll() {
-  WiFi.disconnect(false, true);  
+  resetOptions();
+  resetWiFi();
 }
 
 //**********************************************************************************
@@ -780,11 +777,19 @@ void restartHandler(AsyncWebServerRequest *request) {
 }
 
 void resetWifiHandler(AsyncWebServerRequest *request) {
+  resetWiFi();
+  request->send(200, "text/json", "{\"status\": \"WiFi was reset\"}");
+}
+
+void resetWiFi() {
   #ifdef DEBUG_ON
   debugMsgUtl("Got utils RESET request");
   #endif
   WiFi.disconnect();
-  request->send(200, "text/json", "{\"status\": \"WiFi was reset\"}");
+
+  cc->WiFiSSID = "";
+  cc->WiFiPassword = "";
+  spiffsStorage.saveConfigToSpiffs(cc);
 }
 
 // ************************************************************

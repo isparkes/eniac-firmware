@@ -26,15 +26,11 @@ void WebManager_::begin() {
   server.on("/api/getWiFiConnected", HTTP_GET, getWifiConnected);
 
   // Utilities
-  server.on("/utils/resetWifi", HTTP_GET, resetWifiHandler);
+  server.on("/utils/resetwifi", HTTP_GET, resetWifiHandler);
   server.on("/utils/scanI2C", HTTP_GET, getI2CScanHandler);
   server.on("/utils/saveStats", HTTP_GET, saveStatsHandler);
   server.on("/utils/ntpupdate", HTTP_GET, [] (AsyncWebServerRequest *request) {
     ntpManager.resetNextUpdate();
-        request->redirect("/utility.html");;
-    });
-  server.on("/utils/resetwifi", HTTP_GET, [] (AsyncWebServerRequest *request) {
-    resetWifi();
         request->redirect("/utility.html");;
     });
   server.on("/utils/resetoptions", HTTP_GET, [] (AsyncWebServerRequest *request) {

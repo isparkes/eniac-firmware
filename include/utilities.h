@@ -71,7 +71,7 @@ void saveStatsHandler(AsyncWebServerRequest *request);
 
 void restartHandler(AsyncWebServerRequest *request);
 
-void resetWifi();
+void resetWiFi();
 void resetOptions();
 void resetAll();
 

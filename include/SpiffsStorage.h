@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 #include "SPIFFS.h"
 #include "DebugManager.h"
+#include "defs.h"
 
 // ------------------------ Types ------------------------
 

@@ -11,5 +11,7 @@
 void setUpWiFi();
 bool connectToLastAP();
 void startMDNS();
+
+void connectWithWPS();
 void ScanWiFiNetworks();
 void openAccessPortal();
