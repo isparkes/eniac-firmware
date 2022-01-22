@@ -53,7 +53,7 @@ class NtpManager_
     void resetNextUpdate();
     
     String getLastTimeFromServer();
-    String getEstimatedCurrentTime(unsigned long nowMillis);
+    time_t getLastTimeTFromServer();
     
     bool ntpTimeValid(unsigned long nowMillis);
     

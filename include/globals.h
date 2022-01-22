@@ -18,6 +18,7 @@ extern unsigned long lastMillis;
 extern unsigned long previousMillisWiFi;
 extern int lastSecond;
 extern boolean triggeredThisSec;
+extern byte timeSource;
 
 // ************************************************************
 // Shared config objects
@@ -47,14 +48,13 @@ extern byte displayType[DIGIT_COUNT];
 extern int fadeState;
 extern byte scrollCounter[DIGIT_COUNT];
 
-// ************************************************************
-// Variables for clock management
-// ************************************************************
 extern int blinkState;
 extern float fadeStepsInternal;
 
 extern int ldrValue;
-extern unsigned int oledTime;
+
+extern unsigned int configTimeout;
+extern bool configMode;
 
 // ToDo move into outputManager
 extern bool led1State;
@@ -62,12 +62,15 @@ extern bool led2State;
 extern bool indLed1;
 extern bool indLed2;
 
-// ToDo move into NetworkManager
-extern String ssid;
-extern String password;
-extern bool credentialsReceived;
+// // ToDo move into NetworkManager
+// extern String ssid;
+// extern String password;
+// extern bool credentialsReceived;
 
 #ifdef DIGIT_DIAGNOSTICS
 // Used for testing
 extern int digitValue;
 #endif
+
+extern String uniqHostname;
+extern AsyncWebServer server;

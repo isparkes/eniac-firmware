@@ -2,8 +2,6 @@
 #include "globals.h"
 #include "utilities.h"
 #include "WiFi.h"
-#include <ESPmDNS.h>
-#include "wps.h"
 #include <esp_task_wdt.h>
 #include "OLED.h"
 #include "TimerManager.h"
@@ -17,9 +15,9 @@
 #include "RTCManager.h"
 #include "BlinkenlightsManager.h"
 #include "NTPManager.h"
-#include "WebManager.h"
-#include <AsyncElegantOTA.h>
 #include "DebugManager.h"
+#include "WiFiManager.h"
+#include "WebManager.h"
 
 void debugMsg(String message) {
   #ifdef DEBUG_ON
@@ -33,62 +31,51 @@ void debugMsgCont(String message) {
   #endif
 }
 
-void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
-{
-  switch (event)
-  {
-  case SYSTEM_EVENT_STA_START:
+void startWiFiServices() {
+  if (WiFi.isConnected()) {
+    // -------------------------------------------------------------------------
+
     #ifdef DEBUG_ON
-    debugMsg("Station Mode Started");
+    debugMsg("Start up NTP Time Updates...");
     #endif
-    break;
-  case SYSTEM_EVENT_STA_GOT_IP:
+    nowMillis = millis();
+    ntpManager.getTimeFromNTP(nowMillis);
+
+    // -------------------------------------------------------------------------
+
     #ifdef DEBUG_ON
-    debugMsg("Connected to :" + WiFi.SSID() + ", password: " + WiFi.psk());
+    debugMsg("Start up WebServer" );
     #endif
-    break;
-  case SYSTEM_EVENT_STA_DISCONNECTED:
+
+    webManager.begin();
+
+    // -------------------------------------------------------------------------
+    
     #ifdef DEBUG_ON
-    debugMsg("Disconnected from station, attempting reconnection");
+    debugMsg("Start up OTA");
     #endif
-    WiFi.reconnect();
-    break;
-  case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
+    webManager.startOTA();
+
+    // -------------------------------------------------------------------------
+    
     #ifdef DEBUG_ON
-    debugMsg("WPS Successfull, stopping WPS and connecting to: " + String(WiFi.SSID()));
+    debugMsg("Start up mDNS on http://" + String(WiFi.getHostname()) + ".local");
     #endif
-    esp_wifi_wps_disable();
-    delay(10);
-    WiFi.begin();
-    break;
-  case SYSTEM_EVENT_STA_WPS_ER_FAILED:
+    startMDNS();
+  } else {
     #ifdef DEBUG_ON
-    debugMsg("WPS Failed, retrying");
+    debugMsg("No WiFi, skipping web services startup");
     #endif
-    esp_wifi_wps_disable();
-    esp_wifi_wps_enable(&wps_config);
-    esp_wifi_wps_start(0);
-    break;
-  case SYSTEM_EVENT_STA_WPS_ER_TIMEOUT:
-    #ifdef DEBUG_ON
-    debugMsg("WPS Timedout, retrying");
-    #endif
-    esp_wifi_wps_disable();
-    esp_wifi_wps_enable(&wps_config);
-    esp_wifi_wps_start(0);
-    break;
-  case SYSTEM_EVENT_STA_WPS_ER_PIN:
-    #ifdef DEBUG_ON
-    debugMsg("WPS_PIN = " + wpspin2string(info.sta_er_pin.pin_code));
-    #endif
-    break;
-  default:
-    break;
   }
 }
 
 void setup()
 {
+  // -------------------------------------------------------------------------
+
+  #ifdef DEBUG_ON
+  debugMsg("Start up GPS/Serial...");
+  #endif
   Serial.begin(115200);
 
   // -------------------------------------------------------------------------
@@ -133,7 +120,6 @@ void setup()
   #endif
   oled.setUp();
   oled.clearDisplay();
-  oledTime = OLED_ON_TIME;
 
   // -------------------------------------------------------------------------
 
@@ -144,168 +130,13 @@ void setup()
   ledManager.setLDRRange(LDR_VALUE_MAX);
 
   // -------------------------------------------------------------------------
-
-  #ifdef DEBUG_ON
-  debugMsg("");
-  debugMsg("Starting WiFi");
-  #endif
-  oled.showScrollingMessage("Starting WiFi");
-
-  WiFi.onEvent(WiFiEvent);
-
-  String mac = String(WiFi.macAddress());
-  mac.replace(":","");
-  String uniqHostname = "ESP32-"+mac.substring(6);
-
-  #ifdef DEBUG_ON
-  debugMsg("Unique hostname: " + uniqHostname);
-  #endif
-
-  WiFi.setHostname(uniqHostname.c_str());
-  WiFi.begin();
-
-  #ifdef DEBUG_ON
-  debugMsg("");
-  debugMsg("Trying to reconnect to last known AP");
-  #endif
-  oled.showScrollingMessage("Connect to last AP");
-
-  unsigned long maxMillisWiFiWait = millis() + INTERVAL_WIFI;
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    if (previousMillisWiFi < maxMillisWiFiWait)
-    {
-      previousMillisWiFi = millis();
-      #ifdef DEBUG_ON
-      debugMsgCont(".");
-      #endif
-
-      delay(500);
-    }
-    else {
-        #ifdef DEBUG_ON
-        debugMsg("");
-        debugMsg("Failed to connect");
-        debugMsg("");
-        #endif
-        break;
-    }
-  }
-
-  // -------------------------------------------------------------------------
-  
-  // Try WPS
-  if (WiFi.status() != WL_CONNECTED) {  
-    #ifdef DEBUG_ON
-    debugMsg("");
-    debugMsg("Connect using WPS");
-    #endif
-    oled.showScrollingMessage("Connect using WPS");
-    maxMillisWiFiWait = millis() + INTERVAL_WPS;
-    while (WiFi.status() != WL_CONNECTED)
-    {
-      wpsInitConfig();
-      esp_wifi_wps_enable(&wps_config);
-
-      if (previousMillisWiFi < maxMillisWiFiWait)
-      {
-        previousMillisWiFi = millis();
-        #ifdef DEBUG_ON
-        debugMsgCont(".");
-        #endif
-
-        esp_wifi_wps_start(500);
-        delay(500);
-      } else {
-        #ifdef DEBUG_ON
-        debugMsg("");
-        debugMsg("Failed to connect");
-        debugMsg("");
-        #endif
-        break;
-      }
-    }
-  }
-
-  // -------------------------------------------------------------------------
-  
-  // Captive portal
-  if (WiFi.status() != WL_CONNECTED) {  
-    #ifdef DEBUG_ON
-    debugMsg("");
-    debugMsg("Portal mode");
-    #endif
-    oled.showScrollingMessage("Portal mode");
-
-    WiFi.disconnect();
-    delay(100);
-    WiFi.mode(WIFI_MODE_APSTA);
-    delay(100);
-    // WiFi.softAPsetHostname(uniqHostname.c_str());
-    delay(100);
-    #ifdef DEBUG_ON
-    debugMsg("Setting soft-AP configuration ... ");
-    #endif
-    WiFi.softAP(uniqHostname.c_str());
-    delay(100);
-    #ifdef DEBUG_ON
-    debugMsg("Soft-AP IP address = ");
-    debugMsg(WiFi.softAPIP().toString());
-    #endif
-   oled.showScrollingMessage("IP: " + WiFi.softAPIP().toString());
-    delay(500);
-  }
-
-  maxMillisWiFiWait = millis() + INTERVAL_PORTAL;
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    if (previousMillisWiFi < maxMillisWiFiWait)
-    {
-      previousMillisWiFi = millis();
-      if (gotCredentials()) {
-        #ifdef DEBUG_ON
-        debugMsgCont("o");
-        #endif
-        wifiBeginWithCredentials();
-      } else {
-        #ifdef DEBUG_ON
-        debugMsgCont(".");
-        #endif
-      }
-      delay(500);
-    } else {
-      #ifdef DEBUG_ON
-      debugMsg("");
-      debugMsg("Failed to connect");
-      debugMsg("");
-      #endif
-      break;
-    }
-  }
-
-  // -------------------------------------------------------------------------
-  
-  #ifdef DEBUG_ON
-  debugMsg("");
-  debugMsg("Connected to: " + WiFi.SSID());
-  debugMsg("IP Address: " + WiFi.localIP().toString());
-  debugMsg("MAC Address: " + WiFi.macAddress());
-  debugMsg("Host name: " + String(WiFi.getHostname()));
-  #endif
-
-  // Connected, show only the IP
-  oled.clearDisplay();
-  oled.showScrollingMessage("IP: " + WiFi.localIP().toString());
-  oled.showScrollingMessage(String(WiFi.getHostname()) + ".local");
-  
-  // -------------------------------------------------------------------------
   
   #ifdef DEBUG_ON
   debugMsg("Start up SPIFFS");
+  #endif
 
   // define the debug callback
   DebugCallback dbcb = debugManagerLink;
-  #endif
 
   // Initialize SPIFFS
   if(!SPIFFS.begin(true)){
@@ -346,35 +177,49 @@ void setup()
   }
 
   // -------------------------------------------------------------------------
-  
+
   #ifdef DEBUG_ON
-  debugMsg("Start up WebServer" );
+  debugMsg("");
+  debugMsg("Starting WiFi");
   #endif
+  oled.showScrollingMessage("Starting WiFi");
 
-  webServer.begin();
-
-  // -------------------------------------------------------------------------
-  
   #ifdef DEBUG_ON
-  debugMsg("Start up OTA");
+  debugMsg("");
+  debugMsg("Connecting to previous AP");
   #endif
-  AsyncElegantOTA.begin(&server, "admin", "update");
-
-  // -------------------------------------------------------------------------
+  oled.showScrollingMessage("Starting WiFi");
   
-  #ifdef DEBUG_ON
-  debugMsg("Start up mDNS on http://" + String(WiFi.getHostname()) + ".local");
-  #endif
+  setUpWiFi();
 
-  // The MDNS host name does not seem to work at the moment - it is being set by OTA
-  if(!MDNS.begin(uniqHostname.c_str())) {
-      #ifdef DEBUG_ON
-      debugMsg("Error starting mDNS");
-      #endif
-      return;
+  if(connectToLastAP()) {
+    #ifdef DEBUG_ON
+    debugMsg("");
+    debugMsg("Connected to: " + WiFi.SSID());
+    debugMsg("IP Address: " + WiFi.localIP().toString());
+    debugMsg("MAC Address: " + WiFi.macAddress());
+    debugMsg("Host name: " + String(WiFi.getHostname()));
+    #endif
+
+    oled.showScrollingMessage("IP: " + WiFi.localIP().toString());
+    oled.showScrollingMessage(String(WiFi.getHostname()) + ".local");
+    oled.showScrollingMessage(String(WiFi.SSID()));
+  } else {
+    #ifdef DEBUG_ON
+    debugMsg("");
+    debugMsg("Failed to connect");
+    #endif
+    oled.showScrollingMessage("Failed to connect to AP");
   }
 
-  MDNS.addService("http", "tcp", 80);
+  // -------------------------------------------------------------------------
+  
+  // #ifdef DEBUG_ON
+  debugMsg("Start up TZM" );
+
+  tzManager.setDebugCallback(dbcb);
+  tzManager.setDebugOutput(true);
+  // #endif
 
   // -------------------------------------------------------------------------
   
@@ -414,15 +259,12 @@ void setup()
 
   // -------------------------------------------------------------------------
   
-  // kick off NTP updates
-  nowMillis = millis();
-  ntpManager.getTimeFromNTP(nowMillis);
-
-  // -------------------------------------------------------------------------
-
+  #ifdef DEBUG_ON
+  debugMsg("Start up Encoder...");
+  #endif
   #ifdef DEBUG_ON
   encoderManager.setDebugCallback(dbcb);
-  encoderManager.setDebugOutput(true);
+  encoderManager.setDebugOutput(false);
   #endif
 
   encoderManager.setup();
@@ -442,13 +284,6 @@ void setup()
   ldrManager.setDebugOutput(false);
 
   // -------------------------------------------------------------------------
-
-  #ifdef DEBUG_ON
-  debugMsg("Start up GPS/Serial...");
-  #endif
-  // Serial.begin(115200);
-
-  // -------------------------------------------------------------------------
   
   #ifdef DEBUG_ON
   debugMsg("Start up Blanking");
@@ -456,9 +291,21 @@ void setup()
   blankingManager.begin();
 
   // -------------------------------------------------------------------------
+  
+  startWiFiServices();
+
+  // -------------------------------------------------------------------------
+
+  ScanWiFiNetworks();
+  webManager.beginWiFiCredentials();
+  openAccessPortal();
+
+  // -------------------------------------------------------------------------
 
   MyLib.begin();
   MyLib.doStuff();
+
+  // -------------------------------------------------------------------------
 
   #ifdef DEBUG_ON
   debugMsg("Start up WDT...");
@@ -565,7 +412,7 @@ void setLedsDiags()
 void performOncePerSecondProcessing() {
   lastMillis = nowMillis;
 
-  if (ntpManager.getNextUpdate(nowMillis) < 0) {
+  if (ntpManager.getNextUpdate(nowMillis) < 0 && WiFi.isConnected()) {
     ntpManager.getTimeFromNTP(nowMillis);
   }
 
@@ -576,37 +423,34 @@ void performOncePerSecondProcessing() {
     setLedFlashType(1);
   }
 
-  // Touch sensor
-  bool btn1 = digitalRead(BTN1Pin);
-  bool btn2 = digitalRead(BTN2Pin);
-
-  if (btn1 && oledTime == 0) {
-    oledTime = OLED_ON_TIME;
-    oled.setUp();
-    oled.clearDisplay();
-    oled.showScrollingMessage("IP: " + WiFi.localIP().toString());
-    oled.showScrollingMessage(String(WiFi.getHostname()) + ".local");
+  if ((digitalRead(ENC_BTN) == LOW) && configTimeout == 0) {
+    configTimeout = OLED_ON_TIME;
+    configMode = true;
+    // oled.setUp();
+    // oled.clearDisplay();
+    // oled.showScrollingMessage("IP: " + WiFi.localIP().toString());
+    // oled.showScrollingMessage(String(WiFi.getHostname()) + ".local");
   }
 
-  if (oledTime > 0) {
-    // ************************************************************
-    // send time update to OLED and set the other status flags 
-    // ************************************************************
-    char time_c[11];
-    sprintf(time_c, "%02d:%02d:%02d", hour(), minute(), second());
-    oled.setTimeString(String(time_c));
+  // if (configTime > 0) {
+  //   // ************************************************************
+  //   // send time update to OLED and set the other status flags 
+  //   // ************************************************************
+  //   char time_c[11];
+  //   sprintf(time_c, "%02d:%02d:%02d", hour(), minute(), second());
+  //   oled.setTimeString(String(time_c));
 
-    oled.setWiFiStatus(connected);
-    oled.setBlankStatus(false);
-    oled.setNTPStatus(ntpManager.ntpTimeValid(nowMillis));
-    if (digitalRead(PIRPin) == false) {
-      oled.setPIRInstalled(true);  
-    }
-    oled.setPIRStatus(digitalRead(PIRPin));
+  //   oled.setWiFiStatus(connected);
+  //   oled.setBlankStatus(false);
+  //   oled.setNTPStatus(ntpManager.ntpTimeValid(nowMillis));
+  //   if (digitalRead(PIRPin) == false) {
+  //     oled.setPIRInstalled(true);  
+  //   }
+  //   oled.setPIRStatus(digitalRead(PIRPin));
 
-    oled.setXStatus(btn1);
-    oled.setYStatus(btn2);
-  }
+  //   oled.setXStatus(btn1);
+  //   oled.setYStatus(btn2);
+  // }
 
   // ************************************************************
   // send time display to the drivers
@@ -615,7 +459,7 @@ void performOncePerSecondProcessing() {
   indLed1 = (second() % 2 == 0);
   indLed2 = (second() % 2 == 1);
 
-  if (btn2) {
+  if (digitalRead(BTN2Pin)) {
     blinkenlightsManager.setBlinkenlightsMode(MODE_CHASE);  
   } else {
     blinkenlightsManager.setBlinkenlightsMode(MODE_STATUS);  
@@ -624,13 +468,13 @@ void performOncePerSecondProcessing() {
   blinkenlightsManager.updateBlinkenlights();
 
 #ifdef DIGIT_DIAGNOSTICS
-  if (cc->diagsMode == 0) {
+  if (cc->diagsMode == DIGIT_DIAGS_MODE_NONE) {
     loadNumberArrayTime();
-  } else if (cc->diagsMode == 1) {
+  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
     loadNumberArraySameValue(second());
-  } else if (cc->diagsMode == 2) {
+  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
     loadNumberArraySameValue(minute());
-  } else if (cc->diagsMode == 3) {
+  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
     digitValue += encoderManager.getCount();
     loadNumberArraySameValue(digitValue);
   }
@@ -639,16 +483,15 @@ void performOncePerSecondProcessing() {
 #endif
 
   // -------------------------------------------------------------------------------
-  if (oledTime > 0) {
-    oledTime--;
-    if (oledTime == 0) {
-      oled.setUp();
-      oled.blankDisplay();
+  if (configTimeout > 0) {
+    configTimeout--;
+    if (configTimeout == 0) {
+      configMode = false;
     }
   }
 
 //  debugMsg("EncBTN: " + String(encoderManager.getButtonState()));
-  debugMsg("EncCount: " + String((int) encoderManager.getCount()));
+//  debugMsg("EncCount: " + String((int) encoderManager.getCount()));
 //  debugMsg("Enc Attached: " + String(encoderManager.isAttached()));
 
   blankingManager.getBlankingStatus(nowMillis, weekday(), hour());
@@ -677,7 +520,9 @@ void performOncePerSecondProcessing() {
 void performOncePerMinuteProcessing() {
   #ifdef DEBUG_ON
   debugMsg("---> OncePerMinuteProcessing");
-  debugMsg("nu: " + String(ntpManager.getNextUpdate(nowMillis)));
+  if (WiFi.isConnected()) {
+    debugMsg("nu: " + String(ntpManager.getNextUpdate(nowMillis)));
+  }
   #endif
 
   // Set the internal time to the time from the RTC even if we are still in
@@ -691,8 +536,19 @@ void performOncePerMinuteProcessing() {
     cs->tubeOnTimeMins++;
   }
 
+  // Find the current best time source
+  if (gpsManager.getGPSTimeValid(nowMillis)) {
+    timeSource = TIME_SOURCE_GPS;
+  } else if (ntpManager.ntpTimeValid(nowMillis)) {
+    timeSource = TIME_SOURCE_NTP;
+  } else if (rtcManager.getRTCValid()) {
+    timeSource = TIME_SOURCE_RTC;
+  } else {
+    timeSource = TIME_SOURCE_INT;
+  }
+
   // recalculate the UTC offset
-  tzManager.calculateCurrentOffset(year(),month(),day(),hour(),minute(),second());
+  // tzManager.calculateCurrentOffset(year(),month(),day(),hour(),minute(),second());
 }
 
 // ************************************************************

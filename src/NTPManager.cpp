@@ -104,21 +104,10 @@ String NtpManager_::getLastTimeFromServer() {
 }
 
 // ************************************************************
-// get the time we think it is now (Last time plus the number 
-// seconds since last update)
+// get the last time we got back
 // ************************************************************
-String NtpManager_::getEstimatedCurrentTime(unsigned long nowMillis) {
-  int secondsSinceUpdate = (nowMillis - _lastUpdateFromServer) / 1000;
-
-  time_t now_t = _ntpTime + secondsSinceUpdate;
-  const tm* tm = localtime(&now_t);
-
-  String timeString = String(tm->tm_year + 1900) + "," + String(tm->tm_mon + 1) + "," + String(tm->tm_mday) + "," + String(tm->tm_hour) + "," + String(tm->tm_min) + "," + String(tm->tm_sec);
-  #ifdef DEBUG_ON
-  debugMsg("NTP Update time str: " + timeString);
-  #endif
-
-  return timeString;
+time_t NtpManager_::getLastTimeTFromServer() {
+  return _ntpTime;
 }
 
 // ************************************************************

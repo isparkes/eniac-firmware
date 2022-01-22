@@ -1,7 +1,5 @@
 #include "WebManager.h"
-
-// singleton object
-AsyncWebServer server(80);
+#include <AsyncElegantOTA.h>
 
 void WebManager_::begin() {
   #ifdef DEBUG_ON
@@ -23,7 +21,7 @@ void WebManager_::begin() {
   server.on("/api/postConfig", HTTP_POST, postConfigDataHandler);
 
   // wifi credentials
-  server.on("/api/postWiFiCredentials", HTTP_POST, postWiFiDataHandler);
+  server.on("/api/postWiFiCredentials", HTTP_POST, postWiFiCredentialsHandler);
   server.on("/api/credentials", HTTP_GET, getCredentialsHandler);
   server.on("/api/getWiFiConnected", HTTP_GET, getWifiConnected);
 
@@ -60,7 +58,25 @@ void WebManager_::begin() {
   server.begin();
 }
 
-void WebManager_::doStuff() {
+void WebManager_::beginWiFiCredentials() {
+  #ifdef DEBUG_ON
+  debugMsg("Setting up server endpoints for AP mode");
+  #endif
+
+  // wifi credentials
+  server.on("/api/postWiFiCredentials", HTTP_POST, postWiFiCredentialsHandler);
+  server.on("/api/credentials", HTTP_GET, getCredentialsHandler);
+  server.on("/api/getWiFiConnected", HTTP_GET, getWifiConnected);
+
+  #ifdef DEBUG_ON
+  debugMsg("Start up web server");
+  #endif
+
+  server.begin();
+}
+
+void WebManager_::startOTA() {
+  AsyncElegantOTA.begin(&server, "admin", "update");
 }
 
 // ************************************************************
@@ -95,4 +111,4 @@ WebManager_ &WebManager_::getInstance() {
   return instance;
 }
 
-WebManager_ &webServer = webServer.getInstance();
+WebManager_ &webManager = webManager.getInstance();

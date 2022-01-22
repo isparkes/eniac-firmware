@@ -53,8 +53,14 @@ unsigned long lastMillis = 0;
 unsigned long nowMillis = 0;
 int lastSecond = 0;
 boolean triggeredThisSec = false;
+
+byte timeSource = TIME_SOURCE_INT;
+
 int ldrValue;
-unsigned int oledTime;
+
+// Encoder management
+unsigned int configTimeout;
+bool configMode = false;
 
 // ToDo move into NetworkManager
 String ssid = "";
@@ -71,3 +77,8 @@ bool indLed2;
 // Used for testing
 int digitValue = 0;
 #endif
+
+String uniqHostname;
+
+// singleton object
+AsyncWebServer server(80);

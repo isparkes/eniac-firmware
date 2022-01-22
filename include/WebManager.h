@@ -23,7 +23,8 @@ class WebManager_ {
     void setDebugCallback(DebugCallback dbcb);
   public:
     void begin();
-    void doStuff();
+    void beginWiFiCredentials();
+    void startOTA();
   private:
     DebugCallback _dbcb;
     bool _debug = false;
@@ -33,4 +34,4 @@ class WebManager_ {
 
 extern AsyncWebServer server;
 
-extern WebManager_ &webServer;
+extern WebManager_ &webManager;

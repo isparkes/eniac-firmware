@@ -77,6 +77,10 @@
                             <td id="displaytime"></td>
                         </tr>
                         <tr>
+                            <td>Current time source</td>
+                            <td id="timesource"></td>
+                        </tr>
+                        <tr>
                             <td>Current NTP time</td>
                             <td id="currentntptime"></td>
                         </tr>
@@ -141,6 +145,20 @@
             $("#ntppool").text(summary.ntppool);
             $("#tz").text(summary.tz);
             $("#clockurl").html("<a href=\""+summary.clockurl+"\">"+summary.clockurl+"</a>");
+            switch(summary.timeSource) {
+                case 0:
+                    $("#timesource").text('GPS');
+                    break;
+                case 1:
+                    $("#timesource").text('NTP');
+                    break;
+                case 2:
+                    $("#timesource").text('RTC');
+                    break;
+                case 3:
+                    $("#timesource").text('Internal (bad)');
+                    break;
+            }
             if (summary.ntpvalid) {
                 $("#currentntptime").text(summary.currentntptime + ' ('+summary.lastntpupdate + ' ago, valid)');
             } else {

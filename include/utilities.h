@@ -51,6 +51,7 @@ void getCredentialsHandler(AsyncWebServerRequest *request);
 void getWifiConnected(AsyncWebServerRequest *request);
 bool gotCredentials();
 void wifiBeginWithCredentials();
+void saveWiFiCredentials(String newWiFiSSID, String newWiFiPassword);
 
 void getSummaryDataHandler(AsyncWebServerRequest *request);
 void getDiagsDataHandler(AsyncWebServerRequest *request);
@@ -62,7 +63,7 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request);
 void getConfigDataHandler(AsyncWebServerRequest *request);
 void postConfigDataHandler(AsyncWebServerRequest *request);
 
-void postWiFiDataHandler(AsyncWebServerRequest *request);
+void postWiFiCredentialsHandler(AsyncWebServerRequest *request);
 void resetWifiHandler(AsyncWebServerRequest *request);
 
 void getI2CScanHandler(AsyncWebServerRequest *request);

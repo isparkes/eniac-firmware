@@ -2,6 +2,12 @@
 
 #include <Arduino.h>
 
+// -------------------------------------------------------------------------------
+
+#define PROTO2          // Proto 2 and below has the encoder B and btn3 swapped 
+
+// -------------------------------------------------------------------------------
+
 #define DIGIT_COUNT 6
 
 #define INTERVAL_WIFI 10000
@@ -11,7 +17,7 @@
 #define WDT_TIMEOUT 5
 
 // Add debug statments to code - needs extra space
-#define DEBUG_OFF             // DEBUG_ON | DEBUG_OFF
+#define DEBUG_ON             // DEBUG_ON | DEBUG_OFF
 
 // Add the dignostic calls to the GUI
 #define DIGIT_DIAGNOSTICS    // DIGIT_DIAGNOSTICS | DIGIT_DIAGNOSTICS_OFF
@@ -38,7 +44,11 @@
 
 // Encoder
 #define ENC_APin  5
-#define ENC_BPin  14
+#ifdef PROTO2
+    #define ENC_BPin  12
+#else
+    #define ENC_BPin  14
+#endif
 #define ENC_BTN   16
 
 // Internally defined
@@ -48,7 +58,11 @@
 // Touch capable buttons
 #define BTN1Pin   15
 #define BTN2Pin   4
-#define BTN3Pin   12
+#ifdef PROTO2
+    #define BTN3Pin   14
+#else
+    #define BTN3Pin   12
+#endif
 
 // Analogue capable - no internal pullups
 #define LDRPin    34
@@ -172,6 +186,18 @@
 #define BACKLIGHT_DIM_FACTOR_DEFAULT    100
 
 #define USE_PIR_PULLUP_DEFAULT          true
+
+// -------------------------------------------------------------------------------
+#define DIGIT_DIAGS_MODE_NONE           0
+#define DIGIT_DIAGS_MODE_FAST           1
+#define DIGIT_DIAGS_MODE_SLOW           2
+#define DIGIT_DIAGS_MODE_ENCODER        3
+
+// -------------------------------------------------------------------------------
+# define TIME_SOURCE_GPS                0
+# define TIME_SOURCE_NTP                1
+# define TIME_SOURCE_RTC                2
+# define TIME_SOURCE_INT                3
 
 // -------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------

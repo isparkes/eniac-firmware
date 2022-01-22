@@ -50,6 +50,8 @@ typedef struct {
   byte sepMode;
   byte backlightDimFactor;
   int  hueOffset;
+  String WiFiSSID;
+  String WiFiPassword;
 
   // not saved
   int diagsMode;
