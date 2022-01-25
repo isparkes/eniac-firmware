@@ -185,9 +185,11 @@ void connectWithWPS() {
 
     while (WiFi.status() != WL_CONNECTED)
     {
-      esp_err_t retCode = esp_wifi_wps_enable(&wps_config);
       #ifdef DEBUG_ON
+      esp_err_t retCode = esp_wifi_wps_enable(&wps_config);
       debugMsgWfm("WPS Enable Result: " + String(retCode));
+      #else
+      esp_wifi_wps_enable(&wps_config);
       #endif
 
       if (previousMillisWiFi < maxMillisWiFiWait)
@@ -197,9 +199,11 @@ void connectWithWPS() {
         debugMsgContWfm(".");
         #endif
 
-        retCode = esp_wifi_wps_start(0);
         #ifdef DEBUG_ON
+        retCode = esp_wifi_wps_start(0);
         debugMsgWfm("WPS Start Result: " + String(retCode));
+        #else
+        esp_wifi_wps_start(0);
         #endif
         delay(1000);
       } else {

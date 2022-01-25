@@ -167,8 +167,12 @@
             $("#nextupdate").text(summary.nextupdate);
             $("#displaytime").text(summary.displaytime);
 
-            $("#lastrtctime").text(summary.lastrtctime + ' (' + summary.lastrtcupdate + ' ago, valid)');
-
+            if (summary.rtcvalid) {
+                $("#lastrtctime").text(summary.lastrtctime + ' (' + summary.lastrtcupdate + ' ago, valid)');
+            } else {
+                $("#lastrtctime").text(summary.lastrtctime);
+            }
+            
             if (summary.lastgpstime !== 'GPS Receiver not installed') {
                 if (summary.gpsvalid) {
                     $("#lastgpstime").text(summary.lastgpstime + ' ('+summary.lastgpsupdate + ' ago, valid)');

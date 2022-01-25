@@ -1,37 +1,14 @@
 #include "NTPManager.h"
 
-// Suppress Intellisense "setenv" error
-_VOID      _EXFUN(tzset,	(_VOID));
-int	_EXFUN(setenv,(const char *__string, const char *__value, int __overwrite));
-
 // ************************************************************
 // reset all the internal defaults
 // ************************************************************
 void NtpManager_::resetDefaults() {
   setNtpPool(NTP_POOL_DEFAULT);
   setUpdateInterval(NTP_UPDATE_INTERVAL_DEFAULT);
-  setTZS(TIME_ZONE_STRING_DEFAULT);
   #ifdef DEBUG_ON
   debugMsg("Reset defaults");
   #endif
-}
-
-// ************************************************************
-// Set the time zone string
-// ************************************************************
-void NtpManager_::setTZS(String tzs) {
-  _tzs = tzs;
-  setenv("TZ", _tzs.c_str(), 1);
-
-  // We changed the time zone, we need to force an update
-  resetNextUpdate();
-}
-
-// ************************************************************
-// get the time zone string
-// ************************************************************
-String NtpManager_::getTZS() {
-  return _tzs;
 }
 
 // ************************************************************
@@ -81,26 +58,11 @@ unsigned long NtpManager_::getLastUpdate() {
   return _lastUpdateFromServer;
 }
 
-
 // ************************************************************
 // Invalidate the last update time and trigger a new NTP update
 // ************************************************************
 void NtpManager_::resetNextUpdate() {
   _lastUpdateFromServer = 0;
-}
-
-// ************************************************************
-// get the last time we got back
-// ************************************************************
-String NtpManager_::getLastTimeFromServer() {
-  const tm* tm = localtime(&_ntpTime);
-
-  String timeString = String(tm->tm_year + 1900) + "," + String(tm->tm_mon + 1) + "," + String(tm->tm_mday) + "," + String(tm->tm_hour) + "," + String(tm->tm_min) + "," + String(tm->tm_sec);
-  #ifdef DEBUG_ON
-  debugMsg("NTP Update time str: " + timeString);
-  #endif
-
-  return timeString;
 }
 
 // ************************************************************
@@ -118,13 +80,6 @@ bool NtpManager_::ntpTimeValid(unsigned long nowMillis) {
 }
 
 // ************************************************************
-// get the number of seconds since the last update for display
-// ************************************************************
-long NtpManager_::getLastUpdateTimeSecs(unsigned long nowMillis) {
-  return (nowMillis - _lastUpdateFromServer)/1000;
-}
-
-// ************************************************************
 // set the update interval
 // ************************************************************
 void NtpManager_::setDebugOutput(bool newDebug) {
@@ -136,8 +91,6 @@ void NtpManager_::setDebugOutput(bool newDebug) {
 // ************************************************************
 void NtpManager_::getTimeFromNTP(unsigned long nowMillis) {
   debugMsg("Async NTP in");
-
-  unsigned long _ntpStarted = 0;
 
   if (WiFi.status() != WL_CONNECTED) {
     #ifdef DEBUG_ON
@@ -236,19 +189,22 @@ void NtpManager_::getTimeFromNTP(unsigned long nowMillis) {
 
       // Set the t and measured_at variables that were passed by reference
       unsigned long done = millis();
+      unsigned long t = secsSince1900 - 2208988800UL;                     // Subtract 70 years to get seconds since 1970
       #ifdef DEBUG_ON
+      debugMsg("Whole seconds " + String(t));
+      uint16_t ms = fraction / 4294967UL;
+      debugMsg("Fractional " + String(ms));
       debugMsg("success round trip " + String(done - _ntpStarted) + " ms");
       #endif
-      unsigned long t = secsSince1900 - 2208988800UL;                     // Subtract 70 years to get seconds since 1970
 
       _lastUpdateFromServer = done;
 
       #ifdef DEBUG_ON
-      uint16_t ms = fraction / 4294967UL;                                 // Turn 32 bit fraction into ms by dividing by 2^32 / 1000
-      unsigned long measured_at = done - ((done - _ntpStarted) / 2) - ms;  // Assume symmetric network latency and return when we think the whole second was.
+      unsigned long measured_at = (done - _ntpStarted) / 2;  // Assume symmetric network latency and return when we think the whole second was.
       debugMsg("_lastUpdateFromServer: " + String(_lastUpdateFromServer) + " - latency: " + String(measured_at));
       #endif
       
+      // Get the current time in mS, assuming symmtric latency
       _ntpTime = t;
 
       #ifdef DEBUG_ON

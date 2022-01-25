@@ -16,7 +16,6 @@ typedef void (*NewTimeCallback) ();
 
 #define NTP_POOL_DEFAULT "pool.ntp.org"
 #define NTP_PACKET_SIZE 48
-#define TIME_ZONE_STRING_DEFAULT "CET-1CEST,M3.5.0,M10.5.0/3"
 #define NTP_UPDATE_INTERVAL_DEFAULT 7261
 #define NTP_UPDATE_INTERVAL_MIN 60
 #define NTP_UPDATE_INTERVAL_MAX 86400
@@ -39,9 +38,6 @@ class NtpManager_
     bool getIsConnected();
     void resetDefaults();
     
-    void setTZS(String newTzs);
-    String getTZS();
-    
     void setUpdateInterval(int updateInterval);
     int getUpdateInterval();
     
@@ -52,19 +48,16 @@ class NtpManager_
     signed int getNextUpdate(unsigned long nowMillis);
     void resetNextUpdate();
     
-    String getLastTimeFromServer();
     time_t getLastTimeTFromServer();
     
     bool ntpTimeValid(unsigned long nowMillis);
     
-    long getLastUpdateTimeSecs(unsigned long nowMillis);
-
     // callbacks
     void setDebugCallback(DebugCallback dbcb);
     void setNewTimeCallback(NewTimeCallback ntcb);
   private:
     String _ntpPool = NTP_POOL_DEFAULT;                   // The pool name we are using
-    String _tzs = TIME_ZONE_STRING_DEFAULT;               // The TZ value to use
+    unsigned long _ntpStarted = 0;                        // the millis the request was sent at
     time_t _ntpTime;                                      // The time we retrieved
     unsigned long _lastUpdateFromServer = 0;              // The last millis() we got an update at
     int _ntpUpdateInterval = NTP_UPDATE_INTERVAL_DEFAULT; // The interval between updates in SECONDS

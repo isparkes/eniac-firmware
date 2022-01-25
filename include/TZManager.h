@@ -2,6 +2,14 @@
 
 #include <Arduino.h>
 #include "DebugManager.h"
+#include "defs.h"
+
+#define TIME_ZONE_STRING_DEFAULT  "CET-1CEST,M3.5.0,M10.5.0/3"
+
+#define TIME_SOURCE_GPS           0
+#define TIME_SOURCE_NTP           1
+#define TIME_SOURCE_RTC           2
+#define TIME_SOURCE_COUNT         3
 
 // TZ manager deals with the application of the Time Zone and DST to UTC
 
@@ -16,23 +24,30 @@ class TZManager_ {
     TZManager_ &operator=(const TZManager_ &) = delete;
 
   public:
-    void setDebugOutput(bool newDebug);
-    void begin();
-    void calculateCurrentOffset(int year, int mon, int day, int hour, int min, int sec);
-    int  getCurrentUTCOffset();
-    void setUTCTimeFromNTP(time_t ntpTime);
-    void setUTCTimeFromGPS(time_t gpsTime);
+    void setTZS(String tzs);
+    String getTZS();
 
+    int  getCurrentUTCOffset();
+    void calculateCurrentOffsetFromTimeT();
+
+    String getLocalTimeFromTimeSource(byte timesource, unsigned long now);
+    unsigned long getTimeLastSetFromTimeSource(byte timesource, unsigned long now);
+    void setUTCTimeFromTimeSource(byte timesource, unsigned long now, time_t gpsTime);
+    byte getPrimaryTimeSource(unsigned long now);
+    void setInternalTime();
+
+    void setDebugOutput(bool newDebug);
     void setDebugCallback(DebugCallback dbcb);
   private:
+    String _tzs = TIME_ZONE_STRING_DEFAULT;
     unsigned long _UTCoffset;
-    time_t _ntptime;
-    time_t _gpstime;
+    time_t _utctime[TIME_SOURCE_COUNT];
+    unsigned long _lastupdatetime[TIME_SOURCE_COUNT];
+    byte _primarysource;
     bool _debug = false;
     DebugCallback _dbcb;
 
     void debugMsg(String message);
-    void calculateCurrentOffsetFromTimeT(time_t now);
 };
 
 extern TZManager_ &tzManager;

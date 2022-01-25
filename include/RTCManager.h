@@ -35,12 +35,11 @@ class DS1307_ {
     uint8_t isRunning();
 
     bool testRTCTimeProvider();
-    String getRTCTime(bool setInternalTime, unsigned long nowMillis);
+    time_t getRTCTimeAsTimeT();    
     bool getRTCValid();
 
-    void setRTCTime(unsigned long nowMillis);
-    void setTimeFromServer(String timeString, unsigned long nowMillis);
-    String getEstimatedCurrentRTCTime(unsigned long nowMillis);
+    void setRTCTime();
+    void setTimeFromUTCSource(time_t currentTime, bool updateRTC);
     unsigned long getLastRTCSetTime();
     
     // Turn off or on logging
@@ -67,7 +66,6 @@ private:
     uint8_t _dayOfMonth;
     uint8_t _month;
     uint16_t _year;
-    unsigned long _lastRTCSetTime = 0;
 
     DebugCallback _dbcb;
     bool _debug = false;

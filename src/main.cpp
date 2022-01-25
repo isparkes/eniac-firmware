@@ -163,10 +163,6 @@ void setup()
   bool configloaded = spiffsStorage.getConfigFromSpiffs(cc);
 
   if (configloaded) {
-    #ifdef DEBUG_ON
-    debugMsg("Got TZS: " + cc->tzs);
-    #endif
-    ntpManager.setTZS(cc->tzs);
     ntpManager.setNtpPool(cc->ntpPool);
     ntpManager.setUpdateInterval(cc->ntpUpdateInterval);
   } else {
@@ -215,6 +211,7 @@ void setup()
   // #ifdef DEBUG_ON
   debugMsg("Start up TZM" );
 
+  tzManager.setTZS(cc->tzs);
   tzManager.setDebugCallback(dbcb);
   tzManager.setDebugOutput(true);
   // #endif
@@ -245,7 +242,8 @@ void setup()
   debugMsg("Start up RTC...");
   #endif
   if (rtcManager.testRTCTimeProvider()) {
-    rtcManager.getRTCTime(true, nowMillis);
+    time_t rtctime = rtcManager.getRTCTimeAsTimeT();
+    rtcManager.setTimeFromUTCSource(rtctime, false);
     #ifdef DEBUG_ON
     debugMsg("RTC found");
     #endif
@@ -531,7 +529,8 @@ void performOncePerMinuteProcessing() {
 
   // Set the internal time to the time from the RTC even if we are still in
   // NTP valid time. This is more accurate than using the internal time source
-  rtcManager.getRTCTime(true, nowMillis);
+  rtcManager.getRTCTimeAsTimeT();
+  tzManager.setInternalTime();
 
   // Usage stats
   cs->uptimeMins++;
@@ -552,7 +551,7 @@ void performOncePerMinuteProcessing() {
   }
 
   // recalculate the UTC offset
-  // tzManager.calculateCurrentOffset(year(),month(),day(),hour(),minute(),second());
+  tzManager.getPrimaryTimeSource(nowMillis);
 }
 
 // ************************************************************
@@ -563,6 +562,7 @@ void performOncePerHourProcessing() {
   debugMsg("---> OncePerHourProcessing");
   #endif
   oled.setAMStatus(isAM());
+  rtcManager.testRTCTimeProvider();
 }
 
 // ************************************************************

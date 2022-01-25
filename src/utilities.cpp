@@ -30,21 +30,16 @@ void grabInts(String s, int *dest, String sep) {
 // ************************************************************
 // Format a time into an output string
 // ************************************************************
-String timeToReadableString(int y, int m, int d, int h, int mi, int s) {
+String timeToReadableStringFromTm(tm timeToFormat) {
   char buf1[20];
-  sprintf(buf1, "%04d:%02d:%02d %02d:%02d:%02d", y, m, d, h, mi, s);
+  sprintf(buf1, "%04d:%02d:%02d %02d:%02d:%02d",
+    timeToFormat.tm_year + 1900,
+    timeToFormat.tm_mon + 1,
+    timeToFormat.tm_mday,
+    timeToFormat.tm_hour,
+    timeToFormat.tm_min,
+    timeToFormat.tm_sec);
   return String(buf1);
-}
-
-// ************************************************************
-// Format a time into an output string - takes a string imput
-// like this: "yyyy,mm,dd,hh,mi,ss"
-// ************************************************************
-String timeStringToReadableString(String timeString) {
-  int intValues[6];
-  grabInts(timeString, &intValues[0], ",");
-
-  return timeToReadableString(intValues[0],intValues[1],intValues[2],intValues[3],intValues[4],intValues[5]);
 }
 
 // ************************************************************
@@ -225,11 +220,9 @@ void resetAll() {
 // ************************************************************
 void newTimeUpdateReceived() {
   #ifdef DEBUG_ON
-  debugMsgUtl("[UTL]: Got a new time update: " + ntpManager.getLastTimeFromServer());
+  debugMsgUtl("[UTL]: Got a new NTP time update: " + String(ntpManager.getLastTimeTFromServer()));
   #endif
-  tzManager.setUTCTimeFromNTP(ntpManager.getLastTimeTFromServer());
-  
-  rtcManager.setTimeFromServer(ntpManager.getLastTimeFromServer(), nowMillis);
+  tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_NTP, ntpManager.getLastUpdate(), ntpManager.getLastTimeTFromServer());
 }
 
 //**********************************************************************************
@@ -307,26 +300,25 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   root["ip"] = WiFi.localIP().toString();
   root["mac"] = WiFi.macAddress();
   root["ssid"] = WiFi.SSID();
-  root["tz"] = ntpManager.getTZS();
+  root["tz"] = tzManager.getTZS();
   root["ntppool"] = ntpManager.getNtpPool();
   String clockUrl = "http://" + String(WiFi.getHostname()) + ".local";
   clockUrl.toLowerCase();
   root["clockurl"] = clockUrl;
   root["timeSource"] = timeSource;
-  root["currentntptime"] = "ToDo"; // timeStringToReadableString(ntpManager.getEstimatedCurrentTime(nowMillis));
-  root["lastntpupdate"] = secsToReadableString(ntpManager.getLastUpdateTimeSecs(nowMillis));
+  root["currentntptime"] = tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_NTP, nowMillis);
+  root["lastntpupdate"] = secsToReadableString(tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_NTP, nowMillis));
   root["nextupdate"] = secsToReadableString(absNextUpdate) + overdueInd;
   if (ntpManager.ntpTimeValid(nowMillis)) {
     root["ntpvalid"] = 1;
   } else {
     root["ntpvalid"] = 0;
   }
-  root["displaytime"] = timeToReadableString(year(),month(),day(),hour(),minute(),second());
+  root["displaytime"] = tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_INT, nowMillis);
 
-  unsigned long gpsAge = (nowMillis - gpsManager.getLastGPSReadTime())/1000;
   if (gpsManager.getLastGPSReadTime() > 0) {
-    root["lastgpstime"] = timeStringToReadableString(gpsManager.getLastGPSTime());
-    root["lastgpsupdate"] = secsToReadableString(gpsAge);
+    root["lastgpstime"] = tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_GPS, nowMillis);
+    root["lastgpsupdate"] = secsToReadableString(tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_GPS, nowMillis));
     if (gpsManager.getGPSTimeValid(nowMillis)) {
       root["gpsvalid"] = 1;
     } else {
@@ -335,15 +327,17 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   } else {
     root["lastgpstime"] = "GPS Receiver not installed";
     root["lastgpsupdate"] = "";
+    root["gpsvalid"] = 0;
   }
 
   if (rtcManager.getRTCValid()) {
-    unsigned long rtcAge = (nowMillis - rtcManager.getLastRTCSetTime())/1000;
-    root["lastrtctime"] = timeStringToReadableString(rtcManager.getEstimatedCurrentRTCTime(nowMillis));
-    root["lastrtcupdate"] = secsToReadableString(rtcAge);
+    root["lastrtctime"] = tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis);
+    root["lastrtcupdate"] = secsToReadableString(tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_GPS, nowMillis));
+    root["rtcvalid"] = 1;
   } else {
     root["lastrtctime"] = "RTC not installed";
     root["lastrtcupdate"] = "";
+    root["rtcvalid"] = 0;
   }
 
   float ldrPerc = (4095 - ldrValue) / 4095.0 * 100.0;
@@ -655,7 +649,7 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
     // Now apply the new confog
     ntpManager.setNtpPool(cc->ntpPool);
     ntpManager.setUpdateInterval(cc->ntpUpdateInterval);
-    ntpManager.setTZS(cc->tzs);
+    tzManager.setTZS(cc->tzs);
     #ifdef DEBUG_ON
     debugMsgUtl("Applied new time config");
     #endif
@@ -721,7 +715,9 @@ void postWiFiCredentialsHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api wifi POST request");
   #endif
   
+  #ifdef DEBUG_ON
   dumpArgs(request);
+  #endif
 
   DynamicJsonBuffer jsonBuffer;
   JsonObject& json = jsonBuffer.parse(String(request->arg("body")));

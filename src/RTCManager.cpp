@@ -127,71 +127,24 @@ bool DS1307_::testRTCTimeProvider() {
 // ************************************************************
 // Get the time from the RTC
 // ************************************************************
-String DS1307_::getRTCTime(bool setInternalTime, unsigned long nowMillis) {
+time_t DS1307_::getRTCTimeAsTimeT() {
   if (_useRTC) {
     getTimeInternal();
-    int years = _year + 2000;
 
-    String returnValue = timeToReadableString(years, _month, _dayOfMonth, _hour, _minute, _second);
+    struct tm whenStart;
+    whenStart.tm_year = _year - 1900;
+    whenStart.tm_mon = _month - 1; 
+    whenStart.tm_mday = _dayOfMonth; 
+    whenStart.tm_hour = _hour; 
+    whenStart.tm_min = _minute;
+    whenStart.tm_sec = _second;
 
-    _lastRTCSetTime = nowMillis;
+    time_t _rtctime = mktime(&whenStart);
 
-    #ifdef DEBUG_ON
-    debugMsg("Got RTC time: " + returnValue);
-    #endif
-
-    if (setInternalTime) {
-      // Set the internal time provider to the value we got
-      setTime(_hour, _minute, _second, _dayOfMonth, _month, years);
-      #ifdef DEBUG_ON
-      debugMsg("Set Internal time to: " + returnValue);
-      #endif
-    }
-
-    return returnValue;
+    return _rtctime;
   } else {
-    return "";
+    return 0;
   }
-}
-
-// ************************************************************
-// Get the time from the RTC, extrapolating from the last time
-// We knew and adding the offset to it
-// ************************************************************
-String DS1307_::getEstimatedCurrentRTCTime(unsigned long nowMillis) {
-  if (_useRTC) {
-    struct tm lastSetTime;
-    lastSetTime.tm_year = _year + 100;
-    lastSetTime.tm_mon = _month - 1; 
-    lastSetTime.tm_mday = _dayOfMonth; 
-    lastSetTime.tm_hour = _hour; 
-    lastSetTime.tm_min = _minute;
-    lastSetTime.tm_sec = _second;
-
-    time_t lastSetTimeT = mktime(&lastSetTime);
-
-    int secondsSinceUpdate = (nowMillis - _lastRTCSetTime) / 1000;
-
-    time_t estimatedCurrentTime = lastSetTimeT + secondsSinceUpdate;
-
-    const tm* tm = localtime(&estimatedCurrentTime);
-
-    String timeString = String(tm->tm_year + 1900) + "," + String(tm->tm_mon + 1) + "," + String(tm->tm_mday) + "," + String(tm->tm_hour) + "," + String(tm->tm_min) + "," + String(tm->tm_sec);
-    #ifdef DEBUG_ON
-    debugMsg("RTC time str: " + timeString);
-    #endif
-
-    return timeString;    
-  } else {
-    return "";
-  }
-}
-
-// ************************************************************
-// The last time we last got a RTC update
-// ************************************************************
-unsigned long DS1307_::getLastRTCSetTime() {
-  return _lastRTCSetTime;
 }
 
 // ************************************************************
@@ -199,13 +152,11 @@ unsigned long DS1307_::getLastRTCSetTime() {
 // Always hold the time in 24 format, we convert to 12 in the
 // display.
 // ************************************************************
-void DS1307_::setRTCTime(unsigned long nowMillis) {
+void DS1307_::setRTCTime() {
   if (_useRTC) {
     fillByYMD(year() % 100, month(), day());
     fillByHMS(hour(), minute(), second());
     setTimeInternal();
-
-    _lastRTCSetTime = nowMillis;
 
     #ifdef DEBUG_ON
     debugMsg("Set RTC time to internal time: " + String(year()) + ":" + String(month()) + ":" + String(day()) + " " + String(hour()) + ":" + String(minute()) + ":" + String(second()));
@@ -214,9 +165,9 @@ void DS1307_::setRTCTime(unsigned long nowMillis) {
 }
 
 // ************************************************************
-// Set the time from the value we get back from the time server
+// Set the time from the value we get back from a UTC time source
 // ************************************************************
-void DS1307_::setTimeFromServer(String timeString, unsigned long nowMillis) {
+void DS1307_::setTimeFromUTCSource(time_t currentTime, bool updateRTC) {
   #define SYNC_HOURS 3
   #define SYNC_MINS 4
   #define SYNC_SECS 5
@@ -224,15 +175,18 @@ void DS1307_::setTimeFromServer(String timeString, unsigned long nowMillis) {
   #define SYNC_MONTH 1
   #define SYNC_YEAR 0
 
-  int intValues[6];
-  grabInts(timeString, &intValues[0], ",");
-  setTime(intValues[SYNC_HOURS], intValues[SYNC_MINS], intValues[SYNC_SECS], intValues[SYNC_DAY], intValues[SYNC_MONTH], intValues[SYNC_YEAR]);
+  struct tm info_gm;
+  gmtime_r(&currentTime, &info_gm);
 
-  // Push the update to the RTC chip
-  setRTCTime(nowMillis);
-  
+  setTime(info_gm.tm_hour, info_gm.tm_min, info_gm.tm_sec, info_gm.tm_mday, info_gm.tm_mon + 1, info_gm.tm_year + 1900);
+
+  if (updateRTC) {
+    // Push the update to the RTC chip
+    setRTCTime();
+  }
+    
   #ifdef DEBUG_ON
-  debugMsg("Set RTC time to NTP time: " + String(year()) + ":" + String(month()) + ":" + String(day()) + " " + String(hour()) + ":" + String(minute()) + ":" + String(second()));
+  debugMsg("Set RTC time to UTC time: " + String(year()) + ":" + String(month()) + ":" + String(day()) + " " + String(hour()) + ":" + String(minute()) + ":" + String(second()));
   #endif
 }
 
