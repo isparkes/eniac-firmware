@@ -9,9 +9,10 @@
 #define TIME_SOURCE_GPS           0
 #define TIME_SOURCE_NTP           1
 #define TIME_SOURCE_RTC           2
-#define TIME_SOURCE_COUNT         3
+#define TIME_SOURCE_INT           3
+#define TIME_SOURCE_COUNT         4
 
-// TZ manager deals with the application of the Time Zone and DST to UTC
+#define RTC_CACHE_TIME_SEC        60
 
 class TZManager_ {
   private:
@@ -27,15 +28,17 @@ class TZManager_ {
     void setTZS(String tzs);
     String getTZS();
 
+    // Offset handling
     int  getCurrentUTCOffset();
     void calculateCurrentOffsetFromTimeT();
 
     String getLocalTimeFromTimeSource(byte timesource, unsigned long now);
     unsigned long getTimeLastSetFromTimeSource(byte timesource, unsigned long now);
+    void setUTCTimeFromTimeSourceHourly(unsigned long now);
     void setUTCTimeFromTimeSource(byte timesource, unsigned long now, time_t gpsTime);
     byte getPrimaryTimeSource(unsigned long now);
-    void setInternalTime();
 
+    // Debug
     void setDebugOutput(bool newDebug);
     void setDebugCallback(DebugCallback dbcb);
   private:
@@ -47,6 +50,7 @@ class TZManager_ {
     bool _debug = false;
     DebugCallback _dbcb;
 
+    void setInternalTime(unsigned long now);
     void debugMsg(String message);
 };
 

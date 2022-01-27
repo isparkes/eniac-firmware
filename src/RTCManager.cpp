@@ -44,24 +44,28 @@ void DS1307_::stopClock(void)                     // set the ClockHalt bit high 
   Wire.endTransmission();
 }
 
-void DS1307_::getTimeInternal()
+void DS1307_::getTimeRTCHardware()
 {
-    // Reset the register pointer
-    Wire.beginTransmission(DS1307_I2C_ADDRESS);
-    Wire.write((uint8_t)0x00);
-    Wire.endTransmission();  
-    Wire.requestFrom(DS1307_I2C_ADDRESS, 7);
-    // A few of these need masks because certain bits are control bits
-    _second     = bcdToDec(Wire.read() & 0x7f);
-    _minute     = bcdToDec(Wire.read());
-    _hour       = bcdToDec(Wire.read() & 0x3f);    // Need to change this if 12 hour am/pm
-    _dayOfWeek  = bcdToDec(Wire.read());
-    _dayOfMonth = bcdToDec(Wire.read());
-    _month      = bcdToDec(Wire.read());
-    _year       = bcdToDec(Wire.read());
+  // Reset the register pointer
+  Wire.beginTransmission(DS1307_I2C_ADDRESS);
+  Wire.write((uint8_t)0x00);
+  Wire.endTransmission();  
+  Wire.requestFrom(DS1307_I2C_ADDRESS, 7);
+  // A few of these need masks because certain bits are control bits
+  _second     = bcdToDec(Wire.read() & 0x7f);
+  _minute     = bcdToDec(Wire.read());
+  _hour       = bcdToDec(Wire.read() & 0x3f);    // Need to change this if 12 hour am/pm
+  _dayOfWeek  = bcdToDec(Wire.read());
+  _dayOfMonth = bcdToDec(Wire.read());
+  _month      = bcdToDec(Wire.read());
+  _year       = bcdToDec(Wire.read());
+
+  #ifdef DEBUG_ON
+  debugMsg("Got RTC " + String(_year) + ", " + String(_month) + ", " + String(_dayOfMonth) + ", " + String(_hour) + ", " + String(_minute) + ", " + String(_second));
+  #endif
 }
 
-void DS1307_::setTimeInternal()
+void DS1307_::setTimeRTCHardware()
 {
     Wire.beginTransmission(DS1307_I2C_ADDRESS);
     Wire.write((uint8_t)0x00);
@@ -73,21 +77,10 @@ void DS1307_::setTimeInternal()
     Wire.write(decToBcd(_month));
     Wire.write(decToBcd(_year));
     Wire.endTransmission();
-}
 
-void DS1307_::fillByHMS(uint8_t hour, uint8_t minute, uint8_t second)
-{
-    // assign variables
-    _hour = hour;
-    _minute = minute;
-    _second = second;
-}
-
-void DS1307_::fillByYMD(uint8_t year, uint8_t month, uint8_t day)
-{
-    _year = year;
-    _month = month;
-    _dayOfMonth = day;
+    #ifdef DEBUG_ON
+    debugMsg("Set hardware RTC " + String(_year) + ", " + String(_month) + ", " + String(_dayOfMonth) + ", " + String(_hour) + ", " + String(_minute) + ", " + String(_second));
+    #endif
 }
 
 void DS1307_::fillDayOfWeek(uint8_t dow)
@@ -113,6 +106,9 @@ unsigned char DS1307_::isRunning()
 // Check that we still have access to the time from the RTC
 // ************************************************************
 bool DS1307_::testRTCTimeProvider() {
+  #ifdef DEBUG_ON
+  debugMsg("Testing RTC");
+  #endif
   Wire.beginTransmission(DS1307_I2C_ADDRESS);
   _useRTC = (Wire.endTransmission(true) == 0);
   #ifdef DEBUG_ON
@@ -125,21 +121,29 @@ bool DS1307_::testRTCTimeProvider() {
 }
 
 // ************************************************************
-// Get the time from the RTC
+// Get the time from the RTC, returns as UTC
 // ************************************************************
 time_t DS1307_::getRTCTimeAsTimeT() {
   if (_useRTC) {
-    getTimeInternal();
+    getTimeRTCHardware();
 
+  // We store the date 0-99 in the RTC, but mktime gives us back the years since 1900
+  // mktime gives us months in the range 0-11, but the RTC needs 1-12
     struct tm whenStart;
-    whenStart.tm_year = _year - 1900;
+    whenStart.tm_year = _year + 100;
     whenStart.tm_mon = _month - 1; 
     whenStart.tm_mday = _dayOfMonth; 
     whenStart.tm_hour = _hour; 
     whenStart.tm_min = _minute;
     whenStart.tm_sec = _second;
 
-    time_t _rtctime = mktime(&whenStart);
+    // mktime gives us the opposite of what local time does, so we have to adjust it
+    time_t _rtctime = mktime(&whenStart) + 2*tzManager.getCurrentUTCOffset();
+
+    #ifdef DEBUG_ON
+    const char *str = ctime(&_rtctime);
+    debugMsg("Recovered UTC RTC time from hardware: " + String(_rtctime) + " --> " + str);
+    #endif
 
     return _rtctime;
   } else {
@@ -148,45 +152,32 @@ time_t DS1307_::getRTCTimeAsTimeT() {
 }
 
 // ************************************************************
-// Set the date/time in the RTC from the internal time
-// Always hold the time in 24 format, we convert to 12 in the
-// display.
-// ************************************************************
-void DS1307_::setRTCTime() {
-  if (_useRTC) {
-    fillByYMD(year() % 100, month(), day());
-    fillByHMS(hour(), minute(), second());
-    setTimeInternal();
-
-    #ifdef DEBUG_ON
-    debugMsg("Set RTC time to internal time: " + String(year()) + ":" + String(month()) + ":" + String(day()) + " " + String(hour()) + ":" + String(minute()) + ":" + String(second()));
-    #endif
-  }
-}
-
-// ************************************************************
 // Set the time from the value we get back from a UTC time source
 // ************************************************************
 void DS1307_::setTimeFromUTCSource(time_t currentTime, bool updateRTC) {
-  #define SYNC_HOURS 3
-  #define SYNC_MINS 4
-  #define SYNC_SECS 5
-  #define SYNC_DAY 2
-  #define SYNC_MONTH 1
-  #define SYNC_YEAR 0
 
   struct tm info_gm;
   gmtime_r(&currentTime, &info_gm);
 
-  setTime(info_gm.tm_hour, info_gm.tm_min, info_gm.tm_sec, info_gm.tm_mday, info_gm.tm_mon + 1, info_gm.tm_year + 1900);
+  debugMsg("!!!Set RTC time : " + String(info_gm.tm_year));
+
+  // We store the date 0-99 in the RTC, but gmtime gives us back the years since 1900
+  // gmtime gives us months in the range 0-11, but the RTC needs 1-12
+  _year = info_gm.tm_year % 100;
+  _month = info_gm.tm_mon + 1;
+  _dayOfMonth = info_gm.tm_mday;
+  _hour = info_gm.tm_hour;
+  _minute = info_gm.tm_min;
+  _second = info_gm.tm_sec;
 
   if (updateRTC) {
     // Push the update to the RTC chip
-    setRTCTime();
+    setTimeRTCHardware();
   }
     
   #ifdef DEBUG_ON
-  debugMsg("Set RTC time to UTC time: " + String(year()) + ":" + String(month()) + ":" + String(day()) + " " + String(hour()) + ":" + String(minute()) + ":" + String(second()));
+  const char *str = ctime(&currentTime);
+  debugMsg("Set RTC time to UTC time: " + String(currentTime) + " --> " + str);
   #endif
 }
 

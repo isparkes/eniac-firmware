@@ -305,7 +305,7 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   String clockUrl = "http://" + String(WiFi.getHostname()) + ".local";
   clockUrl.toLowerCase();
   root["clockurl"] = clockUrl;
-  root["timeSource"] = timeSource;
+  root["timeSource"] = tzManager.getPrimaryTimeSource(nowMillis);
   root["currentntptime"] = tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_NTP, nowMillis);
   root["lastntpupdate"] = secsToReadableString(tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_NTP, nowMillis));
   root["nextupdate"] = secsToReadableString(absNextUpdate) + overdueInd;

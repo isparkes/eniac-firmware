@@ -38,7 +38,6 @@ class DS1307_ {
     time_t getRTCTimeAsTimeT();    
     bool getRTCValid();
 
-    void setRTCTime();
     void setTimeFromUTCSource(time_t currentTime, bool updateRTC);
     unsigned long getLastRTCSetTime();
     
@@ -52,8 +51,8 @@ private:
 
     uint8_t decToBcd(uint8_t val);
     uint8_t bcdToDec(uint8_t val);
-    void setTimeInternal(void);
-    void getTimeInternal(void);
+    void setTimeRTCHardware(void);
+    void getTimeRTCHardware(void);
     void fillByHMS(uint8_t _hour, uint8_t _minute, uint8_t _second);
     void fillByYMD(uint8_t _year, uint8_t _month, uint8_t _day);
     void fillDayOfWeek(uint8_t _dow);

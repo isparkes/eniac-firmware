@@ -20,7 +20,7 @@ String GPSManager_::parseGPZDAMsg(String messageToParse) {
 // ************************************************************
 // Turn the GPS string into a time_t and then onto a time string
 // ************************************************************
-String GPSManager_::parseGPZDAMsgToLocaltime(String messageToParse) {
+bool GPSManager_::parseGPZDAMsgToUTCTime(String messageToParse, unsigned long nowMillis) {
   if (messageToParse.length() == 36) {
     time_t tReceived;
     struct tm whenStart;
@@ -32,13 +32,17 @@ String GPSManager_::parseGPZDAMsgToLocaltime(String messageToParse) {
     whenStart.tm_sec = messageToParse.substring(11,13).toInt();
 
     tReceived = mktime(&whenStart) + tzManager.getCurrentUTCOffset();
-    const tm *tm = localtime(&tReceived);
 
-    String timeString = String(tm->tm_year + 1900) + "," + String(tm->tm_mon + 1) + "," + String(tm->tm_mday) + "," + String(tm->tm_hour) + "," + String(tm->tm_min) + "," + String(tm->tm_sec);
+    #ifdef DEBUG_ON
+    const char *str = ctime(&tReceived);
+    debugMsg("Received GPS update --> " + String(str));
+    #endif
 
-    return timeString; 
+    tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_GPS, nowMillis, tReceived);
+
+    return true;
   } else {
-    return "";
+    return false;
   }
 }
 
@@ -57,10 +61,9 @@ void GPSManager_::parseNMEAMsg(char c, unsigned long nowMillis) {
         _lastGPSTimeRaw = lastMessage;
         _lastGPSSyncTime = nowMillis;
         #ifdef DEBUG_ON 
-        debugMsg("Got GPS ZDA msg: " + _lastGPSTime);
+        debugMsg("Got GPS ZDA msg: " + lastMessage);
         #endif
-        _lastGPSTime = parseGPZDAMsgToLocaltime(lastMessage);
-        if (_lastGPSTime != "") {
+        if(parseGPZDAMsgToUTCTime(lastMessage, nowMillis)) {
           _lastGPSReadTime = nowMillis;
         }
       }
@@ -135,7 +138,7 @@ unsigned long GPSManager_::getLastGPSReadTime() {
 // ************************************************************
 // Get the last GPS time we read
 // ************************************************************
-String GPSManager_::getLastGPSTime() {
+time_t GPSManager_::getLastGPSTime() {
   return _lastGPSTime;
 }
 

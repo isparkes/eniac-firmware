@@ -18,7 +18,7 @@ class GPSManager_ {
     unsigned long getLastGPSReadTime();
     bool getGPSTimeValid(unsigned long nowMillis);
     bool getGPSSyncStarted(unsigned long nowMillis);
-    String getLastGPSTime();
+    time_t getLastGPSTime();
     String getLastGPSTimeRaw();
 
     // Turn off or on logging
@@ -35,7 +35,7 @@ class GPSManager_ {
     char _msgBuffer[37];
     byte _bufferOffset = 0;
 
-    String _lastGPSTime = "";
+    time_t _lastGPSTime = 0;
     String _lastGPSTimeRaw = "";
     unsigned long _lastGPSReadTime = 0;
     unsigned long _lastGPSSyncTime = 0;
@@ -46,7 +46,7 @@ class GPSManager_ {
 
     void debugMsg(String message);                        // print a debug message to the callback
     String parseGPZDAMsg(String messageToParse);
-    String parseGPZDAMsgToLocaltime(String messageToParse);
+    bool parseGPZDAMsgToUTCTime(String messageToParse, unsigned long nowMillis);
 };
 
 extern GPSManager_ &gpsManager;

@@ -241,11 +241,15 @@ void setup()
   #ifdef DEBUG_ON
   debugMsg("Start up RTC...");
   #endif
+  rtcManager.setDebugCallback(dbcb);
+  rtcManager.setDebugOutput(true);
+
   if (rtcManager.testRTCTimeProvider()) {
     time_t rtctime = rtcManager.getRTCTimeAsTimeT();
-    rtcManager.setTimeFromUTCSource(rtctime, false);
+    tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtctime);
     #ifdef DEBUG_ON
     debugMsg("RTC found");
+    debugMsg("Recovered time: " + String(rtctime));
     #endif
   } else {
     #ifdef DEBUG_ON
@@ -527,11 +531,6 @@ void performOncePerMinuteProcessing() {
   }
   #endif
 
-  // Set the internal time to the time from the RTC even if we are still in
-  // NTP valid time. This is more accurate than using the internal time source
-  rtcManager.getRTCTimeAsTimeT();
-  tzManager.setInternalTime();
-
   // Usage stats
   cs->uptimeMins++;
 
@@ -539,19 +538,16 @@ void performOncePerMinuteProcessing() {
     cs->tubeOnTimeMins++;
   }
 
-  // Find the current best time source
-  if (gpsManager.getGPSTimeValid(nowMillis)) {
-    timeSource = TIME_SOURCE_GPS;
-  } else if (ntpManager.ntpTimeValid(nowMillis)) {
-    timeSource = TIME_SOURCE_NTP;
-  } else if (rtcManager.getRTCValid()) {
-    timeSource = TIME_SOURCE_RTC;
-  } else {
-    timeSource = TIME_SOURCE_INT;
-  }
+  // Update the RTC time
+  tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtcManager.getRTCTimeAsTimeT());
 
   // recalculate the UTC offset
   tzManager.getPrimaryTimeSource(nowMillis);
+
+  debugMsg("GPS: " + String(tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_GPS, nowMillis)));
+  debugMsg("NTP: " + String(tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_NTP, nowMillis)));
+  debugMsg("RTC: " + String(tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis)));
+  debugMsg("INT: " + String(tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_INT, nowMillis)));
 }
 
 // ************************************************************
@@ -562,6 +558,8 @@ void performOncePerHourProcessing() {
   debugMsg("---> OncePerHourProcessing");
   #endif
   oled.setAMStatus(isAM());
+  tzManager.setUTCTimeFromTimeSourceHourly(nowMillis);
+
   rtcManager.testRTCTimeProvider();
 }
 
