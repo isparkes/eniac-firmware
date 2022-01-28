@@ -4,6 +4,7 @@
 #include "Arduino.h"
 #include "TZManager.h"
 #include "DebugManager.h"
+#include "utilities.h"
 
 // -------------------------------------------------------------------------------
 

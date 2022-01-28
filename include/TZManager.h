@@ -38,6 +38,9 @@ class TZManager_ {
     void setUTCTimeFromTimeSource(byte timesource, unsigned long now, time_t gpsTime);
     byte getPrimaryTimeSource(unsigned long now);
 
+    String localtimeToReadableString(time_t timeToConvert);
+    String gmtimeToReadableString(time_t timeToConvert);
+
     // Debug
     void setDebugOutput(bool newDebug);
     void setDebugCallback(DebugCallback dbcb);

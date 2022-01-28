@@ -55,8 +55,7 @@ void TZManager_::setTZS(String tzs) {
 void TZManager_::calculateCurrentOffsetFromTimeT() {
   time_t primarytime_t = _utctime[_primarysource];
     #ifdef DEBUG_ON
-    const char *str = ctime(&primarytime_t);
-    debugMsg("input: " + String(primarytime_t) + " from primary source " + String(_primarysource) + " time: " + str);
+    debugMsg("UTC input: " + String(primarytime_t) + " from primary source " + String(_primarysource) + " --> " + tzManager.gmtimeToReadableString(primarytime_t));
     #endif
 
     struct tm info_local;
@@ -65,11 +64,8 @@ void TZManager_::calculateCurrentOffsetFromTimeT() {
     gmtime_r(&primarytime_t, &info_gm);
 
     #ifdef DEBUG_ON
-    String timeStringLocal = String(info_local.tm_year + 1900) + "-" + String(info_local.tm_mon + 1) + "-" + String(info_local.tm_mday) + " " + String(info_local.tm_hour) + ":" + String(info_local.tm_min) + ":" + String(info_local.tm_sec);
-    String timeStringGm = String(info_gm.tm_year + 1900) + "-" + String(info_gm.tm_mon + 1) + "-" + String(info_gm.tm_mday) + " " + String(info_gm.tm_hour) + ":" + String(info_gm.tm_min) + ":" + String(info_gm.tm_sec);
-
-    debugMsg("local: " + timeStringLocal);
-    debugMsg("gm: " + timeStringGm);
+    debugMsg("local L--> " + localtimeToReadableString(primarytime_t));
+    debugMsg("gm U--> " + gmtimeToReadableString(primarytime_t));
     #endif
 
     // The local time might be in DST, so correct that
@@ -78,8 +74,11 @@ void TZManager_::calculateCurrentOffsetFromTimeT() {
 
     _UTCoffset = mktime(&info_local) - mktime(&info_gm);
 
+    int _localtimeisDST = info_local.tm_isdst;
+
     #ifdef DEBUG_ON
     debugMsg("UTC offset: " + String(_UTCoffset));
+    debugMsg("localtime is in DST: " + String(_localtimeisDST));
     #endif
 }
 
@@ -120,7 +119,7 @@ void TZManager_::setUTCTimeFromTimeSource(byte timesource, unsigned long now, ti
     _utctime[TIME_SOURCE_RTC] = utcTime;
     _lastupdatetime[TIME_SOURCE_RTC] = now;
     setInternalTime(now);
-  } 
+  }
 }
 
 // ************************************************************
@@ -171,7 +170,7 @@ void TZManager_::setInternalTime(unsigned long now) {
   int lastUpdateOffset = getTimeLastSetFromTimeSource(TIME_SOURCE_RTC, now);
   #ifdef DEBUG_ON
   debugMsg("RTC Offset: " + String(lastUpdateOffset));
-  debugMsg("Set internal time to timesource " + String(TIME_SOURCE_RTC) + " time " + String(_utctime[TIME_SOURCE_RTC]));
+  debugMsg("Set internal time to timesource " + String(TIME_SOURCE_RTC) + ": " + String(_utctime[TIME_SOURCE_RTC]) + " L--> " + localtimeToReadableString(_utctime[TIME_SOURCE_RTC]));
   #endif
   _utctime[TIME_SOURCE_INT] = _utctime[TIME_SOURCE_RTC] + lastUpdateOffset;
   _lastupdatetime[TIME_SOURCE_INT] = now;
@@ -196,12 +195,32 @@ String TZManager_::getLocalTimeFromTimeSource(byte timesource, unsigned long now
     #endif
     setInternalTime(now);
   }
+
+  String formattedTime = localtimeToReadableString(nowtime_t);
   #ifdef DEBUG_ON
-  debugMsg("Timesource: " + String(timesource) + " UTC " + String(_utctime[timesource]) + " offset " + String(offset));
+  debugMsg("Timesource: " + String(timesource) + ": " + String(_utctime[timesource]) + " offset " + String(offset) + " L--> " + formattedTime);
   #endif
 
+  return formattedTime;
+}
+
+// ************************************************************
+// Format a time_t as a localtime string  
+// ************************************************************
+String TZManager_::localtimeToReadableString(time_t timeToConvert) {
   struct tm info_local;
-  localtime_r(&nowtime_t, &info_local);
+  localtime_r(&timeToConvert, &info_local);
+
+  String formattedTime = timeToReadableStringFromTm(info_local);
+  return formattedTime;
+}
+
+// ************************************************************
+// Format a time_t as a gmtime string  
+// ************************************************************
+String TZManager_::gmtimeToReadableString(time_t timeToConvert) {
+  struct tm info_local;
+  gmtime_r(&timeToConvert, &info_local);
 
   String formattedTime = timeToReadableStringFromTm(info_local);
   return formattedTime;

@@ -129,20 +129,22 @@ time_t DS1307_::getRTCTimeAsTimeT() {
 
   // We store the date 0-99 in the RTC, but mktime gives us back the years since 1900
   // mktime gives us months in the range 0-11, but the RTC needs 1-12
-    struct tm whenStart;
-    whenStart.tm_year = _year + 100;
-    whenStart.tm_mon = _month - 1; 
-    whenStart.tm_mday = _dayOfMonth; 
-    whenStart.tm_hour = _hour; 
-    whenStart.tm_min = _minute;
-    whenStart.tm_sec = _second;
+    struct tm rtcCurrentTm;
+    rtcCurrentTm.tm_year = _year + 100;
+    rtcCurrentTm.tm_mon = _month - 1; 
+    rtcCurrentTm.tm_mday = _dayOfMonth; 
+    rtcCurrentTm.tm_hour = _hour; 
+    rtcCurrentTm.tm_min = _minute;
+    rtcCurrentTm.tm_sec = _second;
+
+    // we know we stored it away in UTC, so no DST
+    rtcCurrentTm.tm_isdst = 0;
 
     // mktime gives us the opposite of what local time does, so we have to adjust it
-    time_t _rtctime = mktime(&whenStart) + 2*tzManager.getCurrentUTCOffset();
+    time_t _rtctime = mktime(&rtcCurrentTm) + tzManager.getCurrentUTCOffset();
 
     #ifdef DEBUG_ON
-    const char *str = ctime(&_rtctime);
-    debugMsg("Recovered UTC RTC time from hardware: " + String(_rtctime) + " --> " + str);
+    debugMsg("Recovered RTC time from hardware: " + String(_rtctime) + " U--> " + tzManager.gmtimeToReadableString(_rtctime));
     #endif
 
     return _rtctime;
@@ -176,8 +178,7 @@ void DS1307_::setTimeFromUTCSource(time_t currentTime, bool updateRTC) {
   }
     
   #ifdef DEBUG_ON
-  const char *str = ctime(&currentTime);
-  debugMsg("Set RTC time to UTC time: " + String(currentTime) + " --> " + str);
+  debugMsg("Set RTC time to time: " + String(currentTime) + " U--> " + tzManager.gmtimeToReadableString(currentTime));
   #endif
 }
 

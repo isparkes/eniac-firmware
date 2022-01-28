@@ -208,13 +208,14 @@ void setup()
 
   // -------------------------------------------------------------------------
   
-  // #ifdef DEBUG_ON
+  #ifdef DEBUG_ON
   debugMsg("Start up TZM" );
+  #endif
 
   tzManager.setTZS(cc->tzs);
   tzManager.setDebugCallback(dbcb);
   tzManager.setDebugOutput(true);
-  // #endif
+  tzManager.calculateCurrentOffsetFromTimeT();
 
   // -------------------------------------------------------------------------
   
@@ -544,10 +545,12 @@ void performOncePerMinuteProcessing() {
   // recalculate the UTC offset
   tzManager.getPrimaryTimeSource(nowMillis);
 
-  debugMsg("GPS: " + String(tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_GPS, nowMillis)));
-  debugMsg("NTP: " + String(tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_NTP, nowMillis)));
-  debugMsg("RTC: " + String(tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis)));
-  debugMsg("INT: " + String(tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_INT, nowMillis)));
+  #ifdef DEBUG_ON
+  tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_GPS, nowMillis);
+  tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_NTP, nowMillis);
+  tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis);
+  tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_INT, nowMillis);
+  #endif
 }
 
 // ************************************************************

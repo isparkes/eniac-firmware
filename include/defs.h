@@ -4,7 +4,7 @@
 
 // -------------------------------------------------------------------------------
 
-#define PROTO2          // Proto 2 and below has the encoder B and btn3 swapped 
+#define PROTO4          // Proto 2 and below has the encoder B and btn3 swapped 
 
 // -------------------------------------------------------------------------------
 
@@ -17,7 +17,7 @@
 #define WDT_TIMEOUT 5
 
 // Add debug statments to code - needs extra space
-#define DEBUG_OFF             // DEBUG_ON | DEBUG_OFF
+#define DEBUG_ON             // DEBUG_ON | DEBUG_OFF
 
 // Add the dignostic calls to the GUI
 #define DIGIT_DIAGNOSTICS    // DIGIT_DIAGNOSTICS | DIGIT_DIAGNOSTICS_OFF

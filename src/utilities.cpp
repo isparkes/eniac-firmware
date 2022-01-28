@@ -32,7 +32,7 @@ void grabInts(String s, int *dest, String sep) {
 // ************************************************************
 String timeToReadableStringFromTm(tm timeToFormat) {
   char buf1[20];
-  sprintf(buf1, "%04d:%02d:%02d %02d:%02d:%02d",
+  sprintf(buf1, "%04d-%02d-%02d %02d:%02d:%02d",
     timeToFormat.tm_year + 1900,
     timeToFormat.tm_mon + 1,
     timeToFormat.tm_mday,
@@ -220,7 +220,7 @@ void resetAll() {
 // ************************************************************
 void newTimeUpdateReceived() {
   #ifdef DEBUG_ON
-  debugMsgUtl("[UTL]: Got a new NTP time update: " + String(ntpManager.getLastTimeTFromServer()));
+  debugMsgUtl("Got a new NTP time update: " + String(ntpManager.getLastTimeTFromServer()));
   #endif
   tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_NTP, ntpManager.getLastUpdate(), ntpManager.getLastTimeTFromServer());
 }
