@@ -12,7 +12,7 @@
 #define TIME_SOURCE_INT           3
 #define TIME_SOURCE_COUNT         4
 
-#define RTC_CACHE_TIME_SEC        60
+#define RTC_CACHE_TIME_SEC        120
 
 class TZManager_ {
   private:

@@ -55,7 +55,7 @@ void TZManager_::setTZS(String tzs) {
 void TZManager_::calculateCurrentOffsetFromTimeT() {
   time_t primarytime_t = _utctime[_primarysource];
     #ifdef DEBUG_ON
-    debugMsg("UTC input: " + String(primarytime_t) + " from primary source " + String(_primarysource) + " --> " + tzManager.gmtimeToReadableString(primarytime_t));
+    debugMsg("Input: " + String(primarytime_t) + " from primary source " + String(_primarysource) + " U--> " + tzManager.gmtimeToReadableString(primarytime_t));
     #endif
 
     struct tm info_local;
@@ -74,11 +74,11 @@ void TZManager_::calculateCurrentOffsetFromTimeT() {
 
     _UTCoffset = mktime(&info_local) - mktime(&info_gm);
 
-    int _localtimeisDST = info_local.tm_isdst;
+//    int _localtimeisDST = info_local.tm_isdst;
 
     #ifdef DEBUG_ON
     debugMsg("UTC offset: " + String(_UTCoffset));
-    debugMsg("localtime is in DST: " + String(_localtimeisDST));
+//    debugMsg("localtime is in DST: " + String(_localtimeisDST));
     #endif
 }
 
@@ -98,7 +98,7 @@ void TZManager_::setUTCTimeFromTimeSource(byte timesource, unsigned long now, ti
   _lastupdatetime[timesource] = now;
 
   #ifdef DEBUG_ON
-  if (_primarysource) {
+  if (timesource == _primarysource) {
     debugMsg("Update PRIMARY time from source " + String(timesource) + ": " + String(utcTime) + " at millis: " + String(now));
   } else {
     debugMsg("Update time from source " + String(timesource) + ": " + String(utcTime) + " at millis: " + String(now));
@@ -106,9 +106,6 @@ void TZManager_::setUTCTimeFromTimeSource(byte timesource, unsigned long now, ti
   #endif
 
   int lastRTCUpdate = getTimeLastSetFromTimeSource(TIME_SOURCE_RTC, now);
-  #ifdef DEBUG_ON
-    debugMsg("RTC last updated " + String(lastRTCUpdate));
-  #endif
   if ((timesource < TIME_SOURCE_RTC) &&             // Information from a better source
       ((lastRTCUpdate > 60) ||                      // The last update is old
       (_lastupdatetime[TIME_SOURCE_RTC] == 0))) {   // or the RTC was not yet initialised
@@ -169,7 +166,7 @@ void TZManager_::setInternalTime(unsigned long now) {
 
   int lastUpdateOffset = getTimeLastSetFromTimeSource(TIME_SOURCE_RTC, now);
   #ifdef DEBUG_ON
-  debugMsg("RTC Offset: " + String(lastUpdateOffset));
+//  debugMsg("RTC Offset: " + String(lastUpdateOffset));
   debugMsg("Set internal time to timesource " + String(TIME_SOURCE_RTC) + ": " + String(_utctime[TIME_SOURCE_RTC]) + " L--> " + localtimeToReadableString(_utctime[TIME_SOURCE_RTC]));
   #endif
   _utctime[TIME_SOURCE_INT] = _utctime[TIME_SOURCE_RTC] + lastUpdateOffset;
@@ -182,6 +179,9 @@ void TZManager_::setInternalTime(unsigned long now) {
 // ************************************************************
 String TZManager_::getLocalTimeFromTimeSource(byte timesource, unsigned long now) {
   if(_lastupdatetime[timesource] == 0) {
+    #ifdef DEBUG_ON
+    debugMsg("Timesource: " + String(timesource) + ": No data");
+    #endif
     return "Unknown";
   }
 
@@ -189,7 +189,7 @@ String TZManager_::getLocalTimeFromTimeSource(byte timesource, unsigned long now
   time_t nowtime_t = _utctime[timesource] + offset;
 
   // If we are talking to the RTC, every now and again update the internal time
-  if (timesource == TIME_SOURCE_INT && (offset > RTC_CACHE_TIME_SEC)) {
+  if (timesource == TIME_SOURCE_INT && (offset >= RTC_CACHE_TIME_SEC)) {
     #ifdef DEBUG_ON
     debugMsg("Internal time is : " + String(offset) + "S old, getting update");
     #endif
@@ -198,7 +198,11 @@ String TZManager_::getLocalTimeFromTimeSource(byte timesource, unsigned long now
 
   String formattedTime = localtimeToReadableString(nowtime_t);
   #ifdef DEBUG_ON
-  debugMsg("Timesource: " + String(timesource) + ": " + String(_utctime[timesource]) + " offset " + String(offset) + " L--> " + formattedTime);
+  String primary = "";
+  if (timesource == _primarysource) {
+    primary = " *";
+  }
+  debugMsg("Timesource: " + String(timesource) + ": " + String(_utctime[timesource]) + " offset " + String(offset) + " L--> " + formattedTime + primary);
   #endif
 
   return formattedTime;

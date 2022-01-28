@@ -60,9 +60,9 @@ void DS1307_::getTimeRTCHardware()
   _month      = bcdToDec(Wire.read());
   _year       = bcdToDec(Wire.read());
 
-  #ifdef DEBUG_ON
-  debugMsg("Got RTC " + String(_year) + ", " + String(_month) + ", " + String(_dayOfMonth) + ", " + String(_hour) + ", " + String(_minute) + ", " + String(_second));
-  #endif
+  // #ifdef DEBUG_ON
+  // debugMsg("Got RTC " + String(_year) + ", " + String(_month) + ", " + String(_dayOfMonth) + ", " + String(_hour) + ", " + String(_minute) + ", " + String(_second));
+  // #endif
 }
 
 void DS1307_::setTimeRTCHardware()
@@ -161,7 +161,7 @@ void DS1307_::setTimeFromUTCSource(time_t currentTime, bool updateRTC) {
   struct tm info_gm;
   gmtime_r(&currentTime, &info_gm);
 
-  debugMsg("!!!Set RTC time : " + String(info_gm.tm_year));
+//  debugMsg("!!!Set RTC time : " + String(info_gm.tm_year));
 
   // We store the date 0-99 in the RTC, but gmtime gives us back the years since 1900
   // gmtime gives us months in the range 0-11, but the RTC needs 1-12

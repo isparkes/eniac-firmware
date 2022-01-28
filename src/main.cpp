@@ -528,7 +528,7 @@ void performOncePerMinuteProcessing() {
   #ifdef DEBUG_ON
   debugMsg("---> OncePerMinuteProcessing");
   if (WiFi.isConnected()) {
-    debugMsg("nu: " + String(ntpManager.getNextUpdate(nowMillis)));
+    debugMsg("Next update in: " + String(ntpManager.getNextUpdate(nowMillis)));
   }
   #endif
 

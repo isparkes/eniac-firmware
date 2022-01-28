@@ -4,7 +4,7 @@
 
 // -------------------------------------------------------------------------------
 
-#define PROTO4          // Proto 2 and below has the encoder B and btn3 swapped 
+#define PROTO4               // Proto 2 and below has the encoder B and btn3 swapped 
 
 // -------------------------------------------------------------------------------
 

@@ -201,7 +201,7 @@ void NtpManager_::getTimeFromNTP(unsigned long nowMillis) {
 
       #ifdef DEBUG_ON
       unsigned long measured_at = (done - _ntpStarted) / 2;  // Assume symmetric network latency and return when we think the whole second was.
-      debugMsg("_lastUpdateFromServer: " + String(_lastUpdateFromServer) + " - latency: " + String(measured_at));
+      debugMsg("lastUpdateFromServer: " + String(_lastUpdateFromServer) + " - latency: " + String(measured_at));
       #endif
       
       // Get the current time in mS, assuming symmtric latency
