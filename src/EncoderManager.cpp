@@ -1,6 +1,6 @@
 #include "EncoderManager.h"
-#include <Arduino.h>
-#include "defs.h"
+// The interrupt is much too sensitive - we will revert to polling
+// #include <FunctionalInterrupt.h>
 
 void EncoderManager_::setup() {
   pinMode(ENC_BTN, INPUT_PULLUP);
@@ -10,6 +10,9 @@ void EncoderManager_::setup() {
   	
   // clear the encoder's raw count and set the tracked count to zero
   _encoder.clearCount();
+
+  // The interrupt is much too sensitive - we will revert to polling
+  // attachInterrupt(ENC_BTN, std::bind(&EncoderManager_::ENC_BTN_ISR,this), FALLING);
 }
 
 int EncoderManager_::getCount() {
@@ -45,6 +48,30 @@ void EncoderManager_::setDebugCallback(DebugCallback dbcb) {
   _dbcb = dbcb;
   debugMsg("Debugging started, callback set");
 }
+
+// void IRAM_ATTR EncoderManager_::ENC_BTN_ISR()
+// {
+//   unsigned long nowMillis = millis();
+//   if ((nowMillis - _lastSwitchIntr) < 300) {
+//     return;
+//   }
+
+//   // Don't react to bounces on release
+//   if (digitalRead(ENC_BTN) == HIGH) {
+//     return;
+//   }
+
+//   _lastSwitchIntr = nowMillis;
+//   configTimeout = OLED_ON_TIME;
+//   if (configTimeout == 0) {
+//     configMode = true;
+//     configStep++;
+//   } else {
+//     if (configStep < 3) {
+//       configStep++;
+//     }
+//   }
+// }
 
 // ************************************************************
 // set the update interval

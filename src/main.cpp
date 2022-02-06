@@ -39,7 +39,7 @@ void startWiFiServices() {
     debugMsg("Start up NTP Time Updates...");
     #endif
     nowMillis = millis();
-    ntpManager.getTimeFromNTP(nowMillis);
+    ntpManager.getTimeFromNTP();
 
     // -------------------------------------------------------------------------
 
@@ -183,7 +183,6 @@ void setup()
   #ifdef DEBUG_ON
   debugMsg("Connecting to previous AP");
   #endif
-  oled.showScrollingMessage("Starting WiFi");
   
   setUpWiFi();
 
@@ -195,6 +194,7 @@ void setup()
     debugMsg("Host name: " + String(WiFi.getHostname()));
     #endif
 
+    oled.clearDisplay();
     oled.showScrollingMessage("IP: " + WiFi.localIP().toString());
     oled.showScrollingMessage(String(WiFi.getHostname()) + ".local");
     oled.showScrollingMessage(String(WiFi.SSID()));
@@ -419,10 +419,12 @@ void setLedsDiags()
 void performOncePerSecondProcessing() {
   lastMillis = nowMillis;
 
-  if (ntpManager.getNextUpdate(nowMillis) < 0 && WiFi.isConnected()) {
-    ntpManager.getTimeFromNTP(nowMillis);
+  // See if it is time for a new NTP update
+  if (ntpManager.getNextUpdate() < 0 && WiFi.isConnected()) {
+    ntpManager.getTimeFromNTP();
   }
 
+  // Maintain the LED next to the controller
   bool connected = (WiFi.status() == WL_CONNECTED);
   if (connected) {
     setLedFlashType(0);
@@ -430,34 +432,27 @@ void performOncePerSecondProcessing() {
     setLedFlashType(1);
   }
 
-  if ((digitalRead(ENC_BTN) == LOW) && configTimeout == 0) {
-    configTimeout = OLED_ON_TIME;
-    configMode = true;
-    // oled.setUp();
-    // oled.clearDisplay();
-    // oled.showScrollingMessage("IP: " + WiFi.localIP().toString());
-    // oled.showScrollingMessage(String(WiFi.getHostname()) + ".local");
+  if (!oled.getBlanked()) {
+    // Show the info menu
+    char time_c[11];
+    sprintf(time_c, "%02d:%02d:%02d", hour(), minute(), second());
+    oled.setTimeString(String(time_c));
+
+    oled.setWiFiStatus(connected);
+    oled.setNTPStatus(ntpManager.ntpTimeValid());
+    oled.setGStatus(gpsManager.getGPSTimeValid());
+    oled.setBlankStatus(false);
+    if (digitalRead(PIRPin) == false) {
+      oled.setPIRInstalled(true);  
+    }
+    oled.setPIRStatus(digitalRead(PIRPin));
+    oled.setYStatus(digitalRead(BTN2Pin) == LOW);
+
+    oled.clearScrollingMessage();
+    oled.showScrollingMessage("IP: " + WiFi.localIP().toString());
+    oled.showScrollingMessage(String(WiFi.getHostname()) + ".local");
+    oled.showScrollingMessage(String(WiFi.SSID()));
   }
-
-  // if (configTime > 0) {
-  //   // ************************************************************
-  //   // send time update to OLED and set the other status flags 
-  //   // ************************************************************
-  //   char time_c[11];
-  //   sprintf(time_c, "%02d:%02d:%02d", hour(), minute(), second());
-  //   oled.setTimeString(String(time_c));
-
-  //   oled.setWiFiStatus(connected);
-  //   oled.setBlankStatus(false);
-  //   oled.setNTPStatus(ntpManager.ntpTimeValid(nowMillis));
-  //   if (digitalRead(PIRPin) == false) {
-  //     oled.setPIRInstalled(true);  
-  //   }
-  //   oled.setPIRStatus(digitalRead(PIRPin));
-
-  //   oled.setXStatus(btn1);
-  //   oled.setYStatus(btn2);
-  // }
 
   // ************************************************************
   // send time display to the drivers
@@ -489,19 +484,27 @@ void performOncePerSecondProcessing() {
     loadNumberArrayTime();
 #endif
 
-  // -------------------------------------------------------------------------------
+  // Deal with turning off config mode and the OLED
   if (configTimeout > 0) {
     configTimeout--;
     if (configTimeout == 0) {
-      configMode = false;
+      oled.clearDisplay();
     }
   }
 
-//  debugMsg("EncBTN: " + String(encoderManager.getButtonState()));
+  if (oledTimeout > 0) {
+    oledTimeout--;
+    if (oledTimeout == 0) {
+      oled.blankDisplay();
+      debugMsg("OLED: OFF");
+    }
+  }
+
+//  debugMsg("ConfigStep: " + String(configStep) + ", OLED time: " + String(oledTimeout));
 //  debugMsg("EncCount: " + String((int) encoderManager.getCount()));
 //  debugMsg("Enc Attached: " + String(encoderManager.isAttached()));
 
-  blankingManager.getBlankingStatus(nowMillis, weekday(), hour());
+  blankingManager.getBlankingStatus(weekday(), hour());
 
   ledManager.setBlanked(blankingManager.getCurrentBlankLEDs());
 
@@ -511,7 +514,7 @@ void performOncePerSecondProcessing() {
   // Feed the GPS parser
   while (Serial.available()) {
     char c = Serial.read();
-    gpsManager.parseNMEAMsg(c, nowMillis);
+    gpsManager.parseNMEAMsg(c);
   }
 
   // Trigger 1PPS signal
@@ -528,7 +531,7 @@ void performOncePerMinuteProcessing() {
   #ifdef DEBUG_ON
   debugMsg("---> OncePerMinuteProcessing");
   if (WiFi.isConnected()) {
-    debugMsg("Next update in: " + String(ntpManager.getNextUpdate(nowMillis)));
+    debugMsg("Next update in: " + String(ntpManager.getNextUpdate()));
   }
   #endif
 
@@ -542,15 +545,15 @@ void performOncePerMinuteProcessing() {
   // Update the RTC time
   tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtcManager.getRTCTimeAsTimeT());
 
-  // recalculate the UTC offset
-  tzManager.getPrimaryTimeSource(nowMillis);
+  // manage the primary source - it might have changed
+  tzManager.getPrimaryTimeSource();
 
-  #ifdef DEBUG_ON
-  tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_GPS, nowMillis);
-  tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_NTP, nowMillis);
-  tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis);
-  tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_INT, nowMillis);
-  #endif
+  // #ifdef DEBUG_ON
+  // tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_GPS, nowMillis);
+  // tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_NTP, nowMillis);
+  // tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis);
+  // tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_INT, nowMillis);
+  // #endif
 }
 
 // ************************************************************
@@ -561,7 +564,8 @@ void performOncePerHourProcessing() {
   debugMsg("---> OncePerHourProcessing");
   #endif
   oled.setAMStatus(isAM());
-  tzManager.setUTCTimeFromTimeSourceHourly(nowMillis);
+  tzManager.setUTCTimeFromTimeSourceHourly();
+  tzManager.calculateCurrentOffsetFromTimeT();
 
   rtcManager.testRTCTimeProvider();
 }
@@ -609,7 +613,6 @@ void loop()
 
     // Make sure we don't call multiple times
     triggeredThisSec = true;
-
     if ((second() > 0) && triggeredThisSec) {
       triggeredThisSec = false;
     }
@@ -625,16 +628,72 @@ void loop()
   
   outputDisplay();
 
-#ifdef DIGIT_DIAGNOSTICS
+  #ifdef DIGIT_DIAGNOSTICS
   // output the backlight/underlight LEDs
   if (cc->diagsMode > 0) {
     setLedsDiags();
   } else {
     setLeds();
   }
-#else
+  #else
   setLeds();
-#endif
+  #endif
+
+  // Update button states
+  // ToDo evaluate whether to not bother debouncing the buttons 1 & 2 (which are really switches)
+//  button1.checkButton();
+//  button2.checkButton();
+//  buttonEnc.checkButton();
+
+  // bool updateOLEDConfig = false;
+  // if (buttonEnc.isButtonPressed1S()) {
+  //   // Select the menu option
+  //   if (configStep == 0) {
+  //     // We are going into the config, set up the display
+  //     oled.clearDisplay();
+  //     configMode = true;
+  //     configStep++;
+  //     updateOLEDConfig = true;
+  //   } else {
+  //     if (configStep < 3) {
+  //       configStep++;
+  //       updateOLEDConfig = true;
+  //     }
+  //   }
+  //   buttonEnc.reset();
+  // }
+  
+  // if (updateOLEDConfig) {
+  //   debugMsg("ConfigStep: " + String(configStep));
+
+  //   // Show the config menu
+  //   oled.showMenuHeading("ENIAC Menu");
+  //   if (configStep > 0) {
+  //     oled.showMenuEntry(1, "Menu 1");
+  //   }
+  //   if (configStep > 1) {
+  //     oled.showMenuEntry(2, "Menu 2");
+  //   } else {
+  //     oled.blankMenuEntry(2);
+  //   }
+  //   if (configStep > 2) {
+  //     oled.showMenuEntry(3, "Menu 3");
+  //   } else {
+  //     oled.blankMenuEntry(3);
+  //   }
+
+  //   oled.outputDisplay();
+  // }
+
+  // // Look at the encoder and wake up the display if necessary
+  // if (buttonEnc.isButtonPressedNow()) {
+  //   if (oled.getBlanked()) {
+  //     oled.clearDisplay();
+  //     debugMsg("OLED: ON");
+  //   }
+  //   oledTimeout = OLED_ON_TIME;
+  //   configTimeout = CONFIG_TIME;
+  // }
 
   delay(10);
 }

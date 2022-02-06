@@ -42,7 +42,7 @@ String NtpManager_::getNtpPool() {
 // ************************************************************
 // get the number of millis until the next update is due in seconds
 // ************************************************************
-signed int NtpManager_::getNextUpdate(unsigned long nowMillis) {
+signed int NtpManager_::getNextUpdate() {
   // deal with the startup case - we always want to update 
   if (_lastUpdateFromServer == 0) {
     return -1;
@@ -75,7 +75,7 @@ time_t NtpManager_::getLastTimeTFromServer() {
 // ************************************************************
 // see if the NTP we got is still to be condsidered valid
 // ************************************************************
-bool NtpManager_::ntpTimeValid(unsigned long nowMillis) {
+bool NtpManager_::ntpTimeValid() {
   return _lastUpdateFromServer != 0 && ((nowMillis - _lastUpdateFromServer) < (2000 * _ntpUpdateInterval));
 }
 
@@ -89,7 +89,7 @@ void NtpManager_::setDebugOutput(bool newDebug) {
 // ************************************************************
 // Asynchronous NTP query
 // ************************************************************
-void NtpManager_::getTimeFromNTP(unsigned long nowMillis) {
+void NtpManager_::getTimeFromNTP() {
   debugMsg("Async NTP in");
 
   if (WiFi.status() != WL_CONNECTED) {

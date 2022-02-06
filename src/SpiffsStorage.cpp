@@ -47,8 +47,13 @@ bool SpiffsStorage_::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
       std::unique_ptr<char[]> buf(new char[size]);
 
       configFile.readBytes(buf.get(), size);
+
       DynamicJsonBuffer jsonBuffer;
       JsonObject &json = jsonBuffer.parseObject(buf.get());
+
+      // Dump the raw JSON
+      //if (_debug) json.printTo(Serial);
+      //  debugMsg("\n");
 
       if (json.success())
       {

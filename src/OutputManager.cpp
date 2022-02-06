@@ -20,6 +20,15 @@ void loadNumberArrayTime() {
 // ************************************************************
 // Break the time into displayable digits
 // ************************************************************
+void loadNumberArrayBurn(byte digit, byte value) {
+  allBlanked();
+  numberArray[digit % S1]  = value % 10;
+  displayType[digit % S1] = NORMAL;
+}
+
+// ************************************************************
+// Break the time into displayable digits
+// ************************************************************
 void loadNumberArrayDate() {
   switch (cc->dateFormat) {
     case DATE_FORMAT_YYMMDD:

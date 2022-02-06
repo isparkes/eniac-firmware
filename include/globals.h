@@ -52,8 +52,8 @@ extern float fadeStepsInternal;
 
 extern int ldrValue;
 
+extern unsigned int oledTimeout;
 extern unsigned int configTimeout;
-extern bool configMode;
 
 // ToDo move into outputManager
 extern bool led1State;
@@ -72,4 +72,5 @@ extern int digitValue;
 #endif
 
 extern String uniqHostname;
+
 extern AsyncWebServer server;

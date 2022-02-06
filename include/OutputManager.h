@@ -12,6 +12,7 @@
 void loadNumberArrayTime();
 void loadNumberArrayDate();
 void loadNumberArraySameValue(byte value);
+void loadNumberArrayBurn(byte digit, byte value);
 
 void allNormal(bool leadingBlank);
 

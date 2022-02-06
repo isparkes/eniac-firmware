@@ -13,9 +13,9 @@
 #define STATUS_LINE_Y 54
 #define WIFI_IND_X     5
 #define NTP_IND_X     12
-#define PIR_IND_X     19
-#define BLANK_IND_X   26
-#define X_IND_X       33
+#define G_IND_X       19
+#define PIR_IND_X     26
+#define BLANK_IND_X   33
 #define Y_IND_X       40
 #define Z_IND_X       47
 #define TIME_IND_X    60
@@ -43,24 +43,30 @@ class OLED_
 
   public:
     void setUp();
+    void showMenuHeading(String menuText);
+    void showMenuEntry(byte level, String menuText);
+    void blankMenuEntry(byte level);
     void showStatusLine();
     void setWiFiStatus(bool newStatus);
     void setNTPStatus(bool newStatus);
     void setPIRStatus(bool newStatus);
     void setPIRInstalled(bool newStatus);
     void setBlankStatus(bool newStatus);
-    void setXStatus(bool newStatus);
+    void setGStatus(bool newStatus);
     void setYStatus(bool newStatus);
     void setZStatus(bool newStatus);
     void setAMStatus(bool newStatus);
     void clearDisplay();
     void blankDisplay();
+    bool getBlanked();
     void outputDisplay();
+    void clearScrollingMessage();
     void showScrollingMessage(String messageText);
     void setTimeString(String timeText);
   private:
-    bool wifiStatus = false;
-    bool ntpStatus = false;
+    bool _blanked = false;
+    bool _wifiStatus = false;
+    bool _ntpStatus = false;
     byte pirStatus = false;
     byte pirInstalled = false;
     bool blankStatus = false;
@@ -77,7 +83,7 @@ class OLED_
     void drawNTPInd();
     void drawPIRInd();
     void drawBlankInd();
-    void drawXInd();
+    void drawGInd();
     void drawYInd();
     void drawZInd();
     void drawAMInd();

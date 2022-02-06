@@ -15,10 +15,10 @@
 class GPSManager_ {
   public:
     static GPSManager_ &getInstance(); // Accessor for singleton instance
-    void parseNMEAMsg(char c, unsigned long nowMillis);
+    void parseNMEAMsg(char c);
     unsigned long getLastGPSReadTime();
-    bool getGPSTimeValid(unsigned long nowMillis);
-    bool getGPSSyncStarted(unsigned long nowMillis);
+    bool getGPSTimeValid();
+    bool getGPSSyncStarted();
     time_t getLastGPSTime();
     String getLastGPSTimeRaw();
 
@@ -47,7 +47,7 @@ class GPSManager_ {
 
     void debugMsg(String message);                        // print a debug message to the callback
     String parseGPZDAMsg(String messageToParse);
-    bool parseGPZDAMsgToUTCTime(String messageToParse, unsigned long nowMillis);
+    bool parseGPZDAMsgToUTCTime(String messageToParse);
 };
 
 extern GPSManager_ &gpsManager;

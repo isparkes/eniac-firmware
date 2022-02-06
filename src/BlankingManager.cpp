@@ -16,7 +16,7 @@ void BlankingManager_::begin() {
 // Uses the value of pirBlanking to avoid disturbing  blanking 
 // period if so configured.
 // ************************************************************
-bool BlankingManager_::checkPIR(unsigned long nowMillis) {
+bool BlankingManager_::checkPIR() {
   _pirvalue = (digitalRead(PIRPin) == HIGH);
 
   if (_pirvalue) {
@@ -89,8 +89,8 @@ bool BlankingManager_::getHoursBlanked(byte currentHour) {
 // ************************************************************
 // Get the overall blanking status
 // ************************************************************
-bool BlankingManager_::getBlankingStatus(unsigned long nowMillis, byte currentWeekday, byte currentHour) {
-  _pirBlanked = checkPIR(nowMillis);
+bool BlankingManager_::getBlankingStatus(byte currentWeekday, byte currentHour) {
+  _pirBlanked = checkPIR();
   _timeBasedBlanked = checkTimeBasedBlanking(currentWeekday, currentHour);
 
   if (cc->mdBlankMode == MD_DISABLE) {
@@ -114,22 +114,32 @@ bool BlankingManager_::getBlankingStatus(unsigned long nowMillis, byte currentWe
       case BLANK_MODE_TUBES: {
         _blankTubes = true;
         _blankLEDs = false;
+        _blankTowers = false;
         break;
       }
       case BLANK_MODE_LEDS: {
         _blankTubes = false;
         _blankLEDs = true;
+        _blankTowers = false;
         break;
       }
-      case BLANK_MODE_BOTH: {
+      case BLANK_MODE_TUBES_LEDS: {
         _blankTubes = true;
         _blankLEDs = true;
+        _blankTowers = false;
+        break;
+      }
+      case BLANK_MODE_ALL: {
+        _blankTubes = true;
+        _blankLEDs = true;
+        _blankTowers = true;
         break;
       }
     }
   } else {
     _blankTubes = false;
     _blankLEDs = false;
+    _blankTowers = false;
   }
 
   return _blanked;
@@ -155,6 +165,10 @@ bool BlankingManager_::getCurrentBlankLEDs() {
   return _blankLEDs;
 }
 
+bool BlankingManager_::getCurrentBlankTowers() {
+  return _blankTowers;
+}
+
 String BlankingManager_::getBlankingReason() {
   if (_blanked) {
     if (_pirBlanked) {
@@ -168,7 +182,7 @@ String BlankingManager_::getBlankingReason() {
 
 }
 
-int  BlankingManager_::getBlankAge(unsigned long nowMillis)
+int  BlankingManager_::getBlankAge()
 {
     int lastMotionDetection = (nowMillis - _pirLastSeen) / 1000.0;
     return lastMotionDetection;

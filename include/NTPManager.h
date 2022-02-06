@@ -7,6 +7,7 @@
 #include <DNSServer.h>          //https://github.com/esp8266/Arduino/tree/master/libraries/DNSServer
 #include "defs.h"               // for DEBUG setting
 #include "DebugManager.h"
+#include "globals.h"
 
 // ------------------------ Types ------------------------
 
@@ -34,7 +35,7 @@ class NtpManager_
 
   public:
     void setDebugOutput(bool newDebug);
-    void getTimeFromNTP(unsigned long nowMillis);
+    void getTimeFromNTP();
     bool getIsConnected();
     void resetDefaults();
     
@@ -45,12 +46,12 @@ class NtpManager_
     void setNtpPool(String pool);
     
     unsigned long getLastUpdate();
-    signed int getNextUpdate(unsigned long nowMillis);
+    signed int getNextUpdate();
     void resetNextUpdate();
     
     time_t getLastTimeTFromServer();
     
-    bool ntpTimeValid(unsigned long nowMillis);
+    bool ntpTimeValid();
     
     // callbacks
     void setDebugCallback(DebugCallback dbcb);

@@ -21,12 +21,12 @@ void BlinkenlightsManager_::setBlinkenlightsStatus() {
   bl->bl1 = blankingManager.getCurrentBlankingStatus();
   bl->bl2 = blankingManager.getCurrentPIRStatus();
   
-  if (gpsManager.getGPSTimeValid(nowMillis)) {
+  if (gpsManager.getGPSTimeValid()) {
     bl->bl3 = true;
-  } else if (gpsManager.getGPSSyncStarted(nowMillis)) {
+  } else if (gpsManager.getGPSSyncStarted()) {
     bl->bl3 = (second() % 2 == 0);
   }
-  bl->bl4 = ntpManager.ntpTimeValid(nowMillis);
+  bl->bl4 = ntpManager.ntpTimeValid();
   
   bl->bl5 = WiFi.isConnected();
   bl->bl6 = blankingManager.getCurrentPIRInstalled();

@@ -3,6 +3,9 @@
 #include <Arduino.h>
 #include <ESP32Encoder.h>
 #include "DebugManager.h"
+#include <Arduino.h>
+#include "defs.h"
+#include "globals.h"
 
 class EncoderManager_ {
   private:
@@ -28,8 +31,10 @@ class EncoderManager_ {
     ESP32Encoder _encoder;
     DebugCallback _dbcb;
     bool _debug = false;
+    unsigned long _lastSwitchIntr = 0;
 
     void debugMsg(String message);                        // print a debug message to the callback
+//    void IRAM_ATTR ENC_BTN_ISR();
 };
 
 extern EncoderManager_ &encoderManager;

@@ -20,7 +20,7 @@ String GPSManager_::parseGPZDAMsg(String messageToParse) {
 // ************************************************************
 // Turn the GPS string into a time_t and then onto a time string
 // ************************************************************
-bool GPSManager_::parseGPZDAMsgToUTCTime(String messageToParse, unsigned long nowMillis) {
+bool GPSManager_::parseGPZDAMsgToUTCTime(String messageToParse) {
   if (messageToParse.length() == 36) {
     time_t tReceived;
     struct tm whenStart;
@@ -49,7 +49,7 @@ bool GPSManager_::parseGPZDAMsgToUTCTime(String messageToParse, unsigned long no
 // ************************************************************
 // Picks messages like this "$GPZDA,184937.00,28,08,2021,00,00*65"
 // ************************************************************
-void GPSManager_::parseNMEAMsg(char c, unsigned long nowMillis) {
+void GPSManager_::parseNMEAMsg(char c) {
 //  debugMsgCont("GPS: " + String(c));
   switch(c) {
     case '\r':
@@ -63,7 +63,7 @@ void GPSManager_::parseNMEAMsg(char c, unsigned long nowMillis) {
         #ifdef DEBUG_ON 
         debugMsg("Got GPS ZDA msg: " + lastMessage);
         #endif
-        if(parseGPZDAMsgToUTCTime(lastMessage, nowMillis)) {
+        if(parseGPZDAMsgToUTCTime(lastMessage)) {
           _lastGPSReadTime = nowMillis;
         }
       }
@@ -109,7 +109,7 @@ void GPSManager_::setDebugOutput(bool newDebug) {
 // ************************************************************
 // Get if we are still in the GPS valid time
 // ************************************************************
-bool GPSManager_::getGPSTimeValid(unsigned long nowMillis) {
+bool GPSManager_::getGPSTimeValid() {
   if (_lastGPSReadTime > 0) {
     return ((nowMillis - _lastGPSReadTime)/1000 < GPS_READING_VALIDITY_SECS);
   } else {
@@ -120,7 +120,7 @@ bool GPSManager_::getGPSTimeValid(unsigned long nowMillis) {
 // ************************************************************
 // Get if we have started to synch, but are not yet ready
 // ************************************************************
-bool GPSManager_::getGPSSyncStarted(unsigned long nowMillis) {
+bool GPSManager_::getGPSSyncStarted() {
   if (_lastGPSSyncTime > 0) {
     return ((nowMillis - _lastGPSSyncTime)/1000 < GPS_READING_VALIDITY_SECS);
   } else {

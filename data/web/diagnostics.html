@@ -94,6 +94,22 @@
                             <td id="lastgpsraw"></td>
                         </tr>
                         <tr>
+                            <td>Epoch UTC GPS</td>
+                            <td id="utcgpsraw"></td>
+                        </tr>
+                        <tr>
+                            <td>Epoch UTC NTP</td>
+                            <td id="utcntpraw"></td>
+                        </tr>
+                        <tr>
+                            <td>Epoch UTC RTC</td>
+                            <td id="utcrtcraw"></td>
+                        </tr>
+                        <tr>
+                            <td>Epoch UTC Internal</td>
+                            <td id="utcintraw"></td>
+                        </tr>
+                        <tr>
                             <td>Current UTC offset</td>
                             <td id="utcoffset"></td>
                         </tr>
@@ -223,6 +239,10 @@
             $("#sdkversion").text(diags.sdkversion);
             $("#sketchmd5").text(diags.sketchmd5);
             $("#utcoffset").text(diags.utcoffset);
+            $("utcgpsraw").text(diags.utcgpsraw);
+            $("utcntpraw").text(diags.utcntpraw);
+            $("utcrtcraw").text(diags.utcrtcraw);
+            $("utcintraw").text(diags.utcintraw);
 
             if (diags.diagsMode != undefined) {
                 $("#digitDiagsContainer").prop('hidden', false);

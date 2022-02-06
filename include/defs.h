@@ -17,7 +17,7 @@
 #define WDT_TIMEOUT 5
 
 // Add debug statments to code - needs extra space
-#define DEBUG_ON             // DEBUG_ON | DEBUG_OFF
+#define DEBUG_ON            // DEBUG_ON | DEBUG_OFF
 
 // Add the dignostic calls to the GUI
 #define DIGIT_DIAGNOSTICS    // DIGIT_DIAGNOSTICS | DIGIT_DIAGNOSTICS_OFF
@@ -147,13 +147,15 @@
 #define BLANK_MODE_MIN                  0
 #define BLANK_MODE_TUBES                0  // Use blanking for tubes only 
 #define BLANK_MODE_LEDS                 1  // Use blanking for LEDs only
-#define BLANK_MODE_BOTH                 2  // Use blanking for tubes and LEDs
-#define BLANK_MODE_MAX                  2
+#define BLANK_MODE_TUBES_LEDS           2  // Use blanking for tubes and LEDs
+#define BLANK_MODE_ALL                  3  // Use blanking for tubes, LEDs and towers
+#define BLANK_MODE_MAX                  
 #define BLANK_MODE_DEFAULT              2
 
 // -------------------------------------------------------------------------------
 
-#define OLED_ON_TIME                    60 // Time in seconds the OLED stays on for
+#define OLED_ON_TIME                    20 // Time in seconds the OLED stays on for
+#define CONFIG_TIME                     6  // Time in seconds we stay in config mode
 
 // -------------------------------------------------------------------------------
 #define ANTI_GHOST_MIN                  0

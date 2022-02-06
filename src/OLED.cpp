@@ -11,6 +11,7 @@ void OLED_::setUp()
 
 void OLED_::clearDisplay()
 {
+  _blanked = false;
   _display->clearDisplay();
   showStatusLine();
   _display->setCursor(0,0);
@@ -25,11 +26,25 @@ void OLED_::blankDisplay()
 {
   _display->clearDisplay();
   _display->display();
+  _blanked = true;
+}
+
+bool OLED_::getBlanked()
+{
+  return _blanked;
 }
 
 void OLED_::outputDisplay()
 {
   _display->display();
+}
+
+void OLED_::clearScrollingMessage()
+{
+  for (int tmpBuffer =  0 ; tmpBuffer < 6; tmpBuffer++) {
+    bufferLines[tmpBuffer] = "";
+  }
+  bufferIdx = 0;  
 }
 
 void OLED_::showScrollingMessage(String messageText)
@@ -60,7 +75,7 @@ void OLED_::showStatusLine()
   drawNTPInd();
   drawPIRInd();
   drawBlankInd();
-  drawXInd();
+  drawGInd();
   drawYInd();
   drawZInd();
   drawTimeInd();
@@ -77,14 +92,14 @@ void OLED_::setTimeString(String newTimeText)
 
 void OLED_::setWiFiStatus(bool newStatus)
 {
-  wifiStatus = newStatus;
+  _wifiStatus = newStatus;
   drawWiFiInd();
   _display->display();
 }
 
 void OLED_::setNTPStatus(bool newStatus)
 {
-  ntpStatus = newStatus;
+  _ntpStatus = newStatus;
   drawNTPInd();
   _display->display();
 }
@@ -110,10 +125,10 @@ void OLED_::setBlankStatus(bool newStatus)
   _display->display();
 }
 
-void OLED_::setXStatus(bool newStatus)
+void OLED_::setGStatus(bool newStatus)
 {
   xStatus = newStatus;
-  drawXInd();
+  drawGInd();
   _display->display();
 }
 
@@ -140,7 +155,7 @@ void OLED_::setAMStatus(bool newStatus)
 
 void OLED_::drawWiFiInd() {
   _display->setCursor(WIFI_IND_X,STATUS_LINE_Y);
-  if (wifiStatus) {
+  if (_wifiStatus) {
     _display->print("W");
   } else {
     _display->print("w");
@@ -149,7 +164,7 @@ void OLED_::drawWiFiInd() {
 
 void OLED_::drawNTPInd() {
   _display->setCursor(NTP_IND_X,STATUS_LINE_Y);
-  if (ntpStatus) {
+  if (_ntpStatus) {
     _display->print("N");
   } else {
     _display->print("n");
@@ -179,12 +194,12 @@ void OLED_::drawBlankInd() {
   }
 }
 
-void OLED_::drawXInd() {
-  _display->setCursor(X_IND_X,STATUS_LINE_Y);
+void OLED_::drawGInd() {
+  _display->setCursor(G_IND_X,STATUS_LINE_Y);
   if (xStatus) {
-    _display->print("X");
+    _display->print("G");
   } else {
-    _display->print("x");
+    _display->print("g");
   }
 }
 
@@ -218,6 +233,27 @@ void OLED_::drawAMInd() {
   } else {
     _display->print("PM");
   }
+}
+
+void OLED_::showMenuHeading(String menuText) {
+  _display->setCursor(0,0);
+  _display->setTextColor(BLACK, WHITE);
+  _display->print(menuText);
+  _display->setTextColor(WHITE, BLACK);
+}
+
+void OLED_::showMenuEntry(byte level, String menuText) {
+  int16_t posX = level*4;
+  int16_t posY = 4 + level*8;
+  _display->setCursor(posX,posY);
+  _display->print(menuText);
+}
+
+void OLED_::blankMenuEntry(byte level) {
+  int16_t posX = level*4;
+  int16_t posY = 4 + level*8;
+  _display->setCursor(posX,posY);
+  _display->print("              ");
 }
 
 OLED_ &OLED_::getInstance() {

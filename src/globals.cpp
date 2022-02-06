@@ -1,5 +1,4 @@
 #include "globals.h"
-#include "defs.h"
 
 // ************************************************************
 // Global shared components and objects
@@ -58,9 +57,9 @@ byte timeSource = TIME_SOURCE_INT;
 
 int ldrValue;
 
-// Encoder management
+// Menu  management
+unsigned int oledTimeout = OLED_ON_TIME;
 unsigned int configTimeout;
-bool configMode = false;
 
 // ToDo move into NetworkManager
 String ssid = "";
@@ -82,3 +81,4 @@ String uniqHostname;
 
 // singleton object
 AsyncWebServer server(80);
+

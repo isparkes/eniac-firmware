@@ -93,7 +93,7 @@ String getStatusString() {
   } else {
     connectionInfo += "w";
   }
-  if (ntpManager.ntpTimeValid(nowMillis)) {
+  if (ntpManager.ntpTimeValid()) {
     connectionInfo += "N";
   } else {
     connectionInfo += "n";
@@ -134,7 +134,7 @@ String getStatusString() {
   connectionInfo += "d";
 #endif
 
-  if (gpsManager.getGPSTimeValid(nowMillis)) {
+  if (gpsManager.getGPSTimeValid()) {
     connectionInfo += "G";
   } else {
     connectionInfo += "g";
@@ -287,7 +287,7 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api summary GET request");
   #endif
   
-  signed long absNextUpdate = abs(ntpManager.getNextUpdate(nowMillis));
+  signed long absNextUpdate = abs(ntpManager.getNextUpdate());
   String overdueInd = "";
   if (absNextUpdate < 0) {
     overdueInd = " overdue";
@@ -305,21 +305,21 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   String clockUrl = "http://" + String(WiFi.getHostname()) + ".local";
   clockUrl.toLowerCase();
   root["clockurl"] = clockUrl;
-  root["timeSource"] = tzManager.getPrimaryTimeSource(nowMillis);
-  root["currentntptime"] = tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_NTP, nowMillis);
-  root["lastntpupdate"] = secsToReadableString(tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_NTP, nowMillis));
+  root["timeSource"] = tzManager.getPrimaryTimeSource();
+  root["currentntptime"] = tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_NTP);
+  root["lastntpupdate"] = secsToReadableString(tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_NTP));
   root["nextupdate"] = secsToReadableString(absNextUpdate) + overdueInd;
-  if (ntpManager.ntpTimeValid(nowMillis)) {
+  if (ntpManager.ntpTimeValid()) {
     root["ntpvalid"] = 1;
   } else {
     root["ntpvalid"] = 0;
   }
-  root["displaytime"] = tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_INT, nowMillis);
+  root["displaytime"] = tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_INT);
 
   if (gpsManager.getLastGPSReadTime() > 0) {
-    root["lastgpstime"] = tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_GPS, nowMillis);
-    root["lastgpsupdate"] = secsToReadableString(tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_GPS, nowMillis));
-    if (gpsManager.getGPSTimeValid(nowMillis)) {
+    root["lastgpstime"] = tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_GPS);
+    root["lastgpsupdate"] = secsToReadableString(tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_GPS));
+    if (gpsManager.getGPSTimeValid()) {
       root["gpsvalid"] = 1;
     } else {
       root["gpsvalid"] = 0;
@@ -331,8 +331,8 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   }
 
   if (rtcManager.getRTCValid()) {
-    root["lastrtctime"] = tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis);
-    root["lastrtcupdate"] = secsToReadableString(tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_GPS, nowMillis));
+    root["lastrtctime"] = tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_RTC);
+    root["lastrtcupdate"] = secsToReadableString(tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_GPS));
     root["rtcvalid"] = 1;
   } else {
     root["lastrtctime"] = "RTC not installed";
@@ -346,7 +346,7 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   bool pirInstalled = blankingManager.getCurrentPIRInstalled();
   root["mdInstalled"] = pirInstalled;
   if (pirInstalled) {
-    root["mdLastSeen"] = secsToReadableString(blankingManager.getBlankAge(nowMillis));
+    root["mdLastSeen"] = secsToReadableString(blankingManager.getBlankAge());
   } else {
     root["mdLastSeen"] = "Motion detector not installed";
   }
@@ -393,6 +393,10 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["minfreeheap"] = ESP.getMinFreeHeap();
   root["resetreason"] = String(rtc_get_reset_reason(0)) + "/" + String(rtc_get_reset_reason(1));
   root["lastgpsraw"] = gpsManager.getLastGPSTimeRaw();
+  root["utcgpsraw"] = tzManager.getRawUTCTimeFromTimeSource(TIME_SOURCE_GPS);
+  root["utcntpraw"] = tzManager.getRawUTCTimeFromTimeSource(TIME_SOURCE_NTP);
+  root["utcrtcraw"] = tzManager.getRawUTCTimeFromTimeSource(TIME_SOURCE_RTC);
+  root["utcintraw"] = tzManager.getRawUTCTimeFromTimeSource(TIME_SOURCE_INT);
   root["utcoffset"] = String(tzManager.getCurrentUTCOffset());
 #ifdef DIGIT_DIAGNOSTICS
   root["diagsMode"] = cc->diagsMode;

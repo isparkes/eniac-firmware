@@ -32,11 +32,12 @@ class TZManager_ {
     int  getCurrentUTCOffset();
     void calculateCurrentOffsetFromTimeT();
 
-    String getLocalTimeFromTimeSource(byte timesource, unsigned long now);
-    unsigned long getTimeLastSetFromTimeSource(byte timesource, unsigned long now);
-    void setUTCTimeFromTimeSourceHourly(unsigned long now);
-    void setUTCTimeFromTimeSource(byte timesource, unsigned long now, time_t gpsTime);
-    byte getPrimaryTimeSource(unsigned long now);
+    String getLocalTimeFromTimeSource(byte timesource);
+    unsigned long getTimeLastSetFromTimeSource(byte timesource);
+    void setUTCTimeFromTimeSourceHourly();
+    void setUTCTimeFromTimeSource(byte timesource, unsigned long readTime, time_t gpsTime);
+    byte getPrimaryTimeSource();
+    time_t getRawUTCTimeFromTimeSource(byte timesource);
 
     String localtimeToReadableString(time_t timeToConvert);
     String gmtimeToReadableString(time_t timeToConvert);
@@ -53,7 +54,7 @@ class TZManager_ {
     bool _debug = false;
     DebugCallback _dbcb;
 
-    void setInternalTime(unsigned long now);
+    void setInternalTime();
     void debugMsg(String message);
 };
 

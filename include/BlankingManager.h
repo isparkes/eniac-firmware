@@ -26,10 +26,11 @@ class BlankingManager_ {
     bool _blanked;
     bool _blankTubes = false;
     bool _blankLEDs = false;
+    bool _blankTowers = false;
     bool _pirBlanked;
     bool _timeBasedBlanked;
 
-    bool checkPIR(unsigned long nowMillis);
+    bool checkPIR();
     bool checkTimeBasedBlanking(byte currentWeekday, byte currentHour);
     bool getHoursBlanked(byte currentHou);
 
@@ -41,13 +42,14 @@ class BlankingManager_ {
 
   public:
     void begin();
-    bool getBlankingStatus(unsigned long nowMillis, byte currentWeekday, byte currentHour);
+    bool getBlankingStatus(byte currentWeekday, byte currentHour);
     bool getCurrentBlankTubes();
     bool getCurrentBlankLEDs();
+    bool getCurrentBlankTowers();
     bool getCurrentPIRStatus();
     bool getCurrentPIRInstalled();
     bool getCurrentBlankingStatus();
-    int  getBlankAge(unsigned long nowMillis);
+    int  getBlankAge();
     String getBlankingReason();
 };
 
