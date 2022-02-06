@@ -61,11 +61,6 @@ int ldrValue;
 unsigned int oledTimeout = OLED_ON_TIME;
 unsigned int configTimeout;
 
-// ToDo move into NetworkManager
-String ssid = "";
-String password = "";
-bool credentialsReceived = false;
-
 // ToDo move into outputManager
 bool led1State;
 bool led2State;
@@ -77,8 +72,9 @@ bool indLed2;
 int digitValue = 0;
 #endif
 
+bool wifiServicesWereInitalised = false;
+
 String uniqHostname;
 
 // singleton object
 AsyncWebServer server(80);
-

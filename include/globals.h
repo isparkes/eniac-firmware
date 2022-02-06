@@ -61,15 +61,12 @@ extern bool led2State;
 extern bool indLed1;
 extern bool indLed2;
 
-// // ToDo move into NetworkManager
-// extern String ssid;
-// extern String password;
-// extern bool credentialsReceived;
-
 #ifdef DIGIT_DIAGNOSTICS
 // Used for testing
 extern int digitValue;
 #endif
+
+extern bool wifiServicesWereInitalised;
 
 extern String uniqHostname;
 

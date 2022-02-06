@@ -25,6 +25,7 @@
 #include "RTCManager.h"
 #include "NTPManager.h"
 #include "DebugManager.h"
+#include <esp_task_wdt.h>
 
 // -------------------------------------------------------------------------------
 
@@ -74,9 +75,6 @@ void resetWiFi();
 void resetOptions();
 void resetAll();
 
-// TZ Offset handling
-void calculateCurrentOffset(int year, int mon, int day, int hour, int min, int sec);
-
-void loadNumberArrayTime();
-void loadNumberArraySameValue(byte value);
-void outputDisplay();
+void enableWatchdog();
+void disableWatchdog();
+void feedWatchdog();

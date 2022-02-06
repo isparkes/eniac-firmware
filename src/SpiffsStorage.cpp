@@ -291,6 +291,11 @@ bool SpiffsStorage_::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
         debugMsg("Loaded WiFiPassword: " + String(spiffs_config->WiFiPassword));
         #endif
 
+        spiffs_config->wifiOnAtStart = json["wifiOnAtStart"].as<bool>();
+        #ifdef DEBUG_ON
+        debugMsg("Loaded wifiOnAtStart: " + String(spiffs_config->wifiOnAtStart));
+        #endif
+
         loaded = true;
       }
       else
@@ -364,7 +369,7 @@ void SpiffsStorage_::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
 
   json["WiFiSSID"] = spiffs_config->WiFiSSID;
   json["WiFiPassword"] = spiffs_config->WiFiPassword;
-
+  json["wifiOnAtStart"] = spiffs_config->wifiOnAtStart;
 
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile)

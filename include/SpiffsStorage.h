@@ -53,6 +53,7 @@ typedef struct {
   int  hueOffset;
   String WiFiSSID;
   String WiFiPassword;
+  bool wifiOnAtStart;
 
   // not saved
   int diagsMode;
@@ -87,6 +88,7 @@ class SpiffsStorage_
     bool testMountSpiffs();
     bool getSpiffsMounted();
 
+    // ToDo remove these uselss references
     bool getConfigFromSpiffs(spiffs_config_t* spiffs_config);
     void saveConfigToSpiffs(spiffs_config_t* spiffs_config);
 

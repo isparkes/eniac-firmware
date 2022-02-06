@@ -21,7 +21,6 @@ String wpspin2string(uint8_t a[])
   return (String)wps_pin;
 }
 
-
 // ************************************************************
 // Output a logging message to the debug output, if set
 // ************************************************************
@@ -56,12 +55,10 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
     break;
   case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
     #ifdef DEBUG_ON
-    debugMsgWfm("WPS Successfull, stopping WPS and connecting to: " + WiFi.SSID() + ", password: " + WiFi.psk());
+    debugMsgWfm("WPS Successfull, saving credentials: " + WiFi.SSID() + ", password: " + WiFi.psk());
     #endif
     saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
     esp_wifi_wps_disable();
-    delay(10);
-    WiFi.begin(cc->WiFiSSID.c_str(), cc->WiFiPassword.c_str());
     break;
   case SYSTEM_EVENT_STA_WPS_ER_FAILED:
     #ifdef DEBUG_ON
@@ -102,66 +99,67 @@ void setUpWiFi() {
   WiFi.setHostname(uniqHostname.c_str());
 }
 
-void ScanWiFiNetworks() {
-  WiFi.mode(WIFI_MODE_STA);
-  delay(1000);
-  int n = WiFi.scanNetworks();
-  debugMsgWfm("scan done");
-  if (n == 0) {
-      debugMsgWfm("no networks found");
+void scanWiFiNetworks() {
+  if (WiFi.isConnected()) {
+    debugMsgWfm("No scan done - WiFi is connected");
   } else {
-    debugMsgWfm("");
-    debugMsgWfm(String(n) + " networks found");
-    for (int i = 0; i < n; ++i) {
-      // Print SSID and RSSI for each network found
-      bool encrypted = WiFi.encryptionType(i) == WIFI_AUTH_OPEN;
-      String msg = String(i) + " : " + WiFi.SSID(i) + " (" + WiFi.RSSI(i) + ")";
-      if (encrypted) {
-        msg = msg + " *";
+    WiFi.mode(WIFI_MODE_STA);
+    int n = WiFi.scanNetworks();
+    debugMsgWfm("scan done");
+    if (n == 0) {
+        debugMsgWfm("no networks found");
+    } else {
+      debugMsgWfm("");
+      debugMsgWfm(String(n) + " networks found");
+      for (int i = 0; i < n; ++i) {
+        // Print SSID and RSSI for each network found
+        bool encrypted = WiFi.encryptionType(i) == WIFI_AUTH_OPEN;
+        String msg = String(i) + " : " + WiFi.SSID(i) + " (" + WiFi.RSSI(i) + ")";
+        if (encrypted) {
+          msg = msg + " *";
+        }
+        debugMsgWfm(msg);
       }
-      debugMsgWfm(msg);
     }
   }
 }
 
-bool connectToLastAP() {
-  if(cc->WiFiSSID.length() > 0) {
-    WiFi.mode(WIFI_MODE_STA);
-    WiFi.begin(cc->WiFiSSID.c_str(), cc->WiFiPassword.c_str());
-
+void connectToLastAP() {
+  if(wifiCredentialsReceived()) {
     #ifdef DEBUG_ON
-    debugMsgWfm("");
     debugMsgWfm("Trying to reconnect to last known AP");
     #endif
     oled.showScrollingMessage("Connect to last AP");
+    wifiBeginWithCredentials();
 
-    unsigned long maxMillisWiFiWait = millis() + INTERVAL_WIFI;
-    while (WiFi.status() != WL_CONNECTED)
-    {
-      if (previousMillisWiFi < maxMillisWiFiWait)
-      {
-        previousMillisWiFi = millis();
-        #ifdef DEBUG_ON
-        debugMsgContWfm(".");
-        #endif
+  //   unsigned long maxMillisWiFiWait = millis() + INTERVAL_WIFI;
+  //   while (WiFi.status() != WL_CONNECTED)
+  //   {
+  //     if (previousMillisWiFi < maxMillisWiFiWait)
+  //     {
+  //       previousMillisWiFi = millis();
+  //       #ifdef DEBUG_ON
+  //       debugMsgContWfm(".");
+  //       #endif
 
-        delay(500);
-      }
-      else {
-          #ifdef DEBUG_ON
-          debugMsgWfm("");
-          debugMsgWfm("Failed to connect");
-          debugMsgWfm("");
-          #endif
-          break;
-      }
-    }
-  } else {
-    #ifdef DEBUG_ON
-    debugMsgWfm("");
-    debugMsgWfm("No AP known. skipping");
-    #endif
-    oled.showScrollingMessage("No AP known");
+  //       delay(500);
+  //     }
+  //     else {
+  //         #ifdef DEBUG_ON
+  //         debugMsgWfm("");
+  //         debugMsgWfm("Failed to connect");
+  //         debugMsgWfm("");
+  //         #endif
+  //         break;
+  //     }
+  //   }
+  // } else {
+  //   #ifdef DEBUG_ON
+  //   debugMsgWfm("");
+  //   debugMsgWfm("No AP known. skipping");
+  //   #endif
+  //   oled.showScrollingMessage("No AP known");
+  // }
   }
 
   return WiFi.isConnected();
@@ -170,51 +168,29 @@ bool connectToLastAP() {
 void connectWithWPS() {
   if (WiFi.status() != WL_CONNECTED) {
     #ifdef DEBUG_ON
-    debugMsgWfm("");
     debugMsgWfm("Connect using WPS");
     #endif
-    oled.showScrollingMessage("Connect using WPS");
+    // ToDo show this status better
+    // oled.showScrollingMessage("Connect using WPS");
 
-    unsigned long maxMillisWiFiWait = millis() + INTERVAL_WPS;
-
-    WiFi.onEvent(WiFiEvent);
     WiFi.mode(WIFI_MODE_STA);
     delay(1000);
       
     wpsInitConfig();
 
-    while (WiFi.status() != WL_CONNECTED)
-    {
-      #ifdef DEBUG_ON
-      esp_err_t retCode = esp_wifi_wps_enable(&wps_config);
-      debugMsgWfm("WPS Enable Result: " + String(retCode));
-      #else
-      esp_wifi_wps_enable(&wps_config);
-      #endif
+    esp_err_t retCodeEnable = esp_wifi_wps_enable(&wps_config);
+    #ifdef DEBUG_ON
+    debugMsgWfm("WPS Enable Result: " + String(retCodeEnable));
+    #endif
 
-      if (previousMillisWiFi < maxMillisWiFiWait)
-      {
-        previousMillisWiFi = millis();
-        #ifdef DEBUG_ON
-        debugMsgContWfm(".");
-        #endif
-
-        #ifdef DEBUG_ON
-        retCode = esp_wifi_wps_start(0);
-        debugMsgWfm("WPS Start Result: " + String(retCode));
-        #else
-        esp_wifi_wps_start(0);
-        #endif
-        delay(1000);
-      } else {
-        #ifdef DEBUG_ON
-        debugMsgWfm("");
-        debugMsgWfm("Failed to connect");
-        debugMsgWfm("");
-        #endif
-        break;
-      }
-    }
+    esp_err_t retCodeStart = esp_wifi_wps_start(0);
+    #ifdef DEBUG_ON
+    debugMsgWfm("WPS Start Result: " + String(retCodeStart));
+    #endif
+  } else {
+    #ifdef DEBUG_ON
+    debugMsgWfm("Already connected, cannot do WPS");
+    #endif
   }
 }
 
@@ -289,13 +265,16 @@ void wifiBeginWithCredentials() {
 }
 
 void saveWiFiCredentials(String newWiFiSSID, String newWiFiPassword) {
-    
-  if (cc->WiFiSSID != newWiFiSSID || cc->WiFiPassword != newWiFiPassword) {
+  if ((cc->WiFiSSID != newWiFiSSID || 
+      cc->WiFiPassword != newWiFiPassword) && 
+      newWiFiSSID.length() > 0 &&
+      newWiFiPassword.length() > 0) {
     #ifdef DEBUG_ON
     debugMsgWfm("Updating stored WiFi credentials");
     #endif
     cc->WiFiSSID = newWiFiSSID;
     cc->WiFiPassword = newWiFiPassword;
+    cc->wifiOnAtStart = true;
     spiffsStorage.saveConfigToSpiffs(cc);
     #ifdef DEBUG_ON
     debugMsgWfm("Saved WiFi credentials");
@@ -307,3 +286,58 @@ void saveWiFiCredentials(String newWiFiSSID, String newWiFiPassword) {
   }
 }
 
+void disconnectWiFi() {
+  WiFi.disconnect();
+  delay(1000);
+}
+
+void resetWiFiCredentials() {
+  cc->WiFiSSID = "";
+  cc->WiFiPassword = "";
+  cc->wifiOnAtStart = false;
+  spiffsStorage.saveConfigToSpiffs(cc);
+}
+
+void startWiFiServices() {
+  if (WiFi.isConnected()) {
+    // -------------------------------------------------------------------------
+
+    #ifdef DEBUG_ON
+    debugMsgWfm("Start up NTP Time Updates...");
+    #endif
+    nowMillis = millis();
+    ntpManager.getTimeFromNTP();
+
+    // -------------------------------------------------------------------------
+
+    #ifdef DEBUG_ON
+    debugMsgWfm("Start up WebServer" );
+    #endif
+
+    webManager.begin();
+
+    // -------------------------------------------------------------------------
+    
+    #ifdef DEBUG_ON
+    debugMsgWfm("Start up OTA");
+    #endif
+    webManager.startOTA();
+
+    // -------------------------------------------------------------------------
+    
+    #ifdef DEBUG_ON
+    debugMsgWfm("Start up mDNS on http://" + String(WiFi.getHostname()) + ".local");
+    #endif
+    startMDNS();
+
+    wifiServicesWereInitalised = true;
+  } else {
+    #ifdef DEBUG_ON
+    debugMsgWfm("No WiFi, skipping web services startup");
+    #endif
+  }
+}
+
+bool wifiCredentialsReceived() {
+  return (cc->WiFiSSID.length() > 0 && cc->WiFiPassword.length() > 0);
+}

@@ -183,6 +183,7 @@ void resetOptions() {
 
   cc->mdTimeout = PIR_TIMEOUT_DEFAULT;
   
+  // ToDo implement these
   // cc->webAuthentication = getWebAuthentication();
   // cc->webUsername = getWebUserName();
   // cc->webPassword = getWebPassword();
@@ -196,6 +197,7 @@ void resetOptions() {
 
   cc->WiFiSSID = "";
   cc->WiFiPassword = "";
+  cc->wifiOnAtStart = false;
 
   spiffsStorage.saveConfigToSpiffs(cc);
   #ifdef DEBUG_ON
@@ -837,3 +839,18 @@ void getI2CScanHandler(AsyncWebServerRequest *request) {
   response->setLength();
   request->send(response);
 }
+
+void enableWatchdog() {
+  esp_task_wdt_init(WDT_TIMEOUT, true);
+  esp_task_wdt_add(NULL);
+}
+
+void disableWatchdog() {
+  esp_task_wdt_delete(NULL);
+  esp_task_wdt_deinit();
+}
+
+void feedWatchdog() {
+  esp_task_wdt_reset();
+}
+

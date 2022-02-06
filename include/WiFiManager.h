@@ -7,11 +7,16 @@
 #include "OLED.h"
 #include "wps.h"
 #include <ESPmDNS.h>
+#include "WebManager.h"
 
 void setUpWiFi();
-bool connectToLastAP();
+void connectToLastAP();
+void startWiFiServices();
 void startMDNS();
+void disconnectWiFi();
+void resetWiFiCredentials();
+bool wifiCredentialsReceived();
 
 void connectWithWPS();
-void ScanWiFiNetworks();
+void scanWiFiNetworks();
 void openAccessPortal();

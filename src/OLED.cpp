@@ -13,13 +13,10 @@ void OLED_::clearDisplay()
 {
   _blanked = false;
   _display->clearDisplay();
-  showStatusLine();
-  _display->setCursor(0,0);
   bufferIdx = 0;
   for (int i = 5 ; i > 0 ; i--) {
     bufferLines[i] = "";
   }
-  showStatusLine();
 }
 
 void OLED_::blankDisplay()
@@ -254,6 +251,38 @@ void OLED_::blankMenuEntry(byte level) {
   int16_t posY = 4 + level*8;
   _display->setCursor(posX,posY);
   _display->print("              ");
+}
+
+void OLED_::setTextColor(uint16_t c) {
+  _display->setTextColor(c);
+}
+
+void OLED_::setTextColor(uint16_t c, uint16_t bg) {
+  _display->setTextColor(c, bg);
+}
+
+void OLED_::setCursor(int16_t x, int16_t y) {
+  _display->setCursor(x, y);
+}
+
+void OLED_::setTextSize(uint8_t s) {
+  _display->setTextSize(s);
+}
+
+void OLED_::println(const String &s) {
+  _display->println(s);
+}
+
+void OLED_::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
+  _display->drawLine(x0, y0, x1, y1, color);
+}
+
+int16_t OLED_::width() {
+  return _display->width();
+}
+
+int16_t OLED_::height() {
+  return _display->height();
 }
 
 OLED_ &OLED_::getInstance() {

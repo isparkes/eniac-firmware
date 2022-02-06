@@ -63,6 +63,17 @@ class OLED_
     void clearScrollingMessage();
     void showScrollingMessage(String messageText);
     void setTimeString(String timeText);
+
+    // Hacks for menu manager
+    void setTextColor(uint16_t c);
+    void setTextColor(uint16_t c, uint16_t bg);
+    void setCursor(int16_t x, int16_t y);
+    void setTextSize(uint8_t s);
+    void println(const String &s);
+    void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color);
+    int16_t width();
+    int16_t height();
+
   private:
     bool _blanked = false;
     bool _wifiStatus = false;
