@@ -140,7 +140,7 @@ void setup()
   #endif
   setUpWiFi();
 
-  if (cc->wifiOnAtStart) {
+  if (cc->wifiOnAtStart && wifiCredentialsReceived()) {
     #ifdef DEBUG_ON
     debugMsg("Starting WiFi");
     #endif
@@ -150,31 +150,17 @@ void setup()
     debugMsg("Connecting to previous AP");
     #endif
     
-    if(connectToLastAP()) {
-      #ifdef DEBUG_ON
-      debugMsg("Connected to: " + WiFi.SSID());
-      debugMsg("IP Address: " + WiFi.localIP().toString());
-      debugMsg("MAC Address: " + WiFi.macAddress());
-      debugMsg("Host name: " + String(WiFi.getHostname()));
-      #endif
-
-      oled.clearDisplay();
-      oled.showScrollingMessage("IP: " + WiFi.localIP().toString());
-      oled.showScrollingMessage(String(WiFi.getHostname()) + ".local");
-      oled.showScrollingMessage(String(WiFi.SSID()));
-    } else {
-      #ifdef DEBUG_ON
-      debugMsg("");
-      debugMsg("Failed to connect");
-      #endif
-      oled.showScrollingMessage("Failed to connect to AP");
-    }
+    connectToLastAP();
   } else {
-    #ifdef DEBUG_ON
-    debugMsg("");
-    debugMsg("Skipping WiFi start");
-    #endif
-    oled.showScrollingMessage("Skipping WiFi start");
+    if (!cc->wifiOnAtStart) {
+      #ifdef DEBUG_ON
+      debugMsg("Skipping connent to previous AP - told not to");
+      #endif
+    } else if (!wifiCredentialsReceived()) {
+      #ifdef DEBUG_ON
+      debugMsg("Skipping connent to previous AP - no AP defined");
+      #endif
+    }
   }
 
   // -------------------------------------------------------------------------

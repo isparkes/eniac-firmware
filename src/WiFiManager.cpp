@@ -44,6 +44,9 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
   case SYSTEM_EVENT_STA_GOT_IP:
     #ifdef DEBUG_ON
     debugMsgWfm("Connected to :" + WiFi.SSID() + ", password: " + WiFi.psk());
+    debugMsgWfm("IP Address: " + WiFi.localIP().toString());
+    debugMsgWfm("MAC Address: " + WiFi.macAddress());
+    debugMsgWfm("Host name: " + String(WiFi.getHostname()));
     #endif
     saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
     break;
@@ -161,8 +164,6 @@ void connectToLastAP() {
   //   oled.showScrollingMessage("No AP known");
   // }
   }
-
-  return WiFi.isConnected();
 }
 
 void connectWithWPS() {
@@ -288,7 +289,6 @@ void saveWiFiCredentials(String newWiFiSSID, String newWiFiPassword) {
 
 void disconnectWiFi() {
   WiFi.disconnect();
-  delay(1000);
 }
 
 void resetWiFiCredentials() {
