@@ -8,6 +8,7 @@
 #include "wps.h"
 #include <ESPmDNS.h>
 #include "WebManager.h"
+#include "MenuManager.h"
 
 void setUpWiFi();
 void connectToLastAP();
@@ -17,6 +18,6 @@ void disconnectWiFi();
 void resetWiFiCredentials();
 bool wifiCredentialsReceived();
 
-void connectWithWPS();
+bool connectWithWPS();
 void scanWiFiNetworks();
 void openAccessPortal();

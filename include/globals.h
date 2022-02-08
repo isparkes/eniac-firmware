@@ -54,6 +54,7 @@ extern int ldrValue;
 
 extern unsigned int oledTimeout;
 extern unsigned int configTimeout;
+extern unsigned int flashTimeout;
 
 // ToDo move into outputManager
 extern bool led1State;

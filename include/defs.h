@@ -17,7 +17,7 @@
 #define WDT_TIMEOUT 5
 
 // Add debug statments to code - needs extra space
-#define DEBUG_ON            // DEBUG_ON | DEBUG_OFF
+#define DEBUG_OFF           // DEBUG_ON | DEBUG_OFF
 
 // Add the dignostic calls to the GUI
 #define DIGIT_DIAGNOSTICS    // DIGIT_DIAGNOSTICS | DIGIT_DIAGNOSTICS_OFF
@@ -155,7 +155,8 @@
 // -------------------------------------------------------------------------------
 
 #define OLED_ON_TIME                    20 // Time in seconds the OLED stays on for
-#define CONFIG_TIME                     6  // Time in seconds we stay in config mode
+#define CONFIG_TIME                     10 // Time in seconds we stay in config mode
+#define FLASH_TIME                       6 // Time in seconds we show an OLED flash message for
 
 // -------------------------------------------------------------------------------
 #define ANTI_GHOST_MIN                  0

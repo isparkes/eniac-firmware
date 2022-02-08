@@ -47,6 +47,7 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
     debugMsgWfm("IP Address: " + WiFi.localIP().toString());
     debugMsgWfm("MAC Address: " + WiFi.macAddress());
     debugMsgWfm("Host name: " + String(WiFi.getHostname()));
+    flashMenuMessage("WiFi Status", "WiFi connected to\nSSID:\n"+WiFi.SSID());
     #endif
     saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
     break;
@@ -62,6 +63,7 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
     #endif
     saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
     esp_wifi_wps_disable();
+    flashMenuMessage("WPS Status", "WiFi connected to\nSSID:\n"+WiFi.SSID());
     break;
   case SYSTEM_EVENT_STA_WPS_ER_FAILED:
     #ifdef DEBUG_ON
@@ -166,7 +168,7 @@ void connectToLastAP() {
   }
 }
 
-void connectWithWPS() {
+bool connectWithWPS() {
   if (WiFi.status() != WL_CONNECTED) {
     #ifdef DEBUG_ON
     debugMsgWfm("Connect using WPS");
@@ -188,10 +190,13 @@ void connectWithWPS() {
     #ifdef DEBUG_ON
     debugMsgWfm("WPS Start Result: " + String(retCodeStart));
     #endif
+
+    return (retCodeEnable == 0 && retCodeStart == 0);
   } else {
     #ifdef DEBUG_ON
     debugMsgWfm("Already connected, cannot do WPS");
     #endif
+    return false;
   }
 }
 

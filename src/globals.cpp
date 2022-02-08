@@ -59,7 +59,8 @@ int ldrValue;
 
 // Menu  management
 unsigned int oledTimeout = OLED_ON_TIME;
-unsigned int configTimeout;
+unsigned int configTimeout = 0;
+unsigned int flashTimeout = 0;
 
 // ToDo move into outputManager
 bool led1State;

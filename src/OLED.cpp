@@ -146,7 +146,7 @@ void OLED_::setZStatus(bool newStatus)
 void OLED_::setAMStatus(bool newStatus)
 {
   ampm = newStatus;
-  showStatusLine();
+  drawAMInd();
   _display->display();
 }
 

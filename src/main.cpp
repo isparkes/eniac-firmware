@@ -2,7 +2,6 @@
 #include "globals.h"
 #include "utilities.h"
 #include "WiFi.h"
-#include "OLED.h"
 #include "TimerManager.h"
 #include "LDRManager.h"
 #include "LEDManager.h"
@@ -14,8 +13,8 @@
 #include "BlinkenlightsManager.h"
 #include "NTPManager.h"
 #include "DebugManager.h"
-#include "WiFiManager.h"
 #include "MenuManager.h"
+#include "WiFiManager.h"
 #include "OutputManager.h"
 
 void debugMsg(String message) {
@@ -255,6 +254,10 @@ void setup()
 
   // -------------------------------------------------------------------------
 
+  flashMenuMessage("ENIAC", "Welcome to the ENIAC\nNixie clock!\n" + String(SOFTWARE_VERSION));
+  delay(2000);
+
+  // -------------------------------------------------------------------------
   #ifdef DEBUG_ON
   debugMsg("Start up WDT...");
   #endif
@@ -378,32 +381,7 @@ void performOncePerSecondProcessing() {
     setLedFlashType(1);
   }
 
-  if (oledTimeout > 0 && configTimeout == 0) {
-    oled.showStatusLine();
-    // Show the info menu
-    char time_c[11];
-    sprintf(time_c, "%02d:%02d:%02d", hour(), minute(), second());
-    oled.setTimeString(String(time_c));
-
-    oled.setWiFiStatus(connected);
-    oled.setNTPStatus(ntpManager.ntpTimeValid());
-    oled.setGStatus(gpsManager.getGPSTimeValid());
-    oled.setBlankStatus(false);
-    if (digitalRead(PIRPin) == false) {
-      oled.setPIRInstalled(true);  
-    }
-    oled.setPIRStatus(digitalRead(PIRPin));
-    oled.setYStatus(digitalRead(BTN2Pin) == LOW);
-
-    oled.clearScrollingMessage();
-    if (WiFi.isConnected()) {
-      oled.showScrollingMessage("IP: " + WiFi.localIP().toString());
-      oled.showScrollingMessage(String(WiFi.getHostname()) + ".local");
-      oled.showScrollingMessage(String(WiFi.SSID()));
-    } else {
-      oled.showScrollingMessage("WiFi not connected");
-    }
-  }
+  menuOncePerSecond();
 
   // ************************************************************
   // send time display to the drivers
@@ -428,7 +406,7 @@ void performOncePerSecondProcessing() {
   } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
     loadNumberArraySameValue(minute());
   } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
-    int burnVal = rotaryEncoder.encoder0Pos;
+    int burnVal = getCurrentEncoderPos();
     if (burnVal < 0) {
       burnVal = -burnVal;
     }
@@ -440,21 +418,7 @@ void performOncePerSecondProcessing() {
     loadNumberArrayTime();
 #endif
 
-  // Deal with turning off config mode and the OLED
-  if (configTimeout > 0) {
-    configTimeout--;
-    if (configTimeout == 0) {
-      oled.clearDisplay();
-    }
-  }
-
-  if (oledTimeout > 0) {
-    oledTimeout--;
-    if (oledTimeout == 0) {
-      oled.blankDisplay();
-      debugMsg("OLED: OFF");
-    }
-  }
+  countdownMenuTimeouts();
 
   blankingManager.getBlankingStatus(weekday(), hour());
 
@@ -513,7 +477,9 @@ void performOncePerHourProcessing() {
   #ifdef DEBUG_ON
   debugMsg("---> OncePerHourProcessing");
   #endif
-  oled.setAMStatus(isAM());
+
+  menuOncePerHour();
+  
   tzManager.setUTCTimeFromTimeSourceHourly();
   tzManager.calculateCurrentOffsetFromTimeT();
 
