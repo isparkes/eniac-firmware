@@ -1,5 +1,32 @@
 #include "MenuManager.h"
 
+  enum menuTargets {
+      noTarget,
+      unmappedOption,
+      backToMain,
+      gotoWifiMenu,
+      gotoOptionsMenu,
+      gotoDisplayMenu,
+      menuOff,
+      toggleWiFiAtStart,
+      disconnectWifi,
+      resetWifi,
+      connectWPS,
+      clearWiFiInfo,
+      reconnectPrevious,
+      toggleTubeDimming,
+      toggleBLDimming,
+      setDimming,
+      saveDimming
+  };
+
+  // Private fwd decls
+  void setDimmingValue(menuTargets nextAction);
+  void serviceMenu();
+  void serviceValue();
+  void menuActions(menuTargets target);
+
+
   // modes that the menu system can be in
   enum menuModes {
       off,                                  // display is off
@@ -10,32 +37,9 @@
   };
   menuModes menuMode = off;                 // default mode at startup is off
 
-  enum menuIds {
-      unknown,                              // not in a menu
-      main,                                 // main top level menu
-      wifiOn,                               // Wifi menu when we are connected
-      wifiOff,                              // Wifi menu when we are disconnected
-      options                               // options menu
-  };
-
-  enum menuTargets {
-      noTarget,
-      unmappedOption,
-      backToMain,
-      gotoWifiMenu,
-      gotoOptionsMenu,
-      menuOff,
-      toggleWiFiAtStart,
-      disconnectWifi,
-      resetWifi,
-      connectWPS,
-      clearWiFiInfo,
-      reconnectPrevious
-  };
-
   struct oledMenus {
     // menu
-    menuIds menuId = unknown;                 // The id of the menu we are in
+//    menuIds menuId = unknown;                 // The id of the menu we are in
     String menuTitle = "";                    // the title of active mode
     int noOfmenuItems = 0;                    // number if menu items in the active menu
     int selectedMenuItem = 0;                 // when a menu item is selected it is flagged here until actioned and cleared
@@ -49,6 +53,7 @@
     int mValueLow = 0;                        // lowest allowed value
     int mValueHigh = 0;                       // highest allowed value
     int mValueStep = 0;                       // step size when encoder is turned
+    menuTargets nextTarget = noTarget;        // the target to continue when a value is received
   };
   oledMenus oledMenu;
 
@@ -69,17 +74,20 @@
 //                                         menus below here
 // -------------------------------------------------------------------------------------------------
 
+#ifdef DEBUG_ON
 void debugMsgMM(String message) {
   debugManager.debugMsg("[MNM]: " + message);
 }
+#endif
 
 void mainMenu() {
   resetMenu();
   byte menuCount = 1;
   menuMode = menu;
-  oledMenu.menuId = main;
+//  oledMenu.menuId = main;
   oledMenu.menuTitle = "Eniac Menu";
   oledMenu.menuItems[menuCount] = "Wifi";       oledMenu.menuActions[menuCount++] = gotoWifiMenu;
+  oledMenu.menuItems[menuCount] = "Display";    oledMenu.menuActions[menuCount++] = gotoDisplayMenu;
   oledMenu.menuItems[menuCount] = "Options";    oledMenu.menuActions[menuCount++] = gotoOptionsMenu;
   oledMenu.menuItems[menuCount] = "Menus Off";  oledMenu.menuActions[menuCount++] = menuOff;
   oledMenu.noOfmenuItems = --menuCount;
@@ -96,7 +104,7 @@ void wifiMenu() {
   }
   byte menuCount = 1;
   if (WiFi.isConnected()) {
-    oledMenu.menuId = wifiOn;
+//    oledMenu.menuId = wifiOn;
     oledMenu.menuTitle = "WiFi Menu";           
     oledMenu.menuItems[menuCount] = onOffMsg;             oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
     oledMenu.menuItems[menuCount] = "Disconnect WiFi";    oledMenu.menuActions[menuCount++] = disconnectWifi;
@@ -104,7 +112,7 @@ void wifiMenu() {
     oledMenu.menuItems[menuCount] = "Back";               oledMenu.menuActions[menuCount++] = backToMain;
   } else {
     oledMenu.noOfmenuItems = 8;
-    oledMenu.menuId = wifiOff;
+//    oledMenu.menuId = wifiOff;
     oledMenu.menuTitle = "WiFi Menu";
     if (wifiCredentialsReceived()) {
       oledMenu.menuItems[menuCount] = "Reconnect previous"; oledMenu.menuActions[menuCount++] = reconnectPrevious;
@@ -124,7 +132,7 @@ void optionsMenu() {
   resetMenu();
   menuMode = menu;
   byte menuCount = 1;
-  oledMenu.menuId = options;
+//  oledMenu.menuId = options;
   oledMenu.menuTitle = "Options";
   oledMenu.menuItems[menuCount] = "Option 1";       oledMenu.menuActions[menuCount++] = unmappedOption;
   oledMenu.menuItems[menuCount] = "Option 2";       oledMenu.menuActions[menuCount++] = unmappedOption;
@@ -132,14 +140,29 @@ void optionsMenu() {
   oledMenu.noOfmenuItems = --menuCount;
 }
 
+void displayMenu() {
+  resetMenu();
+  menuMode = menu;
+  byte menuCount = 1;
+//  oledMenu.menuId = display;
+  oledMenu.menuTitle = "display";
+  oledMenu.menuItems[menuCount] = "Tube Dimming on/off"; oledMenu.menuActions[menuCount++] = toggleTubeDimming;
+  oledMenu.menuItems[menuCount] = "BL Dimming on/off";   oledMenu.menuActions[menuCount++] = toggleBLDimming;
+  oledMenu.menuItems[menuCount] = "Set Dimming value";   oledMenu.menuActions[menuCount++] = setDimming;
+  oledMenu.menuItems[menuCount] = "Back";                oledMenu.menuActions[menuCount++] = backToMain;
+  oledMenu.noOfmenuItems = --menuCount;
+}
+
 // actions for menu selections are put in here
-void menuActions() {
-  switch (oledMenu.menuActions[oledMenu.selectedMenuItem]) {
+void menuActions(menuTargets selectedAction) {
+  switch (selectedAction) {
     case noTarget: {
       break;
     }
     case unmappedOption: {
+      #ifdef DEBUG_ON
       debugMsgMM("Unmapped option");
+      #endif
       mainMenu();
       break;
     }
@@ -153,6 +176,10 @@ void menuActions() {
     }
     case gotoOptionsMenu: {
       optionsMenu();
+      break;
+    }
+    case gotoDisplayMenu: {
+      displayMenu();
       break;
     }
     case menuOff: {
@@ -190,15 +217,47 @@ void menuActions() {
       wifiMenu();
       break;
     }
+    case toggleTubeDimming: {
+      cc->useLDR = ! cc->useLDR;
+      spiffsStorage.saveConfigToSpiffs(cc);
+      displayMenu();
+      break;
+    }
+    case toggleBLDimming: {
+      cc->useBLDim = ! cc->useBLDim;
+      spiffsStorage.saveConfigToSpiffs(cc);
+      displayMenu();
+      break;
+    }
+    case setDimming: {
+      setDimmingValue(saveDimming);
+      break;
+    }
+    case saveDimming: {
+      if (cc->minDim != oledMenu.mValueEntered) {
+        cc->minDim = oledMenu.mValueEntered;
+        spiffsStorage.saveConfigToSpiffs(cc);
+        displayMenu();
+      }
+      break;
+    }
   }
 
   oledMenu.selectedMenuItem = noTarget;
 
     // // demonstrate quickly create a menu from a list
-    // if (oledMenu.selectedMenuItem == 3) {
-    //   debugMsgMM("demo_menu: create menu from a list");
-    //   String tList[]={"main menu", "2", "3", "4", "5", "6"};
-    //   createList("demo_list", 6, &tList[0]);
+    // if (oledMenu.selectedMenuItem == 3) {toggleBL
+    // }
+
+    // // demonstrate selecting between 2 options only
+    // if (oledMenu.selectedMenuItem == 4) {
+    //   resetMenu();
+    //   menuMode = value; oledMenu.menuTitle = "on or off"; oledMenu.mValueLow = 0; oledMenu.mValueHigh = 1; oledMenu.mValueStep = 1; oledMenu.mValueEntered = 0;  // set parameters
+    // }
+
+    // // demonstrate usage of 'enter a value' (none blocking)
+    // if (oledMenu.selectedMenuItem == 5) {
+    //   debugMsgMM("demo_menu: none blocking enter value");
     // }
 
     // // demonstrate selecting between 2 options only
@@ -238,14 +297,15 @@ void menuActions() {
 
 
 // demonstration enter a value
-void value1() {
+void setDimmingValue(menuTargets target) {
   resetMenu();                           // clear any previous menu
   menuMode = value;                      // enable value entry
-  oledMenu.menuTitle = "demo_value";     // title (used to identify which number was entered)
-  oledMenu.mValueLow = 0;                // minimum value allowed
-  oledMenu.mValueHigh = 100;             // maximum value allowed
+  oledMenu.menuTitle = "Dim value";      // title (used to identify which number was entered)
+  oledMenu.mValueLow = MIN_DIM_MIN;      // minimum value allowed
+  oledMenu.mValueHigh = MIN_DIM_MAX;     // maximum value allowed
   oledMenu.mValueStep = 1;               // step size
-  oledMenu.mValueEntered = 50;           // starting value
+  oledMenu.mValueEntered = cc->minDim;   // starting value
+  oledMenu.nextTarget = target;          // action to call when button pressed
 }
 
 
@@ -254,14 +314,18 @@ void menuValues() {
   // action for "demo_value"
   if (oledMenu.menuTitle == "demo_value") {
     String tString = String(oledMenu.mValueEntered);
+    #ifdef DEBUG_ON
     debugMsgMM("demo_value: The value entered was " + tString);
+    #endif
     displayMessage("ENTERED", "\nYou entered\nthe value\n    " + tString);
     // alternatively use 'resetMenu()' here to turn menus off after value entered - or use 'defaultMenu()' to re-start the default menu
   }
 
   // action for "on or off"
   if (oledMenu.menuTitle == "on or off") {
+    #ifdef DEBUG_ON
     debugMsgMM("demo_menu: on off selection was " + String(oledMenu.mValueEntered));
+    #endif
     mainMenu();
   }
 }
@@ -306,6 +370,7 @@ void menuLoop() {
   reUpdateButton();               // update rotary encoder button status (if pressed activate default menu)
   if (menuMode == off) return;    // if menu system is turned off do nothing more
 
+// debugMsgMM("Mode: " + String(menuMode));
   // if no recent activity then turn oled off
     if ( configTimeout == 0 ) {
       resetMenu();
@@ -313,22 +378,21 @@ void menuLoop() {
     }
 
     switch (menuMode) {
-
       // if there is an active menu
       case menu:
         serviceMenu();
-        menuActions();
+        menuActions(oledMenu.menuActions[oledMenu.selectedMenuItem]);
         break;
 
-      // if there is an active none blocking 'enter value'
       case value:
-        serviceValue(0);
-        if (rotaryEncoder.reButtonPressed) {                        // if the button has been pressed
-          menuValues();                                             // a value has been entered so action it
-          break;
+        serviceValue();
+        if (rotaryEncoder.reButtonPressed) {
+          debugMsgMM("Button pressed: value: "+ String(oledMenu.mValueEntered));
+          rotaryEncoder.reButtonPressed = 0;
+          menuActions(oledMenu.nextTarget);
         }
+        break;
 
-      // if a message is being displayed
       case message:
         if (rotaryEncoder.reButtonPressed == 1) mainMenu();    // if button has been pressed return to default menu
         break;
@@ -338,7 +402,6 @@ void menuLoop() {
     }
 }  // oledLoop
 
-
 // ----------------------------------------------------------------
 //                   -button debounce (rotary encoder)
 // ----------------------------------------------------------------
@@ -346,8 +409,8 @@ void menuLoop() {
 
 void reUpdateButton() {
     bool tReading = digitalRead(ENC_BTN);        // read current button state
-    if (tReading != rotaryEncoder.encoderPrevButton) rotaryEncoder.reLastButtonChange = millis();     // if it has changed reset timer
-    if ( (unsigned long)(millis() - rotaryEncoder.reLastButtonChange) > rotaryEncoder.reDebounceDelay ) {  // if button state is stable
+    if (tReading != rotaryEncoder.encoderPrevButton) rotaryEncoder.reLastButtonChange = nowMillis;     // if it has changed reset timer
+    if ( (unsigned long)(nowMillis - rotaryEncoder.reLastButtonChange) > rotaryEncoder.reDebounceDelay ) {  // if button state is stable
       if (rotaryEncoder.encoderPrevButton == rotaryEncoder.reButtonPressedState) {
         if (rotaryEncoder.reButtonDebounced == 0) {    // if the button has been pressed
           rotaryEncoder.reButtonPressed = 1;           // flag set when the button has been pressed
@@ -375,17 +438,19 @@ void serviceMenu() {
   if (rotaryEncoder.encoder0Pos >= itemTrigger) {
     rotaryEncoder.encoder0Pos -= itemTrigger;
     oledMenu.highlightedMenuItem++;
-    oledMenu.lastMenuActivity = millis();   // log time
+    oledMenu.lastMenuActivity = nowMillis;   // log time
   }
   if (rotaryEncoder.encoder0Pos <= -itemTrigger) {
     rotaryEncoder.encoder0Pos += itemTrigger;
     oledMenu.highlightedMenuItem--;
-    oledMenu.lastMenuActivity = millis();   // log time
+    oledMenu.lastMenuActivity = nowMillis;   // log time
   }
   if (rotaryEncoder.reButtonPressed == 1) {
     oledMenu.selectedMenuItem = oledMenu.highlightedMenuItem;     // flag that the item has been selected
-    oledMenu.lastMenuActivity = millis();   // log time
+    oledMenu.lastMenuActivity = nowMillis;   // log time
+    #ifdef DEBUG_ON
     debugMsgMM("menu '" + oledMenu.menuTitle + "' item '" + oledMenu.menuItems[oledMenu.highlightedMenuItem] + "' selected");
+    #endif
   }
 
   const int _centreLine = displayMaxLines / 2 + 1;    // mid list point
@@ -426,73 +491,62 @@ void serviceMenu() {
 // ----------------------------------------------------------------
 //                        -service value entry
 // ----------------------------------------------------------------
-// if _blocking set to 1 then all other tasks are stopped until a value is entered
+void serviceValue() {
 
-int serviceValue(bool _blocking) {
-
+  // If we times out, just reset
+  if (configTimeout == 0) {
+    resetMenu();
+  }
   const int _valueSpacingX = 30;      // spacing for the displayed value y position
   const int _valueSpacingY = 5;       // spacing for the displayed value y position
 
-  if (_blocking) {
-    menuMode = blocking;
-    oledMenu.lastMenuActivity = millis();   // log time of last activity (for timeout)
+  // rotary encoder
+  if (rotaryEncoder.encoder0Pos >= itemTrigger) {
+    rotaryEncoder.encoder0Pos -= itemTrigger;
+    oledMenu.mValueEntered-= oledMenu.mValueStep;
+    oledMenu.lastMenuActivity = nowMillis;
+  }
+  if (rotaryEncoder.encoder0Pos <= -itemTrigger) {
+    rotaryEncoder.encoder0Pos += itemTrigger;
+    oledMenu.mValueEntered+= oledMenu.mValueStep;
+    oledMenu.lastMenuActivity = nowMillis;
+  }
+  if (oledMenu.mValueEntered < oledMenu.mValueLow) {
+    oledMenu.mValueEntered = oledMenu.mValueLow;
+    oledMenu.lastMenuActivity = nowMillis;
+  }
+  if (oledMenu.mValueEntered > oledMenu.mValueHigh) {
+    oledMenu.mValueEntered = oledMenu.mValueHigh;
+    oledMenu.lastMenuActivity = nowMillis;
   }
 
-  do {
+  oled.clearDisplay();
+  oled.setTextColor(WHITE);
 
-    // rotary encoder
-      if (rotaryEncoder.encoder0Pos >= itemTrigger) {
-        rotaryEncoder.encoder0Pos -= itemTrigger;
-        oledMenu.mValueEntered-= oledMenu.mValueStep;
-        oledMenu.lastMenuActivity = millis();   // log time
-      }
-      if (rotaryEncoder.encoder0Pos <= -itemTrigger) {
-        rotaryEncoder.encoder0Pos += itemTrigger;
-        oledMenu.mValueEntered+= oledMenu.mValueStep;
-        oledMenu.lastMenuActivity = millis();   // log time
-      }
-      if (oledMenu.mValueEntered < oledMenu.mValueLow) {
-        oledMenu.mValueEntered = oledMenu.mValueLow;
-        oledMenu.lastMenuActivity = millis();   // log time
-      }
-      if (oledMenu.mValueEntered > oledMenu.mValueHigh) {
-        oledMenu.mValueEntered = oledMenu.mValueHigh;
-        oledMenu.lastMenuActivity = millis();   // log time
-      }
+  // title
+  oled.setCursor(0, 0);
+  if (oledMenu.menuTitle.length() > MaxmenuTitleLength) oled.setTextSize(1);
+  else oled.setTextSize(2);
+  oled.println(oledMenu.menuTitle);
+  oled.drawLine(0, topLine-1, oled.width(), topLine-1, WHITE);       // draw horizontal line under title
 
-      oled.clearDisplay();
-      oled.setTextColor(WHITE);
+  // value selected
+  oled.setCursor(_valueSpacingX, topLine + _valueSpacingY);
+  oled.setTextSize(3);
+  oled.println(String(oledMenu.mValueEntered));
 
-      // title
-        oled.setCursor(0, 0);
-        if (oledMenu.menuTitle.length() > MaxmenuTitleLength) oled.setTextSize(1);
-        else oled.setTextSize(2);
-        oled.println(oledMenu.menuTitle);
-        oled.drawLine(0, topLine-1, oled.width(), topLine-1, WHITE);       // draw horizontal line under title
+  // range
+  oled.setCursor(0, oled.height() - lineSpace1 - 1 );   // bottom of display
+  oled.setTextSize(1);
+  oled.println(String(oledMenu.mValueLow) + " to " + String(oledMenu.mValueHigh));
 
-      // value selected
-        oled.setCursor(_valueSpacingX, topLine + _valueSpacingY);
-        oled.setTextSize(3);
-        oled.println(String(oledMenu.mValueEntered));
+  // bar
+  int Tlinelength = map(oledMenu.mValueEntered, oledMenu.mValueLow, oledMenu.mValueHigh, 0 , oled.width());
+  oled.drawLine(0, oled.height()-1, Tlinelength, oled.height()-1, WHITE);
 
-      // range
-        oled.setCursor(0, oled.height() - lineSpace1 - 1 );   // bottom of display
-        oled.setTextSize(1);
-        oled.println(String(oledMenu.mValueLow) + " to " + String(oledMenu.mValueHigh));
+  oled.outputDisplay();
 
-      // bar
-        int Tlinelength = map(oledMenu.mValueEntered, oledMenu.mValueLow, oledMenu.mValueHigh, 0 , oled.width());
-        oled.drawLine(0, oled.height()-1, Tlinelength, oled.height()-1, WHITE);
-
-      oled.outputDisplay();
-
-      reUpdateButton();        // check status of button
-  } while (_blocking && rotaryEncoder.reButtonPressed == 0 && (configTimeout > 0));        // if in blocking mode repeat until button is pressed or timeout
-
-  if (_blocking) menuMode = off;
-
-  return oledMenu.mValueEntered;        // used when in blocking mode
-
+  reUpdateButton();        // check status of button
 }
 
 
@@ -564,7 +618,7 @@ void resetMenu() {
   oledMenu.mValueEntered = 0;
   rotaryEncoder.reButtonPressed = 0;
 
-  oledMenu.lastMenuActivity = millis();   // log time
+  oledMenu.lastMenuActivity = nowMillis;   // log time
 
   // clear oled display
   oled.blankDisplay();
@@ -610,49 +664,12 @@ void ICACHE_RAM_ATTR doEncoder() {
 
 // ---------------------------------------------- end ----------------------------------------------
 
-// ************************************************************
-// Main menu processing function - must be called regularly
-// ************************************************************
-void manageMenu() {
-  reUpdateButton();               // update rotary encoder button status (if pressed activate default menu)
-  if (menuMode == off) return;    // if menu system is turned off do nothing more
-
-  // if no recent activity then turn oled off
-    if ( configTimeout == 0 ) {
-      resetMenu();
-      return;
-    }
-
-    switch (menuMode) {
-
-      // if there is an active menu
-      case menu:
-        serviceMenu();
-        menuActions();
-        break;
-
-      // if there is an active none blocking 'enter value'
-      case value:
-        serviceValue(0);
-        if (rotaryEncoder.reButtonPressed) {                        // if the button has been pressed
-          menuValues();                                             // a value has been entered so action it
-          break;
-        }
-
-      // if a message is being displayed
-      case message:
-        if (rotaryEncoder.reButtonPressed == 1) mainMenu();    // if button has been pressed return to default menu
-        break;
-
-      default:
-        break;
-    }
-}  // manageMenu
-
 void resetTimeouts() {
   // first press: wake up
   if (oledTimeout == 0) {
+    #ifdef DEBUG_ON
     debugMsgMM("OLED: ON");
+    #endif
   } else if (menuMode > off) {
     configTimeout = CONFIG_TIME;
   }
@@ -680,7 +697,9 @@ void countdownMenuTimeouts() {
     oledTimeout--;
     if (oledTimeout == 0) {
       oled.blankDisplay();
+      #ifdef DEBUG_ON
       debugMsgMM("OLED: OFF");
+      #endif
     }
   }
 }

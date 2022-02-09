@@ -25,12 +25,9 @@
   void setupMenuManager();
   void serviceMenu();
   void menuLoop();
-  void menuActions();
   void value1();
   void menuValues();
   void reUpdateButton();
-  void serviceMenu();
-  int  serviceValue(bool _blocking);
   void createList(String _title, int _noOfElements, String *_list);
   void displayMessage(String _title, String _message);
   void resetMenu();
