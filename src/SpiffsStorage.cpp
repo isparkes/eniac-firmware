@@ -377,7 +377,7 @@ void SpiffsStorage_::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
   json["WifiOnAtStart"] = spiffs_config->WifiOnAtStart;
   json["blinkenLightsMode"] = spiffs_config->blinkenLightsMode;
 
-  File configFile = SPIFFS.open("/data/config/config.json", "w");
+  File configFile = SPIFFS.open("/config/config.json", "w");
   if (!configFile)
   {
     #ifdef DEBUG_ON
