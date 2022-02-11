@@ -17,7 +17,8 @@
       toggleTubeDimming,
       toggleBLDimming,
       setDimming,
-      saveDimming
+      saveDimming,
+      nextBlnknMode
   };
 
   // Private fwd decls
@@ -97,7 +98,7 @@ void wifiMenu() {
   resetMenu();
   menuMode = menu;
   String onOffMsg;
-  if (cc->wifiOnAtStart) {
+  if (cc->WifiOnAtStart) {
     onOffMsg = "WiFi off at start";
   } else {
     onOffMsg = "WiFi on at start";
@@ -149,6 +150,7 @@ void displayMenu() {
   oledMenu.menuItems[menuCount] = "Tube Dimming on/off"; oledMenu.menuActions[menuCount++] = toggleTubeDimming;
   oledMenu.menuItems[menuCount] = "BL Dimming on/off";   oledMenu.menuActions[menuCount++] = toggleBLDimming;
   oledMenu.menuItems[menuCount] = "Set Dimming value";   oledMenu.menuActions[menuCount++] = setDimming;
+  oledMenu.menuItems[menuCount] = "Next neons mode";     oledMenu.menuActions[menuCount++] = nextBlnknMode;
   oledMenu.menuItems[menuCount] = "Back";                oledMenu.menuActions[menuCount++] = backToMain;
   oledMenu.noOfmenuItems = --menuCount;
 }
@@ -187,7 +189,7 @@ void menuActions(menuTargets selectedAction) {
       break;
     }
     case toggleWiFiAtStart: {
-      cc->wifiOnAtStart = ! cc->wifiOnAtStart;
+      cc->WifiOnAtStart = ! cc->WifiOnAtStart;
       spiffsStorage.saveConfigToSpiffs(cc);
       wifiMenu();
       break;
@@ -241,13 +243,15 @@ void menuActions(menuTargets selectedAction) {
       }
       break;
     }
+    case nextBlnknMode: {
+      cc->blinkenLightsMode = blinkenlightsManager.getNextBlinkenlightsMode(cc->blinkenLightsMode);
+      spiffsStorage.saveConfigToSpiffs(cc);
+      displayMenu();
+      break;
+    }
   }
 
   oledMenu.selectedMenuItem = noTarget;
-
-    // // demonstrate quickly create a menu from a list
-    // if (oledMenu.selectedMenuItem == 3) {toggleBL
-    // }
 
     // // demonstrate selecting between 2 options only
     // if (oledMenu.selectedMenuItem == 4) {
@@ -387,7 +391,9 @@ void menuLoop() {
       case value:
         serviceValue();
         if (rotaryEncoder.reButtonPressed) {
+          #ifdef DEBUG_ON
           debugMsgMM("Button pressed: value: "+ String(oledMenu.mValueEntered));
+          #endif
           rotaryEncoder.reButtonPressed = 0;
           menuActions(oledMenu.nextTarget);
         }

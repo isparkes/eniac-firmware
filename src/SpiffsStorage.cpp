@@ -30,13 +30,13 @@ bool SpiffsStorage_::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
   #ifdef DEBUG_ON
   debugMsg("mounted file system config read");
   #endif
-  if (SPIFFS.exists("/config.json"))
+  if (SPIFFS.exists("/config/config.json"))
   {
     //file exists, reading and loading
     #ifdef DEBUG_ON
     debugMsg("reading config file");
     #endif
-    File configFile = SPIFFS.open("/config.json", "r");
+    File configFile = SPIFFS.open("/config/config.json", "r");
     if (configFile)
     {
       #ifdef DEBUG_ON
@@ -51,9 +51,9 @@ bool SpiffsStorage_::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
       DynamicJsonBuffer jsonBuffer;
       JsonObject &json = jsonBuffer.parseObject(buf.get());
 
-      // Dump the raw JSON
-      //if (_debug) json.printTo(Serial);
-      //  debugMsg("\n");
+      // // Dump the raw JSON
+      // if (_debug) json.printTo(Serial);
+      //   debugMsg("\n");
 
       if (json.success())
       {
@@ -291,9 +291,14 @@ bool SpiffsStorage_::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
         debugMsg("Loaded WiFiPassword: " + String(spiffs_config->WiFiPassword));
         #endif
 
-        spiffs_config->wifiOnAtStart = json["wifiOnAtStart"].as<bool>();
+        spiffs_config->WifiOnAtStart = json["WifiOnAtStart"].as<bool>();
         #ifdef DEBUG_ON
-        debugMsg("Loaded wifiOnAtStart: " + String(spiffs_config->wifiOnAtStart));
+        debugMsg("Loaded WifiOnAtStart: " + String(spiffs_config->WifiOnAtStart));
+        #endif
+
+        spiffs_config->blinkenLightsMode = json["blinkenLightsMode"];
+        #ifdef DEBUG_ON
+        debugMsg("Loaded blinkenLightsMode: " + String(spiffs_config->blinkenLightsMode));
         #endif
 
         loaded = true;
@@ -369,9 +374,10 @@ void SpiffsStorage_::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
 
   json["WiFiSSID"] = spiffs_config->WiFiSSID;
   json["WiFiPassword"] = spiffs_config->WiFiPassword;
-  json["wifiOnAtStart"] = spiffs_config->wifiOnAtStart;
+  json["WifiOnAtStart"] = spiffs_config->WifiOnAtStart;
+  json["blinkenLightsMode"] = spiffs_config->blinkenLightsMode;
 
-  File configFile = SPIFFS.open("/config.json", "w");
+  File configFile = SPIFFS.open("/data/config/config.json", "w");
   if (!configFile)
   {
     #ifdef DEBUG_ON
@@ -394,13 +400,13 @@ void SpiffsStorage_::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
 bool SpiffsStorage_::getStatsFromSpiffs(spiffs_stats_t *spiffs_stats)
 {
   bool loaded = false;
-  if (SPIFFS.exists("/stats.json"))
+  if (SPIFFS.exists("/config/stats.json"))
   {
     //file exists, reading and loading
     #ifdef DEBUG_ON
     debugMsg("reading stats file");
     #endif
-    File statsFile = SPIFFS.open("/stats.json", "r");
+    File statsFile = SPIFFS.open("/config/stats.json", "r");
     if (statsFile)
     {
       #ifdef DEBUG_ON
@@ -461,7 +467,7 @@ void SpiffsStorage_::saveStatsToSpiffs(spiffs_stats_t *spiffs_stats)
   json.set("uptime", spiffs_stats->uptimeMins);
   json.set("tubeontime", spiffs_stats->tubeOnTimeMins);
 
-  File statsFile = SPIFFS.open("/stats.json", "w");
+  File statsFile = SPIFFS.open("/config/stats.json", "w");
   if (!statsFile)
   {
     #ifdef DEBUG_ON

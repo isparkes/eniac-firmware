@@ -53,7 +53,8 @@ typedef struct {
   int  hueOffset;
   String WiFiSSID;
   String WiFiPassword;
-  bool wifiOnAtStart;
+  bool WifiOnAtStart;
+  byte blinkenLightsMode;
 
   // not saved
   int diagsMode;

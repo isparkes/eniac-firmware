@@ -197,7 +197,7 @@ void resetOptions() {
 
   cc->WiFiSSID = "";
   cc->WiFiPassword = "";
-  cc->wifiOnAtStart = false;
+  cc->WifiOnAtStart = false;
 
   spiffsStorage.saveConfigToSpiffs(cc);
   #ifdef DEBUG_ON
@@ -487,6 +487,7 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["cycleSpeed"] = cc->cycleSpeed;
   root["backlightDimFactor"] = cc->backlightDimFactor;
   root["hueOffset"] = cc->hueOffset;
+  root["blinkenlightsMode"] = cc->blinkenLightsMode;
 
   response->setLength();
   request->send(response);
@@ -588,6 +589,7 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateByte(json, "cycleSpeed",         &cc->cycleSpeed);
     compareAndUpdateByte(json, "backlightDimFactor", &cc->backlightDimFactor);
     compareAndUpdateInt (json, "hueOffset",          &cc->hueOffset);
+    compareAndUpdateByte(json, "blinkenLightsMode", &cc->blinkenLightsMode);
 
     // ------------------------------------------------------------
 

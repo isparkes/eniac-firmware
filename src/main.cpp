@@ -139,7 +139,7 @@ void setup()
   #endif
   setUpWiFi();
 
-  if (cc->wifiOnAtStart && wifiCredentialsReceived()) {
+  if (cc->WifiOnAtStart && wifiCredentialsReceived()) {
     #ifdef DEBUG_ON
     debugMsg("Starting WiFi");
     #endif
@@ -151,13 +151,13 @@ void setup()
     
     connectToLastAP();
   } else {
-    if (!cc->wifiOnAtStart) {
+    if (!cc->WifiOnAtStart) {
       #ifdef DEBUG_ON
-      debugMsg("Skipping connent to previous AP - told not to");
+      debugMsg("Skipping connect to previous AP - told not to");
       #endif
     } else if (!wifiCredentialsReceived()) {
       #ifdef DEBUG_ON
-      debugMsg("Skipping connent to previous AP - no AP defined");
+      debugMsg("Skipping connect to previous AP - no AP defined");
       #endif
     }
   }
@@ -389,12 +389,6 @@ void performOncePerSecondProcessing() {
   // ToDo move into output manager
   indLed1 = (second() % 2 == 0);
   indLed2 = (second() % 2 == 1);
-
-  if (digitalRead(BTN2Pin)) {
-    blinkenlightsManager.setBlinkenlightsMode(MODE_CHASE);  
-  } else {
-    blinkenlightsManager.setBlinkenlightsMode(MODE_STATUS);  
-  }
 
   blinkenlightsManager.updateBlinkenlights();
 

@@ -9,12 +9,17 @@
 #include "NTPManager.h"
 #include "TimeLib.h"
 
-void BlinkenlightsManager_::begin() {
-  mode = MODE_STATUS;
+byte BlinkenlightsManager_::getNextBlinkenlightsMode(byte currentMode) {
+  byte newMode = currentMode++;
+  if (newMode > BLNKN_MODE_MAX) {
+    newMode = BLNKN_MODE_MIN;
+  }
+  return newMode;
 }
 
-void BlinkenlightsManager_::setBlinkenlightsMode(uint8_t newMode) {
-  mode = newMode;
+void BlinkenlightsManager_::setBlinkenlightsMode(byte newMode) {
+  cc->blinkenLightsMode = newMode;
+  
 }
 
 void BlinkenlightsManager_::setBlinkenlightsStatus() {
@@ -72,11 +77,11 @@ void BlinkenlightsManager_::setBlinkenlightsExtern(blinkelights_t *blext) {
 }
 
 void BlinkenlightsManager_::updateBlinkenlights() {
-  switch (mode) {
-    case MODE_STATUS:
+  switch (cc->blinkenLightsMode) {
+    case BLNKN_MODE_STATUS:
       setBlinkenlightsStatus();
       break;
-    case MODE_CHASE:
+    case BLNKN_MODE_CHASE:
       setBlinkenlightsChase();
       break;
   }

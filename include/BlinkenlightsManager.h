@@ -2,8 +2,11 @@
 
 #include "Arduino.h"
 
-#define MODE_STATUS 0
-#define MODE_CHASE  1
+#define BLNKN_MODE_MIN     0
+#define BLNKN_MODE_STATUS  0
+#define BLNKN_MODE_CHASE   1
+#define BLNKN_MODE_MAX     0
+#define BLNKN_MODE_DEFAULT BLNKN_MODE_STATUS
 
 typedef struct {
   bool bl1;
@@ -25,17 +28,16 @@ class BlinkenlightsManager_ {
     BlinkenlightsManager_ &operator=(const BlinkenlightsManager_ &) = delete;
 
   public:
-    void begin();
-    void setBlinkenlightsMode(uint8_t mode);
-    void setBlinkenlightsStatus();
-    void setBlinkenlightsChase();
+    void setBlinkenlightsMode(byte newMode);
     void setBlinkenlightsExtern(blinkelights_t *blext);
     void updateBlinkenlights();
+    byte getNextBlinkenlightsMode(byte currentMode);
     blinkelights_t* getBlinkenlights();
   private:
     blinkelights_t blinkenLights;
     blinkelights_t *bl = &blinkenLights;
-    uint8_t mode;
+    void setBlinkenlightsChase();
+    void setBlinkenlightsStatus();
 };
 
 extern BlinkenlightsManager_ &blinkenlightsManager;

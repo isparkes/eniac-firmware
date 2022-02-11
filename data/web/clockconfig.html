@@ -137,6 +137,15 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label class="control-label col-xs-3">Blinkenlights:</label>
+                    <div class="col-xs-4">
+                        <select class="form-control" name="blinkenLightsMode" id="blinkenLightsMode">
+                            <option value="0">Status mode</option>
+                            <option value="1">Chase mode</option>
+                        </select>
+                    </div>
+                </div>
+                    <div class="form-group">
                     <div class="col-xs-offset-3 col-xs-9">
                         <input type="submit" class="btn btn-primary" value="Set"  onclick="saveConfig()">
                     </div>
@@ -578,6 +587,10 @@
         
         if (localConfig.hueOffset!=$("#hueOffset").val()) {
             postBody["hueOffset"] = $("#hueOffset").val();
+        }
+
+        if (localConfig.blinkenLightsMode!=$("#blinkenLightsMode").val()) {
+            postBody["blinkenLightsMode"] = $("#blinkenLightsMode").val();
         }
 
         // ----------------------------------

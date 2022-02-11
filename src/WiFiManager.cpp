@@ -261,47 +261,6 @@ void startMDNS() {
   MDNS.addService("http", "tcp", 80);
 }
 
-void wifiBeginWithCredentials() {
-  WiFi.disconnect();
-  delay(1000);
-  WiFi.mode(WIFI_MODE_STA);
-  delay(1000);
-  delay(1000);
-  WiFi.begin(cc->WiFiSSID.c_str(), cc->WiFiPassword.c_str());
-}
-
-void saveWiFiCredentials(String newWiFiSSID, String newWiFiPassword) {
-  if ((cc->WiFiSSID != newWiFiSSID || 
-      cc->WiFiPassword != newWiFiPassword) && 
-      newWiFiSSID.length() > 0 &&
-      newWiFiPassword.length() > 0) {
-    #ifdef DEBUG_ON
-    debugMsgWfm("Updating stored WiFi credentials");
-    #endif
-    cc->WiFiSSID = newWiFiSSID;
-    cc->WiFiPassword = newWiFiPassword;
-    cc->wifiOnAtStart = true;
-    spiffsStorage.saveConfigToSpiffs(cc);
-    #ifdef DEBUG_ON
-    debugMsgWfm("Saved WiFi credentials");
-    #endif
-  } else {
-    #ifdef DEBUG_ON
-    debugMsgWfm("No changes to WiFi credentials saved");
-    #endif
-  }
-}
-
-void disconnectWiFi() {
-  WiFi.disconnect();
-}
-
-void resetWiFiCredentials() {
-  cc->WiFiSSID = "";
-  cc->WiFiPassword = "";
-  cc->wifiOnAtStart = false;
-  spiffsStorage.saveConfigToSpiffs(cc);
-}
 
 void startWiFiServices() {
   if (WiFi.isConnected()) {
@@ -341,6 +300,48 @@ void startWiFiServices() {
     debugMsgWfm("No WiFi, skipping web services startup");
     #endif
   }
+}
+
+void wifiBeginWithCredentials() {
+  WiFi.disconnect();
+  delay(1000);
+  WiFi.mode(WIFI_MODE_STA);
+  delay(1000);
+  delay(1000);
+  WiFi.begin(cc->WiFiSSID.c_str(), cc->WiFiPassword.c_str());
+}
+
+void saveWiFiCredentials(String newWiFiSSID, String newWiFiPassword) {
+  if ((cc->WiFiSSID != newWiFiSSID || 
+      cc->WiFiPassword != newWiFiPassword) && 
+      newWiFiSSID.length() > 0 &&
+      newWiFiPassword.length() > 0) {
+    #ifdef DEBUG_ON
+    debugMsgWfm("Updating stored WiFi credentials");
+    #endif
+    cc->WiFiSSID = newWiFiSSID;
+    cc->WiFiPassword = newWiFiPassword;
+    cc->WifiOnAtStart = true;
+    spiffsStorage.saveConfigToSpiffs(cc);
+    #ifdef DEBUG_ON
+    debugMsgWfm("Saved WiFi credentials");
+    #endif
+  } else {
+    #ifdef DEBUG_ON
+    debugMsgWfm("No changes to WiFi credentials saved");
+    #endif
+  }
+}
+
+void disconnectWiFi() {
+  WiFi.disconnect();
+}
+
+void resetWiFiCredentials() {
+  cc->WiFiSSID = "";
+  cc->WiFiPassword = "";
+  cc->WifiOnAtStart = false;
+  spiffsStorage.saveConfigToSpiffs(cc);
 }
 
 bool wifiCredentialsReceived() {
