@@ -1,5 +1,8 @@
 #include "WiFiManager.h"
 
+// forward private decls
+void processScanResults();
+
 void wpsInitConfig()
 {
   wps_config.crypto_funcs = &g_wifi_default_wps_crypto_funcs;
@@ -36,11 +39,11 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
 {
   switch (event)
   {
-  case SYSTEM_EVENT_STA_START:
-    #ifdef DEBUG_ON
-    debugMsgWfm("Station Mode Started");
-    #endif
-    break;
+  // case SYSTEM_EVENT_STA_START:
+  //   #ifdef DEBUG_ON
+  //   debugMsgWfm("Station Mode Started");
+  //   #endif
+  //   break;
   case SYSTEM_EVENT_STA_GOT_IP:
     #ifdef DEBUG_ON
     debugMsgWfm("Connected to :" + WiFi.SSID() + ", password: " + WiFi.psk());
@@ -53,9 +56,14 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
     break;
   case SYSTEM_EVENT_STA_DISCONNECTED:
     #ifdef DEBUG_ON 
-    debugMsgWfm("Disconnected from station, attempting reconnection");
+    debugMsgWfm("Disconnected from station");
     #endif
-    WiFi.reconnect();
+    if (doAutoReconnect) {
+      #ifdef DEBUG_ON 
+      debugMsgWfm("autoreconnect on, trying reconnect");
+      #endif
+      WiFi.reconnect();
+    }
     break;
   case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
     #ifdef DEBUG_ON
@@ -81,10 +89,11 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
     esp_wifi_wps_enable(&wps_config);
     esp_wifi_wps_start(0);
     break;
-  case SYSTEM_EVENT_STA_WPS_ER_PIN:
+  case SYSTEM_EVENT_SCAN_DONE:
     #ifdef DEBUG_ON
-    debugMsgWfm("WPS_PIN = " + wpspin2string(info.sta_er_pin.pin_code));
+    debugMsgWfm("Scan complete");
     #endif
+    processScanResults();
     break;
   default:
     break;
@@ -92,7 +101,11 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
 }
 
 void setUpWiFi() {
-  WiFi.onEvent(WiFiEvent);
+  WiFi.onEvent(WiFiEvent, SYSTEM_EVENT_STA_GOT_IP);
+  WiFi.onEvent(WiFiEvent, SYSTEM_EVENT_STA_DISCONNECTED);
+  WiFi.onEvent(WiFiEvent, SYSTEM_EVENT_STA_WPS_ER_SUCCESS);
+  WiFi.onEvent(WiFiEvent, SYSTEM_EVENT_STA_WPS_ER_TIMEOUT);
+  WiFi.onEvent(WiFiEvent, SYSTEM_EVENT_STA_WPS_ER_FAILED);
 
   String mac = String(WiFi.macAddress());
   mac.replace(":","");
@@ -104,29 +117,60 @@ void setUpWiFi() {
   WiFi.setHostname(uniqHostname.c_str());
 }
 
-void scanWiFiNetworks() {
-  if (WiFi.isConnected()) {
-    debugMsgWfm("No scan done - WiFi is connected");
+void startScanWiFiNetworks() {
+  WiFi.onEvent(WiFiEvent, SYSTEM_EVENT_SCAN_DONE);
+
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.disconnect();
+  delay(500);
+    // Serial.println("Hostname " + String(WiFi.getHostname()));
+    // Serial.println("Statusbits " + String(WiFi.getStatusBits()));
+    // Serial.println("Mode " + String(WiFi.getMode()));
+
+  WiFi.scanNetworks(true);
+}
+
+void processScanResults() {
+  int n = WiFi.scanComplete();
+  if (n == 0) {
+    #ifdef DEBUG_ON
+    debugMsgWfm("no networks found");
+    #endif
   } else {
-    WiFi.mode(WIFI_MODE_STA);
-    int n = WiFi.scanNetworks();
-    debugMsgWfm("scan done");
-    if (n == 0) {
-        debugMsgWfm("no networks found");
-    } else {
-      debugMsgWfm("");
-      debugMsgWfm(String(n) + " networks found");
-      for (int i = 0; i < n; ++i) {
-        // Print SSID and RSSI for each network found
-        bool encrypted = WiFi.encryptionType(i) == WIFI_AUTH_OPEN;
-        String msg = String(i) + " : " + WiFi.SSID(i) + " (" + WiFi.RSSI(i) + ")";
-        if (encrypted) {
-          msg = msg + " *";
-        }
-        debugMsgWfm(msg);
+    #ifdef DEBUG_ON
+    debugMsgWfm("");
+    debugMsgWfm(String(n) + " networks found");
+    #endif
+    String result = "";
+    for (int i = 0; i < n; ++i) {
+      #ifdef DEBUG_ON
+      // Print SSID and RSSI for each network found
+      bool encrypted = WiFi.encryptionType(i) == WIFI_AUTH_OPEN;
+      String msg = String(i) + " : " + WiFi.SSID(i) + " (" + WiFi.RSSI(i) + ")";
+      if (encrypted) {
+        msg = msg + " *";
       }
+      debugMsgWfm(msg);
+      #endif
+      if (result.length() > 0) {
+        result = result + ",";
+      }
+      result = result + WiFi.SSID(i);
     }
+    #ifdef DEBUG_ON
+    debugMsgWfm("Returning network list: " + result);
+    #endif
+    lastWiFiScan = result;
   }
+}
+
+// http://www.iotsharing.com/2017/05/how-to-use-smartconfig-on-esp32.html
+void startSmartConfig() {
+  WiFi.disconnect();
+  delay(500);
+
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.beginSmartConfig();
 }
 
 void connectToLastAP() {
@@ -136,35 +180,6 @@ void connectToLastAP() {
     #endif
     oled.showScrollingMessage("Connect to last AP");
     wifiBeginWithCredentials();
-
-  //   unsigned long maxMillisWiFiWait = millis() + INTERVAL_WIFI;
-  //   while (WiFi.status() != WL_CONNECTED)
-  //   {
-  //     if (previousMillisWiFi < maxMillisWiFiWait)
-  //     {
-  //       previousMillisWiFi = millis();
-  //       #ifdef DEBUG_ON
-  //       debugMsgContWfm(".");
-  //       #endif
-
-  //       delay(500);
-  //     }
-  //     else {
-  //         #ifdef DEBUG_ON
-  //         debugMsgWfm("");
-  //         debugMsgWfm("Failed to connect");
-  //         debugMsgWfm("");
-  //         #endif
-  //         break;
-  //     }
-  //   }
-  // } else {
-  //   #ifdef DEBUG_ON
-  //   debugMsgWfm("");
-  //   debugMsgWfm("No AP known. skipping");
-  //   #endif
-  //   oled.showScrollingMessage("No AP known");
-  // }
   }
 }
 
@@ -176,7 +191,7 @@ bool connectWithWPS() {
     // ToDo show this status better
     // oled.showScrollingMessage("Connect using WPS");
 
-    WiFi.mode(WIFI_MODE_STA);
+    WiFi.mode(WIFI_AP_STA);
     delay(1000);
       
     wpsInitConfig();
@@ -203,6 +218,9 @@ bool connectWithWPS() {
 void openAccessPortal() {
   // Captive portal
   if (WiFi.status() != WL_CONNECTED) {
+    // preload the wifi list 
+    startScanWiFiNetworks();
+
     #ifdef DEBUG_ON
     debugMsgWfm("");
     debugMsgWfm("Portal mode");
@@ -211,9 +229,7 @@ void openAccessPortal() {
 
     WiFi.disconnect();
     delay(100);
-    WiFi.mode(WIFI_MODE_APSTA);
-    delay(100);
-    // WiFi.softAPsetHostname(uniqHostname.c_str());
+    WiFi.mode(WIFI_AP_STA);
     delay(100);
     #ifdef DEBUG_ON
     debugMsgWfm("Setting soft-AP configuration ... ");
@@ -226,26 +242,6 @@ void openAccessPortal() {
     #endif
     oled.showScrollingMessage("IP: " + WiFi.softAPIP().toString());
     delay(500);
-  }
-
-  unsigned long maxMillisWiFiWait = millis() + INTERVAL_PORTAL;
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    if (previousMillisWiFi < maxMillisWiFiWait)
-    {
-      previousMillisWiFi = millis();
-      #ifdef DEBUG_ON
-      debugMsgContWfm(".");
-      #endif
-      delay(500);
-    } else {
-      #ifdef DEBUG_ON
-      debugMsgWfm("");
-      debugMsgWfm("Failed to connect");
-      debugMsgWfm("");
-      #endif
-      break;
-    }
   }
 }
 
@@ -260,7 +256,6 @@ void startMDNS() {
 
   MDNS.addService("http", "tcp", 80);
 }
-
 
 void startWiFiServices() {
   if (WiFi.isConnected()) {
@@ -302,11 +297,20 @@ void startWiFiServices() {
   }
 }
 
+void startWiFiServicesPortal() {
+  #ifdef DEBUG_ON
+  debugMsgWfm("Start up WebServer for Portal services" );
+  #endif
+
+  webManager.beginPortal();
+
+  wifiServicesWereInitalised = true;
+}
+
 void wifiBeginWithCredentials() {
   WiFi.disconnect();
   delay(1000);
   WiFi.mode(WIFI_MODE_STA);
-  delay(1000);
   delay(1000);
   WiFi.begin(cc->WiFiSSID.c_str(), cc->WiFiPassword.c_str());
 }

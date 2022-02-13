@@ -35,7 +35,7 @@ class TZManager_ {
     String getLocalTimeFromTimeSource(byte timesource);
     unsigned long getTimeLastSetFromTimeSource(byte timesource);
     void setUTCTimeFromTimeSourceHourly();
-    void setUTCTimeFromTimeSource(byte timesource, unsigned long readTime, time_t gpsTime);
+    void setUTCTimeFromTimeSource(byte timesource, unsigned long readTime, time_t utcTime);
     byte getPrimaryTimeSource();
     time_t getRawUTCTimeFromTimeSource(byte timesource);
 
@@ -50,7 +50,7 @@ class TZManager_ {
     unsigned long _UTCoffset;
     time_t _utctime[TIME_SOURCE_COUNT];
     unsigned long _lastupdatetime[TIME_SOURCE_COUNT];
-    byte _primarysource;
+    byte _primarysource = TIME_SOURCE_RTC;
     bool _debug = false;
     DebugCallback _dbcb;
 

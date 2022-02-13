@@ -23,7 +23,7 @@ class WebManager_ {
     void setDebugCallback(DebugCallback dbcb);
   public:
     void begin();
-    void beginWiFiCredentials();
+    void beginPortal();
     void startOTA();
   private:
     DebugCallback _dbcb;

@@ -69,6 +69,12 @@ extern int digitValue;
 
 extern bool wifiServicesWereInitalised;
 
+extern bool doAutoReconnect;
+
 extern String uniqHostname;
 
 extern AsyncWebServer server;
+
+extern String lastWiFiScan;
+
+void updateNowMillis();

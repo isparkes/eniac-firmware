@@ -117,6 +117,10 @@ bool DS1307_::testRTCTimeProvider() {
     debugMsg("I2C error: " + String(Wire.getErrorText(Wire.lastError())));
   }
   #endif
+
+  if (!_onceHadAnRTC && _useRTC) {
+    _onceHadAnRTC = true;
+  }
   return _useRTC;
 }
 

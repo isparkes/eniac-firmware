@@ -703,57 +703,30 @@ void getCredentialsHandler(AsyncWebServerRequest *request) {
   }
 }
 
-void getWifiConnected(AsyncWebServerRequest *request) {
-  #ifdef DEBUG_ON
-  debugMsgUtl("Got api wifi connected request");
-  #endif
-  
-  String isConnected = "";
-  if (WiFi.status() == WL_CONNECTED) {
-    isConnected = "Connected";
-  } else {
-    isConnected = "Offlne";
-  }
-  AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"" + isConnected + "\"}");
-  request->send(response);        
-}
-
 void postWiFiCredentialsHandler(AsyncWebServerRequest *request) {
   #ifdef DEBUG_ON
   debugMsgUtl("Got api wifi POST request");
   #endif
   
-  #ifdef DEBUG_ON
-  dumpArgs(request);
-  #endif
-
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& json = jsonBuffer.parse(String(request->arg("body")));
+//  #ifdef DEBUG_ON
+//  dumpArgs(request);
+//  #endif
 
   String newSSID = "";
   String newPassword = "";
 
-  if (json.success()) {
-    newSSID = json["SSID"].as<String>();
-    #ifdef DEBUG_ON
-    debugMsgUtl("Received SSID: " + newSSID);
-    #endif
-
-    newPassword = json["password"].as<String>();
-    #ifdef DEBUG_ON
-    debugMsgUtl("Received password: " + newPassword);
-    #endif
-
-  } else {
-    #ifdef DEBUG_ON
-    debugMsgUtl("Json parse failure: " + String(request->arg("body")));
-    #endif
+  if (request->hasArg("SSID")) {
+    newSSID = request->arg("SSID");
+  }
+  if (request->hasArg("password")) {
+    newPassword = request->arg("password");
   }
 
   if (newSSID.length() > 0 && newPassword.length() > 0) {
     #ifdef DEBUG_ON
-    debugMsgUtl("Setting new WiFi credentials");
+    debugMsgUtl("Setting new WiFi credentials - " + newSSID + ":" + newPassword);
     #endif
+
     saveWiFiCredentials(newSSID, newPassword);
 
     AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"Saved " + newSSID + "\"}");
@@ -762,8 +735,31 @@ void postWiFiCredentialsHandler(AsyncWebServerRequest *request) {
     AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"No changes saved\"}");
     request->send(response);
   }
-
 }
+
+void getWiFiNetworksHandler(AsyncWebServerRequest *request) {
+  #ifdef DEBUG_ON
+  debugMsgUtl("Got api wifi networks request");
+  #endif
+  
+  if (WiFi.isConnected()) {
+    AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"connected\": \"true\", \"SSID\": \"" + WiFi.SSID() + "\"}");
+    request->send(response);        
+    #ifdef DEBUG_ON
+    debugMsgUtl("Scan done");
+    #endif
+  } else {
+    AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"connected\": \"false\", \"SSIDs\": \"" + lastWiFiScan + "\"}");
+    request->send(response);        
+    #ifdef DEBUG_ON
+    debugMsgUtl("Scan done");
+    #endif
+
+    // trigger a new scan
+    startScanWiFiNetworks();
+  }
+}
+
 
 // ************************************************************
 // Reset / restart
@@ -791,9 +787,7 @@ void resetWiFi() {
   #endif
   WiFi.disconnect();
 
-  cc->WiFiSSID = "";
-  cc->WiFiPassword = "";
-  spiffsStorage.saveConfigToSpiffs(cc);
+  resetWiFiCredentials();
 }
 
 // ************************************************************

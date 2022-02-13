@@ -67,6 +67,10 @@ void setup()
 
   // -------------------------------------------------------------------------
 
+  nowMillis = millis();
+
+  // -------------------------------------------------------------------------
+
   #ifdef DEBUG_ON
   debugMsg("Start up Timers" );
   #endif
@@ -164,6 +168,14 @@ void setup()
 
   // -------------------------------------------------------------------------
   
+  // Default pins SDA 21, SCL 22 Frequency 400kHz 
+  #ifdef DEBUG_ON
+  debugMsg("Start up I2C...");
+  #endif
+  Wire.begin(SDAint, SCLint, 400000L);
+
+  // -------------------------------------------------------------------------
+  
   #ifdef DEBUG_ON
   debugMsg("Start up TZM" );
   #endif
@@ -171,27 +183,6 @@ void setup()
   tzManager.setTZS(cc->tzs);
   tzManager.setDebugCallback(dbcb);
   tzManager.setDebugOutput(true);
-  tzManager.calculateCurrentOffsetFromTimeT();
-
-  // -------------------------------------------------------------------------
-  
-  #ifdef DEBUG_ON
-  debugMsg("Start up NTP" );
-
-  ntpManager.setDebugCallback(dbcb);
-  ntpManager.setDebugOutput(true);
-  #endif
-
-  NewTimeCallback ntcb = newTimeUpdateReceived;
-  ntpManager.setNewTimeCallback(ntcb);
-
-  // -------------------------------------------------------------------------
-  
-  // Default pins SDA 21, SCL 22 Frequency 400kHz 
-  #ifdef DEBUG_ON
-  debugMsg("Start up I2C...");
-  #endif
-  Wire.begin(SDAint, SCLint, 400000L);
 
   // -------------------------------------------------------------------------
   
@@ -202,17 +193,36 @@ void setup()
   rtcManager.setDebugOutput(true);
 
   if (rtcManager.testRTCTimeProvider()) {
-    time_t rtctime = rtcManager.getRTCTimeAsTimeT();
-    tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtctime);
     #ifdef DEBUG_ON
     debugMsg("RTC found");
-    debugMsg("Recovered time: " + String(rtctime));
     #endif
+
+    // first time let's us figure out the UTC offset
+    time_t rtctime = rtcManager.getRTCTimeAsTimeT();
+    tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtctime);
+    tzManager.calculateCurrentOffsetFromTimeT();
+
+    // Second time sets the time
+    rtctime = rtcManager.getRTCTimeAsTimeT();
+    tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtctime);
+    tzManager.calculateCurrentOffsetFromTimeT();
   } else {
     #ifdef DEBUG_ON
     debugMsg("RTC NOT found");
     #endif
   }
+
+  // -------------------------------------------------------------------------
+  
+  #ifdef DEBUG_ON
+  debugMsg("Initialising NTP" );
+
+  ntpManager.setDebugCallback(dbcb);
+  ntpManager.setDebugOutput(true);
+  #endif
+
+  NewTimeCallback ntcb = newTimeUpdateReceived;
+  ntpManager.setNewTimeCallback(ntcb);
 
   // -------------------------------------------------------------------------
   
@@ -366,8 +376,14 @@ void performOncePerSecondProcessing() {
   if (!wifiServicesWereInitalised) {
     if (WiFi.isConnected()) {
       startWiFiServices();
+    } else if((WiFi.getMode() == WIFI_MODE_AP) || (WiFi.getMode() == WIFI_MODE_APSTA)) {
+      #ifdef DEBUG_ON
+      debugMsg("Access Point open, starting WiFi");
+      #endif
+      startWiFiServicesPortal();
     }
   }
+
   // See if it is time for a new NTP update
   if (ntpManager.getNextUpdate() < 0 && WiFi.isConnected()) {
     ntpManager.getTimeFromNTP();

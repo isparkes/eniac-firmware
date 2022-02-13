@@ -26,6 +26,7 @@
 #include "NTPManager.h"
 #include "DebugManager.h"
 #include <esp_task_wdt.h>
+#include "WiFiManager.h"
 
 // -------------------------------------------------------------------------------
 
@@ -48,9 +49,7 @@ uint32_t decodeBCD(byte valueToDecode, bool bl1, bool bl2, bool led1, bool led2)
 
 // Web handlers
 void getCredentialsHandler(AsyncWebServerRequest *request);
-void getWifiConnected(AsyncWebServerRequest *request);
-bool gotCredentials();
-void wifiBeginWithCredentials();
+void getWiFiNetworksHandler(AsyncWebServerRequest *request);
 void saveWiFiCredentials(String newWiFiSSID, String newWiFiPassword);
 
 void getSummaryDataHandler(AsyncWebServerRequest *request);
@@ -70,6 +69,9 @@ void getI2CScanHandler(AsyncWebServerRequest *request);
 void saveStatsHandler(AsyncWebServerRequest *request);
 
 void restartHandler(AsyncWebServerRequest *request);
+
+void wifiBeginWithCredentials();
+bool gotCredentials();
 
 void resetWiFi();
 void resetOptions();

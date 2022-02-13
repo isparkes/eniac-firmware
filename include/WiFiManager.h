@@ -11,13 +11,17 @@
 #include "MenuManager.h"
 
 void setUpWiFi();
+
 void connectToLastAP();
+bool connectWithWPS();
+void openAccessPortal();
+void startSmartConfig();
+
 void startWiFiServices();
+void startWiFiServicesPortal();
 void startMDNS();
-void disconnectWiFi();
 void resetWiFiCredentials();
 bool wifiCredentialsReceived();
+void disconnectWiFi();
 
-bool connectWithWPS();
-void scanWiFiNetworks();
-void openAccessPortal();
+void startScanWiFiNetworks();

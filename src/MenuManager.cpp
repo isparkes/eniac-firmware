@@ -3,22 +3,31 @@
   enum menuTargets {
       noTarget,
       unmappedOption,
+
+      // Move around in menus
       backToMain,
       gotoWifiMenu,
       gotoOptionsMenu,
       gotoDisplayMenu,
       menuOff,
+
       toggleWiFiAtStart,
       disconnectWifi,
-      resetWifi,
+      resetWiFiInfo,
       connectWPS,
-      clearWiFiInfo,
       reconnectPrevious,
+      openAccessPoint,
+      getSSIDList,
+      smartConfig,
+      
       toggleTubeDimming,
       toggleBLDimming,
       setDimming,
       saveDimming,
-      nextBlnknMode
+      nextBlnknMode,
+
+      restartClock,
+      saveStats
   };
 
   // Private fwd decls
@@ -109,7 +118,7 @@ void wifiMenu() {
     oledMenu.menuTitle = "WiFi Menu";           
     oledMenu.menuItems[menuCount] = onOffMsg;             oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
     oledMenu.menuItems[menuCount] = "Disconnect WiFi";    oledMenu.menuActions[menuCount++] = disconnectWifi;
-    oledMenu.menuItems[menuCount] = "Reset WiFi";         oledMenu.menuActions[menuCount++] = resetWifi;
+    oledMenu.menuItems[menuCount] = "Reset WiFi";         oledMenu.menuActions[menuCount++] = resetWiFiInfo;
     oledMenu.menuItems[menuCount] = "Back";               oledMenu.menuActions[menuCount++] = backToMain;
   } else {
     oledMenu.noOfmenuItems = 8;
@@ -119,11 +128,12 @@ void wifiMenu() {
       oledMenu.menuItems[menuCount] = "Reconnect previous"; oledMenu.menuActions[menuCount++] = reconnectPrevious;
     }
     oledMenu.menuItems[menuCount] = "Connect with WPS";   oledMenu.menuActions[menuCount++] = connectWPS;
-    oledMenu.menuItems[menuCount] = "Open Access Point";  oledMenu.menuActions[menuCount++] = unmappedOption;
-    oledMenu.menuItems[menuCount] = "Select SSID";        oledMenu.menuActions[menuCount++] = unmappedOption;
+    oledMenu.menuItems[menuCount] = "Start SmartConfig";  oledMenu.menuActions[menuCount++] = smartConfig;
+    oledMenu.menuItems[menuCount] = "Open Access Point";  oledMenu.menuActions[menuCount++] = openAccessPoint;
+    oledMenu.menuItems[menuCount] = "Select SSID";        oledMenu.menuActions[menuCount++] = getSSIDList;
     oledMenu.menuItems[menuCount] = "Enter password";     oledMenu.menuActions[menuCount++] = unmappedOption;
     oledMenu.menuItems[menuCount] = onOffMsg;             oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
-    oledMenu.menuItems[menuCount] = "Clear WiFi Info";    oledMenu.menuActions[menuCount++] = clearWiFiInfo;
+    oledMenu.menuItems[menuCount] = "reset WiFi";         oledMenu.menuActions[menuCount++] = resetWiFiInfo;
     oledMenu.menuItems[menuCount] = "Back";               oledMenu.menuActions[menuCount++] = backToMain;
   }
   oledMenu.noOfmenuItems = --menuCount;
@@ -135,8 +145,8 @@ void optionsMenu() {
   byte menuCount = 1;
 //  oledMenu.menuId = options;
   oledMenu.menuTitle = "Options";
-  oledMenu.menuItems[menuCount] = "Option 1";       oledMenu.menuActions[menuCount++] = unmappedOption;
-  oledMenu.menuItems[menuCount] = "Option 2";       oledMenu.menuActions[menuCount++] = unmappedOption;
+  oledMenu.menuItems[menuCount] = "Restart Eniac";  oledMenu.menuActions[menuCount++] = restartClock;
+  oledMenu.menuItems[menuCount] = "Save stats";     oledMenu.menuActions[menuCount++] = saveStats;
   oledMenu.menuItems[menuCount] = "Back";           oledMenu.menuActions[menuCount++] = backToMain;
   oledMenu.noOfmenuItems = --menuCount;
 }
@@ -194,17 +204,22 @@ void menuActions(menuTargets selectedAction) {
       wifiMenu();
       break;
     }
+    case getSSIDList: {
+      startScanWiFiNetworks();
+      wifiMenu();
+      break;
+    }
+    case smartConfig: {
+      startSmartConfig();
+      wifiMenu();
+      break;
+    }
     case disconnectWifi: {
       disconnectWiFi();
       wifiMenu();
       break;
     }
-    case resetWifi: {
-      resetWiFiCredentials();
-      wifiMenu();
-      break;
-    }
-    case clearWiFiInfo: {
+    case resetWiFiInfo: {
       resetWiFi();
       wifiMenu();
       break;
@@ -216,6 +231,11 @@ void menuActions(menuTargets selectedAction) {
     }
     case reconnectPrevious: {
       connectToLastAP();
+      wifiMenu();
+      break;
+    }
+    case openAccessPoint: {
+      openAccessPortal();
       wifiMenu();
       break;
     }
@@ -247,6 +267,16 @@ void menuActions(menuTargets selectedAction) {
       cc->blinkenLightsMode = blinkenlightsManager.getNextBlinkenlightsMode(cc->blinkenLightsMode);
       spiffsStorage.saveConfigToSpiffs(cc);
       displayMenu();
+      break;
+    }
+    case saveStats: {
+      spiffsStorage.saveStatsToSpiffs(cs);
+      break;
+    }
+    case restartClock: {
+      spiffsStorage.saveStatsToSpiffs(cs);
+      delay(1000);
+      ESP.restart();
       break;
     }
   }

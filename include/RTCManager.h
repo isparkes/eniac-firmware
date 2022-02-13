@@ -58,6 +58,7 @@ private:
     void fillDayOfWeek(uint8_t _dow);
 
     bool _useRTC = false;
+    bool _onceHadAnRTC = false;
     uint8_t _second;
     uint8_t _minute;
     uint8_t _hour; 

@@ -23,7 +23,6 @@ void WebManager_::begin() {
   // wifi credentials
   server.on("/api/postWiFiCredentials", HTTP_POST, postWiFiCredentialsHandler);
   server.on("/api/credentials", HTTP_GET, getCredentialsHandler);
-  server.on("/api/getWiFiConnected", HTTP_GET, getWifiConnected);
 
   // Utilities
   server.on("/utils/resetwifi", HTTP_GET, resetWifiHandler);
@@ -54,15 +53,26 @@ void WebManager_::begin() {
   server.begin();
 }
 
-void WebManager_::beginWiFiCredentials() {
+void WebManager_::beginPortal() {
   #ifdef DEBUG_ON
-  debugMsg("Setting up server endpoints for AP mode");
+  debugMsg("Setting up server endpoints");
   #endif
+  server.serveStatic("/", SPIFFS, "/web/").setDefaultFile("portal.html");
 
+  // Summary and diagnostics
+  server.on("/api/getSummary", HTTP_GET, getSummaryDataHandler);
+  server.on("/api/getDiags", HTTP_GET, getDiagsDataHandler);
+  server.on("/api/postDiags", HTTP_POST, postDiagsDataHandler);
+  
   // wifi credentials
   server.on("/api/postWiFiCredentials", HTTP_POST, postWiFiCredentialsHandler);
   server.on("/api/credentials", HTTP_GET, getCredentialsHandler);
-  server.on("/api/getWiFiConnected", HTTP_GET, getWifiConnected);
+  server.on("/api/getWiFiNetworks", HTTP_GET, getWiFiNetworksHandler);
+
+  // Utilities
+  server.on("/utils/resetwifi", HTTP_GET, resetWifiHandler);
+  server.on("/utils/scanI2C", HTTP_GET, getI2CScanHandler);
+  server.on("/utils/saveStats", HTTP_GET, saveStatsHandler);
 
   #ifdef DEBUG_ON
   debugMsg("Start up web server");

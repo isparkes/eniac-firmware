@@ -75,7 +75,15 @@ int digitValue = 0;
 
 bool wifiServicesWereInitalised = false;
 
+bool doAutoReconnect = false;
+
 String uniqHostname;
 
 // singleton object
 AsyncWebServer server(80);
+
+String lastWiFiScan = "";
+
+void updateNowMillis() {
+    nowMillis = millis();
+}
