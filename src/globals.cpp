@@ -73,8 +73,6 @@ bool indLed2;
 int digitValue = 0;
 #endif
 
-bool wifiServicesWereInitalised = false;
-
 bool doAutoReconnect = false;
 
 String uniqHostname;

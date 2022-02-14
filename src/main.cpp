@@ -372,18 +372,6 @@ void setLedsDiags()
 void performOncePerSecondProcessing() {
   lastMillis = nowMillis;
 
-  // If we have gained wifi connectivity but didnt initialise yet
-  if (!wifiServicesWereInitalised) {
-    if (WiFi.isConnected()) {
-      startWiFiServices();
-    } else if((WiFi.getMode() == WIFI_MODE_AP) || (WiFi.getMode() == WIFI_MODE_APSTA)) {
-      #ifdef DEBUG_ON
-      debugMsg("Access Point open, starting WiFi");
-      #endif
-      startWiFiServicesPortal();
-    }
-  }
-
   // See if it is time for a new NTP update
   if (ntpManager.getNextUpdate() < 0 && WiFi.isConnected()) {
     ntpManager.getTimeFromNTP();
@@ -408,7 +396,6 @@ void performOncePerSecondProcessing() {
 
   blinkenlightsManager.updateBlinkenlights();
 
-#ifdef DIGIT_DIAGNOSTICS
   if (cc->diagsMode == DIGIT_DIAGS_MODE_NONE) {
     loadNumberArrayTime();
   } else if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
@@ -424,9 +411,6 @@ void performOncePerSecondProcessing() {
     byte value = burnVal/10;
     loadNumberArrayBurn(digit, value);
   }
-#else
-    loadNumberArrayTime();
-#endif
 
   countdownMenuTimeouts();
 

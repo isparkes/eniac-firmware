@@ -27,7 +27,8 @@
       nextBlnknMode,
 
       restartClock,
-      saveStats
+      saveStats,
+      displayTest
   };
 
   // Private fwd decls
@@ -147,6 +148,7 @@ void optionsMenu() {
   oledMenu.menuTitle = "Options";
   oledMenu.menuItems[menuCount] = "Restart Eniac";  oledMenu.menuActions[menuCount++] = restartClock;
   oledMenu.menuItems[menuCount] = "Save stats";     oledMenu.menuActions[menuCount++] = saveStats;
+  oledMenu.menuItems[menuCount] = "Display Test";   oledMenu.menuActions[menuCount++] = displayTest;
   oledMenu.menuItems[menuCount] = "Back";           oledMenu.menuActions[menuCount++] = backToMain;
   oledMenu.noOfmenuItems = --menuCount;
 }
@@ -277,6 +279,14 @@ void menuActions(menuTargets selectedAction) {
       spiffsStorage.saveStatsToSpiffs(cs);
       delay(1000);
       ESP.restart();
+      break;
+    }
+    case displayTest: {
+      if (cc->diagsMode == DIGIT_DIAGS_MODE_NONE) {
+        cc->diagsMode = DIGIT_DIAGS_MODE_FAST;
+      } else {
+        cc->diagsMode = DIGIT_DIAGS_MODE_NONE;
+      }
       break;
     }
   }

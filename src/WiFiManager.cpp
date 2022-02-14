@@ -39,20 +39,27 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
 {
   switch (event)
   {
-  // case SYSTEM_EVENT_STA_START:
-  //   #ifdef DEBUG_ON
-  //   debugMsgWfm("Station Mode Started");
-  //   #endif
-  //   break;
+  case SYSTEM_EVENT_STA_START:
+    #ifdef DEBUG_ON
+    debugMsgWfm("Station Mode Started");
+    #endif
+    break;
+  case SYSTEM_EVENT_AP_START:
+    #ifdef DEBUG_ON
+    debugMsgWfm("AP Mode Started");
+    #endif
+    startWiFiServicesPortal();
+    break;
   case SYSTEM_EVENT_STA_GOT_IP:
     #ifdef DEBUG_ON
     debugMsgWfm("Connected to :" + WiFi.SSID() + ", password: " + WiFi.psk());
     debugMsgWfm("IP Address: " + WiFi.localIP().toString());
     debugMsgWfm("MAC Address: " + WiFi.macAddress());
     debugMsgWfm("Host name: " + String(WiFi.getHostname()));
-    flashMenuMessage("WiFi Status", "WiFi connected to\nSSID:\n"+WiFi.SSID());
     #endif
+    flashMenuMessage("WiFi Status", "WiFi connected to\nSSID:\n"+WiFi.SSID());
     saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
+    startWiFiServices();
     break;
   case SYSTEM_EVENT_STA_DISCONNECTED:
     #ifdef DEBUG_ON 
@@ -67,11 +74,11 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
     break;
   case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
     #ifdef DEBUG_ON
-    debugMsgWfm("WPS Successfull, saving credentials: " + WiFi.SSID() + ", password: " + WiFi.psk());
+    debugMsgWfm("WPS Successfull, saving credentials. SSID: |" + WiFi.SSID() + "| password: |" + WiFi.psk() + "|");
     #endif
     saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
     esp_wifi_wps_disable();
-    flashMenuMessage("WPS Status", "WiFi connected to\nSSID:\n"+WiFi.SSID());
+    flashMenuMessage("WPS Status", "WPS was successful\nPassword:\n"+WiFi.psk());
     break;
   case SYSTEM_EVENT_STA_WPS_ER_FAILED:
     #ifdef DEBUG_ON
@@ -101,11 +108,7 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
 }
 
 void setUpWiFi() {
-  WiFi.onEvent(WiFiEvent, SYSTEM_EVENT_STA_GOT_IP);
-  WiFi.onEvent(WiFiEvent, SYSTEM_EVENT_STA_DISCONNECTED);
-  WiFi.onEvent(WiFiEvent, SYSTEM_EVENT_STA_WPS_ER_SUCCESS);
-  WiFi.onEvent(WiFiEvent, SYSTEM_EVENT_STA_WPS_ER_TIMEOUT);
-  WiFi.onEvent(WiFiEvent, SYSTEM_EVENT_STA_WPS_ER_FAILED);
+  WiFi.onEvent(WiFiEvent);
 
   String mac = String(WiFi.macAddress());
   mac.replace(":","");
@@ -123,9 +126,6 @@ void startScanWiFiNetworks() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.disconnect();
   delay(500);
-    // Serial.println("Hostname " + String(WiFi.getHostname()));
-    // Serial.println("Statusbits " + String(WiFi.getStatusBits()));
-    // Serial.println("Mode " + String(WiFi.getMode()));
 
   WiFi.scanNetworks(true);
 }
@@ -136,11 +136,13 @@ void processScanResults() {
     #ifdef DEBUG_ON
     debugMsgWfm("no networks found");
     #endif
+    flashMenuMessage("Scan Done", "No WiFi\nnetworks\nfound.");
   } else {
     #ifdef DEBUG_ON
     debugMsgWfm("");
     debugMsgWfm(String(n) + " networks found");
     #endif
+    flashMenuMessage("Scan Done", "Found\n" + String(n) + "\nnetworks.");
     String result = "";
     for (int i = 0; i < n; ++i) {
       #ifdef DEBUG_ON
@@ -166,6 +168,7 @@ void processScanResults() {
 
 // http://www.iotsharing.com/2017/05/how-to-use-smartconfig-on-esp32.html
 void startSmartConfig() {
+  flashMenuMessage("Smartconfig", "Starting\"Smartconfig""\nmode.");
   WiFi.disconnect();
   delay(500);
 
@@ -184,6 +187,9 @@ void connectToLastAP() {
 }
 
 bool connectWithWPS() {
+  // Autoreconnect is needed for WPS!
+  doAutoReconnect = true;
+
   if (WiFi.status() != WL_CONNECTED) {
     #ifdef DEBUG_ON
     debugMsgWfm("Connect using WPS");
@@ -191,7 +197,7 @@ bool connectWithWPS() {
     // ToDo show this status better
     // oled.showScrollingMessage("Connect using WPS");
 
-    WiFi.mode(WIFI_AP_STA);
+    WiFi.mode(WIFI_STA);
     delay(1000);
       
     wpsInitConfig();
@@ -209,7 +215,7 @@ bool connectWithWPS() {
     return (retCodeEnable == 0 && retCodeStart == 0);
   } else {
     #ifdef DEBUG_ON
-    debugMsgWfm("Already connected, cannot do WPS");
+    debugMsgWfm("Already connected, won't do WPS");
     #endif
     return false;
   }
@@ -288,8 +294,6 @@ void startWiFiServices() {
     debugMsgWfm("Start up mDNS on http://" + String(WiFi.getHostname()) + ".local");
     #endif
     startMDNS();
-
-    wifiServicesWereInitalised = true;
   } else {
     #ifdef DEBUG_ON
     debugMsgWfm("No WiFi, skipping web services startup");
@@ -303,8 +307,6 @@ void startWiFiServicesPortal() {
   #endif
 
   webManager.beginPortal();
-
-  wifiServicesWereInitalised = true;
 }
 
 void wifiBeginWithCredentials() {

@@ -67,8 +67,6 @@ extern bool indLed2;
 extern int digitValue;
 #endif
 
-extern bool wifiServicesWereInitalised;
-
 extern bool doAutoReconnect;
 
 extern String uniqHostname;
