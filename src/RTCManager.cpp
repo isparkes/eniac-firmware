@@ -165,8 +165,6 @@ void DS1307_::setTimeFromUTCSource(time_t currentTime, bool updateRTC) {
   struct tm info_gm;
   gmtime_r(&currentTime, &info_gm);
 
-//  debugMsg("!!!Set RTC time : " + String(info_gm.tm_year));
-
   // We store the date 0-99 in the RTC, but gmtime gives us back the years since 1900
   // gmtime gives us months in the range 0-11, but the RTC needs 1-12
   _year = info_gm.tm_year % 100;

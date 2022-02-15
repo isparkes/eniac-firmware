@@ -455,13 +455,6 @@ void performOncePerMinuteProcessing() {
 
   // manage the primary source - it might have changed
   tzManager.getPrimaryTimeSource();
-
-  // #ifdef DEBUG_ON
-  // tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_GPS, nowMillis);
-  // tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_NTP, nowMillis);
-  // tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis);
-  // tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_INT, nowMillis);
-  // #endif
 }
 
 // ************************************************************

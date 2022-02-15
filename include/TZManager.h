@@ -54,7 +54,7 @@ class TZManager_ {
     bool _debug = false;
     DebugCallback _dbcb;
 
-    void setInternalTime();
+    void setInternalTimeFromRTC();
     void debugMsg(String message);
 };
 
