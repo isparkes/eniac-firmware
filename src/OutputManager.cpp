@@ -20,10 +20,10 @@ void loadNumberArrayTime() {
 // ************************************************************
 // Break the time into displayable digits
 // ************************************************************
-void loadNumberArrayBurn(byte digit, byte value) {
+void loadNumberArrayBurn(byte value) {
   allBlanked();
-  numberArray[digit % S1]  = value % 10;
-  displayType[digit % S1] = NORMAL;
+  loadNumberArraySameValue(value % 10);
+  displayType[value / 10] = NORMAL;
 }
 
 // ************************************************************

@@ -122,7 +122,7 @@ String getStatusString() {
     connectionInfo += "b";
   }
 
-  if (configTime > 0) {
+  if (oledTimeout > 0) {
     connectionInfo += "O";
   } else {
     connectionInfo += "o";
@@ -164,6 +164,8 @@ void resetOptions() {
   cc->scrollback = SCROLLBACK_DEFAULT;
   cc->scrollSteps = SCROLL_STEPS_DEFAULT;
   cc->slotsMode = SLOTS_MODE_DEFAULT;
+  cc->acpMode = ACP_MODE_DEFAULT;
+  cc->suppressACP = SUPPRESS_ACP_DEFAULT;
   
   cc->backlightMode = BACKLIGHT_DEFAULT;
   cc->useBLDim = true;
@@ -318,18 +320,16 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   }
   root["displaytime"] = tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_INT);
 
-  if (gpsManager.getLastGPSReadTime() > 0) {
+  if (gpsManager.getGPSTimeValid()) {
     root["lastgpstime"] = tzManager.getLocalTimeFromTimeSource(TIME_SOURCE_GPS);
     root["lastgpsupdate"] = secsToReadableString(tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_GPS));
-    if (gpsManager.getGPSTimeValid()) {
+    root["gpsvalid"] = 0;
+  } else {
+    if (gpsManager.getGPSSyncStarted()) {
       root["gpsvalid"] = 1;
     } else {
-      root["gpsvalid"] = 0;
+      root["gpsvalid"] = 2;
     }
-  } else {
-    root["lastgpstime"] = "GPS Receiver not installed";
-    root["lastgpsupdate"] = "";
-    root["gpsvalid"] = 0;
   }
 
   if (rtcManager.getRTCValid()) {
@@ -399,6 +399,10 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["utcntpraw"] = tzManager.getRawUTCTimeFromTimeSource(TIME_SOURCE_NTP);
   root["utcrtcraw"] = tzManager.getRawUTCTimeFromTimeSource(TIME_SOURCE_RTC);
   root["utcintraw"] = tzManager.getRawUTCTimeFromTimeSource(TIME_SOURCE_INT);
+  root["utcgpsat"] = tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_GPS);
+  root["utcntpat"] = tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_NTP);
+  root["utcrtcat"] = tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_RTC);
+  root["utcintat"] = tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_INT);
   root["utcoffset"] = String(tzManager.getCurrentUTCOffset());
 #ifdef DIGIT_DIAGNOSTICS
   root["diagsMode"] = cc->diagsMode;
@@ -417,12 +421,18 @@ void postDiagsDataHandler(AsyncWebServerRequest *request) {
   JsonObject& json = jsonBuffer.parse(String(request->arg("body")));
 
   if (json.success()) {
+    #ifdef DIGIT_DIAGNOSTICS
     #ifdef DEBUG_ON
     debugMsgUtl("Diags mode before: " + String(cc->diagsMode));
     #endif
     cc->diagsMode = json["diagsMode"].as<int>();
     #ifdef DEBUG_ON
     debugMsgUtl("Diags mode after: " + String(cc->diagsMode));
+    #endif
+    #else
+    #ifdef DEBUG_ON
+    debugMsgUtl("Diags POST ignored");
+    #endif
     #endif
   }
    
@@ -463,6 +473,7 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["fade"] = cc->fade;
   root["fadeSteps"] = cc->fadeSteps;
   root["slotsMode"] = cc->slotsMode;
+  root["acpMode"] = cc->acpMode;
   root["suppressACP"] = cc->suppressACP;
 
   root["useLDR"] = cc->useLDR;
@@ -560,6 +571,7 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateBool(json, "fade",         &cc->fade);
     compareAndUpdateByte(json, "fadeSteps",    &cc->fadeSteps);
     compareAndUpdateByte(json, "slotsMode",    &cc->slotsMode);
+    compareAndUpdateByte(json, "acpMode",      &cc->acpMode);
     compareAndUpdateBool(json, "suppressACP",  &cc->suppressACP);
 
     // ------------------------------------------------------------

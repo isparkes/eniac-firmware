@@ -173,14 +173,12 @@
                 $("#lastrtctime").text(summary.lastrtctime);
             }
             
-            if (summary.lastgpstime !== 'GPS Receiver not installed') {
-                if (summary.gpsvalid) {
-                    $("#lastgpstime").text(summary.lastgpstime + ' ('+summary.lastgpsupdate + ' ago, valid)');
-                } else {
-                    $("#lastgpstime").text(summary.lastgpstime + ' ('+summary.lastgpsupdate + ' ago, invalid)');
-                }
+            if (summary.gpsvalid === 0) {
+                $("#lastgpstime").text(summary.lastgpstime + ' ('+summary.lastgpsupdate + ' ago, valid)');
+            } else if (summary.gpsvalid === 1){
+                $("#lastgpstime").text("GPS Sync not complete");
             } else {
-                $("#lastgpstime").text(summary.lastgpstime);
+                $("#lastgpstime").text("No GPS Receiver installed");
             }
             $("#status").text(summary.status);
             $("#version").text(summary.version);

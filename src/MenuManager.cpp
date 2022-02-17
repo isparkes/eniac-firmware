@@ -1,85 +1,86 @@
 #include "MenuManager.h"
 
-  enum menuTargets {
-      noTarget,
-      unmappedOption,
+enum menuTargets {
+  noTarget,
+  unmappedOption,
 
-      // Move around in menus
-      backToMain,
-      gotoWifiMenu,
-      gotoOptionsMenu,
-      gotoDisplayMenu,
-      menuOff,
+  // Move around in menus
+  backToMain,
+  gotoWifiMenu,
+  gotoOptionsMenu,
+  gotoDisplayMenu,
+  menuOff,
 
-      toggleWiFiAtStart,
-      disconnectWifi,
-      resetWiFiInfo,
-      connectWPS,
-      reconnectPrevious,
-      openAccessPoint,
-      getSSIDList,
-      smartConfig,
-      
-      toggleTubeDimming,
-      toggleBLDimming,
-      setDimming,
-      saveDimming,
-      nextBlnknMode,
+  toggleWiFiAtStart,
+  disconnectWifi,
+  resetWiFiInfo,
+  connectWPS,
+  reconnectPrevious,
+  openAccessPoint,
+  getSSIDList,
+  smartConfig,
+  
+  toggleTubeDimming,
+  toggleBLDimming,
+  setDimming,
+  saveDimming,
+  nextBlnknMode,
 
-      restartClock,
-      saveStats,
-      displayTest
-  };
+  restartClock,
+  saveStats,
+  displayTest
+};
 
-  // Private fwd decls
-  void setDimmingValue(menuTargets nextAction);
-  void serviceMenu();
-  void serviceValue();
-  void menuActions(menuTargets target);
+// modes that the menu system can be in
+enum menuModes {
+  off,                                  // display is off
+  menu,                                 // a menu is active
+  value,                                // 'enter a value' none blocking is active
+  message,                              // displaying a message
+  blocking                              // a blocking procedure is in progress (see enter value)
+};
+menuModes menuMode = off;                 // default mode at startup is off
 
+struct oledMenus {
+  // menu
+  String menuTitle = "";                    // the title of active mode
+  int noOfmenuItems = 0;                    // number if menu items in the active menu
+  int selectedMenuItem = 0;                 // when a menu item is selected it is flagged here until actioned and cleared
+  int highlightedMenuItem = 0;              // which item is curently highlighted in the menu
+  String menuItems[maxmenuItems+1];         // store for the menu item titles
+  menuTargets menuActions[maxmenuItems+1];  // The action to carry out
+  uint32_t lastMenuActivity = 0;            // time the menu last saw any activity (used for timeout)
 
-  // modes that the menu system can be in
-  enum menuModes {
-      off,                                  // display is off
-      menu,                                 // a menu is active
-      value,                                // 'enter a value' none blocking is active
-      message,                              // displaying a message
-      blocking                              // a blocking procedure is in progress (see enter value)
-  };
-  menuModes menuMode = off;                 // default mode at startup is off
+  // 'enter a value'
+  int mValueEntered = 0;                    // store for number entered by value entry menu
+  int mValueLow = 0;                        // lowest allowed value
+  int mValueHigh = 0;                       // highest allowed value
+  int mValueStep = 0;                       // step size when encoder is turned
+  menuTargets nextTarget = noTarget;        // the target to continue when a value is received
+};
+oledMenus oledMenu;
 
-  struct oledMenus {
-    // menu
-//    menuIds menuId = unknown;                 // The id of the menu we are in
-    String menuTitle = "";                    // the title of active mode
-    int noOfmenuItems = 0;                    // number if menu items in the active menu
-    int selectedMenuItem = 0;                 // when a menu item is selected it is flagged here until actioned and cleared
-    int highlightedMenuItem = 0;              // which item is curently highlighted in the menu
-    String menuItems[maxmenuItems+1];         // store for the menu item titles
-    menuTargets menuActions[maxmenuItems+1];  // The action to carry out
-    uint32_t lastMenuActivity = 0;            // time the menu last saw any activity (used for timeout)
+struct rotaryEncoders {
+  volatile int encoder0Pos = 0;                          // current value selected with rotary encoder (updated by interrupt routine)
+  volatile bool encoderPrevA;                            // used to debounced rotary encoder
+  volatile bool encoderPrevB;                            // used to debounced rotary encoder
+  uint32_t reLastButtonChange = 0;                       // last time state of button changed (for debouncing)
+  bool encoderPrevButton = 0;                            // used to debounce button
+  int reButtonDebounced = 0;                             // debounced current button state (1 when pressed)
+  const bool reButtonPressedState = BUTTONPRESSEDSTATE;  // the logic level when the button is pressed
+  const uint32_t reDebounceDelay = DEBOUNCEDELAY;        // button debounce delay setting
+  bool reButtonPressed = 0;                              // flag set when the button is pressed (it has to be manually reset)
+};
+rotaryEncoders rotaryEncoder;
 
-    // 'enter a value'
-    int mValueEntered = 0;                    // store for number entered by value entry menu
-    int mValueLow = 0;                        // lowest allowed value
-    int mValueHigh = 0;                       // highest allowed value
-    int mValueStep = 0;                       // step size when encoder is turned
-    menuTargets nextTarget = noTarget;        // the target to continue when a value is received
-  };
-  oledMenus oledMenu;
+// Private fwd decls
+void setDimmingValue(menuTargets nextAction);
+void serviceMenu();
+void serviceValue();
+void menuActions(menuTargets target);
 
-  struct rotaryEncoders {
-    volatile int encoder0Pos = 0;                          // current value selected with rotary encoder (updated by interrupt routine)
-    volatile bool encoderPrevA;                            // used to debounced rotary encoder
-    volatile bool encoderPrevB;                            // used to debounced rotary encoder
-    uint32_t reLastButtonChange = 0;                       // last time state of button changed (for debouncing)
-    bool encoderPrevButton = 0;                            // used to debounce button
-    int reButtonDebounced = 0;                             // debounced current button state (1 when pressed)
-    const bool reButtonPressedState = BUTTONPRESSEDSTATE;  // the logic level when the button is pressed
-    const uint32_t reDebounceDelay = DEBOUNCEDELAY;        // button debounce delay setting
-    bool reButtonPressed = 0;                              // flag set when the button is pressed (it has to be manually reset)
-  };
-  rotaryEncoders rotaryEncoder;
+// trigger for Oled reset
+static bool resetDisplay;
 
 // -------------------------------------------------------------------------------------------------
 //                                         menus below here
@@ -115,7 +116,6 @@ void wifiMenu() {
   }
   byte menuCount = 1;
   if (WiFi.isConnected()) {
-//    oledMenu.menuId = wifiOn;
     oledMenu.menuTitle = "WiFi Menu";           
     oledMenu.menuItems[menuCount] = onOffMsg;             oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
     oledMenu.menuItems[menuCount] = "Disconnect WiFi";    oledMenu.menuActions[menuCount++] = disconnectWifi;
@@ -123,7 +123,6 @@ void wifiMenu() {
     oledMenu.menuItems[menuCount] = "Back";               oledMenu.menuActions[menuCount++] = backToMain;
   } else {
     oledMenu.noOfmenuItems = 8;
-//    oledMenu.menuId = wifiOff;
     oledMenu.menuTitle = "WiFi Menu";
     if (wifiCredentialsReceived()) {
       oledMenu.menuItems[menuCount] = "Reconnect previous"; oledMenu.menuActions[menuCount++] = reconnectPrevious;
@@ -144,7 +143,6 @@ void optionsMenu() {
   resetMenu();
   menuMode = menu;
   byte menuCount = 1;
-//  oledMenu.menuId = options;
   oledMenu.menuTitle = "Options";
   oledMenu.menuItems[menuCount] = "Restart Eniac";  oledMenu.menuActions[menuCount++] = restartClock;
   oledMenu.menuItems[menuCount] = "Save stats";     oledMenu.menuActions[menuCount++] = saveStats;
@@ -157,7 +155,6 @@ void displayMenu() {
   resetMenu();
   menuMode = menu;
   byte menuCount = 1;
-//  oledMenu.menuId = display;
   oledMenu.menuTitle = "display";
   oledMenu.menuItems[menuCount] = "Tube Dimming on/off"; oledMenu.menuActions[menuCount++] = toggleTubeDimming;
   oledMenu.menuItems[menuCount] = "BL Dimming on/off";   oledMenu.menuActions[menuCount++] = toggleBLDimming;
@@ -277,6 +274,7 @@ void menuActions(menuTargets selectedAction) {
     }
     case restartClock: {
       spiffsStorage.saveStatsToSpiffs(cs);
+      flashMenuMessage("Restart","Restarting\nEniac clock\nnow");
       delay(1000);
       ESP.restart();
       break;
@@ -414,6 +412,12 @@ void menuLoop() {
   reUpdateButton();               // update rotary encoder button status (if pressed activate default menu)
   if (menuMode == off) return;    // if menu system is turned off do nothing more
 
+  if (resetDisplay) {
+    // Re-initialise
+    oled.setUp();
+    resetDisplay = false;
+  }
+
 // debugMsgMM("Mode: " + String(menuMode));
   // if no recent activity then turn oled off
     if ( configTimeout == 0 ) {
@@ -538,8 +542,7 @@ void serviceMenu() {
 //                        -service value entry
 // ----------------------------------------------------------------
 void serviceValue() {
-
-  // If we times out, just reset
+  // If we timed out, just reset
   if (configTimeout == 0) {
     resetMenu();
   }
@@ -703,9 +706,9 @@ void ICACHE_RAM_ATTR doEncoder() {
   rotaryEncoder.encoderPrevB = pinB;
   resetTimeouts();
 
-  if (menuMode == off) {
-    ledManager.setTowerHueOffset(rotaryEncoder.encoder0Pos);
-  }
+  // if (menuMode == off) {
+  //   ledManager.setTowerHueOffset(rotaryEncoder.encoder0Pos);
+  // }
 }
 
 // ---------------------------------------------- end ----------------------------------------------
@@ -716,6 +719,7 @@ void resetTimeouts() {
     #ifdef DEBUG_ON
     debugMsgMM("OLED: ON");
     #endif
+    resetDisplay = true;
   } else if (menuMode > off) {
     configTimeout = CONFIG_TIME;
   }

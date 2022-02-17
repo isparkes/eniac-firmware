@@ -34,7 +34,6 @@ bool GPSManager_::parseGPZDAMsgToUTCTime(String messageToParse) {
     tReceived = mktime(&whenStart) + tzManager.getCurrentUTCOffset();
 
     #ifdef DEBUG_ON
-    
     debugMsg("Received GPS update U--> " + tzManager.gmtimeToReadableString(tReceived));
     #endif
 

@@ -10,10 +10,6 @@
 
 #define DIGIT_COUNT 6
 
-#define INTERVAL_WIFI 10000
-#define INTERVAL_WPS 60000
-#define INTERVAL_PORTAL 300000
-
 #define WDT_TIMEOUT 5
 
 // Add debug statments to code - needs extra space
@@ -22,7 +18,7 @@
 // Add the dignostic calls to the GUI
 #define DIGIT_DIAGNOSTICS    // DIGIT_DIAGNOSTICS | DIGIT_DIAGNOSTICS_OFF
 
-#define SOFTWARE_VERSION "LTC-ESP32 V0.1"
+#define SOFTWARE_VERSION "LTC-ESP32 V0.2"
 
 #define COUNTS_PER_DIGIT 20
 
@@ -159,11 +155,6 @@
 #define FLASH_TIME                       6 // Time in seconds we show an OLED flash message for
 
 // -------------------------------------------------------------------------------
-#define ANTI_GHOST_MIN                  0
-#define ANTI_GHOST_MAX                  50
-#define ANTI_GHOST_DEFAULT              0
-
-// -------------------------------------------------------------------------------
 #define PIR_TIMEOUT_MIN                 60    // 1 minute in seconds
 #define PIR_TIMEOUT_MAX                 3600  // 1 hour in seconds
 #define PIR_TIMEOUT_DEFAULT             300   // 5 minutes in seconds
@@ -177,6 +168,18 @@
 #define SLOTS_MODE_1M_SCR_SCR           1   // use slots effect every minute, scroll in, scramble out
 #define SLOTS_MODE_MAX                  1
 #define SLOTS_MODE_DEFAULT              1
+
+// -------------------------------------------------------------------------------
+#define ACP_MODE_MIN                    0
+#define ACP_MODE_NONE                   0
+#define ACP_MODE_1M                     1
+#define ACP_MODE_10M                    2
+#define ACP_MODE_1H                     3
+#define ACP_MODE_MAX                    3
+#define ACP_MODE_DEFAULT                2
+
+// -------------------------------------------------------------------------------
+#define SUPPRESS_ACP_DEFAULT            false
 
 // -------------------------------------------------------------------------------
 #define SEPARATOR_DIM_FACTOR_MIN        10

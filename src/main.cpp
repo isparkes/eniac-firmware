@@ -78,6 +78,13 @@ void setup()
   startTimers();
 
   // -------------------------------------------------------------------------
+  // // Startup test
+  // for (int i = 0 ; i <= 10 ; i++) {
+  //   loadNumberArraySameValue(i);
+  //   delay(500);
+  // }
+
+  // -------------------------------------------------------------------------
   
   #ifdef DEBUG_ON
   debugMsg("Starting OLED");
@@ -367,6 +374,45 @@ void setLedsDiags()
 #endif
 
 // ************************************************************
+// Called every 10mS or so
+// ************************************************************
+void performOncePerLoop() {
+  // -------------------------------------------------------------------------------
+
+  // Dimming
+  ldrManager.getDimmingFromLDR();
+  ldrValue = ldrManager.getLDRValue();
+  ledManager.setLDRValue(ldrValue);
+
+  // -------------------------------------------------------------------------------
+  
+  #ifdef DIGIT_DIAGNOSTICS
+  if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
+    ldrValue = ldrManager.getMaxLDRValue();
+    int rawEncPos = getCurrentEncoderPos()/2;
+    while (rawEncPos < 0) rawEncPos+=60; 
+    int burnVal = rawEncPos % 60;
+    loadNumberArrayBurn(burnVal);
+  }
+  #endif
+
+  outputDisplay();
+
+  #ifdef DIGIT_DIAGNOSTICS
+  // output the backlight/underlight LEDs
+  if (cc->diagsMode > 0) {
+    setLedsDiags();
+  } else {
+    setLeds();
+  }
+  #else
+  setLeds();
+  #endif
+
+  menuLoop();
+}
+
+// ************************************************************
 // Called once per second
 // ************************************************************
 void performOncePerSecondProcessing() {
@@ -377,9 +423,28 @@ void performOncePerSecondProcessing() {
     ntpManager.getTimeFromNTP();
   }
 
+  #ifdef DIGIT_DIAGNOSTICS
+  if (cc->diagsMode == DIGIT_DIAGS_MODE_NONE) {
+    allNormal(APPLY_LEAD_0_BLANK);
+    loadNumberArrayTime();
+  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
+    loadNumberArraySameValue(second());
+  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
+    loadNumberArraySameValue(minute());
+  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
+    int rawEncPos = getCurrentEncoderPos()/2;
+    while (rawEncPos < 0) rawEncPos+=60; 
+    int burnVal = rawEncPos % 60;
+    #ifdef DEBUG_ON
+    // debugMsg("DIGIT BURN Value: " + String(burnVal));
+    // debugMsg("-> Val: " + String(burnVal % 10));
+    // debugMsg("-> Dig: " + String(burnVal / 10));
+    #endif
+  }
+  #endif
+
   // Maintain the LED next to the controller
-  bool connected = (WiFi.status() == WL_CONNECTED);
-  if (connected) {
+  if (WiFi.status() == WL_CONNECTED) {
     setLedFlashType(0);
   } else {
     setLedFlashType(1);
@@ -395,22 +460,6 @@ void performOncePerSecondProcessing() {
   indLed2 = (second() % 2 == 1);
 
   blinkenlightsManager.updateBlinkenlights();
-
-  if (cc->diagsMode == DIGIT_DIAGS_MODE_NONE) {
-    loadNumberArrayTime();
-  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
-    loadNumberArraySameValue(second());
-  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
-    loadNumberArraySameValue(minute());
-  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
-    int burnVal = getCurrentEncoderPos();
-    if (burnVal < 0) {
-      burnVal = -burnVal;
-    }
-    byte digit = burnVal%6;
-    byte value = burnVal/10;
-    loadNumberArrayBurn(digit, value);
-  }
 
   countdownMenuTimeouts();
 
@@ -500,6 +549,8 @@ void loop()
 
   // -------------------------------------------------------------------------------
 
+  performOncePerLoop();
+
   if (lastSecond != second()) {
     lastSecond = second();
     performOncePerSecondProcessing();
@@ -520,29 +571,6 @@ void loop()
       triggeredThisSec = false;
     }
   }
-
-  // -------------------------------------------------------------------------------
-
-  ldrManager.getDimmingFromLDR();
-  ldrValue = ldrManager.getLDRValue();
-  ledManager.setLDRValue(ldrValue);
-
-  // -------------------------------------------------------------------------------
-  
-  outputDisplay();
-
-  #ifdef DIGIT_DIAGNOSTICS
-  // output the backlight/underlight LEDs
-  if (cc->diagsMode > 0) {
-    setLedsDiags();
-  } else {
-    setLeds();
-  }
-  #else
-  setLeds();
-  #endif
-
-  menuLoop();
 
   delay(10);
 }

@@ -36,9 +36,9 @@ volatile uint8_t _phase;
 
 volatile uint8_t _switchTime;
 
-volatile uint32_t _val1curr = 0x80000000;
-volatile uint32_t _val2curr = 0x80000000;
-volatile uint32_t _val3curr = 0x80000000;
+volatile uint32_t _val1curr = 1;
+volatile uint32_t _val2curr = 1;
+volatile uint32_t _val3curr = 1;
 
 volatile uint32_t _val1 = 0;
 volatile uint32_t _val2 = 0;
@@ -192,6 +192,7 @@ void triggerTimer2() {
 // Start the timers
 // ************************************************************
 void startTimers() {
+  // LED flash timer
   timer0 = timerBegin(0, 80, true);
   timerAttachInterrupt(timer0, &onTimer0, true);
   timerAlarmWrite(timer0, 10000, true);
@@ -199,6 +200,7 @@ void startTimers() {
   delayMicroseconds(0);
   timerAlarmEnable(timer0);
 
+  // Display time
   timer1 = timerBegin(1, 80, true);
   timerAttachInterrupt(timer1, &onTimer1, true);
   timerAlarmWrite(timer1, 500, true);
@@ -206,6 +208,7 @@ void startTimers() {
   delayMicroseconds(0);
   timerAlarmEnable(timer1);
 
+  // 1PPS timer
   timer2 = timerBegin(2, 80, true);
   timerAttachInterrupt(timer2, &onTimer2, true);
   // https://community.platformio.org/t/hardware-timer-issue-with-esp32/22047/10

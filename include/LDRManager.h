@@ -47,6 +47,7 @@ class LDRManager_
 
     void getDimmingFromLDR();
     int  getLDRValue();
+    int  getMaxLDRValue();
 
     // Turn off or on logging
     void setDebugOutput(bool newDebug);

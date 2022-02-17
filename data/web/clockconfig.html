@@ -119,7 +119,20 @@
                     <div class="col-xs-4">
                         <select class="form-control" name="slotsMode" id="slotsMode">
                             <option value="0">No slots</option>
-                            <option selected value="1">Scroll, scramble</option>
+                            <option selected value="1">Scroll in, scroll out</option>
+                            <option selected value="2">Scroll in, scramble out</option>
+                            <option selected value="3">Bang in, bang out</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-xs-3">ACP mode:</label>
+                    <div class="col-xs-4">
+                        <select class="form-control" name="acpMode" id="acpMode">
+                            <option value="0">ACP Off</option>
+                            <option value="1">ACP Every minute</option>
+                            <option selected value="2">ACP Every 10 minutes</option>
+                            <option value="2">ACP Every hour</option>
                         </select>
                     </div>
                 </div>
@@ -425,6 +438,7 @@
         setCurrentRadioValue("#fade", "#fadeOff", config.fade);
         $("#fadeSteps").val(config.fadeSteps);
         $("#slotsMode").val(config.slotsMode);
+        $("#acpMode").val(config.acpMode);
         setCurrentRadioValue("#suppressACP", "#suppressACPOff", config.suppressACP);
 
         // -------------- LDR --------------
@@ -503,6 +517,10 @@
 
         if (localConfig.slotsMode!=$("#slotsMode").val()) {
             postBody["slotsMode"] = $("#slotsMode").val();
+        }
+
+        if (localConfig.acpMode!=$("#acpMode").val()) {
+            postBody["acpMode"] = $("#acpMode").val();
         }
 
         if (compareRadioChanged("#suppressACP", localConfig.suppressACP)) {

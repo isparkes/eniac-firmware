@@ -52,14 +52,14 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
     break;
   case SYSTEM_EVENT_STA_GOT_IP:
     #ifdef DEBUG_ON
-    debugMsgWfm("Connected to :" + WiFi.SSID() + ", password: " + WiFi.psk());
+    debugMsgWfm("Connected to:" + WiFi.SSID() + ", password: " + WiFi.psk());
     debugMsgWfm("IP Address: " + WiFi.localIP().toString());
     debugMsgWfm("MAC Address: " + WiFi.macAddress());
     debugMsgWfm("Host name: " + String(WiFi.getHostname()));
     #endif
-    flashMenuMessage("WiFi Status", "WiFi connected to\nSSID:\n"+WiFi.SSID());
     saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
     startWiFiServices();
+    flashMenuMessage("WiFi Status", "WiFi connected to\nSSID:\n"+WiFi.SSID());
     break;
   case SYSTEM_EVENT_STA_DISCONNECTED:
     #ifdef DEBUG_ON 
@@ -181,7 +181,7 @@ void connectToLastAP() {
     #ifdef DEBUG_ON
     debugMsgWfm("Trying to reconnect to last known AP");
     #endif
-    oled.showScrollingMessage("Connect to last AP");
+    flashMenuMessage("Reconnect","Trying to reconnect to:\nSSID:\n" + cc->WiFiSSID + "\n");
     wifiBeginWithCredentials();
   }
 }

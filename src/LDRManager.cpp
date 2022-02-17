@@ -85,6 +85,13 @@ int LDRManager_::getLDRValue() {
 }
 
 // ************************************************************
+// Return brightest LDR value
+// ************************************************************
+int LDRManager_::getMaxLDRValue() {
+  return 0;
+}
+
+// ************************************************************
 // Output a logging message to the debug output, if set
 // ************************************************************
 void LDRManager_::debugMsg(String message) {

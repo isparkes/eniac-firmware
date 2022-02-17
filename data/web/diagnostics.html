@@ -239,10 +239,10 @@
             $("#sdkversion").text(diags.sdkversion);
             $("#sketchmd5").text(diags.sketchmd5);
             $("#utcoffset").text(diags.utcoffset);
-            $("utcgpsraw").text(diags.utcgpsraw);
-            $("utcntpraw").text(diags.utcntpraw);
-            $("utcrtcraw").text(diags.utcrtcraw);
-            $("utcintraw").text(diags.utcintraw);
+            $("#utcgpsraw").text(diags.utcgpsraw + "@" + diags.utcgpsat);
+            $("#utcntpraw").text(diags.utcntpraw + "@" + diags.utcntpat);
+            $("#utcrtcraw").text(diags.utcrtcraw + "@" + diags.utcrtcat);
+            $("#utcintraw").text(diags.utcintraw + "@" + diags.utcintat);
 
             if (diags.diagsMode != undefined) {
                 $("#digitDiagsContainer").prop('hidden', false);
