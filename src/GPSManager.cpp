@@ -31,6 +31,9 @@ bool GPSManager_::parseGPZDAMsgToUTCTime(String messageToParse) {
     whenStart.tm_min = messageToParse.substring(9,11).toInt();
     whenStart.tm_sec = messageToParse.substring(11,13).toInt();
 
+    // we know we are receiving the time in UTC, so no DST
+    whenStart.tm_isdst = 0;
+
     tReceived = mktime(&whenStart) + tzManager.getCurrentUTCOffset();
 
     #ifdef DEBUG_ON
