@@ -54,11 +54,14 @@ void LDRManager_::getDimmingFromLDR() {
 
     int effectiveMinDim = LDR_VALUE_MAX - (cc->minDim * LDR_VALUE_MAX / 100);
 
-    if (returnValue > effectiveMinDim) {
+    if (returnValue >= effectiveMinDim) {
       returnValue = effectiveMinDim;
+      _isMinDim = true;
       #ifdef DEBUG_ON
       debugMsg("Clamping _ldrValue to min: " + String(returnValue));
       #endif
+    } else {
+      _isMinDim = false;
     }
     if (returnValue < 0) {
       returnValue = 0;
@@ -89,6 +92,13 @@ int LDRManager_::getLDRValue() {
 // ************************************************************
 int LDRManager_::getMaxLDRValue() {
   return 0;
+}
+
+// ************************************************************
+// Return brightest LDR value
+// ************************************************************
+bool LDRManager_::isMinLDRValue() {
+  return _isMinDim;
 }
 
 // ************************************************************

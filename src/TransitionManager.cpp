@@ -18,13 +18,13 @@ Transition::Transition(int effectInDuration, int effectOutDuration, int holdDura
 void Transition::start(unsigned long now) {
   if (_end < now) {
     // save the target display
-    loadNumberArrayDate();
+    outputManager.loadNumberArrayDate();
     for (int idx = 0; idx < DIGIT_COUNT ; idx++) {
       _alternateDisplay[idx] = numberArray[idx];
     }
 
     // save the current version of the normal display
-    loadNumberArrayTime();
+    outputManager.loadNumberArrayTime();
     for (int idx = 0; idx < DIGIT_COUNT ; idx++) {
       _regularDisplay[idx] = numberArray[idx];
       _savedDisplayType[idx] = displayType[idx];
@@ -72,7 +72,7 @@ boolean Transition::wipeInWipeOut(unsigned long now, boolean blankLeading)
     }
     // Hold date display
     else if (msCount < _effectInDuration * 2 + _holdDuration) {
-      loadNumberArrayDate();
+      outputManager.loadNumberArrayDate();
     }
     // Wipe Out blanking
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration) {
@@ -88,8 +88,8 @@ boolean Transition::wipeInWipeOut(unsigned long now, boolean blankLeading)
     }
     // We now return you to your regularly scheduled program
     else {
-      loadNumberArrayTime();
-      allNormal(APPLY_LEAD_0_BLANK);
+      outputManager.loadNumberArrayTime();
+      outputManager.allNormal(APPLY_LEAD_0_BLANK);
       _end = 0;
    }
     return true;  // we are still running
@@ -103,31 +103,31 @@ boolean Transition::bangInBangOut(unsigned long now)
     int msCount = now - _started;
     // Bang In blanking
     if (msCount < _effectInDuration) {
-      allBlanked();
+      outputManager.allBlanked();
     }
     // Bang In date values
     else if (msCount < _effectInDuration * 2) {
-      loadNumberArrayDate();
-      allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+      outputManager.loadNumberArrayDate();
+      outputManager. allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     }
     // Hold date display
     else if (msCount < _effectInDuration * 2 + _holdDuration) {
-      loadNumberArrayDate();
-      allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+      outputManager.loadNumberArrayDate();
+      outputManager. allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     }
     // Bang Out blanking
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration) {
-      allBlanked();
+      outputManager.allBlanked();
     }
     // Bang Out to time values
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration * 2) {
-      loadNumberArrayTime();
-      allNormal(APPLY_LEAD_0_BLANK);
+      outputManager.loadNumberArrayTime();
+      outputManager. allNormal(APPLY_LEAD_0_BLANK);
     }
     // We now return you to your regularly scheduled program
     else {
-      loadNumberArrayTime();
-      allNormal(APPLY_LEAD_0_BLANK);
+      outputManager.loadNumberArrayTime();
+      outputManager. allNormal(APPLY_LEAD_0_BLANK);
       _end = 0;
    }
     return true;  // we are still running
@@ -146,3 +146,8 @@ void Transition::updateRegularDisplaySeconds(byte secondUpdate) {
     _regularDisplay[5] = secondUpdate % 10;
   }
 }
+
+Transition transitionWipe(800, 700, 2800, SLOTS_MODE_WIPE_WIPE);  // Wipe In / Wipe Out (DA2000-Transition.h)  
+Transition transitionBang(400, 400, 3200, SLOTS_MODE_BANG_BANG);  // Bang In / Bang Out (DA2000-Transition.h)  
+Transition transitionDummy(0, 0, 0, SLOTS_MODE_NONE);             // Dummy transition for null pointer prevention
+Transition *activeTransition = &transitionDummy;                  // Pointer to selected transition object

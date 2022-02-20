@@ -82,6 +82,13 @@ AsyncWebServer server(80);
 
 String lastWiFiScan = "";
 
+// ------------------- ACP management ------------------
+
+int acpOffset;
+int acpTick;
+
+// ------------------ Global functions -----------------
+
 void updateNowMillis() {
     nowMillis = millis();
 }

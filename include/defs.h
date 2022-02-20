@@ -22,6 +22,8 @@
 
 #define COUNTS_PER_DIGIT 20
 
+#define SERIAL_BAUD_RATE 115200
+
 // Onboard LED 
 #define LED_PIN 2
 
@@ -177,6 +179,9 @@
 #define ACP_MODE_1H                     3
 #define ACP_MODE_MAX                    3
 #define ACP_MODE_DEFAULT                2
+
+// -------------------------------------------------------------------------------
+#define ACP_TICKS_PER_DIGIT             25
 
 // -------------------------------------------------------------------------------
 #define SUPPRESS_ACP_DEFAULT            false

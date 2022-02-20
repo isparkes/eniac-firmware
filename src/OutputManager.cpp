@@ -3,7 +3,7 @@
 // ************************************************************
 // Break the time into displayable digits
 // ************************************************************
-void loadNumberArrayTime() {
+void OutputManager_::loadNumberArrayTime() {
   numberArray[S1]  = second() % 10;
   numberArray[S10] = second() / 10;
   numberArray[M1]  = minute() % 10;
@@ -20,7 +20,7 @@ void loadNumberArrayTime() {
 // ************************************************************
 // Break the time into displayable digits
 // ************************************************************
-void loadNumberArrayBurn(byte value) {
+void OutputManager_::loadNumberArrayBurn(byte value) {
   allBlanked();
   loadNumberArraySameValue(value % 10);
   displayType[value / 10] = NORMAL;
@@ -29,7 +29,7 @@ void loadNumberArrayBurn(byte value) {
 // ************************************************************
 // Break the time into displayable digits
 // ************************************************************
-void loadNumberArrayDate() {
+void OutputManager_::loadNumberArrayDate() {
   switch (cc->dateFormat) {
     case DATE_FORMAT_YYMMDD:
       numberArray[5] = day() % 10;
@@ -61,7 +61,7 @@ void loadNumberArrayDate() {
 // ************************************************************
 // Break the time into displayable digits
 // ************************************************************
-void loadNumberArraySameValue(byte value) {
+void OutputManager_::loadNumberArraySameValue(byte value) {
   byte val = value % 10;
   numberArray[S1]  = val;
   numberArray[S10] = val;
@@ -74,7 +74,7 @@ void loadNumberArraySameValue(byte value) {
 // ************************************************************
 // Display preset
 // ************************************************************
-void allNormal(bool leadingBlank) {
+void OutputManager_::allNormal(bool leadingBlank) {
 
   if (leadingBlank)
     applyBlanking();
@@ -91,7 +91,7 @@ void allNormal(bool leadingBlank) {
 // ************************************************************
 // Display preset
 // ************************************************************
-void allBlanked() {
+void OutputManager_::allBlanked() {
   displayType[0] = BLANKED;
   displayType[1] = BLANKED;
   displayType[2] = BLANKED;
@@ -106,7 +106,7 @@ void allBlanked() {
 // the interrupt driven display output.
 // This is the heart of the display processing!
 // ************************************************************
-void outputDisplay() {
+void OutputManager_::outputDisplay() {
   blinkelights_t *bl = blinkenlightsManager.getBlinkenlights();
   byte tmpDispType;
   byte tmpDispTypeArray[DIGIT_COUNT];
@@ -129,18 +129,18 @@ void outputDisplay() {
     }
 
     // Trigger scolling and fading - scolling takes precendence
+    // _suppressEffects stops any effects for ACP
     if (numberArray[i] != currNumberArray[i]) {
       // Do scrollback when we are going to 0
-      if ((numberArray[i] == 0) && cc->scrollback && (scrollCounter[i] == 0)) {
+      if ((numberArray[i] == 0) && cc->scrollback && !_suppressEffects && (scrollCounter[i] == 0)) {
         scrollCounter[i] = (currNumberArray[i]+1) * cc->scrollSteps;
-      } else if ((fadeState == 0) && cc->fade) {
+      } else if ((fadeState == 0)  && !_suppressEffects && cc->fade) {
         // if we are not going to 0, set up the fade steps
         fadeState = cc->fadeSteps;
       } else if (fadeState == 0) {
         currNumberArray[i] = numberArray[i];
       }
     }
-
 
     if (scrollCounter[i] > 0) {
       scrollCounter[i] = scrollCounter[i] - 1;
@@ -191,7 +191,6 @@ void outputDisplay() {
                                 indLed1,
                                 indLed2);
 
-  // ToDo fading/scrolling
   uint32_t tmpnextVal1 = decodeFromNumberArray( currNumberArray[H10], 
                                 currNumberArray[H1],
                                 tmpDispTypeArray[H10] == BLANKED,
@@ -232,7 +231,7 @@ void outputDisplay() {
 // ************************************************************
 // Turn a display pair into a uint24 ready for output
 // ************************************************************
-uint32_t decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, bool blankTens, bool blankUnits, bool bl1, bool bl2, bool led1, bool led2) {
+uint32_t OutputManager_::decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, bool blankTens, bool blankUnits, bool bl1, bool bl2, bool led1, bool led2) {
   uint32_t decoded = 0;
   if (!blankTens) decoded = DECODE_DIGIT[valueToDecodeTens];
   if (!blankUnits) decoded = decoded | DECODE_DIGIT[valueToDecodeUnits] << 10;
@@ -246,7 +245,7 @@ uint32_t decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, 
 // ************************************************************
 // Apply leading zero blanking
 // ************************************************************
-void applyBlanking() {
+void OutputManager_::applyBlanking() {
 
   // We only want to blank the hours tens digit
   if (cc->blankLeading && numberArray[H10] == 0) {
@@ -256,3 +255,45 @@ void applyBlanking() {
     displayType[H10] = NORMAL;
   }
 }
+
+// ************************************************************
+// Output a logging message to the debug output, if set
+// ************************************************************
+void OutputManager_::debugMsg(String message) {
+  if (_dbcb != NULL && _debug) {
+    _dbcb("[OUT]: " + message);
+  }
+}
+
+// ************************************************************
+// Set the callback for outputting debug messages
+// ************************************************************
+void OutputManager_::setDebugCallback(DebugCallback dbcb) {
+  _dbcb = dbcb;
+  debugMsg("Debugging started, callback set");
+}
+
+// ************************************************************
+// set the update interval
+// ************************************************************
+void OutputManager_::setDebugOutput(bool newDebug) {
+  _debug = newDebug;
+}
+
+// ************************************************************
+// Suppress effects when we are in ACP or transition
+// Stops fade and scroll
+// ************************************************************
+void OutputManager_::setSuppressEffects(bool newValue) {
+  _suppressEffects = newValue;
+}
+
+// ************************************************************
+// Library internal singleton wiring
+// ************************************************************
+OutputManager_ &OutputManager_::getInstance() {
+  static OutputManager_ instance;
+  return instance;
+}
+
+OutputManager_ &outputManager = outputManager.getInstance();

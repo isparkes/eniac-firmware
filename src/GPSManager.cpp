@@ -1,6 +1,13 @@
 #include "GPSManager.h"
 
 // ************************************************************
+// Turn on the GPS input
+// ************************************************************
+void GPSManager_::setUp() {
+  Serial.begin(SERIAL_BAUD_RATE);
+}
+
+// ************************************************************
 // Turn the GPS string into a parsed string
 // ************************************************************
 String GPSManager_::parseGPZDAMsg(String messageToParse) {

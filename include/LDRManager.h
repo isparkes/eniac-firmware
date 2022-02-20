@@ -48,6 +48,7 @@ class LDRManager_
     void getDimmingFromLDR();
     int  getLDRValue();
     int  getMaxLDRValue();
+    bool isMinLDRValue();
 
     // Turn off or on logging
     void setDebugOutput(bool newDebug);
@@ -59,6 +60,7 @@ class LDRManager_
     double sensorFactor = (double)SENSOR_SENSIT_DEFAULT / 100.0;
     int    sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
     int   _ldrValue = 0;
+    bool  _isMinDim;
     const int LDRPWMChannel = 0;
     
     DebugCallback _dbcb;

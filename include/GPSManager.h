@@ -13,8 +13,17 @@
 // -------------------------------------------------------------------------------
 
 class GPSManager_ {
+  private:
+    // Singleton constructor, no copying
+    GPSManager_() = default;
+    GPSManager_(const GPSManager_ &) = delete; 
+    GPSManager_ &operator=(const GPSManager_ &) = delete;
+
   public:
     static GPSManager_ &getInstance(); // Accessor for singleton instance
+
+  public:
+    void setUp();
     void parseNMEAMsg(char c);
     unsigned long getLastGPSReadTime();
     bool getGPSTimeValid();
@@ -28,11 +37,6 @@ class GPSManager_ {
     // callbacks
     void setDebugCallback(DebugCallback dbcb);
   private:
-    // Singleton constructor, no copying
-    GPSManager_() = default;
-    GPSManager_(const GPSManager_ &) = delete; 
-    GPSManager_ &operator=(const GPSManager_ &) = delete;
-
     char _msgBuffer[37];
     byte _bufferOffset = 0;
 
