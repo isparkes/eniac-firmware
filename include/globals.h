@@ -75,11 +75,6 @@ extern AsyncWebServer server;
 
 extern String lastWiFiScan;
 
-// ------------------- ACP management ------------------
-
-extern int acpOffset;
-extern int acpTick;
-
 // ------------------ Global functions -----------------
 
 void updateNowMillis();

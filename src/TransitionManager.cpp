@@ -6,16 +6,25 @@
 
 #include "TransitionManager.h"
 
-Transition::Transition(int effectInDuration, int effectOutDuration, int holdDuration, int selectedEffect) {
+Transition transitionWipe(800, 700, 2800, SLOTS_MODE_WIPE_WIPE, "Wipe");  // Wipe In / Wipe Out (DA2000-Transition.h)  
+Transition transitionBang(400, 400, 3200, SLOTS_MODE_BANG_BANG, "Bang");  // Bang In / Bang Out (DA2000-Transition.h)  
+Transition transitionDummy(0,    0,    0, SLOTS_MODE_NONE,      "None");  // Dummy transition for null pointer prevention
+Transition *activeTransition = &transitionDummy;                  // Pointer to selected transition object
+
+Transition::Transition(int effectInDuration, int effectOutDuration, int holdDuration, int selectedEffect, String name) {
   _effectInDuration = effectInDuration;
   _effectOutDuration = effectOutDuration;
   _holdDuration = holdDuration;
   _selectedEffect = selectedEffect;
   _started = 0;
   _end = 0;
+  _name = name;
 }
 
 void Transition::start(unsigned long now) {
+  #ifdef DEBUG_ON
+  // debugManager.debugMsg("[TRS] Using transition: " + _name);
+  #endif
   if (_end < now) {
     // save the target display
     outputManager.loadNumberArrayDate();
@@ -63,21 +72,33 @@ boolean Transition::wipeInWipeOut(unsigned long now, boolean blankLeading)
       _digit = msCount * (DIGIT_COUNT + 1) / _effectInDuration;
       if (_digit > 0)
         displayType[_digit-1] = BLANKED;
+        #ifdef DEBUG_ON
+        // debugManager.debugMsg("[TRS] Wipe in blank");
+        #endif
     }
     // Wipe In date values
     else if (msCount < _effectInDuration * 2) {
       _digit = (msCount - _effectInDuration) * DIGIT_COUNT / _effectInDuration;
       numberArray[_digit] = _alternateDisplay[_digit];
       displayType[_digit] =  NORMAL;
+      #ifdef DEBUG_ON
+      // debugManager.debugMsg("[TRS] Wipe in date");
+      #endif
     }
     // Hold date display
     else if (msCount < _effectInDuration * 2 + _holdDuration) {
+      #ifdef DEBUG_ON
+      // debugManager.debugMsg("[TRS] Date");
+      #endif
       outputManager.loadNumberArrayDate();
     }
     // Wipe Out blanking
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration) {
       _digit = (msCount - _holdDuration - _effectInDuration * 2) * DIGIT_COUNT / _effectOutDuration;
       displayType[_digit] = BLANKED;
+      #ifdef DEBUG_ON
+      // debugManager.debugMsg("[TRS] Wipe out blank");
+      #endif
     }
     // Wipe Out to time values
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration * 2) {
@@ -85,12 +106,19 @@ boolean Transition::wipeInWipeOut(unsigned long now, boolean blankLeading)
       numberArray[_digit] = _regularDisplay[_digit];
       if (!blankLeading || _digit != 0 || _regularDisplay[_digit] != 0)
         displayType[_digit] = NORMAL;
+      #ifdef DEBUG_ON
+      // debugManager.debugMsg("[TRS] Wipe out date");
+      #endif
     }
     // We now return you to your regularly scheduled program
     else {
       outputManager.loadNumberArrayTime();
       outputManager.allNormal(APPLY_LEAD_0_BLANK);
       _end = 0;
+      #ifdef DEBUG_ON
+      // debugManager.debugMsg("[TRS] wipe done");
+      #endif
+      return false;   // We're done running
    }
     return true;  // we are still running
   }
@@ -104,11 +132,17 @@ boolean Transition::bangInBangOut(unsigned long now)
     // Bang In blanking
     if (msCount < _effectInDuration) {
       outputManager.allBlanked();
+      #ifdef DEBUG_ON
+      // debugManager.debugMsg("[TRS] Bang in blank");
+      #endif
     }
     // Bang In date values
     else if (msCount < _effectInDuration * 2) {
       outputManager.loadNumberArrayDate();
       outputManager. allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+      #ifdef DEBUG_ON
+      // debugManager.debugMsg("[TRS] bang in date");
+      #endif
     }
     // Hold date display
     else if (msCount < _effectInDuration * 2 + _holdDuration) {
@@ -118,17 +152,27 @@ boolean Transition::bangInBangOut(unsigned long now)
     // Bang Out blanking
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration) {
       outputManager.allBlanked();
+      #ifdef DEBUG_ON
+      // debugManager.debugMsg("[TRS] Bang out blank");
+      #endif
     }
     // Bang Out to time values
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration * 2) {
       outputManager.loadNumberArrayTime();
       outputManager. allNormal(APPLY_LEAD_0_BLANK);
+      #ifdef DEBUG_ON
+      // debugManager.debugMsg("[TRS] Bang out time");
+      #endif
     }
     // We now return you to your regularly scheduled program
     else {
       outputManager.loadNumberArrayTime();
       outputManager. allNormal(APPLY_LEAD_0_BLANK);
       _end = 0;
+      #ifdef DEBUG_ON
+      // debugManager.debugMsg("[TRS] Bang done");
+      #endif
+      return false;   // We're done running
    }
     return true;  // we are still running
   }
@@ -142,12 +186,7 @@ unsigned long Transition::getEnd() {
 // Update the seconds in the internal buffer only needed with 6 digit displays
 void Transition::updateRegularDisplaySeconds(byte secondUpdate) {
   if (DIGIT_COUNT == 6) {
-    _regularDisplay[4] = secondUpdate / 10;
-    _regularDisplay[5] = secondUpdate % 10;
+    _regularDisplay[S10] = secondUpdate / 10;
+    _regularDisplay[S1] = secondUpdate % 10;
   }
 }
-
-Transition transitionWipe(800, 700, 2800, SLOTS_MODE_WIPE_WIPE);  // Wipe In / Wipe Out (DA2000-Transition.h)  
-Transition transitionBang(400, 400, 3200, SLOTS_MODE_BANG_BANG);  // Bang In / Bang Out (DA2000-Transition.h)  
-Transition transitionDummy(0, 0, 0, SLOTS_MODE_NONE);             // Dummy transition for null pointer prevention
-Transition *activeTransition = &transitionDummy;                  // Pointer to selected transition object

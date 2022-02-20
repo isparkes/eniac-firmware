@@ -200,6 +200,7 @@ void resetOptions() {
   cc->WiFiSSID = "";
   cc->WiFiPassword = "";
   cc->WifiOnAtStart = false;
+  cc->blinkenLightsMode = BLNKN_MODE_DEFAULT;
 
   spiffsStorage.saveConfigToSpiffs(cc);
   #ifdef DEBUG_ON
@@ -498,7 +499,7 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["cycleSpeed"] = cc->cycleSpeed;
   root["backlightDimFactor"] = cc->backlightDimFactor;
   root["hueOffset"] = cc->hueOffset;
-  root["blinkenlightsMode"] = cc->blinkenLightsMode;
+  root["blinkenLightsMode"] = cc->blinkenLightsMode;
 
   response->setLength();
   request->send(response);
@@ -861,4 +862,3 @@ void disableWatchdog() {
 void feedWatchdog() {
   esp_task_wdt_reset();
 }
-

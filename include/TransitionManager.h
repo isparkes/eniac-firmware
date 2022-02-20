@@ -5,13 +5,14 @@
 #include "globals.h"
 #include "OutputManager.h"
 
-#define SLOTS_MODE_WIPE_WIPE 0
-#define SLOTS_MODE_BANG_BANG 1
+#define SLOTS_MODE_NONE 0
+#define SLOTS_MODE_WIPE_WIPE 1
+#define SLOTS_MODE_BANG_BANG 2
 
 class Transition
 {
   public:
-    Transition(int, int, int, int);
+    Transition(int, int, int, int, String);
     void start(unsigned long);
     boolean isMessageOnDisplay(unsigned long);
     boolean runEffect(unsigned long, boolean blankLeading);
@@ -23,6 +24,8 @@ class Transition
     int _holdDuration;
     int _selectedEffect;
     int _digit;
+    String _name;
+
     unsigned long _started;
     unsigned long _end;
     byte _regularDisplay[DIGIT_COUNT] = {0, 0, 0, 0, 0, 0};
@@ -33,3 +36,9 @@ class Transition
     boolean bangInBangOut(unsigned long);
     unsigned long getEnd();
 };
+
+extern Transition transitionWipe;
+extern Transition transitionBang;
+extern Transition transitionDummy;
+
+extern Transition *activeTransition;      // Pointer to selected transition object

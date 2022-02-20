@@ -176,9 +176,9 @@ void TZManager_::setInternalTimeFromRTC() {
   struct tm info_local;
   localtime_r(&currentUTC, &info_local);
 
-  #ifdef DEBUG_ON
-  debugMsg("Converted to " + String(info_local.tm_year + 1900) + "," + String(info_local.tm_mon + 1) + "," + String(info_local.tm_mday) + "," + String(info_local.tm_hour) + "," + String(info_local.tm_min) + "," + String(info_local.tm_sec));
-  #endif
+  // #ifdef DEBUG_ON
+  // debugMsg("Converted to " + String(info_local.tm_year + 1900) + "," + String(info_local.tm_mon + 1) + "," + String(info_local.tm_mday) + "," + String(info_local.tm_hour) + "," + String(info_local.tm_min) + "," + String(info_local.tm_sec));
+  // #endif
 
   setTime(info_local.tm_hour,
     info_local.tm_min,

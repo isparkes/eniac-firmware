@@ -27,6 +27,7 @@
 #include "DebugManager.h"
 #include <esp_task_wdt.h>
 #include "WiFiManager.h"
+#include "OutputManager.h"
 
 // -------------------------------------------------------------------------------
 

@@ -5,6 +5,7 @@
 #include "globals.h"
 #include "SpiffsStorage.h"
 #include "DebugManager.h"
+#include "OutputManager.h"
 
 #include <NeoPixelBus.h>            // https://github.com/Makuna/NeoPixelBus (Makuna 2.6.6)
 

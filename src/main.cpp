@@ -16,7 +16,6 @@
 #include "MenuManager.h"
 #include "WiFiManager.h"
 #include "OutputManager.h"
-#include "TransitionManager.h"
 
 void debugMsg(String message) {
   #ifdef DEBUG_ON
@@ -251,7 +250,7 @@ void setup()
   gpsManager.setDebugOutput(true);
   #endif
 
-  gpsManager.setup();
+  gpsManager.setUp();
 
   // -------------------------------------------------------------------------
   
@@ -411,29 +410,10 @@ void performOncePerLoop() {
   }
   #endif
 
-  // One armed bandit handling
-  if (acpOffset > 0) {
-    if (acpTick >= ACP_TICKS_PER_DIGIT) {
-      acpTick = 0;
-      acpOffset++;
-      #ifdef DEBUG_ON
-      debugMsg("ACP: " + String(acpOffset-2));
-      #endif
-      outputManager.setSuppressEffects(true);
-      outputManager.loadNumberArraySameValue(acpOffset-2);
-      if (acpOffset == 11) {
-        acpOffset = 0;
-        outputManager.setSuppressEffects(false);
-      }
-    } else {
-      acpTick++;
-    }
-  }
-
   // -------------------------------------------------------------------------------
   
   // Dim except when we are in ACP mode
-  if (acpOffset > 0) {
+  if (outputManager.getOutputMode() == acpMode) {
     ldrValue = ldrManager.getMaxLDRValue();
   } else {
     ldrManager.getDimmingFromLDR();
@@ -472,7 +452,7 @@ void performOncePerSecondProcessing() {
 
   #ifdef DIGIT_DIAGNOSTICS
   if (cc->diagsMode == DIGIT_DIAGS_MODE_NONE) {
-    if (acpOffset == 0) {
+    if (outputManager.getOutputMode() == timeMode) {
       outputManager.allNormal(APPLY_LEAD_0_BLANK);
       outputManager.loadNumberArrayTime();
     }
@@ -491,7 +471,7 @@ void performOncePerSecondProcessing() {
     #endif
   }
   #else
-  if (acpOffset == 0) {
+  if (outputManager.getOutputMode() == timeMode) {
     outputManager.allNormal(APPLY_LEAD_0_BLANK);
     outputManager.loadNumberArrayTime();
   }
@@ -529,30 +509,9 @@ void performOncePerSecondProcessing() {
     gpsManager.parseNMEAMsg(c);
   }
 
-  // One armed bandit trigger
-  if (acpOffset == 0) {
-    if (second() == 15) {
-      if ((cc->acpMode == ACP_MODE_1M) ||
-          ((cc->acpMode == ACP_MODE_10M) && (minute() % 10 == 9)) || 
-          ((cc->acpMode == ACP_MODE_1H) && (minute() == 9))) {
-        if (cc->useLDR) {
-          if (cc->suppressACP) {
-            if (!ldrManager.isMinLDRValue()) {
-              // If we have suppress ACP set, only trigger when not at min brightness
-              acpOffset = 1;
-            }
-          } else {
-            acpOffset = 1;
-          }
-        } else {
-          acpOffset = 1;
-        }
-      }
-    }
-  }
+  outputManager.triggerStunts();
 
-  // Trigger 1PPS signal
-  triggerTimer2();
+  triggerOnePulsePerSec();
 
   feedWatchdog();
 }

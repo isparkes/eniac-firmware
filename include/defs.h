@@ -165,25 +165,6 @@
 #define USE_LDR_DEFAULT                 true
 
 // -------------------------------------------------------------------------------
-#define SLOTS_MODE_MIN                  0
-#define SLOTS_MODE_NONE                 0   // Don't use slots effect
-#define SLOTS_MODE_1M_SCR_SCR           1   // use slots effect every minute, scroll in, scramble out
-#define SLOTS_MODE_MAX                  1
-#define SLOTS_MODE_DEFAULT              1
-
-// -------------------------------------------------------------------------------
-#define ACP_MODE_MIN                    0
-#define ACP_MODE_NONE                   0
-#define ACP_MODE_1M                     1
-#define ACP_MODE_10M                    2
-#define ACP_MODE_1H                     3
-#define ACP_MODE_MAX                    3
-#define ACP_MODE_DEFAULT                2
-
-// -------------------------------------------------------------------------------
-#define ACP_TICKS_PER_DIGIT             25
-
-// -------------------------------------------------------------------------------
 #define SUPPRESS_ACP_DEFAULT            false
 
 // -------------------------------------------------------------------------------

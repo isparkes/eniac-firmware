@@ -182,7 +182,7 @@ void IRAM_ATTR onTimer2() {
 // ************************************************************
 // Trigger 1PPS output
 // ************************************************************
-void triggerTimer2() {
+void triggerOnePulsePerSec() {
   digitalWrite(PPSPin, HIGH);
   timerRestart(timer2);
   timerAlarmEnable(timer2);
