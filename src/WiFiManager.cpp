@@ -181,7 +181,7 @@ void connectToLastAP() {
     #ifdef DEBUG_ON
     debugMsgWfm("Trying to reconnect to last known AP");
     #endif
-    flashMenuMessage("Reconnect","Trying to reconnect to:\nSSID:\n" + cc->WiFiSSID + "\n");
+    flashMenuMessage("Reconnect","Reconnecting to:\nSSID:\n" + cc->WiFiSSID + "\n");
     wifiBeginWithCredentials();
   }
 }
@@ -195,7 +195,7 @@ bool connectWithWPS() {
     debugMsgWfm("Connect using WPS");
     #endif
     // ToDo show this status better
-    // oled.showScrollingMessage("Connect using WPS");
+    flashMenuMessage("WPS", "Connect using WPS");
 
     WiFi.mode(WIFI_STA);
     delay(1000);
@@ -231,8 +231,6 @@ void openAccessPortal() {
     debugMsgWfm("");
     debugMsgWfm("Portal mode");
     #endif
-    oled.showScrollingMessage("Portal mode");
-
     WiFi.disconnect();
     delay(100);
     WiFi.mode(WIFI_AP_STA);
@@ -246,8 +244,7 @@ void openAccessPortal() {
     debugMsgWfm("Soft-AP IP address = ");
     debugMsgWfm(WiFi.softAPIP().toString());
     #endif
-    oled.showScrollingMessage("IP: " + WiFi.softAPIP().toString());
-    delay(500);
+    flashMenuMessage("Portal", "Opened access\nportal at\nIP: " + WiFi.softAPIP().toString());
   }
 }
 

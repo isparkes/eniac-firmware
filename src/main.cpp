@@ -164,7 +164,7 @@ void setup()
     #ifdef DEBUG_ON
     debugMsg("Starting WiFi");
     #endif
-    oled.showScrollingMessage("Starting WiFi");
+    flashMenuMessage("WiFi", "Starting WiFi");
 
     #ifdef DEBUG_ON
     debugMsg("Connecting to previous AP");
@@ -402,7 +402,7 @@ void performOncePerLoop() {
 
   #ifdef DIGIT_DIAGNOSTICS
   if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
-    ldrValue = ldrManager.getMaxLDRValue();
+    ldrManager.setLDRValueToMax();
     int rawEncPos = getCurrentEncoderPos()/2;
     while (rawEncPos < 0) rawEncPos+=60; 
     int burnVal = rawEncPos % 60;
@@ -414,8 +414,9 @@ void performOncePerLoop() {
   
   // Dim except when we are in ACP mode
   if (outputManager.getOutputMode() == acpMode) {
-    ldrValue = ldrManager.getMaxLDRValue();
+    ldrManager.setLDRValueToMax();
   } else {
+    ldrManager.resetMaxLDRValue();
     ldrManager.getDimmingFromLDR();
     ldrValue = ldrManager.getLDRValue();
     ledManager.setLDRValue(ldrValue);

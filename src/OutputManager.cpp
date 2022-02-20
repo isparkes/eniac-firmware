@@ -365,7 +365,7 @@ void OutputManager_::processStunts() {
           debugMsg("ACP: " + String(_acpOffset-2));
           #endif
           loadNumberArraySameValue(_acpOffset-2);
-          if (_acpOffset == 11) {
+          if (_acpOffset == 12) {
             _acpOffset = 0;
             #ifdef DEBUG_ON
             debugMsg("ACP End");

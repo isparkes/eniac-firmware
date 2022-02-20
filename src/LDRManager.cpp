@@ -27,6 +27,8 @@ void LDRManager_::setUp()
 // Gets the smoothed LDR Reading and store it
 // ************************************************************
 void LDRManager_::getDimmingFromLDR() {
+  if (_locked) return;
+  
   if (cc->useLDR) {
     int rawLDR = analogRead(LDRPin);
     #ifdef DEBUG_ON
@@ -90,8 +92,17 @@ int LDRManager_::getLDRValue() {
 // ************************************************************
 // Return brightest LDR value
 // ************************************************************
-int LDRManager_::getMaxLDRValue() {
-  return 0;
+void LDRManager_::setLDRValueToMax() {
+  _locked = true;
+  ledcWrite(LDRPWMChannel, 0);
+}
+
+// ************************************************************
+// Return brightest LDR value
+// ************************************************************
+void LDRManager_::resetMaxLDRValue() {
+  _locked = false;
+  ledcWrite(LDRPWMChannel, _ldrValue);
 }
 
 // ************************************************************
