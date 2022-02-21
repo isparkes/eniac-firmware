@@ -126,10 +126,12 @@
 #define SUPPRESS_ACP_DEFAULT            false
 
 // -------------------------------------------------------------------------------
+#define DIGIT_DIAGS_MODE_MIN            0
 #define DIGIT_DIAGS_MODE_NONE           0
 #define DIGIT_DIAGS_MODE_FAST           1
 #define DIGIT_DIAGS_MODE_SLOW           2
 #define DIGIT_DIAGS_MODE_ENCODER        3
+#define DIGIT_DIAGS_MODE_MAX            3
 
 // -------------------------------------------------------------------------------
 # define TIME_SOURCE_GPS                0

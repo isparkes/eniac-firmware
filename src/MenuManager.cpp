@@ -280,10 +280,9 @@ void menuActions(menuTargets selectedAction) {
       break;
     }
     case displayTest: {
-      if (cc->diagsMode == DIGIT_DIAGS_MODE_NONE) {
-        cc->diagsMode = DIGIT_DIAGS_MODE_FAST;
-      } else {
-        cc->diagsMode = DIGIT_DIAGS_MODE_NONE;
+      cc->diagsMode++;
+      if (cc->diagsMode > DIGIT_DIAGS_MODE_MAX) {
+        cc->diagsMode = DIGIT_DIAGS_MODE_MIN;
       }
       break;
     }

@@ -5,7 +5,7 @@
 #define BLNKN_MODE_MIN     0
 #define BLNKN_MODE_STATUS  0
 #define BLNKN_MODE_CHASE   1
-#define BLNKN_MODE_MAX     0
+#define BLNKN_MODE_MAX     1
 #define BLNKN_MODE_DEFAULT BLNKN_MODE_STATUS
 
 typedef struct {
