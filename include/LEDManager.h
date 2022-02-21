@@ -97,6 +97,58 @@
 #define STATUS_LED_MODE_ON     5
 #define STATUS_LED_MODE_MAX    5
 
+// -------------------------------------------------------------------------------
+#define SEPARATOR_DIM_FACTOR_MIN        10
+#define SEPARATOR_DIM_FACTOR_MAX        100
+#define SEPARATOR_DIM_FACTOR_DEFAULT    100
+
+// -------------------------------------------------------------------------------
+#define BACKLIGHT_DIM_FACTOR_MIN        10
+#define BACKLIGHT_DIM_FACTOR_MAX        100
+#define BACKLIGHT_DIM_FACTOR_DEFAULT    100
+
+#define BACKLIGHT_MIN                   0
+#define BACKLIGHT_FIXED                 0  // Just define a colour and stick to it
+#define BACKLIGHT_CYCLE                 1  // cycle through random colours, strategy 3
+#define BACKLIGHT_COLOUR_TIME           2  // use "ColourTime" - different colours for each digit value
+#define BACKLIGHT_DAY_OF_WEEK           3  // use "DayOfWeek" - different colours for each day
+#define BACKLIGHT_MAX                   3
+#define BACKLIGHT_DEFAULT               1
+
+// -------------------------------------------------------------------------------
+#define CYCLE_SPEED_MIN                 4
+#define CYCLE_SPEED_MAX                 64
+#define CYCLE_SPEED_DEFAULT             10
+
+// -------------------------------------------------------------------------------
+#define COLOUR_CNL_MAX                  15
+#define COLOUR_RED_CNL_DEFAULT          15
+#define COLOUR_GRN_CNL_DEFAULT          0
+#define COLOUR_BLU_CNL_DEFAULT          0
+#define COLOUR_CNL_MIN                  0
+
+// -------------------------------------------------------------------------------
+#define BACKLIGHT_DIM_FACTOR_MIN        10
+#define BACKLIGHT_DIM_FACTOR_MAX        100
+#define BACKLIGHT_DIM_FACTOR_DEFAULT    100
+
+// -------------------------------------------------------------------------------
+#define EXT_DIM_FACTOR_MIN              10
+#define EXT_DIM_FACTOR_MAX              100
+#define EXT_DIM_FACTOR_DEFAULT          100
+
+// -------------------------------------------------------------------------------
+#define LED_MODE_MIN        0
+#define LED_RAILROAD        0
+#define LED_BLINK_SLOW      1
+#define LED_BLINK_FAST      2
+#define LED_BLINK_DBL       3
+#define LED_ON              4
+#define LED_OFF             5
+#define LED_BLINK_DEFAULT   LED_RAILROAD
+#define LED_RAILROAD_X      -1 // Not yet implemented
+#define LED_MODE_MAX        5
+
 // ************************** Pin Allocations *************************
 
 class LEDManager_

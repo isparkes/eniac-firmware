@@ -55,6 +55,7 @@ typedef struct {
   String WiFiPassword;
   bool WifiOnAtStart;
   byte blinkenLightsMode;
+  byte slaveMode;
 
   // not saved
   int diagsMode;

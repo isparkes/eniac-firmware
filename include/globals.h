@@ -7,6 +7,7 @@
 
 #include "SpiffsStorage.h"          // Access to config objects
 #include "BlinkenlightsManager.h"   // Access to blinkenlights
+#include "OutputManager.h"          // Defintions for number arrays
 
 // ************************************************************
 // Global shared components and objects

@@ -201,6 +201,7 @@ void resetOptions() {
   cc->WiFiPassword = "";
   cc->WifiOnAtStart = false;
   cc->blinkenLightsMode = BLNKN_MODE_DEFAULT;
+  cc->slaveMode = SLAVE_MODE_DEFAULT;
 
   spiffsStorage.saveConfigToSpiffs(cc);
   #ifdef DEBUG_ON
@@ -500,6 +501,7 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["backlightDimFactor"] = cc->backlightDimFactor;
   root["hueOffset"] = cc->hueOffset;
   root["blinkenLightsMode"] = cc->blinkenLightsMode;
+  root["slaveMode"] = cc->slaveMode;
 
   response->setLength();
   request->send(response);
@@ -602,7 +604,8 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateByte(json, "cycleSpeed",         &cc->cycleSpeed);
     compareAndUpdateByte(json, "backlightDimFactor", &cc->backlightDimFactor);
     compareAndUpdateInt (json, "hueOffset",          &cc->hueOffset);
-    compareAndUpdateByte(json, "blinkenLightsMode", &cc->blinkenLightsMode);
+    compareAndUpdateByte(json, "blinkenLightsMode",  &cc->blinkenLightsMode);
+    compareAndUpdateByte(json, "slaveMode",          &cc->slaveMode);
 
     // ------------------------------------------------------------
 
@@ -861,4 +864,30 @@ void disableWatchdog() {
 
 void feedWatchdog() {
   esp_task_wdt_reset();
+}
+
+void sendUpdateToSlaveI2C() {
+    #ifdef DEBUG_ON
+    debugMsgUtl("Slave update: mode: " + String(cc->slaveMode) + "," + String(second()) + "," + String(month()) + "," + String(day()));
+    #endif
+
+    Wire.beginTransmission(SLAVE_MODULE_I2C_ADDRESS);
+    if(cc->slaveMode == SLAVE_MODE_100THS) { 
+      Wire.write((uint8_t)0x1a);
+    } else {
+      Wire.write((uint8_t)0x1b);
+    }
+    Wire.write((uint8_t)second());
+    Wire.write((uint8_t)month());
+    Wire.write((uint8_t)day());
+
+    byte error = Wire.endTransmission();
+
+    #ifdef DEBUG_ON
+    if (error == 0) {
+      debugMsgUtl("Sent slave update");
+    } else {
+      debugMsgUtl("Failed sending slave update: " + String(error));
+    }
+    #endif
 }

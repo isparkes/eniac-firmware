@@ -301,6 +301,11 @@ bool SpiffsStorage_::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
         debugMsg("Loaded blinkenLightsMode: " + String(spiffs_config->blinkenLightsMode));
         #endif
 
+        spiffs_config->slaveMode = json["slaveMode"];
+        #ifdef DEBUG_ON
+        debugMsg("Loaded slaveMode: " + String(spiffs_config->slaveMode));
+        #endif
+
         loaded = true;
       }
       else
@@ -376,6 +381,7 @@ void SpiffsStorage_::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
   json["WiFiPassword"] = spiffs_config->WiFiPassword;
   json["WifiOnAtStart"] = spiffs_config->WifiOnAtStart;
   json["blinkenLightsMode"] = spiffs_config->blinkenLightsMode;
+  json["slaveMode"] = spiffs_config->slaveMode;
 
   File configFile = SPIFFS.open("/config/config.json", "w");
   if (!configFile)

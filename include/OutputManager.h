@@ -44,6 +44,26 @@
 
 // -------------------------------------------------------------------------------
 
+// How quickly the scroll works
+#define SCROLL_STEPS_DEFAULT 4
+#define SCROLL_STEPS_MIN     1
+#define SCROLL_STEPS_MAX     8
+
+// -------------------------------------------------------------------------------
+// The number of dispay impessions we need to fade by default
+// 100 is about 1 second
+#define FADE_STEPS_DEFAULT 25
+#define FADE_STEPS_MIN     10
+#define FADE_STEPS_MAX     60
+
+// -------------------------------------------------------------------------------
+// Display mode, set per digit
+#define BLANKED  0
+#define NORMAL   1
+#define BLINK    2
+
+// -------------------------------------------------------------------------------
+
 typedef void (*DebugCallback) (String);
 
 enum outputModes {

@@ -514,6 +514,8 @@ void performOncePerSecondProcessing() {
 
   triggerOnePulsePerSec();
 
+  sendUpdateToSlaveI2C();
+
   feedWatchdog();
 }
 

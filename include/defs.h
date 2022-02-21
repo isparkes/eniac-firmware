@@ -24,6 +24,8 @@
 
 #define SERIAL_BAUD_RATE 115200
 
+#define SLAVE_MODULE_I2C_ADDRESS 105
+
 // Onboard LED 
 #define LED_PIN 2
 
@@ -94,19 +96,6 @@
 #define FADE_DEFAULT                    false
 
 // -------------------------------------------------------------------------------
-// How quickly the scroll works
-#define SCROLL_STEPS_DEFAULT 4
-#define SCROLL_STEPS_MIN     1
-#define SCROLL_STEPS_MAX     8
-
-// -------------------------------------------------------------------------------
-// The number of dispay impessions we need to fade by default
-// 100 is about 1 second
-#define FADE_STEPS_DEFAULT 25
-#define FADE_STEPS_MIN     10
-#define FADE_STEPS_MAX     60
-
-// -------------------------------------------------------------------------------
 // Temporary display modes - accessed by a short press ( < 1S ) on the button when in MODE_TIME
 #define TEMP_MODE_MIN                   0
 #define TEMP_MODE_DATE                  0 // Display the date for 5 S
@@ -128,56 +117,13 @@
 #define DATE_FORMAT_DEFAULT             2
 
 // -------------------------------------------------------------------------------
-#define DAY_BLANKING_MIN                0
-#define DAY_BLANKING_NEVER              0  // Don't blank ever (default)
-#define DAY_BLANKING_WEEKEND            1  // Blank during the weekend
-#define DAY_BLANKING_WEEKDAY            2  // Blank during weekdays
-#define DAY_BLANKING_ALWAYS             3  // Always blank
-#define DAY_BLANKING_HOURS              4  // Blank between start and end hour every day
-#define DAY_BLANKING_WEEKEND_OR_HOURS   5  // Blank between start and end hour during the week AND all day on the weekend
-#define DAY_BLANKING_WEEKDAY_OR_HOURS   6  // Blank between start and end hour during the weekends AND all day on week days
-#define DAY_BLANKING_WEEKEND_AND_HOURS  7  // Blank between start and end hour during the weekend
-#define DAY_BLANKING_WEEKDAY_AND_HOURS  8  // Blank between start and end hour during week days
-#define DAY_BLANKING_MAX                8
-#define DAY_BLANKING_DEFAULT            0
-
-// -------------------------------------------------------------------------------
-#define BLANK_MODE_MIN                  0
-#define BLANK_MODE_TUBES                0  // Use blanking for tubes only 
-#define BLANK_MODE_LEDS                 1  // Use blanking for LEDs only
-#define BLANK_MODE_TUBES_LEDS           2  // Use blanking for tubes and LEDs
-#define BLANK_MODE_ALL                  3  // Use blanking for tubes, LEDs and towers
-#define BLANK_MODE_MAX                  
-#define BLANK_MODE_DEFAULT              2
-
-// -------------------------------------------------------------------------------
 
 #define OLED_ON_TIME                    20 // Time in seconds the OLED stays on for
 #define CONFIG_TIME                     10 // Time in seconds we stay in config mode
 #define FLASH_TIME                       6 // Time in seconds we show an OLED flash message for
 
 // -------------------------------------------------------------------------------
-#define PIR_TIMEOUT_MIN                 60    // 1 minute in seconds
-#define PIR_TIMEOUT_MAX                 3600  // 1 hour in seconds
-#define PIR_TIMEOUT_DEFAULT             300   // 5 minutes in seconds
-
-// -------------------------------------------------------------------------------
-#define USE_LDR_DEFAULT                 true
-
-// -------------------------------------------------------------------------------
 #define SUPPRESS_ACP_DEFAULT            false
-
-// -------------------------------------------------------------------------------
-#define SEPARATOR_DIM_FACTOR_MIN        10
-#define SEPARATOR_DIM_FACTOR_MAX        100
-#define SEPARATOR_DIM_FACTOR_DEFAULT    100
-
-// -------------------------------------------------------------------------------
-#define BACKLIGHT_DIM_FACTOR_MIN        10
-#define BACKLIGHT_DIM_FACTOR_MAX        100
-#define BACKLIGHT_DIM_FACTOR_DEFAULT    100
-
-#define USE_PIR_PULLUP_DEFAULT          true
 
 // -------------------------------------------------------------------------------
 #define DIGIT_DIAGS_MODE_NONE           0
@@ -192,59 +138,9 @@
 # define TIME_SOURCE_INT                3
 
 // -------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------
-// --------------------------- Strategy Backlights -------------------------------
-#define BACKLIGHT_MIN                   0
-#define BACKLIGHT_FIXED                 0  // Just define a colour and stick to it
-#define BACKLIGHT_CYCLE                 1  // cycle through random colours, strategy 3
-#define BACKLIGHT_COLOUR_TIME           2  // use "ColourTime" - different colours for each digit value
-#define BACKLIGHT_DAY_OF_WEEK           3  // use "DayOfWeek" - different colours for each day
-#define BACKLIGHT_MAX                   3
-#define BACKLIGHT_DEFAULT               1
+#define SLAVE_MODE_MIN                  0
+#define SLAVE_MODE_100THS               0
+#define SLAVE_MODE_DATE                 1
+#define SLAVE_MODE_MAX                  1
+#define SLAVE_MODE_DEFAULT              0
 
-// -------------------------------------------------------------------------------
-#define CYCLE_SPEED_MIN                 4
-#define CYCLE_SPEED_MAX                 64
-#define CYCLE_SPEED_DEFAULT             10
-
-// -------------------------------------------------------------------------------
-#define COLOUR_CNL_MAX                  15
-#define COLOUR_RED_CNL_DEFAULT          15
-#define COLOUR_GRN_CNL_DEFAULT          0
-#define COLOUR_BLU_CNL_DEFAULT          0
-#define COLOUR_CNL_MIN                  0
-
-// -------------------------------------------------------------------------------
-#define STATUS_RED                      0
-#define STATUS_YELLOW                   1
-#define STATUS_GREEN                    2
-#define STATUS_BLUE                     3
-
-// -------------------------------------------------------------------------------
-#define LED_MODE_MIN        0
-#define LED_RAILROAD        0
-#define LED_BLINK_SLOW      1
-#define LED_BLINK_FAST      2
-#define LED_BLINK_DBL       3
-#define LED_ON              4
-#define LED_OFF             5
-#define LED_BLINK_DEFAULT   LED_RAILROAD
-#define LED_RAILROAD_X      -1 // Not yet implemented
-#define LED_MODE_MAX        5
-
-// -------------------------------------------------------------------------------
-#define BACKLIGHT_DIM_FACTOR_MIN        10
-#define BACKLIGHT_DIM_FACTOR_MAX        100
-#define BACKLIGHT_DIM_FACTOR_DEFAULT    100
-
-// -------------------------------------------------------------------------------
-#define EXT_DIM_FACTOR_MIN              10
-#define EXT_DIM_FACTOR_MAX              100
-#define EXT_DIM_FACTOR_DEFAULT          100
-
-// -------------------------------------------------------------------------------
-// Display mode, set per digit
-#define BLANKED  0
-#define NORMAL   1
-#define BLINK    2
