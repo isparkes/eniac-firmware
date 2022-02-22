@@ -872,10 +872,19 @@ void sendUpdateToSlaveI2C() {
     #endif
 
     Wire.beginTransmission(SLAVE_MODULE_I2C_ADDRESS);
-    if(cc->slaveMode == SLAVE_MODE_100THS) { 
-      Wire.write((uint8_t)0x1a);
-    } else {
-      Wire.write((uint8_t)0x1b);
+    switch (cc->slaveMode) {
+      case SLAVE_MODE_100THS: {
+        Wire.write((uint8_t)0x1a);
+        break;
+      }
+      case SLAVE_MODE_DATE: {
+        Wire.write((uint8_t)0x1b);
+        break;
+      }
+      case SLAVE_MODE_SECS: {
+        Wire.write((uint8_t)0x1c);
+        break;
+      }
     }
     Wire.write((uint8_t)second());
     Wire.write((uint8_t)month());
