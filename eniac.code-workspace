@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "EniacMain"
+		},
+		{
+			"name": "EniacSlave",
+			"path": "EniacSlave"
+		}
+	],
+	"settings": {}
+}

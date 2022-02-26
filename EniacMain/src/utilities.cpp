@@ -887,8 +887,8 @@ void sendUpdateToSlaveI2C() {
       }
     }
     Wire.write((uint8_t)second());
-    Wire.write((uint8_t)month());
     Wire.write((uint8_t)day());
+    Wire.write((uint8_t)month());
 
     byte error = Wire.endTransmission();
 
