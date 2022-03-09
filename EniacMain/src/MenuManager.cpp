@@ -757,6 +757,9 @@ int getCurrentEncoderPos() {
   return rotaryEncoder.encoder0Pos;
 }
 
+// ************************************************************
+// Build the status display
+// ************************************************************
 void menuOncePerSecond() {
   if (oledTimeout > 0 && configTimeout == 0 && flashTimeout == 0) {
     oled.showStatusLine();
@@ -767,13 +770,14 @@ void menuOncePerSecond() {
 
     oled.setWiFiStatus(WiFi.isConnected());
     oled.setNTPStatus(ntpManager.ntpTimeValid());
-    oled.setGStatus(gpsManager.getGPSTimeValid());
+    oled.setGPSStatus(gpsManager.getGPSTimeValid());
     oled.setBlankStatus(false);
     if (digitalRead(PIRPin) == false) {
       oled.setPIRInstalled(true);  
     }
     oled.setPIRStatus(digitalRead(PIRPin));
-    oled.setYStatus(digitalRead(BTN2Pin) == LOW);
+    oled.setBTN1Status(digitalRead(BTN1Pin) == LOW);
+    oled.setBTN2Status(digitalRead(BTN2Pin) == LOW);
 
     oled.clearScrollingMessage();
     if (WiFi.isConnected()) {

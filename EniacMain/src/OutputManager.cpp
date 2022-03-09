@@ -282,7 +282,7 @@ void OutputManager_::applyBlanking() {
 }
 
 // ************************************************************
-// Trigger slots processing
+// Trigger slots/ACP processing
 // ************************************************************
 void OutputManager_::triggerStunts() {
   if (_acpOffset == 0) {
@@ -327,6 +327,9 @@ void OutputManager_::triggerStunts() {
   }
 }
 
+// ************************************************************
+// Choose the transition we are using
+// ************************************************************
 void OutputManager_::setCurrentTransition() {
   if (cc->slotsMode > SLOTS_MODE_MIN) {
     // Which slots transition are we using?
@@ -407,6 +410,13 @@ void OutputManager_::processStunts() {
 // ************************************************************
 outputModes OutputManager_::getOutputMode() {
   return _outputMode;
+}
+
+// ************************************************************
+// Get the mode we are in
+// ************************************************************
+void OutputManager_::setOutputMode(outputModes newMode) {
+  _outputMode = newMode;
 }
 
 // ************************************************************

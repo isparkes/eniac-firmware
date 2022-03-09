@@ -3,7 +3,7 @@
 void OLED_::setUp()
 {
   _display.reset(new Adafruit_SSD1306(128,64, &Wire, -1));
-  _display->begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  _display->begin(SSD1306_SWITCHCAPVCC, 0x3C, true, true);
   _display->setTextSize(1);
   _display->setTextColor(WHITE, BLACK);
   _display->clearDisplay();
@@ -13,9 +13,9 @@ void OLED_::clearDisplay()
 {
   _blanked = false;
   _display->clearDisplay();
-  bufferIdx = 0;
+  _bufferIdx = 0;
   for (int i = 5 ; i > 0 ; i--) {
-    bufferLines[i] = "";
+    _bufferLines[i] = "";
   }
 }
 
@@ -39,28 +39,28 @@ void OLED_::outputDisplay()
 void OLED_::clearScrollingMessage()
 {
   for (int tmpBuffer =  0 ; tmpBuffer < 6; tmpBuffer++) {
-    bufferLines[tmpBuffer] = "";
+    _bufferLines[tmpBuffer] = "";
   }
-  bufferIdx = 0;  
+  _bufferIdx = 0;  
 }
 
 void OLED_::showScrollingMessage(String messageText)
 {
   String formattedString = messageText + "                   ";
   formattedString = formattedString.substring(0,20);
-  if (bufferIdx < 6) {
-    bufferLines[bufferIdx] = formattedString;
-    bufferIdx++;
+  if (_bufferIdx < 6) {
+    _bufferLines[_bufferIdx] = formattedString;
+    _bufferIdx++;
   } else {
     for (int i = 1 ; i < 6 ; i++) {
-      bufferLines[i-1] = bufferLines[i];
+      _bufferLines[i-1] = _bufferLines[i];
     }
-    bufferLines[5] = formattedString;
+    _bufferLines[5] = formattedString;
   }
 
   _display->setCursor(0,0);
   for (int i = 0 ; i < 6 ; i++) {
-    _display->println(bufferLines[i]);
+    _display->println(_bufferLines[i]);
   }
   _display->display();
 }
@@ -73,8 +73,8 @@ void OLED_::showStatusLine()
   drawPIRInd();
   drawBlankInd();
   drawGInd();
-  drawYInd();
-  drawZInd();
+  drawBTN1Ind();
+  drawBTN2Ind();
   drawTimeInd();
   drawAMInd();
   _display->display();
@@ -82,7 +82,7 @@ void OLED_::showStatusLine()
 
 void OLED_::setTimeString(String newTimeText)
 {
-  timeText = newTimeText;
+  _timeText = newTimeText;
   drawTimeInd();
   _display->display();
 }
@@ -103,49 +103,49 @@ void OLED_::setNTPStatus(bool newStatus)
 
 void OLED_::setPIRStatus(bool newStatus)
 {
-  pirStatus = newStatus;
+  _pirStatus = newStatus;
   drawPIRInd();
   _display->display();
 }
 
 void OLED_::setPIRInstalled(bool newStatus)
 {
-  pirInstalled = newStatus;
+  _pirInstalled = newStatus;
   drawPIRInd();
   _display->display();
 }
 
 void OLED_::setBlankStatus(bool newStatus)
 {
-  blankStatus = newStatus;
+  _blankStatus = newStatus;
   drawBlankInd();
   _display->display();
 }
 
-void OLED_::setGStatus(bool newStatus)
+void OLED_::setGPSStatus(bool newStatus)
 {
-  xStatus = newStatus;
+  _gStatus = newStatus;
   drawGInd();
   _display->display();
 }
 
-void OLED_::setYStatus(bool newStatus)
+void OLED_::setBTN1Status(bool newStatus)
 {
-  yStatus = newStatus;
-  drawYInd();
+  _1Status = newStatus;
+  drawBTN1Ind();
   _display->display();
 }
 
-void OLED_::setZStatus(bool newStatus)
+void OLED_::setBTN2Status(bool newStatus)
 {
-  zStatus = newStatus;
-  drawZInd();
+  _2Status = newStatus;
+  drawBTN2Ind();
   _display->display();
 }
 
 void OLED_::setAMStatus(bool newStatus)
 {
-  ampm = newStatus;
+  _ampm = newStatus;
   drawAMInd();
   _display->display();
 }
@@ -171,8 +171,8 @@ void OLED_::drawNTPInd() {
 
 void OLED_::drawPIRInd() {
   _display->setCursor(PIR_IND_X,STATUS_LINE_Y);
-  if (pirInstalled) {
-    if (pirStatus) {
+  if (_pirInstalled) {
+    if (_pirStatus) {
       _display->print("P");
     } else {
       _display->print("p");
@@ -184,7 +184,7 @@ void OLED_::drawPIRInd() {
 
 void OLED_::drawBlankInd() {
   _display->setCursor(BLANK_IND_X,STATUS_LINE_Y);
-  if (blankStatus) {
+  if (_blankStatus) {
     _display->print("B");
   } else {
     _display->print("b");
@@ -193,39 +193,39 @@ void OLED_::drawBlankInd() {
 
 void OLED_::drawGInd() {
   _display->setCursor(G_IND_X,STATUS_LINE_Y);
-  if (xStatus) {
+  if (_gStatus) {
     _display->print("G");
   } else {
     _display->print("g");
   }
 }
 
-void OLED_::drawYInd() {
+void OLED_::drawBTN1Ind() {
   _display->setCursor(Y_IND_X,STATUS_LINE_Y);
-  if (yStatus) {
-    _display->print("Y");
+  if (_1Status) {
+    _display->print("1");
   } else {
-    _display->print("y");
+    _display->print("-");
   }
 }
 
-void OLED_::drawZInd() {
+void OLED_::drawBTN2Ind() {
   _display->setCursor(Z_IND_X,STATUS_LINE_Y);
-  if (zStatus) {
-    _display->print("Z");
+  if (_2Status) {
+    _display->print("2");
   } else {
-    _display->print("z");
+    _display->print("-");
   }
 }
 
 void OLED_::drawTimeInd() {
   _display->setCursor(TIME_IND_X,STATUS_LINE_Y);
-  _display->print(timeText);
+  _display->print(_timeText);
 }
 
 void OLED_::drawAMInd() {
   _display->setCursor(AM_IND_X,STATUS_LINE_Y);
-  if (ampm) {
+  if (_ampm) {
     _display->print("AM");
   } else {
     _display->print("PM");

@@ -44,6 +44,7 @@ class LDRManager_
 
   public:
     void setUp();
+    void setUpPWM();
 
     void getDimmingFromLDR();
     int  getLDRValue();

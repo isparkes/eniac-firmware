@@ -67,7 +67,8 @@
 typedef void (*DebugCallback) (String);
 
 enum outputModes {
-  timeMode,                                 // norml time mode
+  diagsMode,                                // Used during startup test
+  timeMode,                                 // normal time mode
   slotsMode,                                // dates slots
   acpMode                                   // acp
 };
@@ -96,6 +97,7 @@ class OutputManager_ {
     void applyBlanking();
     void triggerStunts();
     outputModes getOutputMode();
+    void setOutputMode(outputModes newMode);
 
     void setDebugOutput(bool newDebug);
     

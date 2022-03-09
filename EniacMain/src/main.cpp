@@ -53,11 +53,6 @@ void setup()
   pinMode(DATA3Pin, OUTPUT);
   pinMode(LATCH3Pin, OUTPUT);
 
-  // make sure no ghosts are displayed
-  shiftOut24S(0);
-  shiftOut24M(0);
-  shiftOut24H(0);
-
   pinMode(BLANKPin, OUTPUT);
   pinMode(PPSPin, OUTPUT);
   
@@ -91,11 +86,25 @@ void setup()
   startTimers();
 
   // -------------------------------------------------------------------------
-  // // Startup test
-  // for (int i = 0 ; i <= 10 ; i++) {
-  //   loadNumberArraySameValue(i);
-  //   delay(500);
-  // }
+  // Startup test
+  ldrManager.setUpPWM();
+  ldrManager.setLDRValueToMax();
+  outputManager.setOutputMode(diagsMode);
+
+  for (int i = 0 ; i <= 20 ; i++) {
+    outputManager.loadNumberArraySameValue(i%10);
+    outputManager.allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+    outputManager.outputDisplay();
+    delay(100);
+  }
+
+  // -------------------------------------------------------------------------
+  
+  // Default pins SDA 21, SCL 22 Frequency 400kHz 
+  #ifdef DEBUG_ON
+  debugMsg("Start up I2C...");
+  #endif
+  Wire.begin(SDAint, SCLint, 400000L);
 
   // -------------------------------------------------------------------------
   
@@ -104,6 +113,7 @@ void setup()
   #endif
   oled.setUp();
   oled.clearDisplay();
+  flashMenuMessage("ENIAC", "Starting");
 
   // -------------------------------------------------------------------------
 
@@ -185,14 +195,6 @@ void setup()
 
   // -------------------------------------------------------------------------
   
-  // Default pins SDA 21, SCL 22 Frequency 400kHz 
-  #ifdef DEBUG_ON
-  debugMsg("Start up I2C...");
-  #endif
-  Wire.begin(SDAint, SCLint, 400000L);
-
-  // -------------------------------------------------------------------------
-  
   #ifdef DEBUG_ON
   debugMsg("Start up TZM" );
   #endif
@@ -228,6 +230,9 @@ void setup()
     debugMsg("RTC NOT found");
     #endif
   }
+
+  // Start showing the time now that we have something to say
+  outputManager.setOutputMode(timeMode);
 
   // -------------------------------------------------------------------------
   
@@ -292,6 +297,8 @@ void setup()
 
   // -------------------------------------------------------------------------
 
+  oled.setUp();
+  oled.clearDisplay();
   flashMenuMessage("ENIAC", "Welcome to the ENIAC\nNixie clock!\n" + String(SOFTWARE_VERSION));
   delay(2000);
 

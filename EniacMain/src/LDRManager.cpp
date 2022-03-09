@@ -1,7 +1,9 @@
 #include "LDRManager.h"
 
-void LDRManager_::setUp()
-{
+// ************************************************************
+// Set up the component
+// ************************************************************
+void LDRManager_::setUp() {
   pinMode(LDRPin, INPUT);
   #ifdef DEBUG_ON
   debugMsg("Config useLDR: " + String(cc->useLDR));
@@ -10,7 +12,13 @@ void LDRManager_::setUp()
   debugMsg("Config sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
   debugMsg("Config minDim %: " + String(cc->minDim));
   #endif
+}
 
+// ************************************************************
+// Start the PWM - broken out so that we can do the startup
+// Sequence
+// ************************************************************
+void LDRManager_::setUpPWM() {
   #ifdef DEBUG_ON
   debugMsg("Start up dimming PWM");
   #endif
