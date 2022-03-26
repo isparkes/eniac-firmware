@@ -98,15 +98,10 @@ class SpiffsStorage_
     void saveStatsToSpiffs(spiffs_stats_t* spiffs_stats);
 
     JsonObject& getConfigAsJsonObject(spiffs_config_t* spiffs_config);
-
-    // callbacks
-    void setDebugCallback(DebugCallback dbcb);
   private:
-    DebugCallback _dbcb;
-    bool _debug = false;
     bool _spiffsMounted = false;
 
-    void debugMsg(String message);                        // print a debug message to the callback
+    void debugMsg(String message);
 };
 
 extern SpiffsStorage_ &spiffsStorage;

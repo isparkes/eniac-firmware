@@ -28,7 +28,12 @@ enum menuTargets {
 
   restartClock,
   saveStats,
-  displayTest
+  displayTest,
+  startSlave,
+  stopSlave,
+  toggleHourMode,
+  toggleFade,
+  toggleScrollback
 };
 
 // modes that the menu system can be in
@@ -101,7 +106,7 @@ void mainMenu() {
   oledMenu.menuItems[menuCount] = "Wifi";       oledMenu.menuActions[menuCount++] = gotoWifiMenu;
   oledMenu.menuItems[menuCount] = "Display";    oledMenu.menuActions[menuCount++] = gotoDisplayMenu;
   oledMenu.menuItems[menuCount] = "Options";    oledMenu.menuActions[menuCount++] = gotoOptionsMenu;
-  oledMenu.menuItems[menuCount] = "Menus Off";  oledMenu.menuActions[menuCount++] = menuOff;
+  oledMenu.menuItems[menuCount] = "Menu Off";   oledMenu.menuActions[menuCount++] = menuOff;
   oledMenu.noOfmenuItems = --menuCount;
 }
 
@@ -156,11 +161,32 @@ void displayMenu() {
   menuMode = menu;
   byte menuCount = 1;
   oledMenu.menuTitle = "display";
-  oledMenu.menuItems[menuCount] = "Tube Dimming on/off"; oledMenu.menuActions[menuCount++] = toggleTubeDimming;
-  oledMenu.menuItems[menuCount] = "BL Dimming on/off";   oledMenu.menuActions[menuCount++] = toggleBLDimming;
-  oledMenu.menuItems[menuCount] = "Set Dimming value";   oledMenu.menuActions[menuCount++] = setDimming;
-  oledMenu.menuItems[menuCount] = "Next neons mode";     oledMenu.menuActions[menuCount++] = nextBlnknMode;
-  oledMenu.menuItems[menuCount] = "Back";                oledMenu.menuActions[menuCount++] = backToMain;
+  oledMenu.menuItems[menuCount] = "Tube Dimming on/off";        oledMenu.menuActions[menuCount++] = toggleTubeDimming;
+  oledMenu.menuItems[menuCount] = "BL Dimming on/off";          oledMenu.menuActions[menuCount++] = toggleBLDimming;
+  if (cc->hourMode) {
+    oledMenu.menuItems[menuCount] = "Set 24h mode";             oledMenu.menuActions[menuCount++] = toggleHourMode;
+  } else {
+    oledMenu.menuItems[menuCount] = "Set 12h mode";             oledMenu.menuActions[menuCount++] = toggleHourMode;
+  }
+  if (cc->fade) {
+    oledMenu.menuItems[menuCount] = "Digit fade off";           oledMenu.menuActions[menuCount++] = toggleFade;
+  } else {
+    oledMenu.menuItems[menuCount] = "Digit fade on";            oledMenu.menuActions[menuCount++] = toggleFade;
+  }
+  if (cc->scrollback) {
+    oledMenu.menuItems[menuCount] = "Scrollback off";           oledMenu.menuActions[menuCount++] = toggleScrollback;
+  } else {
+    oledMenu.menuItems[menuCount] = "Scrollback on";            oledMenu.menuActions[menuCount++] = toggleScrollback;
+  }
+  oledMenu.menuItems[menuCount] = "Set Dimming value";          oledMenu.menuActions[menuCount++] = setDimming;
+  String nextBLModeName = blinkenlightsManager.getNextBlinkenlightsModeName(cc->blinkenLightsMode);
+  oledMenu.menuItems[menuCount] = "BL mode: " + nextBLModeName; oledMenu.menuActions[menuCount++] = nextBlnknMode;
+  if (slaveManager.getSlaveMode()) {
+    oledMenu.menuItems[menuCount] = "Stop slave";               oledMenu.menuActions[menuCount++] = stopSlave;
+  } else {
+    oledMenu.menuItems[menuCount] = "Start slave";              oledMenu.menuActions[menuCount++] = startSlave;
+  }
+  oledMenu.menuItems[menuCount] = "Back";                       oledMenu.menuActions[menuCount++] = backToMain;
   oledMenu.noOfmenuItems = --menuCount;
 }
 
@@ -284,6 +310,34 @@ void menuActions(menuTargets selectedAction) {
       if (cc->diagsMode > DIGIT_DIAGS_MODE_MAX) {
         cc->diagsMode = DIGIT_DIAGS_MODE_MIN;
       }
+      break;
+    }
+    case startSlave: {
+      slaveManager.startSlaveI2C();
+      displayMenu();
+      break;
+    }
+    case stopSlave: {
+      slaveManager.stopSlaveI2C();
+      displayMenu();
+      break;
+    }
+    case toggleHourMode: {
+      cc->hourMode = !cc->hourMode;
+      spiffsStorage.saveConfigToSpiffs(cc);
+      displayMenu();
+      break;
+    }
+    case toggleFade: {
+      cc->fade = !cc->fade;
+      spiffsStorage.saveConfigToSpiffs(cc);
+      displayMenu();
+      break;
+    }
+    case toggleScrollback: {
+      cc->scrollback = !cc->scrollback;
+      spiffsStorage.saveConfigToSpiffs(cc);
+      displayMenu();
       break;
     }
   }

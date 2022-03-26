@@ -51,12 +51,6 @@ class LDRManager_
     bool isMinLDRValue();
     void setLDRValueToMax();
     void resetMaxLDRValue();
-
-    // Turn off or on logging
-    void setDebugOutput(bool newDebug);
-    
-    // callbacks
-    void setDebugCallback(DebugCallback dbcb);
   private:
     double sensorLDRSmoothed = 0;
     double sensorFactor = (double)SENSOR_SENSIT_DEFAULT / 100.0;

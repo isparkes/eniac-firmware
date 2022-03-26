@@ -1,6 +1,8 @@
 #include "BlankingManager.h"
-#include <Arduino.h>
 
+// ************************************************************
+// Set up
+// ************************************************************
 void BlankingManager_::begin() {
   pinMode(PIRPin, INPUT);
 }
@@ -21,10 +23,17 @@ bool BlankingManager_::checkPIR() {
 
   if (_pirvalue) {
     _pirLastSeen = nowMillis;
+    _pirBlankingPct = 0;
     return false;
   } else {
     // Note that we have a pir
     _pirInstalled = true;
+    unsigned int lastMotionDetection = (nowMillis - _pirLastSeen) / 1000;
+    if (lastMotionDetection > 0) {
+      _pirBlankingPct = lastMotionDetection  * 1000 / cc->mdTimeout;
+    } else {
+      _pirBlankingPct = 0;
+    }
     if (nowMillis > (_pirLastSeen + (cc->mdTimeout * 1000))) {
       return true;
     } else {
@@ -154,7 +163,11 @@ bool BlankingManager_::getCurrentPIRStatus() {
 }
 
 bool BlankingManager_::getCurrentBlankingStatus() {
-  return _blanked;
+  if (_timeBasedBlanked) return true;
+  if (_pirBlanked) return true;
+
+  // We are waiting for PIR blanking to finish
+  return _pirBlankingPct > secsDeltaAbs;
 }
 
 bool BlankingManager_::getCurrentBlankTubes() {
@@ -169,6 +182,9 @@ bool BlankingManager_::getCurrentBlankTowers() {
   return _blankTowers;
 }
 
+// ************************************************************
+// Reason we are blanked
+// ************************************************************
 String BlankingManager_::getBlankingReason() {
   if (_blanked) {
     if (_pirBlanked) {
@@ -182,6 +198,9 @@ String BlankingManager_::getBlankingReason() {
 
 }
 
+// ************************************************************
+// How long ago we last saw movement
+// ************************************************************
 int  BlankingManager_::getBlankAge()
 {
     int lastMotionDetection = (nowMillis - _pirLastSeen) / 1000.0;

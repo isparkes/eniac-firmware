@@ -86,27 +86,10 @@ void WebManager_::startOTA() {
 }
 
 // ************************************************************
-// Output a logging message to the debug output, if set
+// Output a logging message to the debug output
 // ************************************************************
 void WebManager_::debugMsg(String message) {
-  if (_dbcb != NULL && _debug) {
-    _dbcb("[WEB]: " + message);
-  }
-}
-
-// ************************************************************
-// Set the callback for outputting debug messages
-// ************************************************************
-void WebManager_::setDebugCallback(DebugCallback dbcb) {
-  _dbcb = dbcb;
-  debugMsg("Debugging started, callback set");
-}
-
-// ************************************************************
-// set the update interval
-// ************************************************************
-void WebManager_::setDebugOutput(bool newDebug) {
-  _debug = newDebug;
+  debugManager.debugMsg("[WEB]: " + message);
 }
 
 // ************************************************************

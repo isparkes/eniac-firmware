@@ -865,38 +865,3 @@ void disableWatchdog() {
 void feedWatchdog() {
   esp_task_wdt_reset();
 }
-
-void sendUpdateToSlaveI2C() {
-    #ifdef DEBUG_ON
-    debugMsgUtl("Slave update: mode: " + String(cc->slaveMode) + "," + String(second()) + "," + String(month()) + "," + String(day()));
-    #endif
-
-    Wire.beginTransmission(SLAVE_MODULE_I2C_ADDRESS);
-    switch (cc->slaveMode) {
-      case SLAVE_MODE_100THS: {
-        Wire.write((uint8_t)0x1a);
-        break;
-      }
-      case SLAVE_MODE_DATE: {
-        Wire.write((uint8_t)0x1b);
-        break;
-      }
-      case SLAVE_MODE_SECS: {
-        Wire.write((uint8_t)0x1c);
-        break;
-      }
-    }
-    Wire.write((uint8_t)second());
-    Wire.write((uint8_t)day());
-    Wire.write((uint8_t)month());
-
-    byte error = Wire.endTransmission();
-
-    #ifdef DEBUG_ON
-    if (error == 0) {
-      debugMsgUtl("Sent slave update");
-    } else {
-      debugMsgUtl("Failed sending slave update: " + String(error));
-    }
-    #endif
-}

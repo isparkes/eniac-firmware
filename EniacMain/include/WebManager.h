@@ -18,17 +18,11 @@ class WebManager_ {
     
     // Turn off or on logging
     void setDebugOutput(bool newDebug);
-    
-    // callbacks
-    void setDebugCallback(DebugCallback dbcb);
   public:
     void begin();
     void beginPortal();
     void startOTA();
   private:
-    DebugCallback _dbcb;
-    bool _debug = false;
-
     void debugMsg(String message);      
 };
 

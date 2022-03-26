@@ -197,12 +197,6 @@ class LEDManager_
 
     // Set the tower hue offset
     void setTowerHueOffset(int value);
-
-    // Turn off or on logging
-    void setDebugOutput(bool newDebug);
-    
-    // callbacks
-    void setDebugCallback(DebugCallback dbcb);
   private:
     float _backlightDim = 1.0;
     float _underlightDim = 1.0;
@@ -235,9 +229,6 @@ class LEDManager_
     byte ledRu[DIGIT_COUNT];
     byte ledGu[DIGIT_COUNT];
     byte ledBu[DIGIT_COUNT];
-
-    DebugCallback _dbcb;
-    bool _debug = false;
 
     void setBacklightLEDs(byte red, byte green, byte blue);
     void setUnderlightLEDs(byte red, byte green, byte blue);

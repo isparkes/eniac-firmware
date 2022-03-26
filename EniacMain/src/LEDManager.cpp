@@ -488,27 +488,10 @@ void LEDManager_::adjustRGB(uint8_t red, uint8_t green, uint8_t blue, uint8_t& i
 }
 
 // ************************************************************
-// Output a logging message to the debug output, if set
+// Output a logging message to the debug output
 // ************************************************************
 void LEDManager_::debugMsg(String message) {
-  if (_dbcb != NULL && _debug) {
-    _dbcb("[LED]: " + message);
-  }
-}
-
-// ************************************************************
-// Set the callback for outputting debug messages
-// ************************************************************
-void LEDManager_::setDebugCallback(DebugCallback dbcb) {
-  _dbcb = dbcb;
-  debugMsg("Debugging started, callback set");
-}
-
-// ************************************************************
-// set the update interval
-// ************************************************************
-void LEDManager_::setDebugOutput(bool newDebug) {
-  _debug = newDebug;
+  debugManager.debugMsg("[LED]: " + message);
 }
 
 LEDManager_ &LEDManager_::getInstance() {

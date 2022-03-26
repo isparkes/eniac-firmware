@@ -92,29 +92,11 @@ void GPSManager_::parseNMEAMsg(char c) {
 }
 
 // ************************************************************
-// Output a logging message to the debug output, if set
+// Output a logging message to the debug output
 // ************************************************************
 void GPSManager_::debugMsg(String message) {
-  if (_dbcb != NULL && _debug) {
-    _dbcb("[GPS]: " + message);
-  }
+  debugManager.debugMsg("[GPS]: " + message);
 }
-
-// ************************************************************
-// Set the callback for outputting debug messages
-// ************************************************************
-void GPSManager_::setDebugCallback(DebugCallback dbcb) {
-  _dbcb = dbcb;
-  debugMsg("Debugging started, callback set");
-}
-
-// ************************************************************
-// set the update interval
-// ************************************************************
-void GPSManager_::setDebugOutput(bool newDebug) {
-  _debug = newDebug;
-}
-
 // ************************************************************
 // Get if we are still in the GPS valid time
 // ************************************************************

@@ -28,6 +28,7 @@
 #include <esp_task_wdt.h>
 #include "WiFiManager.h"
 #include "OutputManager.h"
+#include "SlaveManager.h"
 
 // -------------------------------------------------------------------------------
 
@@ -81,5 +82,3 @@ void resetAll();
 void enableWatchdog();
 void disableWatchdog();
 void feedWatchdog();
-
-void sendUpdateToSlaveI2C();

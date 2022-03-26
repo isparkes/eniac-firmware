@@ -19,6 +19,8 @@ extern unsigned long lastMillis;
 extern unsigned long previousMillisWiFi;
 extern int lastSecond;
 extern boolean triggeredThisSec;
+extern int secsDeltaAbs;
+extern bool upOrDown;  
 
 // ************************************************************
 // Shared config objects

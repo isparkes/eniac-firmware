@@ -54,7 +54,6 @@ class NtpManager_
     bool ntpTimeValid();
     
     // callbacks
-    void setDebugCallback(DebugCallback dbcb);
     void setNewTimeCallback(NewTimeCallback ntcb);
   private:
     String _ntpPool = NTP_POOL_DEFAULT;                   // The pool name we are using
@@ -62,9 +61,7 @@ class NtpManager_
     time_t _ntpTime;                                      // The time we retrieved
     unsigned long _lastUpdateFromServer = 0;              // The last millis() we got an update at
     int _ntpUpdateInterval = NTP_UPDATE_INTERVAL_DEFAULT; // The interval between updates in SECONDS
-    bool _debug = false;
     AsyncUDP _udp;
-    DebugCallback _dbcb;
     NewTimeCallback _ntcb;
 
     // print a debug message to the callback

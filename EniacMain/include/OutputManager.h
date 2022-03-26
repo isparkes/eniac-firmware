@@ -6,6 +6,7 @@
 #include "defs.h"
 #include "BlankingManager.h"
 #include "TransitionManager.h"
+#include "DebugManager.h"
 
 // -------------------------------------------------------------------------------
 
@@ -98,11 +99,6 @@ class OutputManager_ {
     void triggerStunts();
     outputModes getOutputMode();
     void setOutputMode(outputModes newMode);
-
-    void setDebugOutput(bool newDebug);
-    
-    // callbacks
-    void setDebugCallback(DebugCallback dbcb);
   private:
     int _acpOffset = 0;
     int _acpTick = 0;
@@ -113,10 +109,7 @@ class OutputManager_ {
     uint32_t decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, bool blankTens, bool blankUnits, bool bl1, bool bl2, bool led1, bool led2);
     void setCurrentTransition();
 
-    DebugCallback _dbcb;
-    bool _debug = false;
-
-    void debugMsg(String message);                        // print a debug message to the callback
+    void debugMsg(String message);
 };
 
 extern OutputManager_ &outputManager;

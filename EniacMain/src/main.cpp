@@ -70,13 +70,6 @@ void setup()
   debugMsg("Start up output manager" );
   #endif
 
-  // define the debug callback
-  DebugCallback dbcb = debugManagerLink;
-
-  // Starts the display and the status LED flashing
-  outputManager.setDebugCallback(dbcb);
-  outputManager.setDebugOutput(true);
-
   // -------------------------------------------------------------------------
 
   #ifdef DEBUG_ON
@@ -139,8 +132,6 @@ void setup()
 
   #ifdef DEBUG_ON
   debugMsg("Startup SPIFFS storage");
-  spiffsStorage.setDebugCallback(dbcb);
-  spiffsStorage.setDebugOutput(true);
   #endif
   bool statsLoaded = spiffsStorage.getStatsFromSpiffs(cs);
 
@@ -200,16 +191,12 @@ void setup()
   #endif
 
   tzManager.setTZS(cc->tzs);
-  tzManager.setDebugCallback(dbcb);
-  tzManager.setDebugOutput(true);
 
   // -------------------------------------------------------------------------
   
   #ifdef DEBUG_ON
   debugMsg("Start up RTC...");
   #endif
-  rtcManager.setDebugCallback(dbcb);
-  rtcManager.setDebugOutput(true);
 
   if (rtcManager.testRTCTimeProvider()) {
     #ifdef DEBUG_ON
@@ -238,9 +225,6 @@ void setup()
   
   #ifdef DEBUG_ON
   debugMsg("Initialising NTP" );
-
-  ntpManager.setDebugCallback(dbcb);
-  ntpManager.setDebugOutput(true);
   #endif
 
   NewTimeCallback ntcb = newTimeUpdateReceived;
@@ -250,9 +234,6 @@ void setup()
   
   #ifdef DEBUG_ON
   debugMsg("Initialising GPS" );
-
-  gpsManager.setDebugCallback(dbcb);
-  gpsManager.setDebugOutput(true);
   #endif
 
   gpsManager.setUp();
@@ -276,12 +257,7 @@ void setup()
   #endif
   // Not managing sensorSmoothCountLDR yet
   cc->sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
-  #ifdef DEBUG_ON
-  ldrManager.setDebugOutput(true);
-  ldrManager.setDebugCallback(dbcb);
-  #endif
   ldrManager.setUp();
-  ldrManager.setDebugOutput(false);
 
   // -------------------------------------------------------------------------
   
@@ -315,9 +291,8 @@ void setup()
 void setLeds()
 {
   unsigned int secsDelta;
-  int secsDeltaAbs = (nowMillis - lastMillis);
-
-  bool upOrDown = (second() % 2) == 0;
+  secsDeltaAbs = (nowMillis - lastMillis);
+  upOrDown = (second() % 2) == 0;
   
   if (upOrDown) {
     secsDelta = (nowMillis - lastMillis);
@@ -442,8 +417,16 @@ void performOncePerLoop() {
   setLeds();
   #endif
 
+  // -------------------------------------------------------------------------------
+  
   outputManager.outputDisplay();
 
+  // -------------------------------------------------------------------------------
+  
+  blinkenlightsManager.updateBlinkenlights();
+
+  // -------------------------------------------------------------------------------
+  
   menuLoop();
 }
 
@@ -501,8 +484,6 @@ void performOncePerSecondProcessing() {
   indLed1 = (second() % 2 == 0);
   indLed2 = (second() % 2 == 1);
 
-  blinkenlightsManager.updateBlinkenlights();
-
   countdownMenuTimeouts();
 
   blankingManager.getBlankingStatus(weekday(), hour());
@@ -521,7 +502,7 @@ void performOncePerSecondProcessing() {
 
   triggerOnePulsePerSec();
 
-  sendUpdateToSlaveI2C();
+  slaveManager.sendUpdateToSlaveI2C();
 
   feedWatchdog();
 }

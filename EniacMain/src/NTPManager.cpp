@@ -80,13 +80,6 @@ bool NtpManager_::ntpTimeValid() {
 }
 
 // ************************************************************
-// set the update interval
-// ************************************************************
-void NtpManager_::setDebugOutput(bool newDebug) {
-  _debug = newDebug;
-}
-
-// ************************************************************
 // Asynchronous NTP query
 // ************************************************************
 void NtpManager_::getTimeFromNTP() {
@@ -227,22 +220,10 @@ void NtpManager_::getTimeFromNTP() {
 }
 
 // ************************************************************
-// Output a logging message to the debug output, if set
+// Output a logging message to the debug output
 // ************************************************************
 void NtpManager_::debugMsg(String message) {
-  if (_dbcb != NULL && _debug) {
-    _dbcb("[NTP]: " + message);
-  }
-}
-
-// ************************************************************
-// Set the callback for outputting debug messages
-// ************************************************************
-void NtpManager_::setDebugCallback(DebugCallback dbcb) {
-  _dbcb = dbcb;
-  #ifdef DEBUG_ON
-  debugMsg("Debugging started, callback set");
-  #endif
+  debugManager.debugMsg("[NTP]: " + message);
 }
 
 // ************************************************************

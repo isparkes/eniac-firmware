@@ -15,7 +15,7 @@ typedef struct {
   bool bl4;
   bool bl5;
   bool bl6;
-} blinkelights_t;
+} blinkenlights_t;
 
 class BlinkenlightsManager_ {
   private:
@@ -29,13 +29,14 @@ class BlinkenlightsManager_ {
 
   public:
     void setBlinkenlightsMode(byte newMode);
-    void setBlinkenlightsExtern(blinkelights_t *blext);
+    void setBlinkenlightsExtern(blinkenlights_t *blext);
     void updateBlinkenlights();
     byte getNextBlinkenlightsMode(byte currentMode);
-    blinkelights_t* getBlinkenlights();
+    String getNextBlinkenlightsModeName(byte modeNumber);
+    blinkenlights_t* getBlinkenlights();
   private:
-    blinkelights_t blinkenLights;
-    blinkelights_t *bl = &blinkenLights;
+    blinkenlights_t blinkenLights;
+    blinkenlights_t *bl = &blinkenLights;
     void setBlinkenlightsChase();
     void setBlinkenlightsStatus();
 };

@@ -39,17 +39,10 @@ void LDRManager_::getDimmingFromLDR() {
   
   if (cc->useLDR) {
     int rawLDR = analogRead(LDRPin);
-    #ifdef DEBUG_ON
-    debugMsg("-----------------");
-    debugMsg("Raw LDR Value: " + String(rawLDR));
-    #endif
     int rawSensorVal = rawLDR;
 
     double sensorDiff = rawSensorVal - sensorLDRSmoothed;
     sensorLDRSmoothed += (sensorDiff / (double) cc->sensorSmoothCountLDR);
-    #ifdef DEBUG_ON
-    debugMsg("Smoothed LDR Value: " + String(sensorLDRSmoothed));
-    #endif
 
     // Scaling offset increases the base brightness
     // factor increases the sensitivity
@@ -57,34 +50,20 @@ void LDRManager_::getDimmingFromLDR() {
     double factor = cc->sensitivityLDR / 200.0;
 
     int returnValue = (sensorLDRSmoothed - offset) * factor;
-    
-    #ifdef DEBUG_ON
-    debugMsg("Raw _ldrValue: " + String(returnValue));
-    #endif
-
     int effectiveMinDim = LDR_VALUE_MAX - (cc->minDim * LDR_VALUE_MAX / 100);
 
     if (returnValue >= effectiveMinDim) {
       returnValue = effectiveMinDim;
       _isMinDim = true;
-      #ifdef DEBUG_ON
-      debugMsg("Clamping _ldrValue to min: " + String(returnValue));
-      #endif
     } else {
       _isMinDim = false;
     }
     if (returnValue < 0) {
       returnValue = 0;
-      #ifdef DEBUG_ON
-      debugMsg("Clamping _ldrValue to max: " + String(returnValue));
-      #endif
     }
     _ldrValue = returnValue;
   } else {
     _ldrValue = LDR_VALUE_MAX - (cc->minDim * LDR_VALUE_MAX / 100);
-    #ifdef DEBUG_ON
-    debugMsg("Not using _ldrValue setting to min: " + String(cc->minDim));
-    #endif
   }
 
   ledcWrite(LDRPWMChannel, _ldrValue);
@@ -121,27 +100,10 @@ bool LDRManager_::isMinLDRValue() {
 }
 
 // ************************************************************
-// Output a logging message to the debug output, if set
+// Output a logging message to the debug output
 // ************************************************************
 void LDRManager_::debugMsg(String message) {
-  if (_dbcb != NULL && _debug) {
-    _dbcb("[LDR]: " + message);
-  }
-}
-
-// ************************************************************
-// Set the callback for outputting debug messages
-// ************************************************************
-void LDRManager_::setDebugCallback(DebugCallback dbcb) {
-  _dbcb = dbcb;
-  debugMsg("Debugging started, callback set");
-}
-
-// ************************************************************
-// set the update interval
-// ************************************************************
-void LDRManager_::setDebugOutput(bool newDebug) {
-  _debug = newDebug;
+  debugManager.debugMsg("[LDR]: " + message);
 }
 
 LDRManager_ &LDRManager_::getInstance() {

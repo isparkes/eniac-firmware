@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include "DebugManager.h"
 #include "defs.h"
+#include "utilities.h"
+#include "DebugManager.h"
 
 #define TIME_ZONE_STRING_DEFAULT  "CET-1CEST,M3.5.0,M10.5.0/3"
 
@@ -41,18 +43,12 @@ class TZManager_ {
 
     String localtimeToReadableString(time_t timeToConvert);
     String gmtimeToReadableString(time_t timeToConvert);
-
-    // Debug
-    void setDebugOutput(bool newDebug);
-    void setDebugCallback(DebugCallback dbcb);
   private:
     String _tzs = TIME_ZONE_STRING_DEFAULT;
     unsigned long _UTCoffset;
     time_t _utctime[TIME_SOURCE_COUNT];
     unsigned long _lastupdatetime[TIME_SOURCE_COUNT];
     byte _primarysource = TIME_SOURCE_RTC;
-    bool _debug = false;
-    DebugCallback _dbcb;
 
     void setInternalTimeFromRTC();
     void debugMsg(String message);

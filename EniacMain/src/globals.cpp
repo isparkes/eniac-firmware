@@ -52,6 +52,8 @@ unsigned long lastMillis = 0;
 unsigned long nowMillis = 0;
 int lastSecond = 0;
 boolean triggeredThisSec = false;
+int secsDeltaAbs;
+bool upOrDown;  
 
 byte timeSource = TIME_SOURCE_INT;
 
@@ -87,3 +89,6 @@ String lastWiFiScan = "";
 void updateNowMillis() {
     nowMillis = millis();
 }
+
+// tells us if we managed to connect to the slave mode
+bool slaveModeStatus;

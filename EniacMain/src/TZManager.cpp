@@ -26,9 +26,6 @@
 // ************************************************************
 
 #include "TZManager.h"
-#include <Arduino.h>
-#include "defs.h"
-#include "utilities.h"
 
 // Suppress Intellisense "setenv" error
 _VOID      _EXFUN(tzset,	(_VOID));
@@ -316,29 +313,10 @@ byte TZManager_::getPrimaryTimeSource() {
 }
 
 // ************************************************************
-// set the update interval
-// ************************************************************
-void TZManager_::setDebugOutput(bool newDebug) {
-  _debug = newDebug;
-}
-
-// ************************************************************
-// Output a logging message to the debug output, if set
+// Output a logging message to the debug output
 // ************************************************************
 void TZManager_::debugMsg(String message) {
-  if (_dbcb != NULL && _debug) {
-    _dbcb("[TZM]: " + message);
-  }
-}
-
-// ************************************************************
-// Set the callback for outputting debug messages
-// ************************************************************
-void TZManager_::setDebugCallback(DebugCallback dbcb) {
-  _dbcb = dbcb;
-  #ifdef DEBUG_ON
-  debugMsg("Debugging started, callback set");
-  #endif
+  debugManager.debugMsg("[TZM]: " + message);
 }
 
 TZManager_ &TZManager_::getInstance() {

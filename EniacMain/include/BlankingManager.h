@@ -50,29 +50,13 @@
 // -------------------------------------------------------------------------------
 
 class BlankingManager_ {
-  private:
-    BlankingManager_() = default; // Make constructor private
-
-    unsigned long _mdTimeout = PIR_TIMEOUT_DEFAULT;
-    unsigned long _pirLastSeen = 0;
-    bool _pirInstalled = false;
-    bool _pirvalue = false;
-    bool _blanked;
-    bool _blankTubes = false;
-    bool _blankLEDs = false;
-    bool _blankTowers = false;
-    bool _pirBlanked;
-    bool _timeBasedBlanked;
-
-    bool checkPIR();
-    bool checkTimeBasedBlanking(byte currentWeekday, byte currentHour);
-    bool getHoursBlanked(byte currentHou);
-
   public:
     static BlankingManager_ &getInstance(); // Accessor for singleton instance
 
     BlankingManager_(const BlankingManager_ &) = delete; // no copying
     BlankingManager_ &operator=(const BlankingManager_ &) = delete;
+  private:
+    BlankingManager_() = default; // Make constructor private
 
   public:
     void begin();
@@ -85,6 +69,23 @@ class BlankingManager_ {
     bool getCurrentBlankingStatus();
     int  getBlankAge();
     String getBlankingReason();
+  private:
+    unsigned long _mdTimeout = PIR_TIMEOUT_DEFAULT;
+    unsigned long _pirLastSeen = 0;
+    bool _pirInstalled = false;
+    bool _pirvalue = false;
+    bool _blanked;
+    bool _blankTubes = false;
+    bool _blankLEDs = false;
+    bool _blankTowers = false;
+    bool _pirBlanked;
+    bool _timeBasedBlanked;
+    unsigned int _pirBlankingPct;
+
+    bool checkPIR();
+    bool checkTimeBasedBlanking(byte currentWeekday, byte currentHour);
+    bool getHoursBlanked(byte currentHou);
+
 };
 
 extern BlankingManager_ &blankingManager;

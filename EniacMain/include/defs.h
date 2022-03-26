@@ -24,8 +24,6 @@
 
 #define SERIAL_BAUD_RATE 115200
 
-#define SLAVE_MODULE_I2C_ADDRESS 105
-
 // Onboard LED 
 #define LED_PIN 2
 
@@ -138,12 +136,4 @@
 # define TIME_SOURCE_NTP                1
 # define TIME_SOURCE_RTC                2
 # define TIME_SOURCE_INT                3
-
-// -------------------------------------------------------------------------------
-#define SLAVE_MODE_MIN                  0
-#define SLAVE_MODE_100THS               0
-#define SLAVE_MODE_DATE                 1
-#define SLAVE_MODE_SECS                 2
-#define SLAVE_MODE_MAX                  2
-#define SLAVE_MODE_DEFAULT              0
 

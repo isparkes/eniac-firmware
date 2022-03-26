@@ -30,12 +30,6 @@ class GPSManager_ {
     bool getGPSSyncStarted();
     time_t getLastGPSTime();
     String getLastGPSTimeRaw();
-
-    // Turn off or on logging
-    void setDebugOutput(bool newDebug);
-    
-    // callbacks
-    void setDebugCallback(DebugCallback dbcb);
   private:
     char _msgBuffer[37];
     byte _bufferOffset = 0;
@@ -46,10 +40,7 @@ class GPSManager_ {
     unsigned long _lastGPSSyncTime = 0;
     bool _gpsTimeValid = false;
 
-    DebugCallback _dbcb;
-    bool _debug = false;
-
-    void debugMsg(String message);                        // print a debug message to the callback
+    void debugMsg(String message);
     String parseGPZDAMsg(String messageToParse);
     bool parseGPZDAMsgToUTCTime(String messageToParse);
 };

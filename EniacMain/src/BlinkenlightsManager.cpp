@@ -10,16 +10,35 @@
 #include "TimeLib.h"
 
 byte BlinkenlightsManager_::getNextBlinkenlightsMode(byte currentMode) {
-  byte newMode = currentMode++;
+  byte newMode = currentMode+1;
   if (newMode > BLNKN_MODE_MAX) {
     newMode = BLNKN_MODE_MIN;
   }
   return newMode;
 }
 
+String BlinkenlightsManager_::getNextBlinkenlightsModeName(byte currentMode) {
+  byte nextMode = getNextBlinkenlightsMode(currentMode);
+  switch(nextMode) {
+    case BLNKN_MODE_STATUS: {
+      return "Status";
+      break;
+    }
+    case BLNKN_MODE_CHASE: {
+      return "Chase";
+      break;
+    }
+    default: {
+      return "Unknown";
+    }
+  }
+}
+
 void BlinkenlightsManager_::setBlinkenlightsMode(byte newMode) {
+  #ifdef DEBUG_ON
+  debugManager.debugMsg("Set BL Mode: " + String(newMode));
+  #endif
   cc->blinkenLightsMode = newMode;
-  
 }
 
 void BlinkenlightsManager_::setBlinkenlightsStatus() {
@@ -67,7 +86,7 @@ void BlinkenlightsManager_::setBlinkenlightsChase() {
   }
 }
 
-void BlinkenlightsManager_::setBlinkenlightsExtern(blinkelights_t *blext) {
+void BlinkenlightsManager_::setBlinkenlightsExtern(blinkenlights_t *blext) {
   bl->bl1 = blext->bl1;
   bl->bl2 = blext->bl2;
   bl->bl3 = blext->bl3;
@@ -87,7 +106,7 @@ void BlinkenlightsManager_::updateBlinkenlights() {
   }
 }
 
-blinkelights_t* BlinkenlightsManager_::getBlinkenlights() {
+blinkenlights_t* BlinkenlightsManager_::getBlinkenlights() {
   return bl;
 }
 

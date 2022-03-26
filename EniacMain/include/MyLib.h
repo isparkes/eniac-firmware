@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include "DebugManager.h"
 
 typedef void (*DebugCallback) (String);
 
@@ -17,15 +18,7 @@ class MyLib_ {
   public:
     void begin();
     void doStuff();
-
-    void setDebugOutput(bool newDebug);
-    
-    // callbacks
-    void setDebugCallback(DebugCallback dbcb);
   private:
-    DebugCallback _dbcb;
-    bool _debug = false;
-
     void debugMsg(String message);                        // print a debug message to the callback
 };
 

@@ -491,33 +491,10 @@ void SpiffsStorage_::saveStatsToSpiffs(spiffs_stats_t *spiffs_stats)
 }
 
 // ************************************************************
-// Output a logging message to the debug output, if set
+// Output a logging message to the debug output
 // ************************************************************
-void SpiffsStorage_::debugMsg(String message)
-{
-  if (_dbcb != NULL && _debug)
-  {
-    _dbcb("[SPF]: " + message);
-  }
-}
-
-// ************************************************************
-// Set the callback for outputting debug messages
-// ************************************************************
-void SpiffsStorage_::setDebugCallback(DebugCallback dbcb)
-{
-  _dbcb = dbcb;
-  #ifdef DEBUG_ON
-  debugMsg("Debugging started, callback set");
-  #endif
-}
-
-// ************************************************************
-// set the update interval
-// ************************************************************
-void SpiffsStorage_::setDebugOutput(bool newDebug)
-{
-  _debug = newDebug;
+void SpiffsStorage_::debugMsg(String message) {
+  debugManager.debugMsg("[SPF]: " + message);
 }
 
 SpiffsStorage_ &SpiffsStorage_::getInstance() {

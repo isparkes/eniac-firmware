@@ -1,5 +1,4 @@
 #include "MyLib.h"
-#include <Arduino.h>
 
 void MyLib_::begin() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -24,27 +23,10 @@ void MyLib_::doStuff() {
 }
 
 // ************************************************************
-// Output a logging message to the debug output, if set
+// Output a logging message to the debug output
 // ************************************************************
 void MyLib_::debugMsg(String message) {
-  if (_dbcb != NULL && _debug) {
-    _dbcb("[LIB]: " + message);
-  }
-}
-
-// ************************************************************
-// Set the callback for outputting debug messages
-// ************************************************************
-void MyLib_::setDebugCallback(DebugCallback dbcb) {
-  _dbcb = dbcb;
-  debugMsg("Debugging started, callback set");
-}
-
-// ************************************************************
-// set the update interval
-// ************************************************************
-void MyLib_::setDebugOutput(bool newDebug) {
-  _debug = newDebug;
+  debugManager.debugMsg("[LIB]: " + message);
 }
 
 // ************************************************************

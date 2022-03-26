@@ -40,12 +40,6 @@ class DS1307_ {
 
     void setTimeFromUTCSource(time_t currentTime, bool updateRTC);
     unsigned long getLastRTCSetTime();
-    
-    // Turn off or on logging
-    void setDebugOutput(bool newDebug);
-    
-    // callbacks
-    void setDebugCallback(DebugCallback dbcb);
 private:
     DS1307_() = default; // Make constructor private
 
@@ -66,9 +60,6 @@ private:
     uint8_t _dayOfMonth;
     uint8_t _month;
     uint16_t _year;
-
-    DebugCallback _dbcb;
-    bool _debug = false;
 
     void debugMsg(String message);                        // print a debug message to the callback
 };
