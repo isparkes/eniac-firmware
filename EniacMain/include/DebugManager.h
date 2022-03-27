@@ -4,6 +4,10 @@
 
 typedef void (*DebugCallback) (String);
 
+// Extended debug settings - these allow trace level debugging
+#define TZM_EXTENDED_DEBUG_OFF
+#define RTC_EXTENDED_DEBUG_OFF
+
 class DebugManager_ {
   private:
     DebugManager_() = default; // Make constructor private

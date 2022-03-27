@@ -32,6 +32,7 @@ class TZManager_ {
 
     // Offset handling
     int  getCurrentUTCOffset();
+    int  getCurrentUTCIsDST();
     void calculateCurrentOffsetFromTimeT();
 
     String getLocalTimeFromTimeSource(byte timesource);
@@ -46,6 +47,7 @@ class TZManager_ {
   private:
     String _tzs = TIME_ZONE_STRING_DEFAULT;
     unsigned long _UTCoffset;
+    bool _localtimeisDST;
     time_t _utctime[TIME_SOURCE_COUNT];
     unsigned long _lastupdatetime[TIME_SOURCE_COUNT];
     byte _primarysource = TIME_SOURCE_RTC;

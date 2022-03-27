@@ -1,11 +1,16 @@
 #include "RTCManager.h"
 
+// ************************************************************
+// Convert normal decimal to binary coded decimal numbers
+// ************************************************************
 uint8_t DS1307_::decToBcd(uint8_t val)
 {
     return ( (val/10*16) + (val%10) );
 }
 
-//Convert binary coded decimal to normal decimal numbers
+// ************************************************************
+// Convert binary coded decimal to normal decimal numbers
+// ************************************************************
 uint8_t DS1307_::bcdToDec(uint8_t val)
 {
     return ( (val/16*10) + (val%16) );
@@ -17,33 +22,41 @@ void DS1307_::begin()
     Wire.begin();
 }
 
-// ToDo; Perhaps we can remove all the casts - they seem to be redundant
+// ************************************************************
+// Start the hardware RTC
+// ************************************************************
 void DS1307_::startClock(void)                    // set the ClockHalt bit low to start the rtc
 {
   Wire.beginTransmission(DS1307_I2C_ADDRESS);
-  Wire.write((uint8_t)0x00);                      // Register 0x00 holds the oscillator start/stop bit
+  Wire.write(0x00);                      // Register 0x00 holds the oscillator start/stop bit
   Wire.endTransmission();
   Wire.requestFrom(DS1307_I2C_ADDRESS, 1);
   _second = Wire.read() & 0x7f;                    // save actual seconds and AND sec with bit 7 (sart/stop bit) = clock started
   Wire.beginTransmission(DS1307_I2C_ADDRESS);
-  Wire.write((uint8_t)0x00);
-  Wire.write((uint8_t)_second);                    // write seconds back and start the clock
+  Wire.write(0x00);
+  Wire.write(_second);                    // write seconds back and start the clock
   Wire.endTransmission();
 }
 
+// ************************************************************
+// Stop the hardware RTC
+// ************************************************************
 void DS1307_::stopClock(void)                     // set the ClockHalt bit high to stop the rtc
 {
   Wire.beginTransmission(DS1307_I2C_ADDRESS);
-  Wire.write((uint8_t)0x00);                      // Register 0x00 holds the oscillator start/stop bit
+  Wire.write(0x00);                      // Register 0x00 holds the oscillator start/stop bit
   Wire.endTransmission();
   Wire.requestFrom(DS1307_I2C_ADDRESS, 1);
   _second = Wire.read() | 0x80;                    // save actual seconds and OR sec with bit 7 (sart/stop bit) = clock stopped
   Wire.beginTransmission(DS1307_I2C_ADDRESS);
-  Wire.write((uint8_t)0x00);
-  Wire.write((uint8_t)_second);                    // write seconds back and stop the clock
+  Wire.write(0x00);
+  Wire.write(_second);                    // write seconds back and stop the clock
   Wire.endTransmission();
 }
 
+// ************************************************************
+// Get the display time back from the hardware
+// ************************************************************
 void DS1307_::getTimeRTCHardware()
 {
   // Reset the register pointer
@@ -60,11 +73,14 @@ void DS1307_::getTimeRTCHardware()
   _month      = bcdToDec(Wire.read());
   _year       = bcdToDec(Wire.read());
 
-  // #ifdef DEBUG_ON
-  // debugMsg("Got RTC " + String(_year) + ", " + String(_month) + ", " + String(_dayOfMonth) + ", " + String(_hour) + ", " + String(_minute) + ", " + String(_second));
-  // #endif
+  #ifdef RTC_EXTENDED_DEBUG
+  debugMsg("Got RTC " + String(_year) + ", " + String(_month) + ", " + String(_dayOfMonth) + ", " + String(_hour) + ", " + String(_minute) + ", " + String(_second));
+  #endif
 }
 
+// ************************************************************
+// Put the display time into the RTC hardware
+// ************************************************************
 void DS1307_::setTimeRTCHardware()
 {
     Wire.beginTransmission(DS1307_I2C_ADDRESS);
@@ -83,6 +99,9 @@ void DS1307_::setTimeRTCHardware()
     #endif
 }
 
+// ************************************************************
+// Fill DoW
+// ************************************************************
 void DS1307_::fillDayOfWeek(uint8_t dow)
 {
     _dayOfWeek = dow;
@@ -141,10 +160,15 @@ time_t DS1307_::getRTCTimeAsTimeT() {
     rtcCurrentTm.tm_min = _minute;
     rtcCurrentTm.tm_sec = _second;
 
-    // we know we stored it away in UTC, so no DST
-    rtcCurrentTm.tm_isdst = 0;
+    rtcCurrentTm.tm_isdst = tzManager.getCurrentUTCIsDST();
 
-    // mktime gives us the opposite of what local time does, so we have to adjust it
+    #ifdef RTC_EXTENDED_DEBUG
+    debugMsg("---->Applying offset: " + String(tzManager.getCurrentUTCOffset()) + " to RTC harware time -> " + 
+      String(rtcCurrentTm.tm_year) + ", " + String(rtcCurrentTm.tm_mon) + ", " + String(rtcCurrentTm.tm_mday) + ", " + 
+      String(rtcCurrentTm.tm_hour) + ", " + String(rtcCurrentTm.tm_min) + ", " + String(rtcCurrentTm.tm_sec));
+    #endif
+
+    // mktime gives us the opposite of what local time does, so we have to adjust it by adding in the offset mktime will apply
     time_t _rtctime = mktime(&rtcCurrentTm) + tzManager.getCurrentUTCOffset();
 
     #ifdef DEBUG_ON
