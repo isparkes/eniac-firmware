@@ -49,6 +49,7 @@ void newTimeUpdateReceived();
 String timeToReadableStringFromTm(tm timeToFormat);
 uint32_t decodeBCD(byte valueToDecode, bool bl1, bool bl2, bool led1, bool led2);
 
+
 // Web handlers
 void getCredentialsHandler(AsyncWebServerRequest *request);
 void getWiFiNetworksHandler(AsyncWebServerRequest *request);

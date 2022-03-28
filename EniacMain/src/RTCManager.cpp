@@ -159,7 +159,6 @@ time_t DS1307_::getRTCTimeAsTimeT() {
     rtcCurrentTm.tm_hour = _hour; 
     rtcCurrentTm.tm_min = _minute;
     rtcCurrentTm.tm_sec = _second;
-
     rtcCurrentTm.tm_isdst = tzManager.getCurrentUTCIsDST();
 
     #ifdef RTC_EXTENDED_DEBUG
