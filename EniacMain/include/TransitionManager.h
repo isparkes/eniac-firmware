@@ -5,10 +5,6 @@
 #include "globals.h"
 #include "OutputManager.h"
 
-#define SLOTS_MODE_NONE 0
-#define SLOTS_MODE_WIPE_WIPE 1
-#define SLOTS_MODE_BANG_BANG 2
-
 class Transition
 {
   public:

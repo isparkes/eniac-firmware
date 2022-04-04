@@ -35,7 +35,9 @@ enum menuTargets {
   stopSlave,
   toggleHourMode,
   toggleFade,
-  toggleScrollback
+  toggleScrollback,
+  setNextACPMode,
+  setNextSlotsMode
 };
 
 // modes that the menu system can be in
@@ -64,6 +66,7 @@ struct oledMenus {
   int mValueHigh = 0;                       // highest allowed value
   int mValueStep = 0;                       // step size when encoder is turned
   menuTargets nextTarget = noTarget;        // the target to continue when a value is received
+  bool needUpdate;                          // If the menu changed and needs to be output again
 };
 oledMenus oledMenu;
 
@@ -97,7 +100,6 @@ void mainMenu() {
   resetMenu();
   byte menuCount = 1;
   menuMode = menu;
-//  oledMenu.menuId = main;
   oledMenu.menuTitle = "Main Menu";
   oledMenu.menuItems[menuCount] = "Wifi";       oledMenu.menuActions[menuCount++] = gotoWifiMenu;
   oledMenu.menuItems[menuCount] = "Display";    oledMenu.menuActions[menuCount++] = gotoDisplayMenu;
@@ -184,6 +186,13 @@ void displayMenu() {
   } else {
     oledMenu.menuItems[menuCount] = "Start slave";              oledMenu.menuActions[menuCount++] = startSlave;
   }
+
+  String nextACPMode = outputManager.getNextACPModeName(cc->acpMode);
+  oledMenu.menuItems[menuCount] = "ACP: " + nextACPMode;        oledMenu.menuActions[menuCount++] = setNextACPMode;
+
+  String nextSlotsMode = outputManager.getNextSlotsModeName(cc->slotsMode);
+  oledMenu.menuItems[menuCount] = "Date: " + nextSlotsMode;     oledMenu.menuActions[menuCount++] = setNextSlotsMode;
+
   oledMenu.menuItems[menuCount] = "Back";                       oledMenu.menuActions[menuCount++] = backToMain;
   oledMenu.noOfmenuItems = --menuCount;
 }
@@ -310,6 +319,18 @@ void menuActions(menuTargets selectedAction) {
     }
     case nextBlnknMode: {
       cc->blinkenLightsMode = blinkenlightsManager.getNextBlinkenlightsMode(cc->blinkenLightsMode);
+      spiffsStorage.saveConfigToSpiffs(cc);
+      displayMenu();
+      break;
+    }
+    case setNextACPMode: {
+      cc->acpMode = outputManager.getNextACPMode(cc->acpMode);
+      spiffsStorage.saveConfigToSpiffs(cc);
+      displayMenu();
+      break;
+    }
+    case setNextSlotsMode: {
+      cc->slotsMode = outputManager.getNextSlotsMode(cc->slotsMode);
       spiffsStorage.saveConfigToSpiffs(cc);
       displayMenu();
       break;
@@ -459,7 +480,6 @@ void flashMenuMessage(String heading, String message) {
 // called from main setup
 
 void setupMenuManager() {
-
   // configure gpio pins for rotary encoder
   pinMode(ENC_BTN, INPUT_PULLUP);
   pinMode(ENC_APin, INPUT);
@@ -530,7 +550,7 @@ void reUpdateButton() {
       if (rotaryEncoder.encoderPrevButton == rotaryEncoder.reButtonPressedState) {
         if (rotaryEncoder.reButtonDebounced == 0) {    // if the button has been pressed
           rotaryEncoder.reButtonPressed = 1;           // flag set when the button has been pressed
-          if (menuMode == off) mainMenu();          // if the display is off start the default menu
+          if (menuMode == off) mainMenu();             // if the display is off start the default menu
         }
         rotaryEncoder.reButtonDebounced = 1;           // debounced button status  (1 when pressed)
       } else {
@@ -550,28 +570,26 @@ void reUpdateButton() {
 // ----------------------------------------------------------------
 
 void serviceMenu() {
-  bool needUpdate = false;
-
   if (rotaryEncoder.encoder0Pos >= itemTrigger) {
     rotaryEncoder.encoder0Pos -= itemTrigger;
     oledMenu.highlightedMenuItem++;
     oledMenu.lastMenuActivity = nowMillis;
-    needUpdate = true;
+    oledMenu.needUpdate = true;
   }
   if (rotaryEncoder.encoder0Pos <= -itemTrigger) {
     rotaryEncoder.encoder0Pos += itemTrigger;
     oledMenu.highlightedMenuItem--;
     oledMenu.lastMenuActivity = nowMillis;
-    needUpdate = true;
+    oledMenu.needUpdate = true;
   }
   if (rotaryEncoder.reButtonPressed == 1) {
     oledMenu.selectedMenuItem = oledMenu.highlightedMenuItem;     // flag that the item has been selected
     oledMenu.lastMenuActivity = nowMillis;
-    needUpdate = true;
+    oledMenu.needUpdate = true;
     debugMsgMnm("menu '" + oledMenu.menuTitle + "' item '" + oledMenu.menuItems[oledMenu.highlightedMenuItem] + "' selected");
   }
 
-  if (needUpdate) {
+  if (oledMenu.needUpdate) {
     const int _centreLine = displayMaxLines / 2 + 1;    // mid list point
     oled.clearDisplay();
     oled.setTextColor(WHITE);
@@ -604,6 +622,7 @@ void serviceMenu() {
     }
 
     oled.outputDisplay();
+    oledMenu.needUpdate = false;
   }
 }
 
@@ -617,33 +636,30 @@ void serviceValue() {
     resetMenu();
   }
 
-  bool needUpdate = false;
-
-  // rotary encoder
   if (rotaryEncoder.encoder0Pos >= itemTrigger) {
     rotaryEncoder.encoder0Pos -= itemTrigger;
     oledMenu.mValueEntered-= oledMenu.mValueStep;
     oledMenu.lastMenuActivity = nowMillis;
-    needUpdate = true;
+    oledMenu.needUpdate = true;
   }
   if (rotaryEncoder.encoder0Pos <= -itemTrigger) {
     rotaryEncoder.encoder0Pos += itemTrigger;
     oledMenu.mValueEntered+= oledMenu.mValueStep;
     oledMenu.lastMenuActivity = nowMillis;
-    needUpdate = true;
+    oledMenu.needUpdate = true;
   }
   if (oledMenu.mValueEntered < oledMenu.mValueLow) {
     oledMenu.mValueEntered = oledMenu.mValueLow;
     oledMenu.lastMenuActivity = nowMillis;
-    needUpdate = true;
+    oledMenu.needUpdate = true;
   }
   if (oledMenu.mValueEntered > oledMenu.mValueHigh) {
     oledMenu.mValueEntered = oledMenu.mValueHigh;
     oledMenu.lastMenuActivity = nowMillis;
-    needUpdate = true;
+    oledMenu.needUpdate = true;
   }
 
-  if (needUpdate) {
+  if (oledMenu.needUpdate) {
     const int _valueSpacingX = 30;      // spacing for the displayed value y position
     const int _valueSpacingY = 5;       // spacing for the displayed value y position
     oled.clearDisplay();
@@ -671,6 +687,7 @@ void serviceValue() {
     oled.drawLine(0, oled.height()-1, Tlinelength, oled.height()-1, WHITE);
 
     oled.outputDisplay();
+    oledMenu.needUpdate = false;
   }
 
   reUpdateButton();        // check status of button
@@ -745,7 +762,7 @@ void resetMenu() {
   oledMenu.mValueEntered = 0;
   rotaryEncoder.reButtonPressed = 0;
 
-  oledMenu.lastMenuActivity = nowMillis;   // log time
+  oledMenu.lastMenuActivity = nowMillis;
 
   // clear oled display
   oled.blankDisplay();
@@ -798,6 +815,7 @@ void resetTimeouts() {
     resetDisplay = true;
   } else if (menuMode > off) {
     configTimeout = CONFIG_TIME;
+    oledMenu.needUpdate = true;
   }
   oledTimeout = OLED_ON_TIME;
 }

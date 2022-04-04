@@ -334,11 +334,11 @@ void OutputManager_::setCurrentTransition() {
           activeTransition = &transitionDummy;
           break;
         }
-      case SLOTS_MODE_WIPE_WIPE: {
+      case SLOTS_MODE_WIPE: {
           activeTransition = &transitionWipe;
           break;
         }
-      case SLOTS_MODE_BANG_BANG: {
+      case SLOTS_MODE_BANG: {
           activeTransition = &transitionBang;
           break;
         }
@@ -391,6 +391,86 @@ void OutputManager_::processStunts() {
     default:
       break;
   }
+}
+
+// ************************************************************
+// The number of the next ACP mode
+// ************************************************************
+byte OutputManager_::getNextACPMode(byte modeNumber) {
+  byte nextNodeNumber = modeNumber+1;
+  if (nextNodeNumber > ACP_MODE_MAX) {
+    nextNodeNumber = ACP_MODE_MIN;
+  }
+
+  return nextNodeNumber;
+}
+
+// ************************************************************
+// The name of the next ACP mode
+// ************************************************************
+String OutputManager_::getNextACPModeName(byte modeNumber) {
+  byte nextNodeNumber = modeNumber+1;
+  if (nextNodeNumber > ACP_MODE_MAX) {
+    nextNodeNumber = ACP_MODE_MIN;
+  }
+
+  switch (nextNodeNumber) {
+    case ACP_MODE_NONE: {
+      return "Off";
+      break;
+    }
+    case ACP_MODE_1M: {
+      return "1 Min";
+      break;
+    }
+    case ACP_MODE_10M: {
+      return "10 Min";
+      break;
+    }
+    case ACP_MODE_1H: {
+      return "1 Hour";
+      break;
+    }
+  } 
+  return "Unknown";
+}
+
+// ************************************************************
+// The number of the next Slots mode
+// ************************************************************
+byte OutputManager_::getNextSlotsMode(byte modeNumber) {
+  byte nextNodeNumber = modeNumber+1;
+  if (nextNodeNumber > SLOTS_MODE_MAX) {
+    nextNodeNumber = SLOTS_MODE_MIN;
+  }
+
+  return nextNodeNumber;
+}
+
+// ************************************************************
+// The name of the next ACP mode
+// ************************************************************
+String OutputManager_::getNextSlotsModeName(byte modeNumber) {
+  byte nextNodeNumber = modeNumber+1;
+  if (nextNodeNumber > SLOTS_MODE_MAX) {
+    nextNodeNumber = SLOTS_MODE_MIN;
+  }
+
+  switch (nextNodeNumber) {
+    case SLOTS_MODE_NONE: {
+      return "Off";
+      break;
+    }
+    case SLOTS_MODE_WIPE: {
+      return "Wipe";
+      break;
+    }
+    case SLOTS_MODE_BANG: {
+      return "Bang";
+      break;
+    }
+  } 
+  return "Unknown";
 }
 
 // ************************************************************

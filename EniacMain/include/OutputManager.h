@@ -99,6 +99,11 @@ class OutputManager_ {
     void triggerStunts();
     outputModes getOutputMode();
     void setOutputMode(outputModes newMode);
+
+    byte getNextACPMode(byte modeNumber);
+    String getNextACPModeName(byte modeNumber);
+    byte getNextSlotsMode(byte modeNumber);
+    String getNextSlotsModeName(byte modeNumber);
   private:
     int _acpOffset = 0;
     int _acpTick = 0;

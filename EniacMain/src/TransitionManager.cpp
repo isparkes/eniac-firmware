@@ -6,9 +6,9 @@
 
 #include "TransitionManager.h"
 
-Transition transitionWipe(800, 700, 2800, SLOTS_MODE_WIPE_WIPE, "Wipe");  // Wipe In / Wipe Out (DA2000-Transition.h)  
-Transition transitionBang(400, 400, 3200, SLOTS_MODE_BANG_BANG, "Bang");  // Bang In / Bang Out (DA2000-Transition.h)  
-Transition transitionDummy(0,    0,    0, SLOTS_MODE_NONE,      "None");  // Dummy transition for null pointer prevention
+Transition transitionWipe(800, 700, 2800, SLOTS_MODE_WIPE, "Wipe");  // Wipe In / Wipe Out (DA2000-Transition.h)  
+Transition transitionBang(400, 400, 3200, SLOTS_MODE_BANG, "Bang");  // Bang In / Bang Out (DA2000-Transition.h)  
+Transition transitionDummy(0,    0,    0, SLOTS_MODE_NONE, "None");  // Dummy transition for null pointer prevention
 Transition *activeTransition = &transitionDummy;                  // Pointer to selected transition object
 
 Transition::Transition(int effectInDuration, int effectOutDuration, int holdDuration, int selectedEffect, String name) {
@@ -43,10 +43,10 @@ void Transition::start(unsigned long now) {
 
 boolean Transition::runEffect(unsigned long now, boolean blankLeading) {
   switch (_selectedEffect) {
-    case SLOTS_MODE_WIPE_WIPE:
+    case SLOTS_MODE_WIPE:
       return wipeInWipeOut(now, blankLeading);
       break;
-    case SLOTS_MODE_BANG_BANG:
+    case SLOTS_MODE_BANG:
       return bangInBangOut(now);
       break;
     default:
