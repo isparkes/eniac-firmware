@@ -35,9 +35,7 @@ String BlinkenlightsManager_::getNextBlinkenlightsModeName(byte currentMode) {
 }
 
 void BlinkenlightsManager_::setBlinkenlightsMode(byte newMode) {
-  #ifdef DEBUG_ON
-  debugManager.debugMsg("Set BL Mode: " + String(newMode));
-  #endif
+  debugMsgBlm("Set BL Mode: " + String(newMode));
   cc->blinkenLightsMode = newMode;
 }
 

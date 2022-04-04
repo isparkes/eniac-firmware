@@ -487,13 +487,6 @@ void LEDManager_::adjustRGB(uint8_t red, uint8_t green, uint8_t blue, uint8_t& i
 	inv_blue = static_cast<uint8_t>(b * 255);
 }
 
-// ************************************************************
-// Output a logging message to the debug output
-// ************************************************************
-void LEDManager_::debugMsg(String message) {
-  debugManager.debugMsg("[LED]: " + message);
-}
-
 LEDManager_ &LEDManager_::getInstance() {
   static LEDManager_ instance;
   return instance;

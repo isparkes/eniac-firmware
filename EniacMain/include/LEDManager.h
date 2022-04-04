@@ -241,8 +241,6 @@ class LEDManager_
     void cycleColours3(int colors[3]);
     bool isSecondLED(byte index);
     void adjustRGB(uint8_t red, uint8_t green, uint8_t blue, uint8_t& inv_red, uint8_t& inv_green, uint8_t& inv_blue, double hueOffset);
-
-    void debugMsg(String message);                        // print a debug message to the callback
 };
 
 // ************************************************************

@@ -36,8 +36,6 @@ class SlaveManager_ {
   private:
     bool _slaveModeStatus;
     byte _slaveModeFailCount;
-
-    void debugMsg(String message);
 };
 
 extern SlaveManager_ &slaveManager;

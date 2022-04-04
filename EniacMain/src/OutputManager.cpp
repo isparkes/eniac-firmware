@@ -306,9 +306,7 @@ void OutputManager_::triggerStunts() {
     }
 
     if (_acpOffset != 0) {
-      #ifdef DEBUG_ON
-      debugMsg("Triggering ACP");
-      #endif
+      debugMsgOtm("Triggering ACP");
       _outputMode = acpMode;
     }
   }
@@ -316,9 +314,7 @@ void OutputManager_::triggerStunts() {
   if (cc->slotsMode > SLOTS_MODE_NONE) {
     // Initialise the slots transition values and start it
     if (second() == SLOTS_TRIGGER_SECOND) {
-      #ifdef DEBUG_ON
-      debugMsg("Triggering Slots mode: " + String(cc->slotsMode));
-      #endif
+      debugMsgOtm("Triggering Slots mode: " + String(cc->slotsMode));
 
       _outputMode = slotsMode;
       setCurrentTransition();
@@ -364,15 +360,12 @@ void OutputManager_::processStunts() {
         if (_acpTick >= ACP_TICKS_PER_DIGIT) {
           _acpTick = 0;
           _acpOffset++;
-          #ifdef DEBUG_ON
-          debugMsg("ACP: " + String(_acpOffset-2));
-          #endif
+
+          debugMsgOtm("ACP: " + String(_acpOffset-2));
           loadNumberArraySameValue(_acpOffset-2);
           if (_acpOffset == 12) {
             _acpOffset = 0;
-            #ifdef DEBUG_ON
-            debugMsg("ACP End");
-            #endif
+            debugMsgOtm("ACP End");
             _outputMode = timeMode;
           }
         } else {
@@ -383,9 +376,6 @@ void OutputManager_::processStunts() {
     }
     case slotsMode: {
       if (activeTransition->isMessageOnDisplay(nowMillis)) {
-        #ifdef DEBUG_ON
-        // debugMsg("Continuing slots");
-        #endif
         // Continue slots transition
         bool msgDisplaying = activeTransition->runEffect(nowMillis, cc->blankLeading);
         if (msgDisplaying) {
@@ -393,9 +383,7 @@ void OutputManager_::processStunts() {
         }
       } else {
         // We were in slots but now we're not, so that means the last call ended them
-        #ifdef DEBUG_ON
-        debugMsg("Ending slots");
-        #endif
+        debugMsgOtm("Ending slots");
         _outputMode = timeMode;
       }
       break;        
@@ -417,13 +405,6 @@ outputModes OutputManager_::getOutputMode() {
 // ************************************************************
 void OutputManager_::setOutputMode(outputModes newMode) {
   _outputMode = newMode;
-}
-
-// ************************************************************
-// Output a logging message to the debug output
-// ************************************************************
-void OutputManager_::debugMsg(String message) {
-  debugManager.debugMsg("[OUT]: " + message);
 }
 
 // ************************************************************

@@ -53,7 +53,6 @@ class TZManager_ {
     byte _primarysource = TIME_SOURCE_RTC;
 
     void setInternalTimeFromRTC();
-    void debugMsg(String message);
 };
 
 extern TZManager_ &tzManager;

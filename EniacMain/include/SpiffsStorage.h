@@ -100,8 +100,6 @@ class SpiffsStorage_
     JsonObject& getConfigAsJsonObject(spiffs_config_t* spiffs_config);
   private:
     bool _spiffsMounted = false;
-
-    void debugMsg(String message);
 };
 
 extern SpiffsStorage_ &spiffsStorage;

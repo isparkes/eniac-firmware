@@ -40,66 +40,48 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
   switch (event)
   {
   case SYSTEM_EVENT_STA_START:
-    #ifdef DEBUG_ON
     debugMsgWfm("Station Mode Started");
-    #endif
     break;
   case SYSTEM_EVENT_AP_START:
-    #ifdef DEBUG_ON
     debugMsgWfm("AP Mode Started");
-    #endif
     startWiFiServicesPortal();
     break;
   case SYSTEM_EVENT_STA_GOT_IP:
-    #ifdef DEBUG_ON
     debugMsgWfm("Connected to:" + WiFi.SSID() + ", password: " + WiFi.psk());
     debugMsgWfm("IP Address: " + WiFi.localIP().toString());
     debugMsgWfm("MAC Address: " + WiFi.macAddress());
     debugMsgWfm("Host name: " + String(WiFi.getHostname()));
-    #endif
     saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
     startWiFiServices();
     flashMenuMessage("WiFi Status", "WiFi connected to\nSSID:\n"+WiFi.SSID());
     break;
   case SYSTEM_EVENT_STA_DISCONNECTED:
-    #ifdef DEBUG_ON 
     debugMsgWfm("Disconnected from station");
-    #endif
     if (doAutoReconnect) {
-      #ifdef DEBUG_ON 
       debugMsgWfm("autoreconnect on, trying reconnect");
-      #endif
       WiFi.reconnect();
     }
     break;
   case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
-    #ifdef DEBUG_ON
     debugMsgWfm("WPS Successfull, saving credentials. SSID: |" + WiFi.SSID() + "| password: |" + WiFi.psk() + "|");
-    #endif
     saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
     esp_wifi_wps_disable();
     flashMenuMessage("WPS Status", "WPS was successful\nPassword:\n"+WiFi.psk());
     break;
   case SYSTEM_EVENT_STA_WPS_ER_FAILED:
-    #ifdef DEBUG_ON
     debugMsgWfm("WPS Failed, retrying");
-    #endif
     esp_wifi_wps_disable();
     esp_wifi_wps_enable(&wps_config);
     esp_wifi_wps_start(0);
     break;
   case SYSTEM_EVENT_STA_WPS_ER_TIMEOUT:
-    #ifdef DEBUG_ON
     debugMsgWfm("WPS Timedout, retrying");
-    #endif
     esp_wifi_wps_disable();
     esp_wifi_wps_enable(&wps_config);
     esp_wifi_wps_start(0);
     break;
   case SYSTEM_EVENT_SCAN_DONE:
-    #ifdef DEBUG_ON
     debugMsgWfm("Scan complete");
-    #endif
     processScanResults();
     break;
   default:
@@ -114,9 +96,7 @@ void setUpWiFi() {
   mac.replace(":","");
   uniqHostname = "ESP32-"+mac.substring(6);
 
-  #ifdef DEBUG_ON
   debugMsgWfm("Unique hostname: " + uniqHostname);
-  #endif
   WiFi.setHostname(uniqHostname.c_str());
 }
 
@@ -133,15 +113,11 @@ void startScanWiFiNetworks() {
 void processScanResults() {
   int n = WiFi.scanComplete();
   if (n == 0) {
-    #ifdef DEBUG_ON
     debugMsgWfm("no networks found");
-    #endif
     flashMenuMessage("Scan Done", "No WiFi\nnetworks\nfound.");
   } else {
-    #ifdef DEBUG_ON
     debugMsgWfm("");
     debugMsgWfm(String(n) + " networks found");
-    #endif
     flashMenuMessage("Scan Done", "Found\n" + String(n) + "\nnetworks.");
     String result = "";
     for (int i = 0; i < n; ++i) {
@@ -159,12 +135,19 @@ void processScanResults() {
       }
       result = result + WiFi.SSID(i);
     }
-    #ifdef DEBUG_ON
     debugMsgWfm("Returning network list: " + result);
-    #endif
     lastWiFiScan = result;
   }
 }
+
+int getLastScanResultCount() {
+  return WiFi.scanComplete();
+}
+
+String getLastScanResultSSID(int index) {
+  return WiFi.SSID(index);
+}
+
 
 // http://www.iotsharing.com/2017/05/how-to-use-smartconfig-on-esp32.html
 void startSmartConfig() {
@@ -178,9 +161,7 @@ void startSmartConfig() {
 
 void connectToLastAP() {
   if(wifiCredentialsReceived()) {
-    #ifdef DEBUG_ON
     debugMsgWfm("Trying to reconnect to last known AP");
-    #endif
     flashMenuMessage("Reconnect","Reconnecting to:\nSSID:\n" + cc->WiFiSSID + "\n");
     wifiBeginWithCredentials();
   }
@@ -191,9 +172,7 @@ bool connectWithWPS() {
   doAutoReconnect = true;
 
   if (WiFi.status() != WL_CONNECTED) {
-    #ifdef DEBUG_ON
     debugMsgWfm("Connect using WPS");
-    #endif
     // ToDo show this status better
     flashMenuMessage("WPS", "Connect using WPS");
 
@@ -203,20 +182,14 @@ bool connectWithWPS() {
     wpsInitConfig();
 
     esp_err_t retCodeEnable = esp_wifi_wps_enable(&wps_config);
-    #ifdef DEBUG_ON
     debugMsgWfm("WPS Enable Result: " + String(retCodeEnable));
-    #endif
 
     esp_err_t retCodeStart = esp_wifi_wps_start(0);
-    #ifdef DEBUG_ON
     debugMsgWfm("WPS Start Result: " + String(retCodeStart));
-    #endif
 
     return (retCodeEnable == 0 && retCodeStart == 0);
   } else {
-    #ifdef DEBUG_ON
     debugMsgWfm("Already connected, won't do WPS");
-    #endif
     return false;
   }
 }
@@ -227,23 +200,17 @@ void openAccessPortal() {
     // preload the wifi list 
     startScanWiFiNetworks();
 
-    #ifdef DEBUG_ON
     debugMsgWfm("");
     debugMsgWfm("Portal mode");
-    #endif
     WiFi.disconnect();
     delay(100);
     WiFi.mode(WIFI_AP_STA);
     delay(100);
-    #ifdef DEBUG_ON
     debugMsgWfm("Setting soft-AP configuration ... ");
-    #endif
     WiFi.softAP(uniqHostname.c_str());
     delay(100);
-    #ifdef DEBUG_ON
     debugMsgWfm("Soft-AP IP address = ");
     debugMsgWfm(WiFi.softAPIP().toString());
-    #endif
     flashMenuMessage("Portal", "Opened access\nportal at\nIP: " + WiFi.softAPIP().toString());
   }
 }
@@ -251,9 +218,7 @@ void openAccessPortal() {
 void startMDNS() {
   // The MDNS host name does not seem to work at the moment - it is being set by OTA
   if(!MDNS.begin(uniqHostname.c_str())) {
-      #ifdef DEBUG_ON
       debugMsgWfm("Error starting mDNS");
-      #endif
       return;
   }
 
@@ -264,44 +229,31 @@ void startWiFiServices() {
   if (WiFi.isConnected()) {
     // -------------------------------------------------------------------------
 
-    #ifdef DEBUG_ON
     debugMsgWfm("Start up NTP Time Updates...");
-    #endif
     nowMillis = millis();
     ntpManager.getTimeFromNTP();
 
     // -------------------------------------------------------------------------
 
-    #ifdef DEBUG_ON
     debugMsgWfm("Start up WebServer" );
-    #endif
-
     webManager.begin();
 
     // -------------------------------------------------------------------------
     
-    #ifdef DEBUG_ON
     debugMsgWfm("Start up OTA");
-    #endif
     webManager.startOTA();
 
     // -------------------------------------------------------------------------
     
-    #ifdef DEBUG_ON
     debugMsgWfm("Start up mDNS on http://" + String(WiFi.getHostname()) + ".local");
-    #endif
     startMDNS();
   } else {
-    #ifdef DEBUG_ON
     debugMsgWfm("No WiFi, skipping web services startup");
-    #endif
   }
 }
 
 void startWiFiServicesPortal() {
-  #ifdef DEBUG_ON
   debugMsgWfm("Start up WebServer for Portal services" );
-  #endif
 
   webManager.beginPortal();
 }
@@ -319,20 +271,14 @@ void saveWiFiCredentials(String newWiFiSSID, String newWiFiPassword) {
       cc->WiFiPassword != newWiFiPassword) && 
       newWiFiSSID.length() > 0 &&
       newWiFiPassword.length() > 0) {
-    #ifdef DEBUG_ON
     debugMsgWfm("Updating stored WiFi credentials");
-    #endif
     cc->WiFiSSID = newWiFiSSID;
     cc->WiFiPassword = newWiFiPassword;
     cc->WifiOnAtStart = true;
     spiffsStorage.saveConfigToSpiffs(cc);
-    #ifdef DEBUG_ON
     debugMsgWfm("Saved WiFi credentials");
-    #endif
   } else {
-    #ifdef DEBUG_ON
     debugMsgWfm("No changes to WiFi credentials saved");
-    #endif
   }
 }
 

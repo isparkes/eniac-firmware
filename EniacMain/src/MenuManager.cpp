@@ -19,6 +19,8 @@ enum menuTargets {
   openAccessPoint,
   getSSIDList,
   smartConfig,
+  scanWiFi,
+  showWifiSelection,
   
   toggleTubeDimming,
   toggleBLDimming,
@@ -91,12 +93,6 @@ static bool resetDisplay;
 //                                         menus below here
 // -------------------------------------------------------------------------------------------------
 
-#ifdef DEBUG_ON
-void debugMsgMM(String message) {
-  debugManager.debugMsg("[MNM]: " + message);
-}
-#endif
-
 void mainMenu() {
   resetMenu();
   byte menuCount = 1;
@@ -138,6 +134,8 @@ void wifiMenu() {
     oledMenu.menuItems[menuCount] = "Select SSID";        oledMenu.menuActions[menuCount++] = getSSIDList;
     oledMenu.menuItems[menuCount] = "Enter password";     oledMenu.menuActions[menuCount++] = unmappedOption;
     oledMenu.menuItems[menuCount] = onOffMsg;             oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
+    oledMenu.menuItems[menuCount] = "Scan Wifi";          oledMenu.menuActions[menuCount++] = scanWiFi;
+    oledMenu.menuItems[menuCount] = "Select WiFi";        oledMenu.menuActions[menuCount++] = showWifiSelection;
     oledMenu.menuItems[menuCount] = "reset WiFi";         oledMenu.menuActions[menuCount++] = resetWiFiInfo;
     oledMenu.menuItems[menuCount] = "Back";               oledMenu.menuActions[menuCount++] = backToMain;
   }
@@ -190,6 +188,21 @@ void displayMenu() {
   oledMenu.noOfmenuItems = --menuCount;
 }
 
+void wifiSelectMenu() {
+  resetMenu();
+  menuMode = menu;
+  byte menuCount = 1;
+  oledMenu.menuTitle = "Select network";
+
+  debugMsgMnm("Last result: " + String(getLastScanResultCount()));
+
+  for (int i = 0; i < getLastScanResultCount() ; i++) {
+    oledMenu.menuItems[menuCount] = getLastScanResultSSID(i);   oledMenu.menuActions[menuCount++] = startSlave;
+  }
+  oledMenu.menuItems[menuCount] = "Back";                       oledMenu.menuActions[menuCount++] = backToMain;
+  oledMenu.noOfmenuItems = --menuCount;
+}
+
 // actions for menu selections are put in here
 void menuActions(menuTargets selectedAction) {
   switch (selectedAction) {
@@ -197,9 +210,7 @@ void menuActions(menuTargets selectedAction) {
       break;
     }
     case unmappedOption: {
-      #ifdef DEBUG_ON
-      debugMsgMM("Unmapped option");
-      #endif
+      debugMsgMnm("Unmapped option");
       mainMenu();
       break;
     }
@@ -247,6 +258,15 @@ void menuActions(menuTargets selectedAction) {
     case resetWiFiInfo: {
       resetWiFi();
       wifiMenu();
+      break;
+    }
+    case scanWiFi: {
+      startScanWiFiNetworks();
+      wifiMenu();
+      break;
+    }
+    case showWifiSelection: {
+      wifiSelectMenu();
       break;
     }
     case connectWPS: {
@@ -352,7 +372,7 @@ void menuActions(menuTargets selectedAction) {
 
     // // demonstrate usage of 'enter a value' (none blocking)
     // if (oledMenu.selectedMenuItem == 5) {
-    //   debugMsgMM("demo_menu: none blocking enter value");
+    //   debugMsgMnm("demo_menu: none blocking enter value");
     // }
 
     // // demonstrate selecting between 2 options only
@@ -363,14 +383,14 @@ void menuActions(menuTargets selectedAction) {
 
     // // demonstrate usage of 'enter a value' (none blocking)
     // if (oledMenu.selectedMenuItem == 5) {
-    //   debugMsgMM("demo_menu: none blocking enter value");
+    //   debugMsgMnm("demo_menu: none blocking enter value");
     //   resetMenu();
     //   value1();       // enter a value
     // }
 
     // // demonstrate usage of 'enter a value' (blocking) which is quick and easy but stops all other tasks until the value is entered
     // if (oledMenu.selectedMenuItem == 6) {
-    //   debugMsgMM("demo_menu: blocking enter a value");
+    //   debugMsgMnm("demo_menu: blocking enter a value");
     //   // set perameters
     //     resetMenu();
     //     menuMode = value;
@@ -380,7 +400,7 @@ void menuActions(menuTargets selectedAction) {
     //     oledMenu.mValueStep = 1;
     //     oledMenu.mValueEntered = 5;
     //   int tEntered = serviceValue(1);      // request value
-    //   debugMsgMM("The value entered was " + String(tEntered));
+    //   debugMsgMnm("The value entered was " + String(tEntered));
     //   defaultMenu();
     // }
 
@@ -409,18 +429,14 @@ void menuValues() {
   // action for "demo_value"
   if (oledMenu.menuTitle == "demo_value") {
     String tString = String(oledMenu.mValueEntered);
-    #ifdef DEBUG_ON
-    debugMsgMM("demo_value: The value entered was " + tString);
-    #endif
+    debugMsgMnm("demo_value: The value entered was " + tString);
     displayMessage("ENTERED", "\nYou entered\nthe value\n    " + tString);
     // alternatively use 'resetMenu()' here to turn menus off after value entered - or use 'defaultMenu()' to re-start the default menu
   }
 
   // action for "on or off"
   if (oledMenu.menuTitle == "on or off") {
-    #ifdef DEBUG_ON
-    debugMsgMM("demo_menu: on off selection was " + String(oledMenu.mValueEntered));
-    #endif
+    debugMsgMnm("demo_menu: on off selection was " + String(oledMenu.mValueEntered));
     mainMenu();
   }
 }
@@ -471,7 +487,7 @@ void menuLoop() {
     resetDisplay = false;
   }
 
-// debugMsgMM("Mode: " + String(menuMode));
+// debugMsgMnm("Mode: " + String(menuMode));
   // if no recent activity then turn oled off
     if ( configTimeout == 0 ) {
       resetMenu();
@@ -488,9 +504,7 @@ void menuLoop() {
       case value:
         serviceValue();
         if (rotaryEncoder.reButtonPressed) {
-          #ifdef DEBUG_ON
-          debugMsgMM("Button pressed: value: "+ String(oledMenu.mValueEntered));
-          #endif
+          debugMsgMnm("Button pressed: value: "+ String(oledMenu.mValueEntered));
           rotaryEncoder.reButtonPressed = 0;
           menuActions(oledMenu.nextTarget);
         }
@@ -503,7 +517,7 @@ void menuLoop() {
       default:
         break;
     }
-}  // oledLoop
+}  // menuLoop
 
 // ----------------------------------------------------------------
 //                   -button debounce (rotary encoder)
@@ -537,57 +551,61 @@ void reUpdateButton() {
 // ----------------------------------------------------------------
 
 void serviceMenu() {
-  // rotary encoder
+  bool needUpdate = false;
+
   if (rotaryEncoder.encoder0Pos >= itemTrigger) {
     rotaryEncoder.encoder0Pos -= itemTrigger;
     oledMenu.highlightedMenuItem++;
-    oledMenu.lastMenuActivity = nowMillis;   // log time
+    oledMenu.lastMenuActivity = nowMillis;
+    needUpdate = true;
   }
   if (rotaryEncoder.encoder0Pos <= -itemTrigger) {
     rotaryEncoder.encoder0Pos += itemTrigger;
     oledMenu.highlightedMenuItem--;
-    oledMenu.lastMenuActivity = nowMillis;   // log time
+    oledMenu.lastMenuActivity = nowMillis;
+    needUpdate = true;
   }
   if (rotaryEncoder.reButtonPressed == 1) {
     oledMenu.selectedMenuItem = oledMenu.highlightedMenuItem;     // flag that the item has been selected
-    oledMenu.lastMenuActivity = nowMillis;   // log time
-    #ifdef DEBUG_ON
-    debugMsgMM("menu '" + oledMenu.menuTitle + "' item '" + oledMenu.menuItems[oledMenu.highlightedMenuItem] + "' selected");
-    #endif
+    oledMenu.lastMenuActivity = nowMillis;
+    needUpdate = true;
+    debugMsgMnm("menu '" + oledMenu.menuTitle + "' item '" + oledMenu.menuItems[oledMenu.highlightedMenuItem] + "' selected");
   }
 
-  const int _centreLine = displayMaxLines / 2 + 1;    // mid list point
-  oled.clearDisplay();
-  oled.setTextColor(WHITE);
+  if (needUpdate) {
+    const int _centreLine = displayMaxLines / 2 + 1;    // mid list point
+    oled.clearDisplay();
+    oled.setTextColor(WHITE);
 
-  // verify valid highlighted item
-  if (oledMenu.highlightedMenuItem > oledMenu.noOfmenuItems) oledMenu.highlightedMenuItem = oledMenu.noOfmenuItems;
-  if (oledMenu.highlightedMenuItem < 1) oledMenu.highlightedMenuItem = 1;
+    // verify valid highlighted item
+    if (oledMenu.highlightedMenuItem > oledMenu.noOfmenuItems) oledMenu.highlightedMenuItem = oledMenu.noOfmenuItems;
+    if (oledMenu.highlightedMenuItem < 1) oledMenu.highlightedMenuItem = 1;
 
-  // title
-  oled.setCursor(0, 0);
-  if (menuLargeText) {
-    oled.setTextSize(2);
-    oled.println(oledMenu.menuItems[oledMenu.highlightedMenuItem].substring(0, MaxmenuTitleLength));
-  } else {
-    if (oledMenu.menuTitle.length() > MaxmenuTitleLength) oled.setTextSize(1);
-    else oled.setTextSize(2);
-    oled.println(oledMenu.menuTitle);
+    // title
+    oled.setCursor(0, 0);
+    if (menuLargeText) {
+      oled.setTextSize(2);
+      oled.println(oledMenu.menuItems[oledMenu.highlightedMenuItem].substring(0, MaxmenuTitleLength));
+    } else {
+      if (oledMenu.menuTitle.length() > MaxmenuTitleLength) oled.setTextSize(1);
+      else oled.setTextSize(2);
+      oled.println(oledMenu.menuTitle);
+    }
+    oled.drawLine(0, topLine-1, oled.width(), topLine-1, WHITE);       // draw horizontal line under title
+
+    // menu
+    oled.setTextSize(1);
+    oled.setCursor(0, topLine);
+    for (int i=1; i <= displayMaxLines; i++) {
+      int item = oledMenu.highlightedMenuItem - _centreLine + i;
+      if (item == oledMenu.highlightedMenuItem) oled.setTextColor(BLACK, WHITE);
+      else oled.setTextColor(WHITE);
+      if (item > 0 && item <= oledMenu.noOfmenuItems) oled.println(oledMenu.menuItems[item]);
+      else oled.println(" ");
+    }
+
+    oled.outputDisplay();
   }
-  oled.drawLine(0, topLine-1, oled.width(), topLine-1, WHITE);       // draw horizontal line under title
-
-  // menu
-  oled.setTextSize(1);
-  oled.setCursor(0, topLine);
-  for (int i=1; i <= displayMaxLines; i++) {
-    int item = oledMenu.highlightedMenuItem - _centreLine + i;
-    if (item == oledMenu.highlightedMenuItem) oled.setTextColor(BLACK, WHITE);
-    else oled.setTextColor(WHITE);
-    if (item > 0 && item <= oledMenu.noOfmenuItems) oled.println(oledMenu.menuItems[item]);
-    else oled.println(" ");
-  }
-
-  oled.outputDisplay();
 }
 
 
@@ -599,54 +617,62 @@ void serviceValue() {
   if (configTimeout == 0) {
     resetMenu();
   }
-  const int _valueSpacingX = 30;      // spacing for the displayed value y position
-  const int _valueSpacingY = 5;       // spacing for the displayed value y position
+
+  bool needUpdate = false;
 
   // rotary encoder
   if (rotaryEncoder.encoder0Pos >= itemTrigger) {
     rotaryEncoder.encoder0Pos -= itemTrigger;
     oledMenu.mValueEntered-= oledMenu.mValueStep;
     oledMenu.lastMenuActivity = nowMillis;
+    needUpdate = true;
   }
   if (rotaryEncoder.encoder0Pos <= -itemTrigger) {
     rotaryEncoder.encoder0Pos += itemTrigger;
     oledMenu.mValueEntered+= oledMenu.mValueStep;
     oledMenu.lastMenuActivity = nowMillis;
+    needUpdate = true;
   }
   if (oledMenu.mValueEntered < oledMenu.mValueLow) {
     oledMenu.mValueEntered = oledMenu.mValueLow;
     oledMenu.lastMenuActivity = nowMillis;
+    needUpdate = true;
   }
   if (oledMenu.mValueEntered > oledMenu.mValueHigh) {
     oledMenu.mValueEntered = oledMenu.mValueHigh;
     oledMenu.lastMenuActivity = nowMillis;
+    needUpdate = true;
   }
 
-  oled.clearDisplay();
-  oled.setTextColor(WHITE);
+  if (needUpdate) {
+    const int _valueSpacingX = 30;      // spacing for the displayed value y position
+    const int _valueSpacingY = 5;       // spacing for the displayed value y position
+    oled.clearDisplay();
+    oled.setTextColor(WHITE);
 
-  // title
-  oled.setCursor(0, 0);
-  if (oledMenu.menuTitle.length() > MaxmenuTitleLength) oled.setTextSize(1);
-  else oled.setTextSize(2);
-  oled.println(oledMenu.menuTitle);
-  oled.drawLine(0, topLine-1, oled.width(), topLine-1, WHITE);       // draw horizontal line under title
+    // title
+    oled.setCursor(0, 0);
+    if (oledMenu.menuTitle.length() > MaxmenuTitleLength) oled.setTextSize(1);
+    else oled.setTextSize(2);
+    oled.println(oledMenu.menuTitle);
+    oled.drawLine(0, topLine-1, oled.width(), topLine-1, WHITE);       // draw horizontal line under title
 
-  // value selected
-  oled.setCursor(_valueSpacingX, topLine + _valueSpacingY);
-  oled.setTextSize(3);
-  oled.println(String(oledMenu.mValueEntered));
+    // value selected
+    oled.setCursor(_valueSpacingX, topLine + _valueSpacingY);
+    oled.setTextSize(3);
+    oled.println(String(oledMenu.mValueEntered));
 
-  // range
-  oled.setCursor(0, oled.height() - lineSpace1 - 1 );   // bottom of display
-  oled.setTextSize(1);
-  oled.println(String(oledMenu.mValueLow) + " to " + String(oledMenu.mValueHigh));
+    // range
+    oled.setCursor(0, oled.height() - lineSpace1 - 1 );   // bottom of display
+    oled.setTextSize(1);
+    oled.println(String(oledMenu.mValueLow) + " to " + String(oledMenu.mValueHigh));
 
-  // bar
-  int Tlinelength = map(oledMenu.mValueEntered, oledMenu.mValueLow, oledMenu.mValueHigh, 0 , oled.width());
-  oled.drawLine(0, oled.height()-1, Tlinelength, oled.height()-1, WHITE);
+    // bar
+    int Tlinelength = map(oledMenu.mValueEntered, oledMenu.mValueLow, oledMenu.mValueHigh, 0 , oled.width());
+    oled.drawLine(0, oled.height()-1, Tlinelength, oled.height()-1, WHITE);
 
-  oled.outputDisplay();
+    oled.outputDisplay();
+  }
 
   reUpdateButton();        // check status of button
 }
@@ -769,9 +795,7 @@ void ICACHE_RAM_ATTR doEncoder() {
 void resetTimeouts() {
   // first press: wake up
   if (oledTimeout == 0) {
-    #ifdef DEBUG_ON
-    debugMsgMM("OLED: ON");
-    #endif
+    debugMsgMnm("OLED: ON");
     resetDisplay = true;
   } else if (menuMode > off) {
     configTimeout = CONFIG_TIME;
@@ -800,9 +824,7 @@ void countdownMenuTimeouts() {
     oledTimeout--;
     if (oledTimeout == 0) {
       oled.blankDisplay();
-      #ifdef DEBUG_ON
-      debugMsgMM("OLED: OFF");
-      #endif
+      debugMsgMnm("OLED: OFF");
     }
   }
 }

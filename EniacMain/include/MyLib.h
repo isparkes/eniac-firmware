@@ -19,7 +19,6 @@ class MyLib_ {
     void begin();
     void doStuff();
   private:
-    void debugMsg(String message);                        // print a debug message to the callback
 };
 
 extern MyLib_ &MyLib;

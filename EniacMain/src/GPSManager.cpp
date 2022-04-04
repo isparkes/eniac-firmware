@@ -41,9 +41,7 @@ bool GPSManager_::parseGPZDAMsgToUTCTime(String messageToParse) {
 
     tReceived = mktime(&whenStart) + tzManager.getCurrentUTCOffset();
 
-    #ifdef DEBUG_ON
-    debugMsg("Received GPS update U--> " + tzManager.gmtimeToReadableString(tReceived));
-    #endif
+    debugMsgGps("Received GPS update U--> " + tzManager.gmtimeToReadableString(tReceived));
 
     tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_GPS, nowMillis, tReceived);
 
@@ -67,9 +65,7 @@ void GPSManager_::parseNMEAMsg(char c) {
       if (lastMessage.indexOf("$GPZDA") >= 0) {
         _lastGPSTimeRaw = lastMessage;
         _lastGPSSyncTime = nowMillis;
-        #ifdef DEBUG_ON 
-        debugMsg("Got GPS ZDA msg: " + lastMessage);
-        #endif
+        debugMsgGps("Got GPS ZDA msg: " + lastMessage);
         if(parseGPZDAMsgToUTCTime(lastMessage)) {
           _lastGPSReadTime = nowMillis;
         }
@@ -89,12 +85,6 @@ void GPSManager_::parseNMEAMsg(char c) {
   }
 }
 
-// ************************************************************
-// Output a logging message to the debug output
-// ************************************************************
-void GPSManager_::debugMsg(String message) {
-  debugManager.debugMsg("[GPS]: " + message);
-}
 // ************************************************************
 // Get if we are still in the GPS valid time
 // ************************************************************

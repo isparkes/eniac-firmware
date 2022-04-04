@@ -17,32 +17,19 @@
 #include "WiFiManager.h"
 #include "OutputManager.h"
 
-void debugMsg(String message) {
-  #ifdef DEBUG_ON
-  debugManager.debugMsg("[LNC]: " + message);
-  #endif
-}
-
-void debugMsgCont(String message) {
-  #ifdef DEBUG_ON
-  debugManager.debugMsgCont("[LNC]: " + message);
-  #endif
-}
-
 void setup()
 {
   // -------------------------------------------------------------------------
 
   #ifdef DEBUG_ON
-  debugMsg("Start up Serial...");
   Serial.begin(SERIAL_BAUD_RATE);
   #endif
 
+  debugMsgMain("Start up Serial...");
+
   // -------------------------------------------------------------------------
 
-  #ifdef DEBUG_ON
-  debugMsg((("Start up GPIOs")));
-  #endif
+  debugMsgMain("Start up GPIOs");
   pinMode(LED_PIN, OUTPUT);
 
   pinMode(CLKPin, OUTPUT);
@@ -66,15 +53,12 @@ void setup()
 
   // -------------------------------------------------------------------------
 
-  #ifdef DEBUG_ON
-  debugMsg("Start up output manager" );
-  #endif
+  debugMsgMain("Start up output manager");
 
   // -------------------------------------------------------------------------
 
-  #ifdef DEBUG_ON
-  debugMsg("Start up Timers" );
-  #endif
+  debugMsgMain("Start up Timers");
+
   // Starts the display and the status LED flashing
   startTimers();
 
@@ -94,51 +78,37 @@ void setup()
   // -------------------------------------------------------------------------
   
   // Default pins SDA 21, SCL 22 Frequency 400kHz 
-  #ifdef DEBUG_ON
-  debugMsg("Start up I2C...");
-  #endif
+  debugMsgMain("Start up I2C...");
   Wire.begin(SDAint, SCLint, 400000L);
 
   // -------------------------------------------------------------------------
   
-  #ifdef DEBUG_ON
-  debugMsg("Starting OLED");
-  #endif
+  debugMsgMain("Starting OLED");
   oled.setUp();
   oled.clearDisplay();
   flashMenuMessage("ENIAC", "Starting");
 
   // -------------------------------------------------------------------------
 
-  #ifdef DEBUG_ON
-  debugMsg("Start up neopixels");
-  #endif
+  debugMsgMain("Start up neopixels");
   ledManager.setUp();
   ledManager.setLDRRange(LDR_VALUE_MAX);
 
   // -------------------------------------------------------------------------
   
-  #ifdef DEBUG_ON
-  debugMsg("Start up SPIFFS");
-  #endif
+  debugMsgMain("Start up SPIFFS");
 
   // Initialize SPIFFS
   if(!SPIFFS.begin(true)){
-    #ifdef DEBUG_ON
-    debugMsg("An Error has occurred while mounting SPIFFS");
-    #endif
+    debugMsgMain("An Error has occurred while mounting SPIFFS");
     return;
   }
 
-  #ifdef DEBUG_ON
-  debugMsg("Startup SPIFFS storage");
-  #endif
+  debugMsgMain("Startup SPIFFS storage");
   bool statsLoaded = spiffsStorage.getStatsFromSpiffs(cs);
 
   if (!statsLoaded) {
-    #ifdef DEBUG_ON
-    debugMsg("SPIFFS storage: read stats failed");
-    #endif
+    debugMsgMain("SPIFFS storage: read stats failed");
     spiffsStorage.saveStatsToSpiffs(cs);
   }
 
@@ -148,60 +118,40 @@ void setup()
     ntpManager.setNtpPool(cc->ntpPool);
     ntpManager.setUpdateInterval(cc->ntpUpdateInterval);
   } else {
-    #ifdef DEBUG_ON
-    debugMsg("SPIFFS storage: read config failed - do factory reset");
-    #endif
+    debugMsgMain("SPIFFS storage: read config failed - do factory reset");
     resetOptions();
   }
 
   // -------------------------------------------------------------------------
 
-  #ifdef DEBUG_ON
-  debugMsg("Initialising WiFi");
-  #endif
+  debugMsgMain("Initialising WiFi");
   setUpWiFi();
 
   if (cc->WifiOnAtStart && wifiCredentialsReceived()) {
-    #ifdef DEBUG_ON
-    debugMsg("Starting WiFi");
-    #endif
+    debugMsgMain("Starting WiFi");
     flashMenuMessage("WiFi", "Starting WiFi");
 
-    #ifdef DEBUG_ON
-    debugMsg("Connecting to previous AP");
-    #endif
+    debugMsgMain("Connecting to previous AP");
     
     connectToLastAP();
   } else {
     if (!cc->WifiOnAtStart) {
-      #ifdef DEBUG_ON
-      debugMsg("Skipping connect to previous AP - told not to");
-      #endif
+      debugMsgMain("Skipping connect to previous AP - told not to");
     } else if (!wifiCredentialsReceived()) {
-      #ifdef DEBUG_ON
-      debugMsg("Skipping connect to previous AP - no AP defined");
-      #endif
+      debugMsgMain("Skipping connect to previous AP - no AP defined");
     }
   }
 
   // -------------------------------------------------------------------------
   
-  #ifdef DEBUG_ON
-  debugMsg("Start up TZM" );
-  #endif
-
+  debugMsgMain("Start up TZM" );
   tzManager.setTZS(cc->tzs);
 
   // -------------------------------------------------------------------------
   
-  #ifdef DEBUG_ON
-  debugMsg("Start up RTC...");
-  #endif
-
+  debugMsgMain("Start up RTC...");
   if (rtcManager.testRTCTimeProvider()) {
-    #ifdef DEBUG_ON
-    debugMsg("RTC found");
-    #endif
+    debugMsgMain("RTC found");
 
     // first time let's us figure out the UTC offset
     time_t rtctime = rtcManager.getRTCTimeAsTimeT();
@@ -213,9 +163,7 @@ void setup()
     tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtctime);
     tzManager.calculateCurrentOffsetFromTimeT();
   } else {
-    #ifdef DEBUG_ON
-    debugMsg("RTC NOT found");
-    #endif
+    debugMsgMain("RTC NOT found");
   }
 
   // Start showing the time now that we have something to say
@@ -223,47 +171,30 @@ void setup()
 
   // -------------------------------------------------------------------------
   
-  #ifdef DEBUG_ON
-  debugMsg("Initialising NTP" );
-  #endif
-
+  debugMsgMain("Initialising NTP" );
   NewTimeCallback ntcb = newTimeUpdateReceived;
   ntpManager.setNewTimeCallback(ntcb);
 
   // -------------------------------------------------------------------------
   
-  #ifdef DEBUG_ON
-  debugMsg("Initialising GPS" );
-  #endif
-
+  debugMsgMain("Initialising GPS" );
   gpsManager.setUp();
 
   // -------------------------------------------------------------------------
   
-  #ifdef DEBUG_ON
-  debugMsg("Start up Menu Manager...");
-  #endif
-  #ifdef DEBUG_ON
-//  encoderManager.setDebugCallback(dbcb);
-//  encoderManager.setDebugOutput(false);
-  #endif
-
+  debugMsgMain("Start up Menu Manager...");
   setupMenuManager();
 
   // -------------------------------------------------------------------------
   
-  #ifdef DEBUG_ON
-  debugMsg("Start up LDR...");
-  #endif
+  debugMsgMain("Start up LDR...");
   // Not managing sensorSmoothCountLDR yet
   cc->sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
   ldrManager.setUp();
 
   // -------------------------------------------------------------------------
   
-  #ifdef DEBUG_ON
-  debugMsg("Start up Blanking");
-  #endif
+  debugMsgMain("Start up Blanking");
   blankingManager.begin();
 
   // -------------------------------------------------------------------------
@@ -279,9 +210,7 @@ void setup()
   delay(2000);
 
   // -------------------------------------------------------------------------
-  #ifdef DEBUG_ON
-  debugMsg("Start up WDT...");
-  #endif
+  debugMsgMain("Start up WDT...");
   enableWatchdog();
 }
 
@@ -454,12 +383,6 @@ void performOncePerSecondProcessing() {
   } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
     int rawEncPos = getCurrentEncoderPos()/2;
     while (rawEncPos < 0) rawEncPos+=60; 
-    #ifdef DEBUG_ON
-    // int burnVal = rawEncPos % 60;
-    // debugMsg("DIGIT BURN Value: " + String(burnVal));
-    // debugMsg("-> Val: " + String(burnVal % 10));
-    // debugMsg("-> Dig: " + String(burnVal / 10));
-    #endif
   }
   #else
   if (outputManager.getOutputMode() == timeMode) {
@@ -511,12 +434,10 @@ void performOncePerSecondProcessing() {
 // Called once per minute
 // ************************************************************
 void performOncePerMinuteProcessing() {
-  #ifdef DEBUG_ON
-  debugMsg("---> OncePerMinuteProcessing");
+  debugMsgMain("---> OncePerMinuteProcessing");
   if (WiFi.isConnected()) {
-    debugMsg("Next update in: " + String(ntpManager.getNextUpdate()));
+    debugMsgMain("Next update in: " + String(ntpManager.getNextUpdate()));
   }
-  #endif
 
   // Usage stats
   cs->uptimeMins++;
@@ -536,9 +457,7 @@ void performOncePerMinuteProcessing() {
 // Called once per hour
 // ************************************************************
 void performOncePerHourProcessing() {
-  #ifdef DEBUG_ON
-  debugMsg("---> OncePerHourProcessing");
-  #endif
+  debugMsgMain("---> OncePerHourProcessing");
 
   menuOncePerHour();
   
@@ -552,9 +471,7 @@ void performOncePerHourProcessing() {
 // Called once per day
 // ************************************************************
 void performOncePerDayProcessing() {
-  #ifdef DEBUG_ON
-  debugMsg("---> OncePerDayProcessing");
-  #endif
+  debugMsgMain("---> OncePerDayProcessing");
 
   ledManager.setDayOfWeek(weekday() - 1);
 

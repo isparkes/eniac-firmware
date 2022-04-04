@@ -23,7 +23,6 @@ class WebManager_ {
     void beginPortal();
     void startOTA();
   private:
-    void debugMsg(String message);      
 };
 
 extern AsyncWebServer server;

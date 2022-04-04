@@ -6,9 +6,7 @@
 void NtpManager_::resetDefaults() {
   setNtpPool(NTP_POOL_DEFAULT);
   setUpdateInterval(NTP_UPDATE_INTERVAL_DEFAULT);
-  #ifdef DEBUG_ON
-  debugMsg("Reset defaults");
-  #endif
+  debugMsgNtp("Reset defaults");
 }
 
 // ************************************************************
@@ -83,21 +81,17 @@ bool NtpManager_::ntpTimeValid() {
 // Asynchronous NTP query
 // ************************************************************
 void NtpManager_::getTimeFromNTP() {
-  debugMsg("Async NTP in");
+  debugMsgNtp("Async NTP in");
 
   if (WiFi.status() != WL_CONNECTED) {
-    #ifdef DEBUG_ON
-    debugMsg("WiFi not connected. Abort.");
-    #endif
+    debugMsgNtp("WiFi not connected. Abort.");
     return;
   }
 
 
   // Don't spam the pool
   if ((_ntpStarted > 0) && (nowMillis - _ntpStarted) < NTP_RETRY_INTERVAL_MS) {
-    #ifdef DEBUG_ON
-    debugMsg("Suppressing NTP retry");
-    #endif
+    debugMsgNtp("Suppressing NTP retry");
     return;
   }
   
@@ -106,7 +100,7 @@ void NtpManager_::getTimeFromNTP() {
   #ifdef DEBUG_ON
   String str = "NTP IPAddr: ";
   str += serverIP.toString();
-  debugMsg(str);
+  debugMsgNtp(str);
   #endif
 
   byte buffer[NTP_PACKET_SIZE];
@@ -122,30 +116,28 @@ void NtpManager_::getTimeFromNTP() {
   buffer[15]  = 'C';
 
   _ntpStarted = nowMillis;
-  #ifdef DEBUG_ON
-  debugMsg("Connect to NTP");
+  #ifdef NTP_EXTENDED_DEBUG_ON
+  debugMsgNtp("Connect to NTP");
   #endif
   _udp.connect(serverIP, 123); //NTP requests are to port 123
-  #ifdef DEBUG_ON
-  debugMsg("Write to NTP");
+  #ifdef NTP_EXTENDED_DEBUG_ON
+  debugMsgNtp("Write to NTP");
   #endif
   _udp.write(buffer, NTP_PACKET_SIZE);
-  #ifdef DEBUG_ON
-  debugMsg("NTP Packet sent at " + String(_ntpStarted));
+  #ifdef NTP_EXTENDED_DEBUG_ON
+  debugMsgNtp("NTP Packet sent at " + String(_ntpStarted));
   #endif
 
   _udp.onPacket([&](AsyncUDPPacket packet) {
-    #ifdef DEBUG_ON
+    #ifdef NTP_EXTENDED_DEBUG_ON
     String message = "NTP response UDP Packet Type: " + packet.isBroadcast() ? "Broadcast" : packet.isMulticast() ? "Multicast" : "Unicast";
     message += " from " + packet.remoteIP().toString() + ":" + String(packet.remotePort());
     message += " to " + packet.localIP().toString() + ":" + String(packet.localPort());
-    debugMsg(message);
+    debugMsgNtp(message);
     #endif
 
     if (packet.length() != 48) {
-      #ifdef DEBUG_ON
-      debugMsg("Received data, but got invalid length: " + String(packet.length()));
-      #endif
+      debugMsgNtp("Received data, but got invalid length: " + String(packet.length()));
     } else {
       uint8_t buffer[NTP_PACKET_SIZE];
       memcpy(&buffer, packet.data(), packet.length());
@@ -174,35 +166,33 @@ void NtpManager_::getTimeFromNTP() {
       //also checking that all timestamps are non-zero and receive timestamp seconds are <= transmit timestamp seconds
       if ((buffer[1] < 1) or (buffer[1] > 15) or (reftsSec == 0) or (rcvtsSec == 0) or (rcvtsSec > secsSince1900)) {
         // we got invalid packet
-        #ifdef DEBUG_ON
-        debugMsg("Got data, but got INVALID_DATA");
-        #endif
+        debugMsgNtp("Got data, but got INVALID_DATA");
         return;
       }
 
       // Set the t and measured_at variables that were passed by reference
       unsigned long done = millis();
       unsigned long t = secsSince1900 - 2208988800UL;                     // Subtract 70 years to get seconds since 1970
+      #ifdef NTP_EXTENDED_DEBUG_ON
+      debugMsgNtp("Whole seconds " + String(t));
       #ifdef DEBUG_ON
-      debugMsg("Whole seconds " + String(t));
       uint16_t ms = fraction / 4294967UL;
-      debugMsg("Fractional " + String(ms));
-      debugMsg("success round trip " + String(done - _ntpStarted) + " ms");
+      debugMsgNtp("Fractional " + String(ms));
+      #endif
+      debugMsgNtp("success round trip " + String(done - _ntpStarted) + " ms");
       #endif
 
       _lastUpdateFromServer = done;
 
       #ifdef DEBUG_ON
       unsigned long measured_at = (done - _ntpStarted) / 2;  // Assume symmetric network latency and return when we think the whole second was.
-      debugMsg("lastUpdateFromServer: " + String(_lastUpdateFromServer) + " - latency: " + String(measured_at));
+      debugMsgNtp("lastUpdateFromServer: " + String(_lastUpdateFromServer) + " - latency: " + String(measured_at));
       #endif
       
       // Get the current time in mS, assuming symmtric latency
       _ntpTime = t;
 
-      #ifdef DEBUG_ON
-      debugMsg("Raw time: " + String(_ntpTime));
-      #endif
+      debugMsgNtp("Raw time: " + String(_ntpTime));
 
       // Reset when we last started.
       _ntpStarted = 0;
@@ -214,16 +204,7 @@ void NtpManager_::getTimeFromNTP() {
     }
   });
 
-  #ifdef DEBUG_ON
-  debugMsg("Async GET Time out");
-  #endif
-}
-
-// ************************************************************
-// Output a logging message to the debug output
-// ************************************************************
-void NtpManager_::debugMsg(String message) {
-  debugManager.debugMsg("[NTP]: " + message);
+  debugMsgNtp("Async GET Time out");
 }
 
 // ************************************************************
@@ -231,9 +212,7 @@ void NtpManager_::debugMsg(String message) {
 // ************************************************************
 void NtpManager_::setNewTimeCallback(NewTimeCallback ntcb) {
   _ntcb = ntcb;
-  #ifdef DEBUG_ON
-  debugMsg("Time update callback set");
-  #endif
+  debugMsgNtp("Time update callback set");
 }
 
 NtpManager_ &NtpManager_::getInstance() {

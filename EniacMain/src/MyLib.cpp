@@ -23,13 +23,6 @@ void MyLib_::doStuff() {
 }
 
 // ************************************************************
-// Output a logging message to the debug output
-// ************************************************************
-void MyLib_::debugMsg(String message) {
-  debugManager.debugMsg("[LIB]: " + message);
-}
-
-// ************************************************************
 // Library internal singleton wiring
 // ************************************************************
 MyLib_ &MyLib_::getInstance() {

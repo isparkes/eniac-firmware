@@ -108,8 +108,6 @@ class OutputManager_ {
     void processStunts();
     uint32_t decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, bool blankTens, bool blankUnits, bool bl1, bool bl2, bool led1, bool led2);
     void setCurrentTransition();
-
-    void debugMsg(String message);
 };
 
 extern OutputManager_ &outputManager;

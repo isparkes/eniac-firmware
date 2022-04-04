@@ -59,11 +59,6 @@ class LDRManager_
     bool  _isMinDim;
     bool  _locked;
     const int LDRPWMChannel = 0;
-    
-    DebugCallback _dbcb;
-    bool _debug = false;
-
-    void debugMsg(String message);                        // print a debug message to the callback
 };
 
 extern LDRManager_ &ldrManager;

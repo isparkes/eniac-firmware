@@ -2,9 +2,7 @@
 #include <AsyncElegantOTA.h>
 
 void WebManager_::begin() {
-  #ifdef DEBUG_ON
-  debugMsg("Setting up server endpoints");
-  #endif
+  debugMsgWbm("Setting up server endpoints");
   server.serveStatic("/", SPIFFS, "/web/").setDefaultFile("index.html");
 
   // Summary and diagnostics
@@ -46,17 +44,13 @@ void WebManager_::begin() {
       request->send(404, "text/plain", "The content you are looking for was not found.");
   });
 
-  #ifdef DEBUG_ON
-  debugMsg("Start up web server");
-  #endif
+  debugMsgWbm("Start up web server");
 
   server.begin();
 }
 
 void WebManager_::beginPortal() {
-  #ifdef DEBUG_ON
-  debugMsg("Setting up server endpoints");
-  #endif
+  debugMsgWbm("Setting up server endpoints");
   server.serveStatic("/", SPIFFS, "/web/").setDefaultFile("portal.html");
 
   // Summary and diagnostics
@@ -74,22 +68,13 @@ void WebManager_::beginPortal() {
   server.on("/utils/scanI2C", HTTP_GET, getI2CScanHandler);
   server.on("/utils/saveStats", HTTP_GET, saveStatsHandler);
 
-  #ifdef DEBUG_ON
-  debugMsg("Start up web server");
-  #endif
+  debugMsgWbm("Start up web server");
 
   server.begin();
 }
 
 void WebManager_::startOTA() {
   AsyncElegantOTA.begin(&server, "admin", "update");
-}
-
-// ************************************************************
-// Output a logging message to the debug output
-// ************************************************************
-void WebManager_::debugMsg(String message) {
-  debugManager.debugMsg("[WEB]: " + message);
 }
 
 // ************************************************************

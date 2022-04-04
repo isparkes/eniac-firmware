@@ -39,9 +39,7 @@ String TZManager_::getTZS() {
 }
 
 void TZManager_::setTZS(String tzs) {
-  #ifdef DEBUG_ON
-  debugMsg("Set TZS: " + tzs);
-  #endif
+  debugMsgTzm("Set TZS: " + tzs);
   _tzs = tzs;
   setenv("TZ", _tzs.c_str(), 1);
 }
@@ -51,19 +49,15 @@ void TZManager_::setTZS(String tzs) {
 // ************************************************************
 void TZManager_::calculateCurrentOffsetFromTimeT() {
   time_t primarytime_t = getRawUTCTimeFromTimeSource(_primarysource);
-  #ifdef DEBUG_ON
-  debugMsg("Input: " + String(primarytime_t) + " from primary source " + String(_primarysource) + " U--> " + tzManager.gmtimeToReadableString(primarytime_t));
-  #endif
+  debugMsgTzm("Input: " + String(primarytime_t) + " from primary source " + String(_primarysource) + " U--> " + tzManager.gmtimeToReadableString(primarytime_t));
 
   struct tm info_local;
   struct tm info_gm;
   localtime_r(&primarytime_t, &info_local);
   gmtime_r(&primarytime_t, &info_gm);
 
-  #ifdef DEBUG_ON
-  debugMsg("local L--> " + localtimeToReadableString(primarytime_t));
-  debugMsg("gm U--> " + gmtimeToReadableString(primarytime_t));
-  #endif
+  debugMsgTzm("local L--> " + localtimeToReadableString(primarytime_t));
+  debugMsgTzm("gm U--> " + gmtimeToReadableString(primarytime_t));
 
   // The local time might be in DST, so correct that
   info_gm.tm_isdst = 0;
@@ -72,10 +66,8 @@ void TZManager_::calculateCurrentOffsetFromTimeT() {
   _UTCoffset = mktime(&info_local) - mktime(&info_gm);
   _localtimeisDST = info_local.tm_isdst;
 
-  #ifdef DEBUG_ON
-  debugMsg("UTC offset: " + String(_UTCoffset));
-  debugMsg("localtime is in DST: " + String(_localtimeisDST));
-  #endif
+  debugMsgTzm("UTC offset: " + String(_UTCoffset));
+  debugMsgTzm("localtime is in DST: " + String(_localtimeisDST));
 }
 
 // ************************************************************
@@ -102,9 +94,9 @@ void TZManager_::setUTCTimeFromTimeSource(byte timesource, unsigned long readTim
 
   #ifdef DEBUG_ON
   if (timesource == _primarysource) {
-    debugMsg("Update PRIMARY time from source " + String(timesource) + ": " + String(utcTime) + " at millis: " + String(readTime));
+    debugMsgTzm("Update PRIMARY time from source " + String(timesource) + ": " + String(utcTime) + " at millis: " + String(readTime));
   } else {
-    debugMsg("Update time from source " + String(timesource) + ": " + String(utcTime) + " at millis: " + String(readTime));
+    debugMsgTzm("Update time from source " + String(timesource) + ": " + String(utcTime) + " at millis: " + String(readTime));
   }
   #endif
 
@@ -112,9 +104,7 @@ void TZManager_::setUTCTimeFromTimeSource(byte timesource, unsigned long readTim
     unsigned long lastRTCUpdate = getTimeLastSetFromTimeSource(TIME_SOURCE_RTC);
     if ((lastRTCUpdate > 60) ||                      // The last update is old
       (_lastupdatetime[TIME_SOURCE_RTC] == 0)) {     // or the RTC was not yet initialised
-        #ifdef DEBUG_ON
-          debugMsg("Set RTC time to GPS time " + String(utcTime));
-        #endif
+        debugMsgTzm("Set RTC time to GPS time " + String(utcTime));
         rtcManager.setTimeFromUTCSource(utcTime, true);
         _utctime[TIME_SOURCE_RTC] = utcTime;
         _lastupdatetime[TIME_SOURCE_RTC] = readTime;
@@ -122,9 +112,7 @@ void TZManager_::setUTCTimeFromTimeSource(byte timesource, unsigned long readTim
     // Set the internal time
     setInternalTimeFromRTC();
   } else if (timesource == TIME_SOURCE_NTP) {
-    #ifdef DEBUG_ON
-      debugMsg("Set RTC time to NTP time " + String(utcTime));
-    #endif
+    debugMsgTzm("Set RTC time to NTP time " + String(utcTime));
     rtcManager.setTimeFromUTCSource(utcTime, true);
     _utctime[TIME_SOURCE_RTC] = utcTime;
     _lastupdatetime[TIME_SOURCE_RTC] = readTime;
@@ -152,18 +140,12 @@ void TZManager_::setUTCTimeFromTimeSourceHourly() {
       _utctime[TIME_SOURCE_RTC] = nowtime_t;
       _lastupdatetime[TIME_SOURCE_RTC] = nowMillis;
       setInternalTimeFromRTC();
-      #ifdef DEBUG_ON
-        debugMsg("Set RTC time to timesource " + String(TIME_SOURCE_GPS) + " time " + String(nowtime_t));
-      #endif
+      debugMsgTzm("Set RTC time to timesource " + String(TIME_SOURCE_GPS) + " time " + String(nowtime_t));
     } else {
-      #ifdef DEBUG_ON
-      debugMsg("GPS is not current, nothing to do");
-      #endif
+      debugMsgTzm("GPS is not current, nothing to do");
     }
   } else {
-    #ifdef DEBUG_ON
-    debugMsg("PRIMARY time source is not GPS, nothing to do");
-    #endif
+    debugMsgTzm("PRIMARY time source is not GPS, nothing to do");
   }
 }
 
@@ -173,14 +155,12 @@ void TZManager_::setUTCTimeFromTimeSourceHourly() {
 void TZManager_::setInternalTimeFromRTC() {
   int lastUpdateOffset = getTimeLastSetFromTimeSource(TIME_SOURCE_RTC);
   time_t currentUTC = _utctime[TIME_SOURCE_RTC] + lastUpdateOffset;
-  #ifdef DEBUG_ON
-  debugMsg("Recovered current UTC from RTC " + String(currentUTC));
-  #endif
+  debugMsgTzm("Recovered current UTC from RTC " + String(currentUTC));
   struct tm info_local;
   localtime_r(&currentUTC, &info_local);
 
   #ifdef TZM_EXTENDED_DEBUG
-  debugMsg("---->Converted to " + String(info_local.tm_year + 1900) + "," + String(info_local.tm_mon + 1) + "," + String(info_local.tm_mday) + "," + String(info_local.tm_hour) + "," + String(info_local.tm_min) + "," + String(info_local.tm_sec));
+  debugMsgTzm("---->Converted to " + String(info_local.tm_year + 1900) + "," + String(info_local.tm_mon + 1) + "," + String(info_local.tm_mday) + "," + String(info_local.tm_hour) + "," + String(info_local.tm_min) + "," + String(info_local.tm_sec));
   #endif
 
   setTime(info_local.tm_hour,
@@ -191,11 +171,9 @@ void TZManager_::setInternalTimeFromRTC() {
     info_local.tm_year + 1900);
 
   #ifdef TZM_EXTENDED_DEBUG
-  debugMsg("---->RTC Offset: " + String(lastUpdateOffset));
+  debugMsgTzm("---->RTC Offset: " + String(lastUpdateOffset));
   #endif
-  #ifdef DEBUG_ON
-  debugMsg("Set internal time to timesource " + String(TIME_SOURCE_RTC) + ": " + String(_utctime[TIME_SOURCE_RTC]) + " L--> " + localtimeToReadableString(_utctime[TIME_SOURCE_RTC]));
-  #endif
+  debugMsgTzm("Set internal time to timesource " + String(TIME_SOURCE_RTC) + ": " + String(_utctime[TIME_SOURCE_RTC]) + " L--> " + localtimeToReadableString(_utctime[TIME_SOURCE_RTC]));
   _utctime[TIME_SOURCE_INT] = _utctime[TIME_SOURCE_RTC] + lastUpdateOffset;
   _lastupdatetime[TIME_SOURCE_INT] = nowMillis;
 
@@ -206,9 +184,7 @@ void TZManager_::setInternalTimeFromRTC() {
 // ************************************************************
 String TZManager_::getLocalTimeFromTimeSource(byte timesource) {
   if(_lastupdatetime[timesource] == 0) {
-    #ifdef DEBUG_ON
-    debugMsg("Timesource: " + String(timesource) + ": No data");
-    #endif
+    debugMsgTzm("Timesource: " + String(timesource) + ": No data");
     return "Unknown";
   }
 
@@ -217,9 +193,7 @@ String TZManager_::getLocalTimeFromTimeSource(byte timesource) {
 
   // If we are talking to the RTC, every now and again update the internal time
   if (timesource == TIME_SOURCE_INT && (offset >= RTC_CACHE_TIME_SEC)) {
-    #ifdef DEBUG_ON
-    debugMsg("Internal time is : " + String(offset) + "S old, getting update");
-    #endif
+    debugMsgTzm("Internal time is : " + String(offset) + "S old, getting update");
     setInternalTimeFromRTC();
   }
 
@@ -229,7 +203,7 @@ String TZManager_::getLocalTimeFromTimeSource(byte timesource) {
   if (timesource == _primarysource) {
     primary = " *";
   }
-  debugMsg("Timesource: " + String(timesource) + ": " + String(_utctime[timesource]) + " offset " + String(offset) + " L--> " + formattedTime + primary);
+  debugMsgTzm("Timesource: " + String(timesource) + ": " + String(_utctime[timesource]) + " offset " + String(offset) + " L--> " + formattedTime + primary);
   #endif
 
   return formattedTime;
@@ -240,9 +214,7 @@ String TZManager_::getLocalTimeFromTimeSource(byte timesource) {
 // ************************************************************
 time_t TZManager_::getRawUTCTimeFromTimeSource(byte timesource) {
   if(_lastupdatetime[timesource] == 0) {
-    #ifdef DEBUG_ON
-    debugMsg("Timesource: " + String(timesource) + ": No data");
-    #endif
+    debugMsgTzm("Timesource: " + String(timesource) + ": No data");
     return 0;
   }
 
@@ -280,14 +252,12 @@ String TZManager_::gmtimeToReadableString(time_t timeToConvert) {
 unsigned long TZManager_::getTimeLastSetFromTimeSource(byte timesource) {
   unsigned long offset = (nowMillis - _lastupdatetime[timesource])/1000;
   if (nowMillis < _lastupdatetime[timesource]) {
-    #ifdef DEBUG_ON
-    debugMsg("!!!!!!Negative offset for timesource: " + String(timesource) + "!!!");
-    #endif
+    debugMsgTzm("!!!!!!Negative offset for timesource: " + String(timesource) + "!!!");
     offset = 0;
   }
   #ifdef TZM_EXTENDED_DEBUG
-  debugMsg("---->Time last set = " + String(offset) + " for time source " + String(timesource));
-  debugMsg("---->nowmillis = " + String(nowMillis) + " lastupdate " + String(_lastupdatetime[timesource]));
+  debugMsgTzm("---->Time last set = " + String(offset) + " for time source " + String(timesource));
+  debugMsgTzm("---->nowmillis = " + String(nowMillis) + " lastupdate " + String(_lastupdatetime[timesource]));
   #endif
   return offset;
 }
@@ -298,15 +268,13 @@ unsigned long TZManager_::getTimeLastSetFromTimeSource(byte timesource) {
 // ************************************************************
 byte TZManager_::getPrimaryTimeSource() {
   #ifdef TZM_EXTENDED_DEBUG
-  debugMsg("---->Summary");
-  debugMsg("---->GPS: " + String(_utctime[TIME_SOURCE_GPS]) + "@" + String(_lastupdatetime[TIME_SOURCE_GPS]) + " L--> " + localtimeToReadableString(_utctime[TIME_SOURCE_GPS]));
-  debugMsg("---->NTP: " + String(_utctime[TIME_SOURCE_NTP]) + "@" + String(_lastupdatetime[TIME_SOURCE_NTP]) + " L--> " + localtimeToReadableString(_utctime[TIME_SOURCE_NTP]));
-  debugMsg("---->RTC: " + String(_utctime[TIME_SOURCE_RTC]) + "@" + String(_lastupdatetime[TIME_SOURCE_RTC]) + " L--> " + localtimeToReadableString(_utctime[TIME_SOURCE_RTC]));
-  debugMsg("---->INT: " + String(_utctime[TIME_SOURCE_INT]) + "@" + String(_lastupdatetime[TIME_SOURCE_INT]) + " L--> " + localtimeToReadableString(_utctime[TIME_SOURCE_INT]));
+  debugMsgTzm("---->Summary");
+  debugMsgTzm("---->GPS: " + String(_utctime[TIME_SOURCE_GPS]) + "@" + String(_lastupdatetime[TIME_SOURCE_GPS]) + " L--> " + localtimeToReadableString(_utctime[TIME_SOURCE_GPS]));
+  debugMsgTzm("---->NTP: " + String(_utctime[TIME_SOURCE_NTP]) + "@" + String(_lastupdatetime[TIME_SOURCE_NTP]) + " L--> " + localtimeToReadableString(_utctime[TIME_SOURCE_NTP]));
+  debugMsgTzm("---->RTC: " + String(_utctime[TIME_SOURCE_RTC]) + "@" + String(_lastupdatetime[TIME_SOURCE_RTC]) + " L--> " + localtimeToReadableString(_utctime[TIME_SOURCE_RTC]));
+  debugMsgTzm("---->INT: " + String(_utctime[TIME_SOURCE_INT]) + "@" + String(_lastupdatetime[TIME_SOURCE_INT]) + " L--> " + localtimeToReadableString(_utctime[TIME_SOURCE_INT]));
   #endif
-  #ifdef DEBUG_ON
   byte oldPrimary = _primarysource;
-  #endif
   if (_lastupdatetime[TIME_SOURCE_GPS] != 0 && getTimeLastSetFromTimeSource(TIME_SOURCE_GPS) < GPS_READING_VALIDITY_SECS) {
     _primarysource = TIME_SOURCE_GPS;
   } else if (_lastupdatetime[TIME_SOURCE_NTP] != 0 && ntpManager.ntpTimeValid()) {
@@ -317,21 +285,12 @@ byte TZManager_::getPrimaryTimeSource() {
     _primarysource = TIME_SOURCE_INT;
   }
 
-  #ifdef DEBUG_ON
   if (oldPrimary != _primarysource) {
-    debugMsg("Changed primary time source, old: " + String(oldPrimary) + ", new: " + String(_primarysource));
+    debugMsgTzm("Changed primary time source, old: " + String(oldPrimary) + ", new: " + String(_primarysource));
   }
-  #endif
   calculateCurrentOffsetFromTimeT();
 
   return _primarysource;
-}
-
-// ************************************************************
-// Output a logging message to the debug output
-// ************************************************************
-void TZManager_::debugMsg(String message) {
-  debugManager.debugMsg("[TZM]: " + message);
 }
 
 TZManager_ &TZManager_::getInstance() {

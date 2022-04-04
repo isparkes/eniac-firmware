@@ -40,7 +40,6 @@ class GPSManager_ {
     unsigned long _lastGPSSyncTime = 0;
     bool _gpsTimeValid = false;
 
-    void debugMsg(String message);
     String parseGPZDAMsg(String messageToParse);
     bool parseGPZDAMsgToUTCTime(String messageToParse);
 };

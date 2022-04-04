@@ -25,3 +25,6 @@ bool wifiCredentialsReceived();
 void disconnectWiFi();
 
 void startScanWiFiNetworks();
+int getLastScanResultCount();
+String getLastScanResultSSID(int index);
+

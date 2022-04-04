@@ -94,9 +94,7 @@ void DS1307_::setTimeRTCHardware()
     Wire.write(decToBcd(_year));
     Wire.endTransmission();
 
-    #ifdef DEBUG_ON
-    debugMsg("Set hardware RTC " + String(_year) + ", " + String(_month) + ", " + String(_dayOfMonth) + ", " + String(_hour) + ", " + String(_minute) + ", " + String(_second));
-    #endif
+    debugMsgRtc("Set hardware RTC " + String(_year) + ", " + String(_month) + ", " + String(_dayOfMonth) + ", " + String(_hour) + ", " + String(_minute) + ", " + String(_second));
 }
 
 // ************************************************************
@@ -125,17 +123,13 @@ unsigned char DS1307_::isRunning()
 // Check that we still have access to the time from the RTC
 // ************************************************************
 bool DS1307_::testRTCTimeProvider() {
-  #ifdef DEBUG_ON
-  debugMsg("Testing RTC");
-  #endif
+  debugMsgRtc("Testing RTC");
   Wire.beginTransmission(DS1307_I2C_ADDRESS);
   _useRTC = (Wire.endTransmission(true) == 0);
-  #ifdef DEBUG_ON
-  debugMsg("Set useRTC to: " + String(_useRTC));
+  debugMsgRtc("Set useRTC to: " + String(_useRTC));
   if (!_useRTC) {
-    debugMsg("I2C error: " + String(Wire.getErrorText(Wire.lastError())));
+    debugMsgRtc("I2C error: " + String(Wire.getErrorText(Wire.lastError())));
   }
-  #endif
 
   if (!_onceHadAnRTC && _useRTC) {
     _onceHadAnRTC = true;
@@ -170,9 +164,7 @@ time_t DS1307_::getRTCTimeAsTimeT() {
     // mktime gives us the opposite of what local time does, so we have to adjust it by adding in the offset mktime will apply
     time_t _rtctime = mktime(&rtcCurrentTm) + tzManager.getCurrentUTCOffset();
 
-    #ifdef DEBUG_ON
-    debugMsg("Recovered RTC time from hardware: " + String(_rtctime) + " U--> " + tzManager.gmtimeToReadableString(_rtctime));
-    #endif
+    debugMsgRtc("Recovered RTC time from hardware: " + String(_rtctime) + " U--> " + tzManager.gmtimeToReadableString(_rtctime));
 
     return _rtctime;
   } else {
@@ -202,9 +194,7 @@ void DS1307_::setTimeFromUTCSource(time_t currentTime, bool updateRTC) {
     setTimeRTCHardware();
   }
     
-  #ifdef DEBUG_ON
-  debugMsg("Set RTC time to time: " + String(currentTime) + " U--> " + tzManager.gmtimeToReadableString(currentTime));
-  #endif
+  debugMsgRtc("Set RTC time to time: " + String(currentTime) + " U--> " + tzManager.gmtimeToReadableString(currentTime));
 }
 
 // ************************************************************
@@ -212,13 +202,6 @@ void DS1307_::setTimeFromUTCSource(time_t currentTime, bool updateRTC) {
 // ************************************************************
 bool DS1307_::getRTCValid() {
   return _useRTC;
-}
-
-// ************************************************************
-// Output a logging message to the debug output
-// ************************************************************
-void DS1307_::debugMsg(String message) {
-  debugManager.debugMsg("[RTC]: " + message);
 }
 
 // ************************************************************

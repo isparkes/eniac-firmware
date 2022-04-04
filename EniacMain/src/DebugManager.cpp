@@ -12,6 +12,15 @@ void DebugManager_::debugMsg(String message) {
     Serial.flush();
 }
 
+// ************************************************************
+// Output a logging message to the debug output, if set, 
+// adding prefix
+// ************************************************************
+void DebugManager_::debugMsg(String prefix, String message) {
+    Serial.println(prefix + ": " + message);
+    Serial.flush();
+}
+
 void DebugManager_::debugMsgCont(String message) {
     Serial.print(message);
     Serial.flush();

@@ -15,9 +15,7 @@ bool SlaveManager_::getSlaveMode() {
 
 void SlaveManager_::sendUpdateToSlaveI2C() {
   if(_slaveModeStatus) {      
-    #ifdef DEBUG_ON
-    debugMsg("Slave update: mode: " + String(cc->slaveMode) + "," + String(second()) + "," + String(month()) + "," + String(day()));
-    #endif
+    debugMsgSlv("Slave update: mode: " + String(cc->slaveMode) + "," + String(second()) + "," + String(month()) + "," + String(day()));
 
     Wire.beginTransmission(SLAVE_MODULE_I2C_ADDRESS);
     switch (cc->slaveMode) {
@@ -40,28 +38,17 @@ void SlaveManager_::sendUpdateToSlaveI2C() {
 
     byte error = Wire.endTransmission();
 
-    #ifdef DEBUG_ON
     if (error == 0) {
-      debugMsg("Sent slave update");
+      debugMsgSlv("Sent slave update");
     } else {
-      debugMsg("Failed sending slave update: " + String(error));
+      debugMsgSlv("Failed sending slave update: " + String(error));
       _slaveModeFailCount++;
       if(_slaveModeFailCount > SLAVE_MODE_MAX_RETRIES) {
-        #ifdef DEBUG_ON
-        debugMsg("Failed to do slave update after " + String(SLAVE_MODE_MAX_RETRIES) + " retries, giving up.");
-        #endif
+        debugMsgSlv("Failed to do slave update after " + String(SLAVE_MODE_MAX_RETRIES) + " retries, giving up.");
         _slaveModeStatus = false;
       }
     }
-    #endif
   }
-}
-
-// ************************************************************
-// Output a logging message to the debug output
-// ************************************************************
-void SlaveManager_::debugMsg(String message) {
-  debugManager.debugMsg("[SLV]: " + message);
 }
 
 // ************************************************************

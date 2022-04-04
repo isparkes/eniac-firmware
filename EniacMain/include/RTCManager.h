@@ -60,8 +60,6 @@ private:
     uint8_t _dayOfMonth;
     uint8_t _month;
     uint16_t _year;
-
-    void debugMsg(String message);                        // print a debug message to the callback
 };
 
 extern DS1307_ &rtcManager;

@@ -63,9 +63,6 @@ class NtpManager_
     int _ntpUpdateInterval = NTP_UPDATE_INTERVAL_DEFAULT; // The interval between updates in SECONDS
     AsyncUDP _udp;
     NewTimeCallback _ntcb;
-
-    // print a debug message to the callback
-    void debugMsg(String message);
 };
 
 extern NtpManager_ &ntpManager;

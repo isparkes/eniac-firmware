@@ -5,13 +5,11 @@
 // ************************************************************
 void LDRManager_::setUp() {
   pinMode(LDRPin, INPUT);
-  #ifdef DEBUG_ON
-  debugMsg("Config useLDR: " + String(cc->useLDR));
-  debugMsg("Config sensitivityLDR: " + String(cc->sensitivityLDR));
-  debugMsg("Config thresholdBright: " + String(cc->thresholdBright));
-  debugMsg("Config sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
-  debugMsg("Config minDim %: " + String(cc->minDim));
-  #endif
+  debugMsgLdr("Config useLDR: " + String(cc->useLDR));
+  debugMsgLdr("Config sensitivityLDR: " + String(cc->sensitivityLDR));
+  debugMsgLdr("Config thresholdBright: " + String(cc->thresholdBright));
+  debugMsgLdr("Config sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
+  debugMsgLdr("Config minDim %: " + String(cc->minDim));
 }
 
 // ************************************************************
@@ -19,9 +17,7 @@ void LDRManager_::setUp() {
 // Sequence
 // ************************************************************
 void LDRManager_::setUpPWM() {
-  #ifdef DEBUG_ON
-  debugMsg("Start up dimming PWM");
-  #endif
+  debugMsgLdr("Start up dimming PWM");
   const int PWMFreq = 1000; /* 1 KHz */
   const int PWMResolution = 12;
   const int MAX_DUTY_CYCLE = (int)(pow(2, PWMResolution) - 1);
@@ -97,13 +93,6 @@ void LDRManager_::resetMaxLDRValue() {
 // ************************************************************
 bool LDRManager_::isMinLDRValue() {
   return _isMinDim;
-}
-
-// ************************************************************
-// Output a logging message to the debug output
-// ************************************************************
-void LDRManager_::debugMsg(String message) {
-  debugManager.debugMsg("[LDR]: " + message);
 }
 
 LDRManager_ &LDRManager_::getInstance() {

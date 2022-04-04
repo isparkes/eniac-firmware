@@ -31,7 +31,6 @@
   void createList(String _title, int _noOfElements, String *_list);
   void displayMessage(String _title, String _message);
   void resetMenu();
-  void debugMsgMM(String message);
   void resetTimeouts();
   void countdownMenuTimeouts();
   void flashMenuMessage(String heading, String message);
