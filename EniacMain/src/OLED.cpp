@@ -2,8 +2,18 @@
 
 void OLED_::setUp()
 {
+  // Set up based on the OLED display we are using
+  // SSD_1306 is the 0.96" and 2.42"
+  // SH_1106 is the 1.30"
+  #ifdef OLED_SSD_1306
   _display.reset(new Adafruit_SSD1306(128,64, &Wire, -1));
   _display->begin(SSD1306_SWITCHCAPVCC, 0x3C, true, true);
+  #endif
+  #ifdef OLED_SH1106
+  _display.reset(new Adafruit_SH1106G(128,64, &Wire, -1));
+  _display->begin(0x3C, true);
+  #endif
+
   _display->setTextSize(1);
   _display->setTextColor(WHITE, BLACK);
   _display->clearDisplay();

@@ -1,8 +1,10 @@
 #pragma once
 
+#include "defs.h"
 #include <memory>
-#include <Adafruit_GFX.h>       // v1.6.1
-#include <Adafruit_SSD1306.h>   // v2.0.1
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <Adafruit_SH110X.h>
 
 // ----------------------- Defines -----------------------
 
@@ -88,7 +90,13 @@ class OLED_
     String _timeText = "xx:xx:xx";
     String _bufferLines[6] = {"","","","","",""};
     byte _bufferIdx = 0;
+    #ifdef OLED_SSD1306
     std::unique_ptr<Adafruit_SSD1306> _display;
+    #endif
+
+    #ifdef OLED_SH1106
+    std::unique_ptr<Adafruit_SH1106G> _display;
+    #endif
 
     void drawWiFiInd();
     void drawNTPInd();

@@ -86,7 +86,7 @@ void setup()
   debugMsgMain("Starting OLED");
   oled.setUp();
   oled.clearDisplay();
-  flashMenuMessage("ENIAC", "Starting");
+  flashMenuMessage(CLOCK_MENU_TITLE, "Starting");
 
   // -------------------------------------------------------------------------
 
@@ -206,7 +206,7 @@ void setup()
 
   oled.setUp();
   oled.clearDisplay();
-  flashMenuMessage("ENIAC", "Welcome to the ENIAC\nNixie clock!\n" + String(SOFTWARE_VERSION));
+  flashMenuMessage(CLOCK_MENU_TITLE, "Welcome to the\nNixie Chronometer\n" + String(SOFTWARE_VERSION));
   delay(2000);
 
   // -------------------------------------------------------------------------

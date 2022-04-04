@@ -98,7 +98,7 @@ void mainMenu() {
   byte menuCount = 1;
   menuMode = menu;
 //  oledMenu.menuId = main;
-  oledMenu.menuTitle = "Eniac Menu";
+  oledMenu.menuTitle = "Main Menu";
   oledMenu.menuItems[menuCount] = "Wifi";       oledMenu.menuActions[menuCount++] = gotoWifiMenu;
   oledMenu.menuItems[menuCount] = "Display";    oledMenu.menuActions[menuCount++] = gotoDisplayMenu;
   oledMenu.menuItems[menuCount] = "Options";    oledMenu.menuActions[menuCount++] = gotoOptionsMenu;
@@ -147,7 +147,7 @@ void optionsMenu() {
   menuMode = menu;
   byte menuCount = 1;
   oledMenu.menuTitle = "Options";
-  oledMenu.menuItems[menuCount] = "Restart Eniac";  oledMenu.menuActions[menuCount++] = restartClock;
+  oledMenu.menuItems[menuCount] = "Restart Device"; oledMenu.menuActions[menuCount++] = restartClock;
   oledMenu.menuItems[menuCount] = "Save stats";     oledMenu.menuActions[menuCount++] = saveStats;
   oledMenu.menuItems[menuCount] = "Display Test";   oledMenu.menuActions[menuCount++] = displayTest;
   oledMenu.menuItems[menuCount] = "Back";           oledMenu.menuActions[menuCount++] = backToMain;
@@ -320,7 +320,7 @@ void menuActions(menuTargets selectedAction) {
     }
     case restartClock: {
       spiffsStorage.saveStatsToSpiffs(cs);
-      flashMenuMessage("Restart","Restarting\nEniac clock\nnow");
+      flashMenuMessage("Restart","Restarting\nchronometer\ndevice now");
       delay(1000);
       ESP.restart();
       break;
@@ -477,7 +477,6 @@ void setupMenuManager() {
 // called from main loop
 
 void menuLoop() {
-
   reUpdateButton();               // update rotary encoder button status (if pressed activate default menu)
   if (menuMode == off) return;    // if menu system is turned off do nothing more
 

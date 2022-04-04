@@ -371,9 +371,15 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["utcrtcat"] = tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_RTC);
   root["utcintat"] = tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_INT);
   root["utcoffset"] = String(tzManager.getCurrentUTCOffset());
-#ifdef DIGIT_DIAGNOSTICS
+  #ifdef OLED_SSD1306
+  root["oledtype"] = "SSD1306";
+  #endif
+  #ifdef OLED_SH1106
+  root["oledtype"] = "SH1106";
+  #endif
+  #ifdef DIGIT_DIAGNOSTICS
   root["diagsMode"] = cc->diagsMode;
-#endif
+  #endif
 
   response->setLength();
   request->send(response);
