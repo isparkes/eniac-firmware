@@ -74,6 +74,8 @@ String getStatusString() {
   //   connectionInfo += "s";
   // }
   // On the ESP32 we always have enough space for OTA
+  // 4MB default = 1310720 for program and the same for OTA
+  // More info .platformio/packages/framework-arduinoespressif32/tools/partitions/default.csv
   connectionInfo += "U";
   
   if (cc->webAuthentication) {

@@ -216,10 +216,8 @@
     getDiags = function() {
         addLoader();
         getClockDiags().then(function(diags){
-            const totalMem = diags.freesketch + diags.sketchsize;
-            const usedMemPC = (diags.sketchsize/totalMem * 100).toFixed(2);
-            const freeMemPC = (diags.freesketch/totalMem * 100).toFixed(2);
-            const usedMsg = usedMemPC + '% (' + diags.sketchsize + '), Free ' + freeMemPC + '% (' + diags.freesketch + ')';
+            const usedMemPC = (diags.sketchsize/diags.freesketch * 100).toFixed(2);
+            const usedMsg = usedMemPC + '% (' + diags.sketchsize + '/' + diags.freesketch + ')';
             $("#lastgpsraw").text(diags.lastgpsraw);
             $("#runtime").text(diags.runtime);
             $("#uptime").text(diags.uptime);

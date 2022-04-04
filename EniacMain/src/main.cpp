@@ -153,12 +153,15 @@ void setup()
   if (rtcManager.testRTCTimeProvider()) {
     debugMsgMain("RTC found");
 
-    // first time let's us figure out the UTC offset
+    // first time let's us figure out the UTC offset, it should be right within
+    // the bounds of DST variation
     time_t rtctime = rtcManager.getRTCTimeAsTimeT();
     tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtctime);
     tzManager.calculateCurrentOffsetFromTimeT();
 
-    // Second time sets the time
+    debugMsgMain("Recalculate offset based on recovered datetime");
+
+    // Second time sets the time based on the calculated DST
     rtctime = rtcManager.getRTCTimeAsTimeT();
     tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtctime);
     tzManager.calculateCurrentOffsetFromTimeT();
