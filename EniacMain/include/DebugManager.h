@@ -19,6 +19,7 @@ typedef void (*DebugCallback) (String);
 #define debugMsgWbm(message) debugManager.debugMsg("[WEB]", message);
 #define debugMsgMnm(message) debugManager.debugMsg("[MNM]", message);
 #define debugMsgUtl(message) debugManager.debugMsg("[UTL]", message);
+#define debugMsgWfm(message) debugManager.debugMsg("[UTL]", message);
 #else
 #define debugMsgMain(message)
 #define debugMsgBlm(message)
@@ -33,6 +34,7 @@ typedef void (*DebugCallback) (String);
 #define debugMsgWbm(message)
 #define debugMsgMnm(message)
 #define debugMsgUtl(message)
+#define debugMsgWfm(message)
 #endif
 
 // Extended debug settings - these allow trace level debugging

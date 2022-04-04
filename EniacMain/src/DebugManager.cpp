@@ -1,5 +1,4 @@
 #include "DebugManager.h"
-#include <Arduino.h>
 
 void DebugManager_::begin() {
 }

@@ -24,17 +24,6 @@ String wpspin2string(uint8_t a[])
   return (String)wps_pin;
 }
 
-// ************************************************************
-// Output a logging message to the debug output, if set
-// ************************************************************
-void debugMsgWfm(String message) {
-  debugManager.debugMsg("[WFM]: " + message);
-}
-
-void debugMsgContWfm(String message) {
-  debugManager.debugMsgCont(message);
-}
-
 void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
 {
   switch (event)

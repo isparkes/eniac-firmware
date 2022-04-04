@@ -13,12 +13,12 @@
 #define WDT_TIMEOUT 5
 
 // Add debug statments to code - needs extra space
-#define DEBUG_ON           // DEBUG_ON | DEBUG_OFF
+#define DEBUG_OFF            // DEBUG_ON | DEBUG_OFF
 
 // Add the dignostic calls to the GUI
 #define DIGIT_DIAGNOSTICS    // DIGIT_DIAGNOSTICS | DIGIT_DIAGNOSTICS_OFF
 
-#define OLED_SH1106         // OLED_SH1106 |  OLED_SSD1306
+#define OLED_SH1106          // OLED_SH1106 |  OLED_SSD1306
 
 #define SOFTWARE_VERSION "LTC-ESP32 V0.2"
 #define CLOCK_MENU_TITLE "ENIAC" 

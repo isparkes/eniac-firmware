@@ -58,10 +58,6 @@
                             <td id="sketchsize"></td>
                         </tr>
                         <tr>
-                            <td>Firmware available space</td>
-                            <td id="freesketch"></td>
-                        </tr>
-                        <tr>
                             <td>Firmware checksum</td>
                             <td id="sketchmd5"></td>
                         </tr>
@@ -221,22 +217,14 @@
         addLoader();
         getClockDiags().then(function(diags){
             const totalMem = diags.freesketch + diags.sketchsize;
-            let OTAFlag = '';
-            if (diags.sketchsize >= diags.freesketch) {
-                OTAFlag = ' --> OTA DISABLED!';
-            } else {
-                OTAFlag = ' --> OTA enabled';
-            }
             const usedMemPC = (diags.sketchsize/totalMem * 100).toFixed(2);
             const freeMemPC = (diags.freesketch/totalMem * 100).toFixed(2);
-            const usedMsg = usedMemPC + '% (' + diags.sketchsize + ')' + OTAFlag;
-            const freeMsg = freeMemPC + '% (' + diags.freesketch + ')';
+            const usedMsg = usedMemPC + '% (' + diags.sketchsize + '), Free ' + freeMemPC + '% (' + diags.freesketch + ')';
             $("#lastgpsraw").text(diags.lastgpsraw);
             $("#runtime").text(diags.runtime);
             $("#uptime").text(diags.uptime);
             $("#ontime").text(diags.ontime);
             $("#heap").text(diags.heap);
-            $("#freesketch").text(freeMsg);
             $("#sketchsize").text(usedMsg);
             $("#compiledate").text(diags.compiledate);
             $("#cpufreq").text(diags.cpufreq);

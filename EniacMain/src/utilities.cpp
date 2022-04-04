@@ -52,13 +52,6 @@ String secsToReadableString (long secsValue) {
 }
 
 // ************************************************************
-// See if we have enough flash space for OTA
-// ************************************************************
-bool getOTAvailable() {
-  return ESP.getSketchSize() < ESP.getFreeSketchSpace();
-}
-
-// ************************************************************
 // Calculate the status string for the web interface
 // ************************************************************
 String getStatusString() {
@@ -80,12 +73,8 @@ String getStatusString() {
   // } else {
   //   connectionInfo += "s";
   // }
-  if (getOTAvailable()) {
-    connectionInfo += "U";
-
-  } else {
-    connectionInfo += "u";
-  }
+  // On the ESP32 we always have enough space for OTA
+  connectionInfo += "U";
   
   if (cc->webAuthentication) {
     connectionInfo += "A";
