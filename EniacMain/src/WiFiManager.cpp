@@ -264,7 +264,7 @@ void saveWiFiCredentials(String newWiFiSSID, String newWiFiPassword) {
     cc->WiFiSSID = newWiFiSSID;
     cc->WiFiPassword = newWiFiPassword;
     cc->WifiOnAtStart = true;
-    spiffsStorage.saveConfigToSpiffs(cc);
+    spiffsStorage.saveConfigToSpiffs();
     debugMsgWfm("Saved WiFi credentials");
   } else {
     debugMsgWfm("No changes to WiFi credentials saved");
@@ -279,7 +279,7 @@ void resetWiFiCredentials() {
   cc->WiFiSSID = "";
   cc->WiFiPassword = "";
   cc->WifiOnAtStart = false;
-  spiffsStorage.saveConfigToSpiffs(cc);
+  spiffsStorage.saveConfigToSpiffs();
 }
 
 bool wifiCredentialsReceived() {

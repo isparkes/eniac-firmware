@@ -105,14 +105,14 @@ void setup()
   }
 
   debugMsgMain("Startup SPIFFS storage");
-  bool statsLoaded = spiffsStorage.getStatsFromSpiffs(cs);
+  bool statsLoaded = spiffsStorage.getStatsFromSpiffs();
 
   if (!statsLoaded) {
     debugMsgMain("SPIFFS storage: read stats failed");
-    spiffsStorage.saveStatsToSpiffs(cs);
+    spiffsStorage.saveStatsToSpiffs();
   }
 
-  bool configloaded = spiffsStorage.getConfigFromSpiffs(cc);
+  bool configloaded = spiffsStorage.getConfigFromSpiffs();
 
   if (configloaded) {
     ntpManager.setNtpPool(cc->ntpPool);
@@ -478,7 +478,7 @@ void performOncePerDayProcessing() {
 
   ledManager.setDayOfWeek(weekday() - 1);
 
-  spiffsStorage.saveStatsToSpiffs(cs);
+  spiffsStorage.saveStatsToSpiffs();
 }
 
 // ************************************************************

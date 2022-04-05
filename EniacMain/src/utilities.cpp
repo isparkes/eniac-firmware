@@ -171,7 +171,7 @@ void resetOptions() {
   cc->blinkenLightsMode = BLNKN_MODE_DEFAULT;
   cc->slaveMode = SLAVE_MODE_DEFAULT;
 
-  spiffsStorage.saveConfigToSpiffs(cc);
+  spiffsStorage.saveConfigToSpiffs();
   debugMsgUtl("Saved factory config");
 }
 
@@ -406,7 +406,7 @@ void postDiagsDataHandler(AsyncWebServerRequest *request) {
 void saveStatsHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got save stats request");
 
-  spiffsStorage.saveStatsToSpiffs(cs);
+  spiffsStorage.saveStatsToSpiffs();
   
   request->send(200, "text/json", "{\"status\": \"Stats saved\"}");
 }
@@ -548,7 +548,7 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
 
     // ------------------------------------------------------------
 
-    spiffsStorage.saveConfigToSpiffs(cc);
+    spiffsStorage.saveConfigToSpiffs();
     debugMsgUtl("Saved new config");
   } else {
     debugMsgUtl("Json parse failure: " + String(request->arg("body")));
@@ -599,7 +599,7 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
     tzManager.setTZS(cc->tzs);
     debugMsgUtl("Applied new time config");
 
-    spiffsStorage.saveConfigToSpiffs(cc);
+    spiffsStorage.saveConfigToSpiffs();
     debugMsgUtl("Saved new time config");
   } else {
     debugMsgUtl("Json parse failure: " + String(request->arg("body")));

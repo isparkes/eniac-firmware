@@ -1,4 +1,5 @@
 #include "SpiffsStorage.h"
+
 //**********************************************************************************
 //**********************************************************************************
 //*                               SPIFFS functions                                 *
@@ -19,7 +20,7 @@ bool SpiffsStorage_::testMountSpiffs()
 // ************************************************************
 // Retrieve the config from the SPIFFS
 // ************************************************************
-bool SpiffsStorage_::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
+bool SpiffsStorage_::getConfigFromSpiffs()
 {
   bool loaded = false;
   debugMsgSpf("mounted file system config read");
@@ -43,125 +44,125 @@ bool SpiffsStorage_::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
       if (json.success())
       {
         debugMsgSpf("parsed json");
-        spiffs_config->ntpPool = json["ntp_pool"].as<String>();
-        debugMsgSpf("Loaded NTP pool: " + spiffs_config->ntpPool);
-        spiffs_config->ntpUpdateInterval = json["ntp_update_interval"].as<int>();
-        debugMsgSpf("Loaded NTP update interval: " + String(spiffs_config->ntpUpdateInterval));
-        spiffs_config->tzs = json["time_zone_string"].as<String>();
-        debugMsgSpf("Loaded time zone string: " + spiffs_config->tzs);
-        spiffs_config->hourMode = json["hourMode"].as<bool>();
-        debugMsgSpf("Loaded 12/24H mode: " + String(spiffs_config->hourMode));
-        spiffs_config->blankLeading = json["blankLeading"].as<bool>();
-        debugMsgSpf("Loaded lead zero blanking: " + String(spiffs_config->blankLeading));
-        spiffs_config->dateFormat = json["dateFormat"];
-        debugMsgSpf("Loaded date format: " + String(spiffs_config->dateFormat));
-        spiffs_config->dayBlanking = json["dayBlanking"];
-        debugMsgSpf("Loaded dayBlanking: " + String(spiffs_config->dayBlanking));
-        spiffs_config->fade = json["fade"].as<bool>();
-        debugMsgSpf("Loaded fade: " + String(spiffs_config->fade));
-        spiffs_config->fadeSteps = json["fadeSteps"];
-        debugMsgSpf("Loaded fadeSteps: " + String(spiffs_config->fadeSteps));
-        spiffs_config->scrollback = json["scrollback"].as<bool>();
-        debugMsgSpf("Loaded scrollback: " + String(spiffs_config->scrollback));
-        spiffs_config->scrollSteps = json["scrollSteps"];
-        debugMsgSpf("Loaded scrollSteps: " + String(spiffs_config->scrollSteps));
-        spiffs_config->thresholdBright = json["thresholdBright"];
-        debugMsgSpf("Loaded thresholdBright: " + String(spiffs_config->thresholdBright));
-        spiffs_config->sensitivityLDR = json["sensitivityLDR"];
-        debugMsgSpf("Loaded sensitivityLDR: " + String(spiffs_config->sensitivityLDR));
-        spiffs_config->minDim = json["minDim"];
-        debugMsgSpf("Loaded minDim: " + String(spiffs_config->minDim));
-        spiffs_config->sensorSmoothCountLDR = json["sensorSmoothCountLDR"];
-        debugMsgSpf("Loaded sensorSmoothCountLDR: " + String(spiffs_config->sensorSmoothCountLDR));
-        spiffs_config->backlightMode = json["backlightMode"];
-        debugMsgSpf("Loaded backlight mode: " + String(spiffs_config->backlightMode));
-        spiffs_config->useBLPulse = json["useBLPulse"].as<bool>();
-        debugMsgSpf("Loaded backlight pulse: " + String(spiffs_config->useBLPulse));
-        spiffs_config->useBLDim = json["useBLDim"].as<bool>();
-        debugMsgSpf("Loaded backlight dim: " + String(spiffs_config->useBLDim));
-        spiffs_config->redCnl = json["redCnl"];
-        debugMsgSpf("Loaded redCnl: " + String(spiffs_config->redCnl));
-        spiffs_config->grnCnl = json["grnCnl"];
-        debugMsgSpf("Loaded grnCnl: " + String(spiffs_config->grnCnl));
-        spiffs_config->bluCnl = json["bluCnl"];
-        debugMsgSpf("Loaded bluCnl: " + String(spiffs_config->bluCnl));
-        spiffs_config->blankMode = json["blankMode"];
-        debugMsgSpf("Loaded blankMode: " + String(spiffs_config->blankMode));
-        spiffs_config->blankHourStart = json["blankHourStart"];
-        debugMsgSpf("Loaded blankHourStart: " + String(spiffs_config->blankHourStart));
-        spiffs_config->blankHourEnd = json["blankHourEnd"];
-        debugMsgSpf("Loaded blankHourEnd: " + String(spiffs_config->blankHourEnd));
-        spiffs_config->cycleSpeed = json["cycleSpeed"];
-        debugMsgSpf("Loaded cycleSpeed: " + String(spiffs_config->cycleSpeed));
-        spiffs_config->mdTimeout = json["mdTimeout"];
-        debugMsgSpf("Loaded mdTimeout: " + String(spiffs_config->mdTimeout));
-        spiffs_config->useLDR = json["useLDR"];
-        debugMsgSpf("Loaded useLDR: " + String(spiffs_config->useLDR));
-        spiffs_config->thresholdBright = json["thresholdBright"];
-        debugMsgSpf("Loaded thresholdBright: " + String(spiffs_config->thresholdBright));
-        spiffs_config->sensitivityLDR = json["sensitivityLDR"];
-        debugMsgSpf("Loaded sensitivityLDR: " + String(spiffs_config->sensitivityLDR));
-        spiffs_config->sensorSmoothCountLDR = json["sensorSmoothCountLDR"];
-        debugMsgSpf("Loaded sensorSmoothCountLDR: " + String(spiffs_config->sensorSmoothCountLDR));
-        spiffs_config->slotsMode = json["slotsMode"];
-        debugMsgSpf("Loaded slotsMode: " + String(spiffs_config->slotsMode));
+        cc->ntpPool = json["ntp_pool"].as<String>();
+        debugMsgSpf("Loaded NTP pool: " + cc->ntpPool);
+        cc->ntpUpdateInterval = json["ntp_update_interval"].as<int>();
+        debugMsgSpf("Loaded NTP update interval: " + String(cc->ntpUpdateInterval));
+        cc->tzs = json["time_zone_string"].as<String>();
+        debugMsgSpf("Loaded time zone string: " + cc->tzs);
+        cc->hourMode = json["hourMode"].as<bool>();
+        debugMsgSpf("Loaded 12/24H mode: " + String(cc->hourMode));
+        cc->blankLeading = json["blankLeading"].as<bool>();
+        debugMsgSpf("Loaded lead zero blanking: " + String(cc->blankLeading));
+        cc->dateFormat = json["dateFormat"];
+        debugMsgSpf("Loaded date format: " + String(cc->dateFormat));
+        cc->dayBlanking = json["dayBlanking"];
+        debugMsgSpf("Loaded dayBlanking: " + String(cc->dayBlanking));
+        cc->fade = json["fade"].as<bool>();
+        debugMsgSpf("Loaded fade: " + String(cc->fade));
+        cc->fadeSteps = json["fadeSteps"];
+        debugMsgSpf("Loaded fadeSteps: " + String(cc->fadeSteps));
+        cc->scrollback = json["scrollback"].as<bool>();
+        debugMsgSpf("Loaded scrollback: " + String(cc->scrollback));
+        cc->scrollSteps = json["scrollSteps"];
+        debugMsgSpf("Loaded scrollSteps: " + String(cc->scrollSteps));
+        cc->thresholdBright = json["thresholdBright"];
+        debugMsgSpf("Loaded thresholdBright: " + String(cc->thresholdBright));
+        cc->sensitivityLDR = json["sensitivityLDR"];
+        debugMsgSpf("Loaded sensitivityLDR: " + String(cc->sensitivityLDR));
+        cc->minDim = json["minDim"];
+        debugMsgSpf("Loaded minDim: " + String(cc->minDim));
+        cc->sensorSmoothCountLDR = json["sensorSmoothCountLDR"];
+        debugMsgSpf("Loaded sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
+        cc->backlightMode = json["backlightMode"];
+        debugMsgSpf("Loaded backlight mode: " + String(cc->backlightMode));
+        cc->useBLPulse = json["useBLPulse"].as<bool>();
+        debugMsgSpf("Loaded backlight pulse: " + String(cc->useBLPulse));
+        cc->useBLDim = json["useBLDim"].as<bool>();
+        debugMsgSpf("Loaded backlight dim: " + String(cc->useBLDim));
+        cc->redCnl = json["redCnl"];
+        debugMsgSpf("Loaded redCnl: " + String(cc->redCnl));
+        cc->grnCnl = json["grnCnl"];
+        debugMsgSpf("Loaded grnCnl: " + String(cc->grnCnl));
+        cc->bluCnl = json["bluCnl"];
+        debugMsgSpf("Loaded bluCnl: " + String(cc->bluCnl));
+        cc->blankMode = json["blankMode"];
+        debugMsgSpf("Loaded blankMode: " + String(cc->blankMode));
+        cc->blankHourStart = json["blankHourStart"];
+        debugMsgSpf("Loaded blankHourStart: " + String(cc->blankHourStart));
+        cc->blankHourEnd = json["blankHourEnd"];
+        debugMsgSpf("Loaded blankHourEnd: " + String(cc->blankHourEnd));
+        cc->cycleSpeed = json["cycleSpeed"];
+        debugMsgSpf("Loaded cycleSpeed: " + String(cc->cycleSpeed));
+        cc->mdTimeout = json["mdTimeout"];
+        debugMsgSpf("Loaded mdTimeout: " + String(cc->mdTimeout));
+        cc->useLDR = json["useLDR"];
+        debugMsgSpf("Loaded useLDR: " + String(cc->useLDR));
+        cc->thresholdBright = json["thresholdBright"];
+        debugMsgSpf("Loaded thresholdBright: " + String(cc->thresholdBright));
+        cc->sensitivityLDR = json["sensitivityLDR"];
+        debugMsgSpf("Loaded sensitivityLDR: " + String(cc->sensitivityLDR));
+        cc->sensorSmoothCountLDR = json["sensorSmoothCountLDR"];
+        debugMsgSpf("Loaded sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
+        cc->slotsMode = json["slotsMode"];
+        debugMsgSpf("Loaded slotsMode: " + String(cc->slotsMode));
 
-        spiffs_config->webAuthentication = json["webAuthentication"].as<bool>();
-        debugMsgSpf("Loaded webAuthentication: " + String(spiffs_config->webAuthentication));
+        cc->webAuthentication = json["webAuthentication"].as<bool>();
+        debugMsgSpf("Loaded webAuthentication: " + String(cc->webAuthentication));
 
-        spiffs_config->webUsername = json["webUsername"].as<String>();
-        debugMsgSpf("Loaded webUsername: " + spiffs_config->webUsername);
+        cc->webUsername = json["webUsername"].as<String>();
+        debugMsgSpf("Loaded webUsername: " + cc->webUsername);
 
-        spiffs_config->webPassword = json["webPassword"].as<String>();
-        debugMsgSpf("Loaded webPassword: " + spiffs_config->webPassword);
+        cc->webPassword = json["webPassword"].as<String>();
+        debugMsgSpf("Loaded webPassword: " + cc->webPassword);
 
-        spiffs_config->acpMode = json["acpMode"];
-        debugMsgSpf("Loaded acpMode: " + String(spiffs_config->acpMode));
+        cc->acpMode = json["acpMode"];
+        debugMsgSpf("Loaded acpMode: " + String(cc->acpMode));
 
-        spiffs_config->mdBlankMode = json["mdBlankMode"];
-        debugMsgSpf("Loaded mdBlankMode: " + String(spiffs_config->mdBlankMode));
+        cc->mdBlankMode = json["mdBlankMode"];
+        debugMsgSpf("Loaded mdBlankMode: " + String(cc->mdBlankMode));
 
-        spiffs_config->alarmMode = json["alarmMode"];
-        debugMsgSpf("Loaded alarmMode: " + String(spiffs_config->alarmMode));
+        cc->alarmMode = json["alarmMode"];
+        debugMsgSpf("Loaded alarmMode: " + String(cc->alarmMode));
 
-        spiffs_config->alarmHour = json["alarmHour"];
-        debugMsgSpf("Loaded alarmHour: " + String(spiffs_config->alarmHour));
+        cc->alarmHour = json["alarmHour"];
+        debugMsgSpf("Loaded alarmHour: " + String(cc->alarmHour));
 
-        spiffs_config->alarmMinute = json["alarmMinute"];
-        debugMsgSpf("Loaded alarmMinute: " + String(spiffs_config->alarmMinute));
+        cc->alarmMinute = json["alarmMinute"];
+        debugMsgSpf("Loaded alarmMinute: " + String(cc->alarmMinute));
 
-        spiffs_config->sepMode = json["sepMode"];
-        debugMsgSpf("Loaded sepMode: " + String(spiffs_config->sepMode));
+        cc->sepMode = json["sepMode"];
+        debugMsgSpf("Loaded sepMode: " + String(cc->sepMode));
 
-        spiffs_config->hueOffset = json["hueOffset"];
-        debugMsgSpf("Loaded hueOffset: " + String(spiffs_config->hueOffset));
+        cc->hueOffset = json["hueOffset"];
+        debugMsgSpf("Loaded hueOffset: " + String(cc->hueOffset));
 
-        spiffs_config->towerHueOffset = json["towerHueOffset"];
-        debugMsgSpf("Loaded towerHueOffset: " + String(spiffs_config->towerHueOffset));
+        cc->towerHueOffset = json["towerHueOffset"];
+        debugMsgSpf("Loaded towerHueOffset: " + String(cc->towerHueOffset));
 
-        spiffs_config->backlightDimFactor = json["backlightDimFactor"];
-        debugMsgSpf("Loaded backlightDimFactor: " + String(spiffs_config->backlightDimFactor));
+        cc->backlightDimFactor = json["backlightDimFactor"];
+        debugMsgSpf("Loaded backlightDimFactor: " + String(cc->backlightDimFactor));
 
-        spiffs_config->testMode = json["testMode"].as<bool>();
-        debugMsgSpf("Loaded testMode: " + String(spiffs_config->testMode));
+        cc->testMode = json["testMode"].as<bool>();
+        debugMsgSpf("Loaded testMode: " + String(cc->testMode));
 
-        spiffs_config->wasSetup = json["wasSetup"].as<bool>();
-        debugMsgSpf("Loaded wasSetup: " + String(spiffs_config->wasSetup));
+        cc->wasSetup = json["wasSetup"].as<bool>();
+        debugMsgSpf("Loaded wasSetup: " + String(cc->wasSetup));
 
-        spiffs_config->WiFiSSID = json["WiFiSSID"].as<String>();
-        debugMsgSpf("Loaded WiFiSSID: " + String(spiffs_config->WiFiSSID));
+        cc->WiFiSSID = json["WiFiSSID"].as<String>();
+        debugMsgSpf("Loaded WiFiSSID: " + String(cc->WiFiSSID));
 
-        spiffs_config->WiFiPassword = json["WiFiPassword"].as<String>();
-        debugMsgSpf("Loaded WiFiPassword: " + String(spiffs_config->WiFiPassword));
+        cc->WiFiPassword = json["WiFiPassword"].as<String>();
+        debugMsgSpf("Loaded WiFiPassword: " + String(cc->WiFiPassword));
 
-        spiffs_config->WifiOnAtStart = json["WifiOnAtStart"].as<bool>();
-        debugMsgSpf("Loaded WifiOnAtStart: " + String(spiffs_config->WifiOnAtStart));
+        cc->WifiOnAtStart = json["WifiOnAtStart"].as<bool>();
+        debugMsgSpf("Loaded WifiOnAtStart: " + String(cc->WifiOnAtStart));
 
-        spiffs_config->blinkenLightsMode = json["blinkenLightsMode"];
-        debugMsgSpf("Loaded blinkenLightsMode: " + String(spiffs_config->blinkenLightsMode));
+        cc->blinkenLightsMode = json["blinkenLightsMode"];
+        debugMsgSpf("Loaded blinkenLightsMode: " + String(cc->blinkenLightsMode));
 
-        spiffs_config->slaveMode = json["slaveMode"];
-        debugMsgSpf("Loaded slaveMode: " + String(spiffs_config->slaveMode));
+        cc->slaveMode = json["slaveMode"];
+        debugMsgSpf("Loaded slaveMode: " + String(cc->slaveMode));
 
         loaded = true;
       }
@@ -179,58 +180,58 @@ bool SpiffsStorage_::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
 // ************************************************************
 // Save config back to the SPIFFS
 // ************************************************************
-void SpiffsStorage_::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
+void SpiffsStorage_::saveConfigToSpiffs()
 {
   debugMsgSpf("saving config");
 
   DynamicJsonBuffer jsonBuffer;
   JsonObject &json = jsonBuffer.createObject();
-  json["ntp_pool"] = spiffs_config->ntpPool;
-  json["ntp_update_interval"] = spiffs_config->ntpUpdateInterval;
-  json["time_zone_string"] = spiffs_config->tzs;
-  json["hourMode"] = spiffs_config->hourMode;
-  json["blankLeading"] = spiffs_config->blankLeading;
-  json["dateFormat"] = spiffs_config->dateFormat;
-  json["dayBlanking"] = spiffs_config->dayBlanking;
-  json["fade"] = spiffs_config->fade;
-  json["scrollback"] = spiffs_config->scrollback;
-  json["fadeSteps"] = spiffs_config->fadeSteps;
-  json["scrollSteps"] = spiffs_config->scrollSteps;
-  json["suppressACP"] = spiffs_config->suppressACP;
-  json["minDim"] = spiffs_config->minDim;
-  json["backlightMode"] = spiffs_config->backlightMode;
-  json["redCnl"] = spiffs_config->redCnl;
-  json["grnCnl"] = spiffs_config->grnCnl;
-  json["bluCnl"] = spiffs_config->bluCnl;
-  json["blankMode"] = spiffs_config->blankMode;
-  json["blankHourStart"] = spiffs_config->blankHourStart;
-  json["blankHourEnd"] = spiffs_config->blankHourEnd;
-  json["cycleSpeed"] = spiffs_config->cycleSpeed;
-  json["mdTimeout"] = spiffs_config->mdTimeout;
-  json["useLDR"] = spiffs_config->useLDR;
-  json["thresholdBright"] = spiffs_config->thresholdBright;
-  json["sensitivityLDR"] = spiffs_config->sensitivityLDR;
-  json["sensorSmoothCountLDR"] = spiffs_config->sensorSmoothCountLDR;
-  json["slotsMode"] = spiffs_config->slotsMode;
-  json["webAuthentication"] = spiffs_config->webAuthentication;
-  json["webUsername"] = spiffs_config->webUsername;
-  json["webPassword"] = spiffs_config->webPassword;
-  json["acpMode"] = spiffs_config->acpMode;
-  json["mdBlankMode"] = spiffs_config->mdBlankMode;
-  json["alarmMode"] = spiffs_config->alarmMode;
-  json["alarmHour"] = spiffs_config->alarmHour;
-  json["alarmMinute"] = spiffs_config->alarmMinute;
-  json["sepMode"] = spiffs_config->sepMode;
-  json["backlightDimFactor"] = spiffs_config->backlightDimFactor;
-  json["hueOffset"] = spiffs_config->hueOffset;
-  json["towerHueOffset"] = spiffs_config->towerHueOffset;
-  json["testMode"] = spiffs_config->testMode;
-  json["wasSetup"] = spiffs_config->wasSetup;
-  json["WiFiSSID"] = spiffs_config->WiFiSSID;
-  json["WiFiPassword"] = spiffs_config->WiFiPassword;
-  json["WifiOnAtStart"] = spiffs_config->WifiOnAtStart;
-  json["blinkenLightsMode"] = spiffs_config->blinkenLightsMode;
-  json["slaveMode"] = spiffs_config->slaveMode;
+  json["ntp_pool"] = cc->ntpPool;
+  json["ntp_update_interval"] = cc->ntpUpdateInterval;
+  json["time_zone_string"] = cc->tzs;
+  json["hourMode"] = cc->hourMode;
+  json["blankLeading"] = cc->blankLeading;
+  json["dateFormat"] = cc->dateFormat;
+  json["dayBlanking"] = cc->dayBlanking;
+  json["fade"] = cc->fade;
+  json["scrollback"] = cc->scrollback;
+  json["fadeSteps"] = cc->fadeSteps;
+  json["scrollSteps"] = cc->scrollSteps;
+  json["suppressACP"] = cc->suppressACP;
+  json["minDim"] = cc->minDim;
+  json["backlightMode"] = cc->backlightMode;
+  json["redCnl"] = cc->redCnl;
+  json["grnCnl"] = cc->grnCnl;
+  json["bluCnl"] = cc->bluCnl;
+  json["blankMode"] = cc->blankMode;
+  json["blankHourStart"] = cc->blankHourStart;
+  json["blankHourEnd"] = cc->blankHourEnd;
+  json["cycleSpeed"] = cc->cycleSpeed;
+  json["mdTimeout"] = cc->mdTimeout;
+  json["useLDR"] = cc->useLDR;
+  json["thresholdBright"] = cc->thresholdBright;
+  json["sensitivityLDR"] = cc->sensitivityLDR;
+  json["sensorSmoothCountLDR"] = cc->sensorSmoothCountLDR;
+  json["slotsMode"] = cc->slotsMode;
+  json["webAuthentication"] = cc->webAuthentication;
+  json["webUsername"] = cc->webUsername;
+  json["webPassword"] = cc->webPassword;
+  json["acpMode"] = cc->acpMode;
+  json["mdBlankMode"] = cc->mdBlankMode;
+  json["alarmMode"] = cc->alarmMode;
+  json["alarmHour"] = cc->alarmHour;
+  json["alarmMinute"] = cc->alarmMinute;
+  json["sepMode"] = cc->sepMode;
+  json["backlightDimFactor"] = cc->backlightDimFactor;
+  json["hueOffset"] = cc->hueOffset;
+  json["towerHueOffset"] = cc->towerHueOffset;
+  json["testMode"] = cc->testMode;
+  json["wasSetup"] = cc->wasSetup;
+  json["WiFiSSID"] = cc->WiFiSSID;
+  json["WiFiPassword"] = cc->WiFiPassword;
+  json["WifiOnAtStart"] = cc->WifiOnAtStart;
+  json["blinkenLightsMode"] = cc->blinkenLightsMode;
+  json["slaveMode"] = cc->slaveMode;
   File configFile = SPIFFS.open("/config/config.json", "w");
   if (!configFile)
   {
@@ -246,7 +247,7 @@ void SpiffsStorage_::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
 // ************************************************************
 // Get the statistics from the SPIFFS
 // ************************************************************
-bool SpiffsStorage_::getStatsFromSpiffs(spiffs_stats_t *spiffs_stats)
+bool SpiffsStorage_::getStatsFromSpiffs()
 {
   bool loaded = false;
   if (SPIFFS.exists("/config/stats.json"))
@@ -269,11 +270,11 @@ bool SpiffsStorage_::getStatsFromSpiffs(spiffs_stats_t *spiffs_stats)
       {
         debugMsgSpf("parsed stats json");
 
-        spiffs_stats->uptimeMins = json.get<unsigned long>("uptime");
-        debugMsgSpf("Loaded uptime: " + String(spiffs_stats->uptimeMins));
+        cs->uptimeMins = json.get<unsigned long>("uptime");
+        debugMsgSpf("Loaded uptime: " + String(cs->uptimeMins));
 
-        spiffs_stats->tubeOnTimeMins = json.get<unsigned long>("tubeontime");
-        debugMsgSpf("Loaded tubeontime: " + String(spiffs_stats->tubeOnTimeMins));
+        cs->tubeOnTimeMins = json.get<unsigned long>("tubeontime");
+        debugMsgSpf("Loaded tubeontime: " + String(cs->tubeOnTimeMins));
 
         loaded = true;
       }
@@ -292,13 +293,13 @@ bool SpiffsStorage_::getStatsFromSpiffs(spiffs_stats_t *spiffs_stats)
 // ************************************************************
 // Save the statistics back to the SPIFFS
 // ************************************************************
-void SpiffsStorage_::saveStatsToSpiffs(spiffs_stats_t *spiffs_stats)
+void SpiffsStorage_::saveStatsToSpiffs()
 {
   debugMsgSpf("saving stats");
   DynamicJsonBuffer jsonBuffer;
   JsonObject &json = jsonBuffer.createObject();
-  json.set("uptime", spiffs_stats->uptimeMins);
-  json.set("tubeontime", spiffs_stats->tubeOnTimeMins);
+  json.set("uptime", cs->uptimeMins);
+  json.set("tubeontime", cs->tubeOnTimeMins);
   File statsFile = SPIFFS.open("/config/stats.json", "w");
   if (!statsFile)
   {

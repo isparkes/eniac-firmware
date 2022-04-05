@@ -163,23 +163,19 @@ void displayMenu() {
   menuMode = menu;
   byte menuCount = 1;
   oledMenu.menuTitle = "display";
-  oledMenu.menuItems[menuCount] = "Tube Dimming on/off";        oledMenu.menuActions[menuCount++] = toggleTubeDimming;
-  oledMenu.menuItems[menuCount] = "BL Dimming on/off";          oledMenu.menuActions[menuCount++] = toggleBLDimming;
+  String status = cc->useLDR ? "off" : "on";
+  oledMenu.menuItems[menuCount] = "Tube Dimming " + status;     oledMenu.menuActions[menuCount++] = toggleTubeDimming;
+  status =  cc->useBLDim ? "off" : "on";
+  oledMenu.menuItems[menuCount] = "BL Dimming " + status;       oledMenu.menuActions[menuCount++] = toggleBLDimming;
   if (cc->hourMode) {
     oledMenu.menuItems[menuCount] = "Set 24h mode";             oledMenu.menuActions[menuCount++] = toggleHourMode;
   } else {
     oledMenu.menuItems[menuCount] = "Set 12h mode";             oledMenu.menuActions[menuCount++] = toggleHourMode;
   }
-  if (cc->fade) {
-    oledMenu.menuItems[menuCount] = "Digit fade off";           oledMenu.menuActions[menuCount++] = toggleFade;
-  } else {
-    oledMenu.menuItems[menuCount] = "Digit fade on";            oledMenu.menuActions[menuCount++] = toggleFade;
-  }
-  if (cc->scrollback) {
-    oledMenu.menuItems[menuCount] = "Scrollback off";           oledMenu.menuActions[menuCount++] = toggleScrollback;
-  } else {
-    oledMenu.menuItems[menuCount] = "Scrollback on";            oledMenu.menuActions[menuCount++] = toggleScrollback;
-  }
+  status = cc->fade ? "off" : "on";
+  oledMenu.menuItems[menuCount] = "Digit Fade " + status;       oledMenu.menuActions[menuCount++] = toggleFade;
+  status = cc->scrollback ? "off" : "on";
+  oledMenu.menuItems[menuCount] = "Scrollback " + status;       oledMenu.menuActions[menuCount++] = toggleScrollback;
   oledMenu.menuItems[menuCount] = "Set Dimming value";          oledMenu.menuActions[menuCount++] = setDimming;
   String nextBLModeName = blinkenlightsManager.getNextBlinkenlightsModeName(cc->blinkenLightsMode);
   oledMenu.menuItems[menuCount] = "BL mode: " + nextBLModeName; oledMenu.menuActions[menuCount++] = nextBlnknMode;
@@ -247,7 +243,7 @@ void menuActions(menuTargets selectedAction) {
     }
     case toggleWiFiAtStart: {
       cc->WifiOnAtStart = ! cc->WifiOnAtStart;
-      spiffsStorage.saveConfigToSpiffs(cc);
+      spiffsStorage.saveConfigToSpiffs();
       wifiMenu();
       break;
     }
@@ -297,13 +293,13 @@ void menuActions(menuTargets selectedAction) {
     }
     case toggleTubeDimming: {
       cc->useLDR = ! cc->useLDR;
-      spiffsStorage.saveConfigToSpiffs(cc);
+      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
     case toggleBLDimming: {
       cc->useBLDim = ! cc->useBLDim;
-      spiffsStorage.saveConfigToSpiffs(cc);
+      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
@@ -314,39 +310,39 @@ void menuActions(menuTargets selectedAction) {
     case saveDimming: {
       if (cc->minDim != oledMenu.mValueEntered) {
         cc->minDim = oledMenu.mValueEntered;
-        spiffsStorage.saveConfigToSpiffs(cc);
+        spiffsStorage.saveConfigToSpiffs();
         displayMenu();
       }
       break;
     }
     case nextBlnknMode: {
       cc->blinkenLightsMode = blinkenlightsManager.getNextBlinkenlightsMode(cc->blinkenLightsMode);
-      spiffsStorage.saveConfigToSpiffs(cc);
+      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
     case setNextACPMode: {
       cc->acpMode = outputManager.getNextACPMode(cc->acpMode);
-      spiffsStorage.saveConfigToSpiffs(cc);
+      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
     case setNextSlotsMode: {
       cc->slotsMode = outputManager.getNextSlotsMode(cc->slotsMode);
-      spiffsStorage.saveConfigToSpiffs(cc);
+      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
     case saveStats: {
-      spiffsStorage.saveStatsToSpiffs(cs);
+      spiffsStorage.saveStatsToSpiffs();
       break;
     }
     case saveConfig: {
-      spiffsStorage.saveConfigToSpiffs(cc);
+      spiffsStorage.saveConfigToSpiffs();
       break;
     }
     case restartClock: {
-      spiffsStorage.saveStatsToSpiffs(cs);
+      spiffsStorage.saveStatsToSpiffs();
       flashMenuMessage("Restart","Restarting\nchronometer\ndevice now");
       delay(1000);
       ESP.restart();
@@ -371,19 +367,19 @@ void menuActions(menuTargets selectedAction) {
     }
     case toggleHourMode: {
       cc->hourMode = !cc->hourMode;
-      spiffsStorage.saveConfigToSpiffs(cc);
+      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
     case toggleFade: {
       cc->fade = !cc->fade;
-      spiffsStorage.saveConfigToSpiffs(cc);
+      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
     case toggleScrollback: {
       cc->scrollback = !cc->scrollback;
-      spiffsStorage.saveConfigToSpiffs(cc);
+      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
