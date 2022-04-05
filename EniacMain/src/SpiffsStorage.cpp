@@ -136,6 +136,9 @@ bool SpiffsStorage_::getConfigFromSpiffs(spiffs_config_t *spiffs_config)
         spiffs_config->hueOffset = json["hueOffset"];
         debugMsgSpf("Loaded hueOffset: " + String(spiffs_config->hueOffset));
 
+        spiffs_config->towerHueOffset = json["towerHueOffset"];
+        debugMsgSpf("Loaded towerHueOffset: " + String(spiffs_config->towerHueOffset));
+
         spiffs_config->backlightDimFactor = json["backlightDimFactor"];
         debugMsgSpf("Loaded backlightDimFactor: " + String(spiffs_config->backlightDimFactor));
 
@@ -220,6 +223,7 @@ void SpiffsStorage_::saveConfigToSpiffs(spiffs_config_t *spiffs_config)
   json["sepMode"] = spiffs_config->sepMode;
   json["backlightDimFactor"] = spiffs_config->backlightDimFactor;
   json["hueOffset"] = spiffs_config->hueOffset;
+  json["towerHueOffset"] = spiffs_config->towerHueOffset;
   json["testMode"] = spiffs_config->testMode;
   json["wasSetup"] = spiffs_config->wasSetup;
   json["WiFiSSID"] = spiffs_config->WiFiSSID;

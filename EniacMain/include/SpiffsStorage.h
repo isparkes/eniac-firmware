@@ -51,6 +51,7 @@ typedef struct {
   byte sepMode;
   byte backlightDimFactor;
   int  hueOffset;
+  int  towerHueOffset;
   String WiFiSSID;
   String WiFiPassword;
   bool WifiOnAtStart;

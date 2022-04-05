@@ -194,9 +194,6 @@ class LEDManager_
 
     // Use colour inverting for the second LED of each tube
     void setInvertLEDs(boolean value);
-
-    // Set the tower hue offset
-    void setTowerHueOffset(int value);
   private:
     float _backlightDim = 1.0;
     float _underlightDim = 1.0;

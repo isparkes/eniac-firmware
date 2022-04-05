@@ -27,8 +27,14 @@ void LEDManager_::recalculateVariables() {
     _hueOffset = 0;
   } else {
     _invertSecondLed = true;
-    _hueOffset = (cc->hueOffset % 360) / 360.0;
+    int offset = cc->hueOffset % 360;
+    _hueOffset = (offset) / 360.0;
+    if (offset != cc->hueOffset) cc->hueOffset = offset; 
   }
+
+  int offset = cc->towerHueOffset % 360;
+  _towerHueOffset = (offset) / 360.0;
+  if (offset != cc->towerHueOffset) cc->towerHueOffset = offset; 
 }
 
 // ************************************************************
@@ -74,15 +80,6 @@ void LEDManager_::setBlanked(boolean blanked)
 void LEDManager_::setBacklightLEDs(byte red, byte green, byte blue) {
   for (int i = 0 ; i < NUM_BL_PIXELS ; i++) {
     setBacklightLED(i, red, green, blue, _invertSecondLed);
-  }
-}
-
-// ************************************************************
-// Set back light LEDs to the same colour
-// ************************************************************
-void LEDManager_::setTowerHueOffset(int value) {
-  if (value >= 0) {
-    _towerHueOffset = (value % 360) / 360.0;
   }
 }
 
