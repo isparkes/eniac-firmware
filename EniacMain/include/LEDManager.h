@@ -137,18 +137,6 @@
 #define EXT_DIM_FACTOR_MAX              100
 #define EXT_DIM_FACTOR_DEFAULT          100
 
-// -------------------------------------------------------------------------------
-#define LED_MODE_MIN        0
-#define LED_RAILROAD        0
-#define LED_BLINK_SLOW      1
-#define LED_BLINK_FAST      2
-#define LED_BLINK_DBL       3
-#define LED_ON              4
-#define LED_OFF             5
-#define LED_BLINK_DEFAULT   LED_RAILROAD
-#define LED_RAILROAD_X      -1 // Not yet implemented
-#define LED_MODE_MAX        5
-
 // ************************** Pin Allocations *************************
 
 class LEDManager_

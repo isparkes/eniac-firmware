@@ -18,7 +18,7 @@ void LDRManager_::setUp() {
 // ************************************************************
 void LDRManager_::setUpPWM() {
   debugMsgLdr("Start up dimming PWM");
-  const int PWMFreq = 1000; /* 1 KHz */
+  const int PWMFreq = 500; /* Hz */
   const int PWMResolution = 12;
   const int MAX_DUTY_CYCLE = (int)(pow(2, PWMResolution) - 1);
 

@@ -53,13 +53,18 @@ class DebugManager_ {
     DebugManager_ &operator=(const DebugManager_ &) = delete;
 
   public:
-    void begin();
-    void debugMsg(String message);
+    void setDebuggingOutput(bool newState);
     void debugMsg(String prefix, String message);
     void debugMsgCont(String message);
+    void setDebugAutoOff(unsigned int seconds);
+    void debugAutoOffCheck();
+
+    // Some components need to use a callback
     DebugCallback getDebugCallBack();
 
   private:
+    bool _state = true;
+    unsigned int _debugForSecs = 0;
 };
 
 // free function link to the class function

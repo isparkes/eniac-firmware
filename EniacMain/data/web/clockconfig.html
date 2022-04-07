@@ -167,6 +167,20 @@
                         </select>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label class="control-label col-xs-3">Separators:</label>
+                    <div class="col-xs-4">
+                        <select class="form-control" name="sepMode" id="sepMode">
+                            <option value="0">Railroad</option>
+                            <option value="1">Slow blink</option>
+                            <option value="2">Fast blink</option>
+                            <option value="3">Double blink</option>
+                            <option value="4">Always on</option>
+                            <option value="5">Always off</option>
+                            <option value="6">AM/PM</option>
+                        </select>
+                    </div>
+                </div>
                 <div>
                     <div class="form-group">
                     <div class="col-xs-offset-3 col-xs-9">
@@ -264,6 +278,7 @@
                             <option value="0">Blank tubes only</option>
                             <option value="1">Blank LEDs only</option>
                             <option selected value="2">Blank tubes and LEDs</option>
+                            <option value="3">Blank tubes and LEDs and Separators</option>
                         </select>
                     </div>
                 </div>
@@ -372,6 +387,8 @@
                 </div>
             </div>
         </div>
+
+        <!--
         <div class="container" role="main">
             <h3 class="sub-header">Security</h3>
             <div class="form-horizontal">
@@ -407,6 +424,7 @@
                 </div>
             </div>
         </div>
+        -->
     </body>
 
 <script>
@@ -452,6 +470,7 @@
         setCurrentRadioValue("#suppressACP", "#suppressACPOff", config.suppressACP);
         $("#blinkenLightsMode").val(config.blinkenLightsMode);
         $("#slaveMode").val(config.slaveMode);
+        $("#sepMode").val(config.sepMode);
 
         // -------------- LDR --------------
         setCurrentRadioValue("#useLDR", "#useLDROff", config.useLDR);
@@ -623,8 +642,8 @@
             postBody["blinkenLightsMode"] = $("#blinkenLightsMode").val();
         }
 
-        if (localConfig.slaveMode!=$("#slaveMode").val()) {
-            postBody["slaveMode"] = $("#slaveMode").val();
+        if (localConfig.sepMode!=$("#sepMode").val()) {
+            postBody["sepMode"] = $("#sepMode").val();
         }
 
         // ----------------------------------

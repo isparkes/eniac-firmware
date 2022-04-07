@@ -150,6 +150,7 @@ void resetOptions() {
   cc->blankMode = BLANK_MODE_DEFAULT;
   cc->blankHourStart = 0;
   cc->blankHourEnd = 7;
+  cc->sepMode = SEP_BLINK_DEFAULT;
 
   cc->mdTimeout = PIR_TIMEOUT_DEFAULT;
   
@@ -443,6 +444,7 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["blankMode"] = cc->blankMode;
   root["blankHourStart"] = cc->blankHourStart;
   root["blankHourEnd"] = cc->blankHourEnd;
+  root["sepMode"] = cc->sepMode;
 
   root["backlightMode"] = cc->backlightMode;
   root["redCnl"] = cc->redCnl;
@@ -531,6 +533,7 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateByte(json, "blankMode",      &cc->blankMode);
     compareAndUpdateByte(json, "blankHourStart", &cc->blankHourStart);
     compareAndUpdateByte(json, "blankHourEnd",   &cc->blankHourEnd);
+    compareAndUpdateByte(json, "sepMode",        &cc->sepMode);
 
     // ------------------------------------------------------------
 

@@ -60,12 +60,6 @@ extern unsigned int oledTimeout;
 extern unsigned int configTimeout;
 extern unsigned int flashTimeout;
 
-// ToDo move into outputManager
-extern bool led1State;
-extern bool led2State;
-extern bool indLed1;
-extern bool indLed2;
-
 #ifdef DIGIT_DIAGNOSTICS
 // Used for testing
 extern int digitValue;

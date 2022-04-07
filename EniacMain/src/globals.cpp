@@ -64,12 +64,6 @@ unsigned int oledTimeout = OLED_ON_TIME;
 unsigned int configTimeout = 0;
 unsigned int flashTimeout = 0;
 
-// ToDo move into outputManager
-bool led1State;
-bool led2State;
-bool indLed1;
-bool indLed2;
-
 #ifdef DIGIT_DIAGNOSTICS
 // Used for testing
 int digitValue = 0;

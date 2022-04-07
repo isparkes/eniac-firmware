@@ -38,7 +38,8 @@ enum menuTargets {
   toggleFade,
   toggleScrollback,
   setNextACPMode,
-  setNextSlotsMode
+  setNextSlotsMode,
+  debugOn10mins
 };
 
 // modes that the menu system can be in
@@ -155,6 +156,9 @@ void optionsMenu() {
   oledMenu.menuItems[menuCount] = "Save config";    oledMenu.menuActions[menuCount++] = saveConfig;
   oledMenu.menuItems[menuCount] = "Display Test";   oledMenu.menuActions[menuCount++] = displayTest;
   oledMenu.menuItems[menuCount] = "Back";           oledMenu.menuActions[menuCount++] = backToMain;
+  #ifdef DEBUG_ON
+  oledMenu.menuItems[menuCount] = "Debug on 10m";   oledMenu.menuActions[menuCount++] = debugOn10mins;
+  #endif
   oledMenu.noOfmenuItems = --menuCount;
 }
 
@@ -383,6 +387,13 @@ void menuActions(menuTargets selectedAction) {
       displayMenu();
       break;
     }
+    #ifdef DEBUG_ON
+    case debugOn10mins: {
+      debugManager.setDebuggingOutput(600);
+      displayMenu();
+      break;
+    }
+    #endif
   }
 
   oledMenu.selectedMenuItem = noTarget;

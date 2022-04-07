@@ -58,6 +58,19 @@
 #define FADE_STEPS_MAX     60
 
 // -------------------------------------------------------------------------------
+#define SEP_MODE_MIN        0
+#define SEP_RAILROAD        0
+#define SEP_BLINK_SLOW      1
+#define SEP_BLINK_FAST      2
+#define SEP_BLINK_DBL       3
+#define SEP_ON              4
+#define SEP_OFF             5
+#define SEP_AM_PM           6
+#define SEP_BLINK_DEFAULT   LED_RAILROAD
+#define SEP_RAILROAD_X      -1 // Not yet implemented
+#define SEP_MODE_MAX        6
+
+// -------------------------------------------------------------------------------
 // Display mode, set per digit
 #define BLANKED  0
 #define NORMAL   1
@@ -108,11 +121,20 @@ class OutputManager_ {
     int _acpOffset = 0;
     int _acpTick = 0;
 
+    // Separators and indicator LEDs
+    bool _led1State;
+    bool _led2State;
+    bool _led3State;
+    bool _led4State;
+    bool _indLed1;
+    bool _indLed2;
+
     outputModes _outputMode;
 
     void processStunts();
     uint32_t decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, bool blankTens, bool blankUnits, bool bl1, bool bl2, bool led1, bool led2);
     void setCurrentTransition();
+    void processSeparators();
 };
 
 extern OutputManager_ &outputManager;

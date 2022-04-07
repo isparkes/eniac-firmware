@@ -81,22 +81,22 @@ void OutputManager_::allNormal(bool leadingBlank) {
   else 
     displayType[H10] = NORMAL;
 
-  displayType[H1] = NORMAL;
+  displayType[H1]  = NORMAL;
   displayType[M10] = NORMAL;
-  displayType[M1] = NORMAL;
+  displayType[M1]  = NORMAL;
   displayType[S10] = NORMAL;
-  displayType[S1] = NORMAL;
+  displayType[S1]  = NORMAL;
 }
 
 // ************************************************************
 // Display preset
 // ************************************************************
 void OutputManager_::allBlanked() {
-  displayType[S1] = BLANKED;
+  displayType[S1]  = BLANKED;
   displayType[S10] = BLANKED;
-  displayType[M1] = BLANKED;
+  displayType[M1]  = BLANKED;
   displayType[M10] = BLANKED;
-  displayType[H1] = BLANKED;
+  displayType[H1]  = BLANKED;
   displayType[H10] = BLANKED;
 }
 
@@ -107,8 +107,8 @@ void OutputManager_::allBlanked() {
 // This is the heart of the display processing!
 // ************************************************************
 void OutputManager_::outputDisplay() {
-  // regular internal stunt processing (ACP/Slots)
   processStunts();
+  processSeparators();
 
   blinkenlights_t *bl = blinkenlightsManager.getBlinkenlights();
   byte tmpDispType;
@@ -158,7 +158,7 @@ void OutputManager_::outputDisplay() {
         break;
       }
       default: {
-        // No effects during ACP or Slots
+        // No effects (fade/scrolling) during ACP or Slots
         currNumberArray[i] = numberArray[i];
         tmpNumberArray[i] = numberArray[i];
         break;
@@ -186,8 +186,8 @@ void OutputManager_::outputDisplay() {
                                 tmpDispTypeArray[H1] == BLANKED,
                                 bl->bl1,
                                 bl->bl2,
-                                led1State,
-                                led2State);
+                                _led1State,
+                                _led2State);
   uint32_t tmpnextVal2 = decodeFromNumberArray(
                                 currNumberArray[M10], 
                                 currNumberArray[M1],
@@ -195,8 +195,8 @@ void OutputManager_::outputDisplay() {
                                 tmpDispTypeArray[M1] == BLANKED,
                                 bl->bl3,
                                 bl->bl4,
-                                led1State,
-                                led2State);
+                                _led3State,
+                                _led4State);
   uint32_t tmpnextVal3 = decodeFromNumberArray(
                                 currNumberArray[S10], 
                                 currNumberArray[S1],
@@ -204,12 +204,13 @@ void OutputManager_::outputDisplay() {
                                 tmpDispTypeArray[S1] == BLANKED,
                                 bl->bl5,
                                 bl->bl6,
-                                indLed1,
-                                indLed2);
+                                _indLed1,
+                                _indLed2);
 
   uint32_t tmpval1 = tmpnextVal1;
   uint32_t tmpval2 = tmpnextVal2;
   uint32_t tmpval3 = tmpnextVal3;
+
   if (tmpSwitchTime > 0) {
     // Only need to calculate the switch values if we are going to switch
     tmpval1 = decodeFromNumberArray(
@@ -219,8 +220,8 @@ void OutputManager_::outputDisplay() {
                                   tmpDispTypeArray[H1] == BLANKED,
                                   bl->bl1,
                                   bl->bl2,
-                                  led1State,
-                                  led2State);
+                                  _led1State,
+                                  _led2State);
     tmpval2 = decodeFromNumberArray(
                                   tmpNumberArray[M10], 
                                   tmpNumberArray[M1],
@@ -228,8 +229,8 @@ void OutputManager_::outputDisplay() {
                                   tmpDispTypeArray[M1] == BLANKED,
                                   bl->bl3,
                                   bl->bl4,
-                                  led1State,
-                                  led2State);
+                                  _led3State,
+                                  _led4State);
     tmpval3 = decodeFromNumberArray(
                                   tmpNumberArray[S10], 
                                   tmpNumberArray[S1],
@@ -237,8 +238,8 @@ void OutputManager_::outputDisplay() {
                                   tmpDispTypeArray[S1] == BLANKED,
                                   bl->bl5,
                                   bl->bl6,
-                                  indLed1,
-                                  indLed2);
+                                  _indLed1,
+                                  _indLed2);
   }
 
   // move the values over, respect the MUTEX on the interrupt
@@ -474,6 +475,72 @@ String OutputManager_::getNextSlotsModeName(byte modeNumber) {
 }
 
 // ************************************************************
+// Set the sepator neons and indicator LEDs
+// ************************************************************
+void OutputManager_::processSeparators() {
+  // --------------------------------------- separators --------------------------------------
+  
+  switch (cc->sepMode) {
+    case SEP_RAILROAD:
+      {
+        _led1State = _led2State = upOrDown;
+        _led2State = _led4State = !upOrDown;
+        break;
+      }
+    case SEP_BLINK_SLOW:
+      {
+        _led1State = _led2State = upOrDown;
+        _led2State = _led4State = upOrDown;
+        break;
+      }
+    case SEP_BLINK_FAST:
+      {
+        if (secsDeltaAbs < 500) {
+        _led1State = _led2State = true;
+        _led2State = _led4State = true;
+        } else {
+        _led1State = _led2State = false;
+        _led2State = _led4State = false;
+        }
+        break;
+      }
+    case SEP_BLINK_DBL:
+      {
+        if ((secsDeltaAbs < 100) || ((secsDeltaAbs > 200) && (secsDeltaAbs < 300))) {
+        _led1State = _led2State = true;
+        _led2State = _led4State = true;
+        } else {
+        _led1State = _led2State = false;
+        _led2State = _led4State = false;
+        }
+        break;
+      }
+    case SEP_ON:
+      {
+        _led1State = _led2State = true;
+        _led2State = _led4State = true;
+        break;
+      }
+    case SEP_OFF:
+      {
+        _led1State = _led2State = false;
+        _led2State = _led4State = false;
+        break;
+      }
+    case SEP_AM_PM:
+      {
+        _led1State = _led2State = isAM();
+        _led2State = _led4State = isPM();
+        break;
+      }
+  }
+
+  // will probably think of something better sooner or later  
+  _indLed1 = upOrDown;
+  _indLed2 = !upOrDown;
+}
+
+// ************************************************************
 // Get the mode we are in
 // ************************************************************
 outputModes OutputManager_::getOutputMode() {
@@ -481,7 +548,7 @@ outputModes OutputManager_::getOutputMode() {
 }
 
 // ************************************************************
-// Get the mode we are in
+// Set the mode we are in
 // ************************************************************
 void OutputManager_::setOutputMode(outputModes newMode) {
   _outputMode = newMode;

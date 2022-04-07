@@ -23,6 +23,8 @@ void setup()
 
   #ifdef DEBUG_ON
   Serial.begin(SERIAL_BAUD_RATE);
+  // Debug for 10 minutes
+  debugManager.setDebugAutoOff(600);
   #endif
 
   debugMsgMain("Start up Serial...");
@@ -232,67 +234,6 @@ void setLeds()
     secsDelta = 1000 - (nowMillis - lastMillis);
   }
 
-  // --------------------------------------- separators --------------------------------------
-  
-  switch (cc->ledMode) {
-    case LED_RAILROAD:
-      {
-        if (upOrDown) {
-          led1State = true;
-          led2State = false;
-        } else {
-          led1State = false;
-          led2State = true;
-        }
-        break;
-      }
-    case LED_BLINK_SLOW:
-      {
-        if (upOrDown) {
-          led1State = true;
-          led2State = true;
-        } else {
-          led1State = false;
-          led2State = false;
-        }
-        break;
-      }
-    case LED_BLINK_FAST:
-      {
-        if (secsDeltaAbs < 500) {
-          led1State = true;
-          led2State = true;
-        } else {
-          led1State = false;
-          led2State = false;
-        }
-        break;
-      }
-    case LED_BLINK_DBL:
-      {
-        if ((secsDeltaAbs < 100) || ((secsDeltaAbs > 200) && (secsDeltaAbs < 300))) {
-          led1State = true;
-          led2State = true;
-        } else {
-          led1State = false;
-          led2State = false;
-        }
-        break;
-      }
-    case LED_ON:
-      {
-          led1State = true;
-          led2State = true;
-        break;
-      }
-    case LED_OFF:
-      {
-          led1State = false;
-          led2State = false;
-        break;
-      }
-  }
-
   // output the backlight/underlight LEDs
   ledManager.setPulseValue(secsDelta);  
   ledManager.processLedStatus();
@@ -403,13 +344,6 @@ void performOncePerSecondProcessing() {
 
   menuOncePerSecond();
 
-  // ************************************************************
-  // send time display to the drivers
-  // ************************************************************
-  // ToDo move into output manager
-  indLed1 = (second() % 2 == 0);
-  indLed2 = (second() % 2 == 1);
-
   countdownMenuTimeouts();
 
   blankingManager.getBlankingStatus(weekday(), hour());
@@ -429,6 +363,8 @@ void performOncePerSecondProcessing() {
   triggerOnePulsePerSec();
 
   slaveManager.sendUpdateToSlaveI2C();
+
+  debugManager.debugAutoOffCheck();
 
   feedWatchdog();
 }
