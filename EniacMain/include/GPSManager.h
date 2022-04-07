@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defs.h"
+#include "Defs.h"
 #include "Arduino.h"
 #include "TZManager.h"
 #include "DebugManager.h"

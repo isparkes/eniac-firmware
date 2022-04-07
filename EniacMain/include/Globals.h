@@ -2,7 +2,7 @@
 
 #include <ESPAsyncWebServer.h>
 #include "WiFi.h"
-#include "defs.h"
+#include "Defs.h"
 #include "esp_wps.h"
 
 #include "SpiffsStorage.h"          // Access to config objects
@@ -72,6 +72,10 @@ extern String uniqHostname;
 extern AsyncWebServer server;
 
 extern String lastWiFiScan;
+
+#ifdef COG_CRANK_OUTPUT
+extern byte cogCrankSecsLeft;
+#endif
 
 // ------------------ Global functions -----------------
 

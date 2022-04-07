@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defs.h"
+#include "Defs.h"
 #include <memory>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>

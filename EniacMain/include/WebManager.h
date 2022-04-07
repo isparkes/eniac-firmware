@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <ESPAsyncWebServer.h>
-#include "globals.h"
+#include "Globals.h"
 #include "utilities.h"
 #include "DebugManager.h"
 

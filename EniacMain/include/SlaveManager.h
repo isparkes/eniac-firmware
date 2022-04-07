@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include "globals.h"
+#include "Globals.h"
 
 #define SLAVE_MODULE_I2C_ADDRESS 105
 

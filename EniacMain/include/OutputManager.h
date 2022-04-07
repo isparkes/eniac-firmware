@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Arduino.h"
-#include "globals.h"
+#include "Globals.h"
 #include "utilities.h"
-#include "defs.h"
+#include "Defs.h"
 #include "BlankingManager.h"
 #include "TransitionManager.h"
 #include "DebugManager.h"

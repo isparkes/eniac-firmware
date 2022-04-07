@@ -1,8 +1,8 @@
 #pragma once
 
-#include "defs.h"
+#include "Defs.h"
 #include "Arduino.h"
-#include "globals.h"
+#include "Globals.h"
 #include "SpiffsStorage.h"
 #include "DebugManager.h"
 
@@ -11,7 +11,7 @@
 // 1) Set the blanking pin PWM value
 // 2) read and smooth the raw LDR readings
 // -------------------------------------------------------------------------------
-#define USE_LDR_DEFAULT true
+#define USE_LDR_DEFAULT       true
 
 #define LDR_VALUE_MAX         4095 // The maximum LDR value - based on 12-bit ADC
 

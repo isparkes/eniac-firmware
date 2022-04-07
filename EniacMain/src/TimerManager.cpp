@@ -1,5 +1,5 @@
 #include "TimerManager.h"
-#include "defs.h"
+#include "Defs.h"
 
 hw_timer_t * timer0 = NULL;
 portMUX_TYPE timerMux0 = portMUX_INITIALIZER_UNLOCKED;
@@ -174,18 +174,22 @@ void IRAM_ATTR onTimer1() {
 // ISR for 1PPS output
 // ************************************************************
 void IRAM_ATTR onTimer2() {
+  #ifndef COG_CRANK_OUTPUT
   portENTER_CRITICAL_ISR(&timerMux2);
   digitalWrite(PPSPin, LOW);
   portEXIT_CRITICAL_ISR(&timerMux2);
+  #endif
 }
 
 // ************************************************************
 // Trigger 1PPS output
 // ************************************************************
 void triggerOnePulsePerSec() {
+  #ifndef COG_CRANK_OUTPUT
   digitalWrite(PPSPin, HIGH);
   timerRestart(timer2);
   timerAlarmEnable(timer2);
+  #endif
 }
 
 // ************************************************************

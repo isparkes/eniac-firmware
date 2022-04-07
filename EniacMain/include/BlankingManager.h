@@ -1,8 +1,8 @@
 #pragma once
 
-#include "defs.h"
+#include "Defs.h"
 #include "Arduino.h"
-#include "globals.h"
+#include "Globals.h"
 
 // -------------------------------------------------------------------------------
 #define MD_TIMEOUT_MIN                 60    // 1 minute in seconds
@@ -67,6 +67,7 @@ class BlankingManager_ {
     bool getCurrentPIRStatus();
     bool getCurrentPIRInstalled();
     bool getCurrentBlankingStatus();
+    bool getCurrentBlankingIndicator();
     int  getBlankAge();
     String getBlankingReason();
   private:

@@ -162,7 +162,19 @@ bool BlankingManager_::getCurrentPIRStatus() {
   return _pirvalue;
 }
 
+// ************************************************************
+// Overall status of if we are blanked
+// ************************************************************
 bool BlankingManager_::getCurrentBlankingStatus() {
+  return (_timeBasedBlanked ||_pirBlanked);
+}
+
+// ************************************************************
+// True if we are blaned otherwise a percentual indicator of
+// how close we are to blanking, if called regularly.
+// Primarily used for the status Blinkenlight.
+// ************************************************************
+bool BlankingManager_::getCurrentBlankingIndicator() {
   if (_timeBasedBlanked) return true;
   if (_pirBlanked) return true;
 

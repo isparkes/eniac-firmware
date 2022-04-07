@@ -457,6 +457,11 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["hueOffset"] = cc->hueOffset;
   root["blinkenLightsMode"] = cc->blinkenLightsMode;
   root["slaveMode"] = cc->slaveMode;
+  #ifdef COG_CRANK_OUTPUT
+  root["outputOnTime"] = cc->outputOnTime;
+  #else
+  root["outputOnTime"] = 255;
+  #endif
 
   response->setLength();
   request->send(response);
@@ -548,6 +553,7 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateInt (json, "hueOffset",          &cc->hueOffset);
     compareAndUpdateByte(json, "blinkenLightsMode",  &cc->blinkenLightsMode);
     compareAndUpdateByte(json, "slaveMode",          &cc->slaveMode);
+    compareAndUpdateByte(json, "outputOnTime",       &cc->outputOnTime);
 
     // ------------------------------------------------------------
 

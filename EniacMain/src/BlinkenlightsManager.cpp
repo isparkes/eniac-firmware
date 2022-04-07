@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-#include "globals.h"
+#include "Globals.h"
 
 #include "BlankingManager.h"
 #include "GPSManager.h"
@@ -40,7 +40,7 @@ void BlinkenlightsManager_::setBlinkenlightsMode(byte newMode) {
 }
 
 void BlinkenlightsManager_::setBlinkenlightsStatus() {
-  bl->bl1 = blankingManager.getCurrentBlankingStatus();
+  bl->bl1 = blankingManager.getCurrentBlankingIndicator();
   bl->bl2 = blankingManager.getCurrentPIRStatus();
   
   if (gpsManager.getGPSTimeValid()) {

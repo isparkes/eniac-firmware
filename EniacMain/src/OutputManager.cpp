@@ -483,7 +483,7 @@ void OutputManager_::processSeparators() {
   switch (cc->sepMode) {
     case SEP_RAILROAD:
       {
-        _led1State = _led2State = upOrDown;
+        _led1State = _led3State = upOrDown;
         _led2State = _led4State = !upOrDown;
         break;
       }
@@ -496,10 +496,10 @@ void OutputManager_::processSeparators() {
     case SEP_BLINK_FAST:
       {
         if (secsDeltaAbs < 500) {
-        _led1State = _led2State = true;
+        _led1State = _led3State = true;
         _led2State = _led4State = true;
         } else {
-        _led1State = _led2State = false;
+        _led1State = _led3State = false;
         _led2State = _led4State = false;
         }
         break;
@@ -507,29 +507,29 @@ void OutputManager_::processSeparators() {
     case SEP_BLINK_DBL:
       {
         if ((secsDeltaAbs < 100) || ((secsDeltaAbs > 200) && (secsDeltaAbs < 300))) {
-        _led1State = _led2State = true;
+        _led1State = _led3State = true;
         _led2State = _led4State = true;
         } else {
-        _led1State = _led2State = false;
+        _led1State = _led3State = false;
         _led2State = _led4State = false;
         }
         break;
       }
     case SEP_ON:
       {
-        _led1State = _led2State = true;
+        _led1State = _led3State = true;
         _led2State = _led4State = true;
         break;
       }
     case SEP_OFF:
       {
-        _led1State = _led2State = false;
+        _led1State = _led3State = false;
         _led2State = _led4State = false;
         break;
       }
     case SEP_AM_PM:
       {
-        _led1State = _led2State = isAM();
+        _led1State = _led3State = isAM();
         _led2State = _led4State = isPM();
         break;
       }

@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 #include "DebugManager.h"
-#include "defs.h"
+#include "Defs.h"
 #include "utilities.h"
 #include "DebugManager.h"
 

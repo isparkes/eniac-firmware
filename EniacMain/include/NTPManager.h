@@ -5,9 +5,9 @@
 #include <AsyncUDP.h>
 #include <WiFi.h>
 #include <DNSServer.h>          //https://github.com/esp8266/Arduino/tree/master/libraries/DNSServer
-#include "defs.h"               // for DEBUG setting
+#include "Defs.h"               // for DEBUG setting
 #include "DebugManager.h"
-#include "globals.h"
+#include "Globals.h"
 
 // ------------------------ Types ------------------------
 

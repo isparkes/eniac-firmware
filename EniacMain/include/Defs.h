@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Configuration.h"
 #include <Arduino.h>
 
 // -------------------------------------------------------------------------------
@@ -11,17 +12,6 @@
 #define DIGIT_COUNT 6
 
 #define WDT_TIMEOUT 5
-
-// Add debug statments to code - needs extra space
-#define DEBUG_ON             // DEBUG_ON | DEBUG_OFF
-
-// Add the dignostic calls to the GUI
-#define DIGIT_DIAGNOSTICS    // DIGIT_DIAGNOSTICS | DIGIT_DIAGNOSTICS_OFF
-
-#define OLED_SH1106         // OLED_SH1106 |  OLED_SSD1306
-
-#define SOFTWARE_VERSION "LTC-ESP32 V0.2"
-#define CLOCK_MENU_TITLE "ENIAC" 
 
 #define SERIAL_BAUD_RATE 115200
 
@@ -73,8 +63,6 @@
 
 // -------------------------------------------------------------------------------
 
-#define DIGIT_COUNT 6
-
 #define PHASE_MAX 20
 #define H10 0
 #define H1  1
@@ -82,10 +70,6 @@
 #define M1  3
 #define S10 4
 #define S1  5
-
-// -------------------------------------------------------------------------------
-
-#define TOUCH_THRESHOLD 60
 
 // -------------------------------------------------------------------------------
 

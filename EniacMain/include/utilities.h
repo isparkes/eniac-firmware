@@ -6,8 +6,8 @@
 #include <TimeLib.h>
 #include <rom/rtc.h>
 
-#include "defs.h"
-#include "globals.h"
+#include "Defs.h"
+#include "Globals.h"
 
 #include "AsyncJson.h"
 #include "ArduinoJson.h"
@@ -19,7 +19,7 @@
 
 #include "LDRManager.h"
 #include "TimerManager.h"
-#include "globals.h"
+#include "Globals.h"
 #include "GPSManager.h"
 #include "BlankingManager.h"
 #include "RTCManager.h"

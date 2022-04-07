@@ -1,10 +1,10 @@
 #pragma once
 
 #include <Arduino.h>
-#include "defs.h"
+#include "Defs.h"
 #include "OLED.h"
 #include "DebugManager.h"
-#include "globals.h"
+#include "Globals.h"
 #include "utilities.h"
 #include "WiFiManager.h"
 

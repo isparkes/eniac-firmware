@@ -4,8 +4,8 @@
 #include <ArduinoJson.h>
 #include "SPIFFS.h"
 #include "DebugManager.h"
-#include "defs.h"
-#include "globals.h"
+#include "Defs.h"
+#include "Globals.h"
 
 // ----------------------------------------------------------------------------------------------------
 // ------------------------------------- SPIFFS Clock Component ---------------------------------------

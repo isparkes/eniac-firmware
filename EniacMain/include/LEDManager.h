@@ -1,20 +1,13 @@
 #pragma once
 
 #include "Arduino.h"
-#include "defs.h"
-#include "globals.h"
+#include "Defs.h"
+#include "Globals.h"
 #include "SpiffsStorage.h"
 #include "DebugManager.h"
 #include "OutputManager.h"
 
 #include <NeoPixelBus.h>            // https://github.com/Makuna/NeoPixelBus (Makuna 2.6.6)
-
-#define FEATURE_SEP_LED             // include the NeoPixels in the separator towers [ FEATURE_SEP_LED | FEATURE_SEP_LED_OFF ]
-
-// Led Manager
-#define WS2812B                     // APA106, WS2812B
-#define NORMAL_BL_OUTPUT            // REVERSE_BL_OUTPUT | NORMAL_BL_OUTPUT
-#define NORMAL_UL_OUTPUT            // REVERSE_UL_OUTPUT | NORMAL_UL_OUTPUT
 
 #define NUM_BL_PIXELS DIGIT_COUNT*2
 

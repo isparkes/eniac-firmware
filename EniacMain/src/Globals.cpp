@@ -1,4 +1,4 @@
-#include "globals.h"
+#include "Globals.h"
 
 // ************************************************************
 // Global shared components and objects
@@ -86,3 +86,7 @@ void updateNowMillis() {
 
 // tells us if we managed to connect to the slave mode
 bool slaveModeStatus;
+
+#ifdef COG_CRANK_OUTPUT
+byte cogCrankSecsLeft = 0;
+#endif

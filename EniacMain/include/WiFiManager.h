@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Arduino.h>
-#include "defs.h"
-#include "globals.h"
+#include "Defs.h"
+#include "Globals.h"
 #include "utilities.h"
 #include "OLED.h"
 #include "wps.h"

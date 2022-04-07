@@ -1,5 +1,5 @@
-#include "defs.h"
-#include "globals.h"
+#include "Defs.h"
+#include "Globals.h"
 #include "utilities.h"
 #include "WiFi.h"
 #include "TimerManager.h"
@@ -346,6 +346,15 @@ void performOncePerSecondProcessing() {
 
   countdownMenuTimeouts();
 
+  #ifdef COG_CRANK_OUTPUT
+  if (cogCrankSecsLeft > 0) {
+    cogCrankSecsLeft--;
+    if (cogCrankSecsLeft == 0) {
+      digitalWrite(PPSPin, LOW);
+    }
+  }
+  #endif
+
   blankingManager.getBlankingStatus(weekday(), hour());
 
   ledManager.setBlanked(blankingManager.getCurrentBlankLEDs());
@@ -404,6 +413,14 @@ void performOncePerHourProcessing() {
   tzManager.calculateCurrentOffsetFromTimeT();
 
   rtcManager.testRTCTimeProvider();
+
+  #ifdef COG_CRANK_OUTPUT
+  // Don't crank if we're blanked
+  if (!blankingManager.getCurrentBlankingStatus()) {
+    cogCrankSecsLeft = cc->outputOnTime;
+    digitalWrite(PPSPin, HIGH);
+  }
+  #endif
 }
 
 // ************************************************************

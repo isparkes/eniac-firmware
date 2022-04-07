@@ -1,7 +1,7 @@
 #pragma once
 
-#include "defs.h"
-#include "globals.h"
+#include "Defs.h"
+#include "Globals.h"
 
 /*
   Change the definition of the WPS mode

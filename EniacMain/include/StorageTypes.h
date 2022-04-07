@@ -57,6 +57,7 @@ typedef struct {
   bool WifiOnAtStart;
   byte blinkenLightsMode;
   byte slaveMode;
+  byte outputOnTime;
 
   // not saved
   int diagsMode;
