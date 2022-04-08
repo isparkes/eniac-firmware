@@ -58,6 +58,7 @@ class DebugManager_ {
     void debugMsgCont(String message);
     void setDebugAutoOff(unsigned int seconds);
     void debugAutoOffCheck();
+    bool isDebugOn();
 
     // Some components need to use a callback
     DebugCallback getDebugCallBack();

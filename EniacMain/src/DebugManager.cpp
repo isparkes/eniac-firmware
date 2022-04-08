@@ -46,6 +46,13 @@ void DebugManager_::debugAutoOffCheck() {
 }
 
 // ************************************************************
+// Is debug on right now
+// ************************************************************
+bool DebugManager_::isDebugOn() {
+  return _state;
+}
+
+// ************************************************************
 // Set the number of seconds we should produce debug messages
 // for
 // ************************************************************

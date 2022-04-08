@@ -97,9 +97,13 @@ String getStatusString() {
   }
 
 #ifdef DEBUG_ON
-  connectionInfo += "D";
+  if (debugManager.isDebugOn()) { 
+    connectionInfo += "D";
+  } else {
+    connectionInfo += "d";
+  }
 #else
-  connectionInfo += "d";
+  connectionInfo += "-";
 #endif
 
   if (gpsManager.getGPSTimeValid()) {
