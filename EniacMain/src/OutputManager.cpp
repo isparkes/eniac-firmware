@@ -489,7 +489,7 @@ void OutputManager_::processSeparators() {
       }
     case SEP_BLINK_SLOW:
       {
-        _led1State = _led2State = upOrDown;
+        _led1State = _led3State = upOrDown;
         _led2State = _led4State = upOrDown;
         break;
       }
