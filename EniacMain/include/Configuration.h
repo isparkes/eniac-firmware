@@ -47,4 +47,4 @@
 // -------------------------------------------------------------------------------
 
 // Paul's special thing
-#define COG_CRANK_OUTPUT_OFF        // COG_CRANK_OUTPUT | COG_CRANK_OUTPUT_OFF
+#define COG_CRANK_OUTPUT            // COG_CRANK_OUTPUT | COG_CRANK_OUTPUT_OFF

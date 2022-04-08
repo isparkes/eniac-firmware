@@ -125,7 +125,7 @@ void OutputManager_::outputDisplay() {
 
     // Digit blinking
     if (tmpDispType == BLINK) {
-      if (blinkState) {
+      if (upOrDown) {
       } else {
         tmpDispType = BLANKED;
       }
@@ -536,8 +536,12 @@ void OutputManager_::processSeparators() {
   }
 
   // will probably think of something better sooner or later  
-  _indLed1 = upOrDown;
-  _indLed2 = !upOrDown;
+  #ifdef COG_CRANK_OUTPUT
+  _indLed1 = (cogCrankSecsLeft > 0);
+  #else
+  _indLed1 = slaveManager.getSlaveMode();
+  #endif
+  _indLed2 = upOrDown;
 }
 
 // ************************************************************

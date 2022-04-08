@@ -83,7 +83,7 @@ void OLED_::showStatusLine()
   drawPIRInd();
   drawBlankInd();
   drawGInd();
-  drawBTN1Ind();
+  drawAuxOutInd();
   drawBTN2Ind();
   drawTimeInd();
   drawAMInd();
@@ -139,10 +139,10 @@ void OLED_::setGPSStatus(bool newStatus)
   _display->display();
 }
 
-void OLED_::setBTN1Status(bool newStatus)
+void OLED_::setAuxOutStatus(bool newStatus)
 {
   _1Status = newStatus;
-  drawBTN1Ind();
+  drawAuxOutInd();
   _display->display();
 }
 
@@ -210,10 +210,10 @@ void OLED_::drawGInd() {
   }
 }
 
-void OLED_::drawBTN1Ind() {
+void OLED_::drawAuxOutInd() {
   _display->setCursor(Y_IND_X,STATUS_LINE_Y);
   if (_1Status) {
-    _display->print("1");
+    _display->print("C");
   } else {
     _display->print("-");
   }

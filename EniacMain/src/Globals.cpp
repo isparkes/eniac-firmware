@@ -29,11 +29,9 @@ volatile uint8_t switchTime = 0;
 
 volatile uint16_t impressions;
 
-// Defined here to allow mutex on the display variables
+// Makes sure we are not writing to the display buffer
+// when the interrupt is reading it
 portMUX_TYPE timerMux1 = portMUX_INITIALIZER_UNLOCKED;
-
-int blinkState = 0;
-float fadeStepsInternal = 0;
 
 byte numberArray[DIGIT_COUNT]     = {0, 0, 0, 0, 0, 0};
 byte currNumberArray[DIGIT_COUNT] = {0, 0, 0, 0, 0, 0};
@@ -47,19 +45,18 @@ byte valueDisplayType[3]          = {0x33, 0x33, 0x33}; // All normal by default
 // ************************************************************
 // Variables for clock management
 // ************************************************************
+unsigned long nowMillis = 0;
 unsigned long previousMillisWiFi = 0;
 unsigned long lastMillis = 0;
-unsigned long nowMillis = 0;
 int lastSecond = 0;
 boolean triggeredThisSec = false;
 int secsDeltaAbs;
 bool upOrDown;  
 
-byte timeSource = TIME_SOURCE_INT;
-
+// Current normalised LDR value
 int ldrValue;
 
-// Menu  management
+// Menu  management - OLED timeouts
 unsigned int oledTimeout = OLED_ON_TIME;
 unsigned int configTimeout = 0;
 unsigned int flashTimeout = 0;
@@ -71,6 +68,7 @@ int digitValue = 0;
 
 bool doAutoReconnect = false;
 
+// Our network name
 String uniqHostname;
 
 // singleton object
@@ -83,9 +81,6 @@ String lastWiFiScan = "";
 void updateNowMillis() {
     nowMillis = millis();
 }
-
-// tells us if we managed to connect to the slave mode
-bool slaveModeStatus;
 
 #ifdef COG_CRANK_OUTPUT
 byte cogCrankSecsLeft = 0;

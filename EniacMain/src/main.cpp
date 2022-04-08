@@ -304,7 +304,8 @@ void performOncePerLoop() {
 }
 
 // ************************************************************
-// Called once per second
+// Called once per second. Trigger all the things that do
+// Not need processing continuously multiple times per second
 // ************************************************************
 void performOncePerSecondProcessing() {
   lastMillis = nowMillis;
@@ -344,13 +345,12 @@ void performOncePerSecondProcessing() {
 
   menuOncePerSecond();
 
-  countdownMenuTimeouts();
-
   #ifdef COG_CRANK_OUTPUT
   if (cogCrankSecsLeft > 0) {
     cogCrankSecsLeft--;
     if (cogCrankSecsLeft == 0) {
       digitalWrite(PPSPin, LOW);
+      debugMsgMain("Aux output OFF");
     }
   }
   #endif
@@ -399,6 +399,16 @@ void performOncePerMinuteProcessing() {
 
   // manage the primary source - it might have changed
   tzManager.getPrimaryTimeSource();
+
+  #ifdef COG_CRANK_OUTPUT
+  // Don't crank if we're blanked or we're configured not to
+  debugMsgMain("Crank time:" + String(cc->outputOnTime));
+  if (!blankingManager.getCurrentBlankingStatus() && (cc->outputOnTime > 0)) {
+    cogCrankSecsLeft = cc->outputOnTime;
+    digitalWrite(PPSPin, HIGH);
+    debugMsgMain("Aux output  ON");
+  }
+  #endif
 }
 
 // ************************************************************
@@ -413,14 +423,6 @@ void performOncePerHourProcessing() {
   tzManager.calculateCurrentOffsetFromTimeT();
 
   rtcManager.testRTCTimeProvider();
-
-  #ifdef COG_CRANK_OUTPUT
-  // Don't crank if we're blanked
-  if (!blankingManager.getCurrentBlankingStatus()) {
-    cogCrankSecsLeft = cc->outputOnTime;
-    digitalWrite(PPSPin, HIGH);
-  }
-  #endif
 }
 
 // ************************************************************

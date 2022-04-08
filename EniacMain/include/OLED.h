@@ -55,7 +55,7 @@ class OLED_
     void setPIRInstalled(bool newStatus);
     void setBlankStatus(bool newStatus);
     void setGPSStatus(bool newStatus);
-    void setBTN1Status(bool newStatus);
+    void setAuxOutStatus(bool newStatus);
     void setBTN2Status(bool newStatus);
     void setAMStatus(bool newStatus);
     void clearDisplay();
@@ -103,7 +103,7 @@ class OLED_
     void drawPIRInd();
     void drawBlankInd();
     void drawGInd();
-    void drawBTN1Ind();
+    void drawAuxOutInd();
     void drawBTN2Ind();
     void drawAMInd();
     void drawTimeInd();
