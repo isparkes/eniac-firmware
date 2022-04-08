@@ -487,6 +487,12 @@ void OutputManager_::processSeparators() {
         _led2State = _led4State = !upOrDown;
         break;
       }
+    case SEP_RAILROAD_X:
+      {
+        _led1State = _led4State = upOrDown;
+        _led2State = _led3State = !upOrDown;
+        break;
+      }
     case SEP_BLINK_SLOW:
       {
         _led1State = _led3State = upOrDown;

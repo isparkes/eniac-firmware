@@ -60,15 +60,15 @@
 // -------------------------------------------------------------------------------
 #define SEP_MODE_MIN        0
 #define SEP_RAILROAD        0
-#define SEP_BLINK_SLOW      1
-#define SEP_BLINK_FAST      2
-#define SEP_BLINK_DBL       3
-#define SEP_ON              4
-#define SEP_OFF             5
-#define SEP_AM_PM           6
+#define SEP_RAILROAD_X      1
+#define SEP_BLINK_SLOW      2
+#define SEP_BLINK_FAST      3
+#define SEP_BLINK_DBL       4
+#define SEP_ON              5
+#define SEP_OFF             6
+#define SEP_AM_PM           7
 #define SEP_BLINK_DEFAULT   LED_RAILROAD
-#define SEP_RAILROAD_X      -1 // Not yet implemented
-#define SEP_MODE_MAX        6
+#define SEP_MODE_MAX        7
 
 // -------------------------------------------------------------------------------
 // Display mode, set per digit
