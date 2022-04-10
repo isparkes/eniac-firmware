@@ -157,7 +157,7 @@ void NtpManager_::getTimeFromNTP() {
 
       highWord = ( buffer[44] << 8 | buffer[45] ) & 0x0000FFFF;
       lowWord = ( buffer[46] << 8 | buffer[47] ) & 0x0000FFFF;
-      #ifdef DEBUG_ON
+      #ifdef NTP_EXTENDED_DEBUG_ON
       uint32_t fraction = highWord << 16 | lowWord;       // transmit timestamp fractions
       #endif
 

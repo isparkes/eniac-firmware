@@ -1,8 +1,14 @@
 #include "WebManager.h"
+
+// This include has to be here, anbd not in the header file
 #include <AsyncElegantOTA.h>
 
+// ************************************************************
+// Open up the normal page handlers
+// ************************************************************
 void WebManager_::begin() {
   debugMsgWbm("Setting up server endpoints");
+  server.reset();
   server.serveStatic("/", SPIFFS, "/web/").setDefaultFile("index.html");
 
   // Summary and diagnostics
@@ -49,9 +55,37 @@ void WebManager_::begin() {
   server.begin();
 }
 
+// ************************************************************
+// Handler for the captive page
+// ************************************************************
+class CaptiveRequestHandler : public AsyncWebHandler {
+public:
+  CaptiveRequestHandler() {}
+  virtual ~CaptiveRequestHandler() {}
+
+  bool canHandle(AsyncWebServerRequest *request){
+//    debugMsgWbm("Handling URL: " + request->url());
+    if (request->url().startsWith("/api/")) return false;
+    if (request->url().startsWith("/utils/")) return false;
+    return true;
+  }
+
+  void handleRequest(AsyncWebServerRequest *request) {
+    debugMsgWbm("Sending captive page");
+    request->send(SPIFFS, "/portal.html", String(), false);
+  }
+};
+
+// ************************************************************
+// Open up the Portal Page
+// ************************************************************
 void WebManager_::beginPortal() {
-  debugMsgWbm("Setting up server endpoints");
+  debugMsgWbm("Setting up server endpoints for Portal");
+  server.reset();
   server.serveStatic("/", SPIFFS, "/web/").setDefaultFile("portal.html");
+
+  // serve the captive page
+  server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);
 
   // Summary and diagnostics
   server.on("/api/getSummary", HTTP_GET, getSummaryDataHandler);
@@ -71,8 +105,15 @@ void WebManager_::beginPortal() {
   debugMsgWbm("Start up web server");
 
   server.begin();
+
+  // All your requests are belong to us
+  DNSServer dnsServer;
+  dnsServer.start(53, "*", WiFi.softAPIP());
 }
 
+// ************************************************************
+// Start the OTA service
+// ************************************************************
 void WebManager_::startOTA() {
   AsyncElegantOTA.begin(&server, "admin", "update");
 }

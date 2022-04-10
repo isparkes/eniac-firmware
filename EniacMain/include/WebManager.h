@@ -5,6 +5,7 @@
 #include "Globals.h"
 #include "utilities.h"
 #include "DebugManager.h"
+#include "DNSServer.h"
 
 class WebManager_ {
   private:

@@ -127,19 +127,19 @@ void setup()
   // -------------------------------------------------------------------------
 
   debugMsgMain("Initialising WiFi");
-  setUpWiFi();
+  wifiManager.setUpWiFi();
 
-  if (cc->WifiOnAtStart && wifiCredentialsReceived()) {
+  if (cc->WifiOnAtStart && wifiManager.wifiCredentialsReceived()) {
     debugMsgMain("Starting WiFi");
     flashMenuMessage("WiFi", "Starting WiFi");
 
     debugMsgMain("Connecting to previous AP");
     
-    connectToLastAP();
+    wifiManager.connectToLastAP();
   } else {
     if (!cc->WifiOnAtStart) {
       debugMsgMain("Skipping connect to previous AP - told not to");
-    } else if (!wifiCredentialsReceived()) {
+    } else if (!wifiManager.wifiCredentialsReceived()) {
       debugMsgMain("Skipping connect to previous AP - no AP defined");
     }
   }
@@ -204,6 +204,7 @@ void setup()
 
   // -------------------------------------------------------------------------
 
+  // Example for singleton library
   MyLib.begin();
   MyLib.doStuff();
 
@@ -225,13 +226,13 @@ void setup()
 void setLeds()
 {
   unsigned int secsDelta;
-  secsDeltaAbs = (nowMillis - lastMillis);
+  secsDeltaAbs = (nowMillis - lastMillis) % 1000;
   upOrDown = (second() % 2) == 0;
   
   if (upOrDown) {
-    secsDelta = (nowMillis - lastMillis);
+    secsDelta = secsDeltaAbs;
   } else {
-    secsDelta = 1000 - (nowMillis - lastMillis);
+    secsDelta = 1000 - secsDeltaAbs;
   }
 
   // output the backlight/underlight LEDs
@@ -399,16 +400,6 @@ void performOncePerMinuteProcessing() {
 
   // manage the primary source - it might have changed
   tzManager.getPrimaryTimeSource();
-
-  #ifdef COG_CRANK_OUTPUT
-  // Don't crank if we're blanked or we're configured not to
-  debugMsgMain("Crank time:" + String(cc->outputOnTime));
-  if (!blankingManager.getCurrentBlankingStatus() && (cc->outputOnTime > 0)) {
-    cogCrankSecsLeft = cc->outputOnTime;
-    digitalWrite(PPSPin, HIGH);
-    debugMsgMain("Aux output  ON");
-  }
-  #endif
 }
 
 // ************************************************************
@@ -423,6 +414,16 @@ void performOncePerHourProcessing() {
   tzManager.calculateCurrentOffsetFromTimeT();
 
   rtcManager.testRTCTimeProvider();
+
+  #ifdef COG_CRANK_OUTPUT
+  // Don't crank if we're blanked or we're configured not to
+  debugMsgMain("Crank time:" + String(cc->outputOnTime));
+  if (!blankingManager.getCurrentBlankingStatus() && (cc->outputOnTime > 0)) {
+    cogCrankSecsLeft = cc->outputOnTime;
+    digitalWrite(PPSPin, HIGH);
+    debugMsgMain("Aux output  ON");
+  }
+  #endif
 }
 
 // ************************************************************

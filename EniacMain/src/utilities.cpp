@@ -459,6 +459,8 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["cycleSpeed"] = cc->cycleSpeed;
   root["backlightDimFactor"] = cc->backlightDimFactor;
   root["hueOffset"] = cc->hueOffset;
+  root["towerHueOffset"] = cc->towerHueOffset;
+  root["backlightGradient"] = cc->backlightGradient;
   root["blinkenLightsMode"] = cc->blinkenLightsMode;
   root["slaveMode"] = cc->slaveMode;
   #ifdef COG_CRANK_OUTPUT
@@ -555,6 +557,8 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateByte(json, "cycleSpeed",         &cc->cycleSpeed);
     compareAndUpdateByte(json, "backlightDimFactor", &cc->backlightDimFactor);
     compareAndUpdateInt (json, "hueOffset",          &cc->hueOffset);
+    compareAndUpdateInt (json, "towerHueOffset",     &cc->towerHueOffset);
+    compareAndUpdateInt (json, "backlightGradient",  &cc->backlightGradient);
     compareAndUpdateByte(json, "blinkenLightsMode",  &cc->blinkenLightsMode);
     compareAndUpdateByte(json, "slaveMode",          &cc->slaveMode);
     compareAndUpdateByte(json, "outputOnTime",       &cc->outputOnTime);
@@ -667,7 +671,7 @@ void postWiFiCredentialsHandler(AsyncWebServerRequest *request) {
   if (newSSID.length() > 0 && newPassword.length() > 0) {
     debugMsgUtl("Setting new WiFi credentials - " + newSSID + ":" + newPassword);
 
-    saveWiFiCredentials(newSSID, newPassword);
+    wifiManager.saveWiFiCredentials(newSSID, newPassword);
 
     AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"Saved " + newSSID + "\"}");
     request->send(response);
@@ -690,7 +694,7 @@ void getWiFiNetworksHandler(AsyncWebServerRequest *request) {
     debugMsgUtl("Scan done");
 
     // trigger a new scan
-    startScanWiFiNetworks();
+    wifiManager.startScanWiFiNetworks();
   }
 }
 
@@ -708,16 +712,22 @@ void restartHandler(AsyncWebServerRequest *request) {
   ESP.restart();
 }
 
+// ************************************************************
+// Web Handler for reset WiFi
+// ************************************************************
 void resetWifiHandler(AsyncWebServerRequest *request) {
   resetWiFi();
   request->send(200, "text/json", "{\"status\": \"WiFi was reset\"}");
 }
 
+// ************************************************************
+// Reset the WiFi credentials we have stored
+// ************************************************************
 void resetWiFi() {
   debugMsgUtl("Got utils RESET request");
   WiFi.disconnect();
 
-  resetWiFiCredentials();
+  wifiManager.resetWiFiCredentials();
 }
 
 // ************************************************************
@@ -756,16 +766,25 @@ void getI2CScanHandler(AsyncWebServerRequest *request) {
   request->send(response);
 }
 
+// ************************************************************
+// Turn on Watchdog
+// ************************************************************
 void enableWatchdog() {
   esp_task_wdt_init(WDT_TIMEOUT, true);
   esp_task_wdt_add(NULL);
 }
 
+// ************************************************************
+// Turn off Watchdog
+// ************************************************************
 void disableWatchdog() {
   esp_task_wdt_delete(NULL);
   esp_task_wdt_deinit();
 }
 
+// ************************************************************
+// Reset the Watchdog timeout
+// ************************************************************
 void feedWatchdog() {
   esp_task_wdt_reset();
 }

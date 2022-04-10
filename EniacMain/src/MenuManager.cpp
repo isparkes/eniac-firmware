@@ -114,34 +114,30 @@ void wifiMenu() {
   resetMenu();
   menuMode = menu;
   String onOffMsg;
-  if (cc->WifiOnAtStart) {
-    onOffMsg = "WiFi off at start";
-  } else {
-    onOffMsg = "WiFi on at start";
-  }
+  String status = cc->WifiOnAtStart ? "off" : "on";
   byte menuCount = 1;
   if (WiFi.isConnected()) {
     oledMenu.menuTitle = "WiFi Menu";           
-    oledMenu.menuItems[menuCount] = onOffMsg;             oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
-    oledMenu.menuItems[menuCount] = "Disconnect WiFi";    oledMenu.menuActions[menuCount++] = disconnectWifi;
-    oledMenu.menuItems[menuCount] = "Reset WiFi";         oledMenu.menuActions[menuCount++] = resetWiFiInfo;
-    oledMenu.menuItems[menuCount] = "Back";               oledMenu.menuActions[menuCount++] = backToMain;
+    oledMenu.menuItems[menuCount] = "WiFi start: "+ status;  oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
+    oledMenu.menuItems[menuCount] = "Disconnect WiFi";       oledMenu.menuActions[menuCount++] = disconnectWifi;
+    oledMenu.menuItems[menuCount] = "Reset WiFi";            oledMenu.menuActions[menuCount++] = resetWiFiInfo;
+    oledMenu.menuItems[menuCount] = "Back";                  oledMenu.menuActions[menuCount++] = backToMain;
   } else {
     oledMenu.noOfmenuItems = 8;
     oledMenu.menuTitle = "WiFi Menu";
-    if (wifiCredentialsReceived()) {
-      oledMenu.menuItems[menuCount] = "Reconnect previous"; oledMenu.menuActions[menuCount++] = reconnectPrevious;
+    if (wifiManager.wifiCredentialsReceived()) {
+      oledMenu.menuItems[menuCount] = "Reconnect previous";  oledMenu.menuActions[menuCount++] = reconnectPrevious;
     }
-    oledMenu.menuItems[menuCount] = "Connect with WPS";   oledMenu.menuActions[menuCount++] = connectWPS;
-    oledMenu.menuItems[menuCount] = "Start SmartConfig";  oledMenu.menuActions[menuCount++] = smartConfig;
-    oledMenu.menuItems[menuCount] = "Open Access Point";  oledMenu.menuActions[menuCount++] = openAccessPoint;
-    oledMenu.menuItems[menuCount] = "Select SSID";        oledMenu.menuActions[menuCount++] = getSSIDList;
-    oledMenu.menuItems[menuCount] = "Enter password";     oledMenu.menuActions[menuCount++] = unmappedOption;
-    oledMenu.menuItems[menuCount] = onOffMsg;             oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
-    oledMenu.menuItems[menuCount] = "Scan Wifi";          oledMenu.menuActions[menuCount++] = scanWiFi;
-    oledMenu.menuItems[menuCount] = "Select WiFi";        oledMenu.menuActions[menuCount++] = showWifiSelection;
-    oledMenu.menuItems[menuCount] = "reset WiFi";         oledMenu.menuActions[menuCount++] = resetWiFiInfo;
-    oledMenu.menuItems[menuCount] = "Back";               oledMenu.menuActions[menuCount++] = backToMain;
+    oledMenu.menuItems[menuCount] = "Connect with WPS";      oledMenu.menuActions[menuCount++] = connectWPS;
+    oledMenu.menuItems[menuCount] = "Start SmartConfig";     oledMenu.menuActions[menuCount++] = smartConfig;
+    oledMenu.menuItems[menuCount] = "Open Access Point";     oledMenu.menuActions[menuCount++] = openAccessPoint;
+    oledMenu.menuItems[menuCount] = "Select SSID";           oledMenu.menuActions[menuCount++] = getSSIDList;
+    oledMenu.menuItems[menuCount] = "Enter password";        oledMenu.menuActions[menuCount++] = unmappedOption;
+    oledMenu.menuItems[menuCount] = "WiFi start: "+ status;  oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
+    oledMenu.menuItems[menuCount] = "Scan Wifi";             oledMenu.menuActions[menuCount++] = scanWiFi;
+    oledMenu.menuItems[menuCount] = "Select WiFi";           oledMenu.menuActions[menuCount++] = showWifiSelection;
+    oledMenu.menuItems[menuCount] = "reset WiFi";            oledMenu.menuActions[menuCount++] = resetWiFiInfo;
+    oledMenu.menuItems[menuCount] = "Back";                  oledMenu.menuActions[menuCount++] = backToMain;
   }
   oledMenu.noOfmenuItems = --menuCount;
 }
@@ -205,10 +201,10 @@ void wifiSelectMenu() {
   byte menuCount = 1;
   oledMenu.menuTitle = "Select network";
 
-  debugMsgMnm("Last result: " + String(getLastScanResultCount()));
+  debugMsgMnm("Last result: " + String(wifiManager.getLastScanResultCount()));
 
-  for (int i = 0; i < getLastScanResultCount() ; i++) {
-    oledMenu.menuItems[menuCount] = getLastScanResultSSID(i);   oledMenu.menuActions[menuCount++] = startSlave;
+  for (int i = 0; i < wifiManager.getLastScanResultCount() ; i++) {
+    oledMenu.menuItems[menuCount] = wifiManager.getLastScanResultSSID(i);   oledMenu.menuActions[menuCount++] = startSlave;
   }
   oledMenu.menuItems[menuCount] = "Back";                       oledMenu.menuActions[menuCount++] = backToMain;
   oledMenu.noOfmenuItems = --menuCount;
@@ -247,22 +243,21 @@ void menuActions(menuTargets selectedAction) {
     }
     case toggleWiFiAtStart: {
       cc->WifiOnAtStart = ! cc->WifiOnAtStart;
-      spiffsStorage.saveConfigToSpiffs();
       wifiMenu();
       break;
     }
     case getSSIDList: {
-      startScanWiFiNetworks();
+      wifiManager.startScanWiFiNetworks();
       wifiMenu();
       break;
     }
     case smartConfig: {
-      startSmartConfig();
+      wifiManager.startSmartConfig();
       wifiMenu();
       break;
     }
     case disconnectWifi: {
-      disconnectWiFi();
+      wifiManager.disconnectWiFi();
       wifiMenu();
       break;
     }
@@ -272,7 +267,7 @@ void menuActions(menuTargets selectedAction) {
       break;
     }
     case scanWiFi: {
-      startScanWiFiNetworks();
+      wifiManager.startScanWiFiNetworks();
       wifiMenu();
       break;
     }
@@ -281,29 +276,27 @@ void menuActions(menuTargets selectedAction) {
       break;
     }
     case connectWPS: {
-      connectWithWPS();
+      wifiManager.connectWithWPS();
       wifiMenu();
       break;
     }
     case reconnectPrevious: {
-      connectToLastAP();
+      wifiManager.connectToLastAP();
       wifiMenu();
       break;
     }
     case openAccessPoint: {
-      openAccessPortal();
+      wifiManager.openAccessPortal();
       wifiMenu();
       break;
     }
     case toggleTubeDimming: {
       cc->useLDR = ! cc->useLDR;
-      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
     case toggleBLDimming: {
       cc->useBLDim = ! cc->useBLDim;
-      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
@@ -314,26 +307,22 @@ void menuActions(menuTargets selectedAction) {
     case saveDimming: {
       if (cc->minDim != oledMenu.mValueEntered) {
         cc->minDim = oledMenu.mValueEntered;
-        spiffsStorage.saveConfigToSpiffs();
         displayMenu();
       }
       break;
     }
     case nextBlnknMode: {
       cc->blinkenLightsMode = blinkenlightsManager.getNextBlinkenlightsMode(cc->blinkenLightsMode);
-      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
     case setNextACPMode: {
       cc->acpMode = outputManager.getNextACPMode(cc->acpMode);
-      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
     case setNextSlotsMode: {
       cc->slotsMode = outputManager.getNextSlotsMode(cc->slotsMode);
-      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
@@ -371,25 +360,22 @@ void menuActions(menuTargets selectedAction) {
     }
     case toggleHourMode: {
       cc->hourMode = !cc->hourMode;
-      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
     case toggleFade: {
       cc->fade = !cc->fade;
-      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
     case toggleScrollback: {
       cc->scrollback = !cc->scrollback;
-      spiffsStorage.saveConfigToSpiffs();
       displayMenu();
       break;
     }
     #ifdef DEBUG_ON
     case debugOn10mins: {
-      debugManager.setDebuggingOutput(600);
+      debugManager.setDebugAutoOff(600);
       displayMenu();
       break;
     }
@@ -815,10 +801,12 @@ void ICACHE_RAM_ATTR doEncoder() {
   if (menuMode == off) {
     if (delta > 0) {
       cc->towerHueOffset = cc->towerHueOffset + delta;
+      cc->towerHueOffset = cc->towerHueOffset % 360;
     }
 
     if (delta < 0) {
       cc->hueOffset = cc->hueOffset - delta;
+      cc->hueOffset = cc->hueOffset % 360;
     }
   }
 }
@@ -907,6 +895,9 @@ void menuOncePerSecond() {
   }
 }
 
+// ************************************************************
+// Things that need updating once per hour
+// ************************************************************
 void menuOncePerHour() {
   if (oledTimeout > 0 && configTimeout == 0 && flashTimeout == 0) {
     oled.setAMStatus(isAM());

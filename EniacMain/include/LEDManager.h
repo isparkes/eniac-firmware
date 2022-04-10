@@ -22,6 +22,8 @@
 // The array LED_ADDR spreads the neopixels out if needed
 #ifdef FEATURE_SEP_LED
   #define NUM_PIXELS_TOTAL NUM_BL_PIXELS+NUM_UL_PIXELS+2
+  #define TOWER_1 4
+  #define TOWER_2 9
 #else
   #define NUM_PIXELS_TOTAL NUM_BL_PIXELS+NUM_UL_PIXELS
 #endif
@@ -187,37 +189,37 @@ class LEDManager_
     byte _cycleSpeed = CYCLE_SPEED_DEFAULT;
     bool _syncColourTime = false;
     byte _dow = 0;
-    bool _invertSecondLed = true;
-    double _hueOffset = 0.0;
-    double _towerHueOffset = 0.0;
+    float _hueOffset = 0.0;
+    float _towerHueOffset = 0.0;
 
     // Strategy 3
-    int changeSteps = 0;
-    byte currentColour = 0;
+    int _changeSteps = 0;
+    byte _currentColour = 0;
     
-    int colors[3];
-    byte cycleCount = 0;
+    int _colors[3];
 
     // Back lights
-    byte ledRb[NUM_PIXELS_TOTAL];
-    byte ledGb[NUM_PIXELS_TOTAL];
-    byte ledBb[NUM_PIXELS_TOTAL];
+    byte _ledRb[NUM_PIXELS_TOTAL];
+    byte _ledGb[NUM_PIXELS_TOTAL];
+    byte _ledBb[NUM_PIXELS_TOTAL];
 
     // Under lights
-    byte ledRu[DIGIT_COUNT];
-    byte ledGu[DIGIT_COUNT];
-    byte ledBu[DIGIT_COUNT];
+    byte _ledRu[DIGIT_COUNT];
+    byte _ledGu[DIGIT_COUNT];
+    byte _ledBu[DIGIT_COUNT];
+
+    // hue offsets
+    double _hueOffsetPerPixel[NUM_PIXELS_TOTAL];
 
     void setBacklightLEDs(byte red, byte green, byte blue);
     void setUnderlightLEDs(byte red, byte green, byte blue);
-    void setBacklightLED(byte index, byte red, byte green, byte blue, bool invert);
+    void setBacklightLED(byte index, byte red, byte green, byte blue);
     void setUnderlightLED(byte index, byte red, byte green, byte blue);
     void setTowerLEDs(byte red, byte green, byte blue);
     void outputLEDBuffer();
     byte getLEDAdjustedBL(byte rawValue);
     byte getLEDAdjustedUL(byte rawValue);
     void cycleColours3(int colors[3]);
-    bool isSecondLED(byte index);
     void adjustRGB(uint8_t red, uint8_t green, uint8_t blue, uint8_t& inv_red, uint8_t& inv_green, uint8_t& inv_blue, double hueOffset);
 };
 

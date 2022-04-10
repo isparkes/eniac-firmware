@@ -58,6 +58,7 @@ typedef struct {
   byte blinkenLightsMode;
   byte slaveMode;
   byte outputOnTime;
+  int  backlightGradient;
 
   // not saved
   int diagsMode;

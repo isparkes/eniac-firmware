@@ -9,22 +9,42 @@
 #include <ESPmDNS.h>
 #include "WebManager.h"
 #include "MenuManager.h"
+#include "StringArray.h"
 
-void setUpWiFi();
+class WiFiManager_ {
+  private:
+    WiFiManager_() = default; // Make constructor private
 
-void connectToLastAP();
-bool connectWithWPS();
-void openAccessPortal();
-void startSmartConfig();
+  public:
+    static WiFiManager_ &getInstance(); // Accessor for singleton instance
 
-void startWiFiServices();
-void startWiFiServicesPortal();
-void startMDNS();
-void resetWiFiCredentials();
-bool wifiCredentialsReceived();
-void disconnectWiFi();
+    WiFiManager_(const WiFiManager_ &) = delete; // no copying
+    WiFiManager_ &operator=(const WiFiManager_ &) = delete;
 
-void startScanWiFiNetworks();
-int getLastScanResultCount();
-String getLastScanResultSSID(int index);
+  public:
+    void setUpWiFi();
 
+    void connectToLastAP();
+    bool connectWithWPS();
+    void openAccessPortal();
+    void startSmartConfig();
+
+    void startWiFiServices();
+    void startWiFiServicesPortal();
+    void resetWiFiCredentials();
+    bool wifiCredentialsReceived();
+    void disconnectWiFi();
+
+    void startScanWiFiNetworks();
+    int getLastScanResultCount();
+    String getLastScanResultSSID(int index);
+    void wifiBeginWithCredentials();
+    void saveWiFiCredentials(String newWiFiSSID, String newWiFiPassword);
+    void processScanResults();
+  private:
+    StringArray ssidList;
+
+    void startMDNS();
+};
+
+extern WiFiManager_ &wifiManager;

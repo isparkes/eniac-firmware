@@ -16,25 +16,50 @@ void LEDManager_::setUp()
 // recalculate "slow moving" parameters
 // ************************************************************
 void LEDManager_::recalculateVariables() {
-  _backlightDim = (float) cc->backlightDimFactor / (float) 100;
+  _backlightDim = (float) cc->backlightDimFactor / 100.0;
 
-#ifdef FEATURE_EXT_LEDS
-  _underlightDim = (float) cc->extDimFactor / (float) 100;
-#endif
+  #ifdef FEATURE_EXT_LEDS
+  _underlightDim = (float) cc->extDimFactor / 100.0;
+  #endif
 
-  if (cc->hueOffset == 0) {
-    _invertSecondLed = false;
-    _hueOffset = 0;
-  } else {
-    _invertSecondLed = true;
-    int offset = cc->hueOffset % 360;
-    _hueOffset = (offset) / 360.0;
-    if (offset != cc->hueOffset) cc->hueOffset = offset; 
+  // Calculate the gradient per NP
+  float _hueOffsetIncrement = ((cc->backlightGradient * 100) / (NUM_BL_PIXELS * 100.0));
+  #ifdef LED_EXTENDED_DEBUG_ON
+  debugMsgLed("Gradient: " + String(cc->backlightGradient) + "/" + String(NUM_BL_PIXELS) + " -> " + String(_hueOffsetIncrement));
+  debugMsgLed("Offset:   " + String(cc->hueOffset));
+  #endif
+
+  // Calculate the offset array
+  for (int index = 0 ; index < NUM_BL_PIXELS ; index++) {
+    int gradientOffset = (int) (_hueOffsetIncrement * index);
+    if (index % 2 == 0) {
+      _hueOffsetPerPixel[LED_ADDR[index]] = (gradientOffset % 360) / 360.0;
+    } else {
+      _hueOffsetPerPixel[LED_ADDR[index]] = ((gradientOffset + cc->hueOffset) % 360) / 360.0;
+    }
   }
 
-  int offset = cc->towerHueOffset % 360;
-  _towerHueOffset = (offset) / 360.0;
-  if (offset != cc->towerHueOffset) cc->towerHueOffset = offset; 
+  #ifdef FEATURE_SEP_LED
+  _hueOffsetPerPixel[TOWER_1] = (cc->towerHueOffset % 360) / 360.0;
+  _hueOffsetPerPixel[TOWER_2] = _hueOffsetPerPixel[TOWER_1];
+  #endif
+
+  #ifdef LED_EXTENDED_DEBUG_ON
+  debugMsgLed("Hues: " +  String(_hueOffsetPerPixel[0]) + "," +
+                          String(_hueOffsetPerPixel[1]) + "," +
+                          String(_hueOffsetPerPixel[2]) + "," +
+                          String(_hueOffsetPerPixel[3]) + "," +
+                          String(_hueOffsetPerPixel[4]) + "," +
+                          String(_hueOffsetPerPixel[5]) + "," +
+                          String(_hueOffsetPerPixel[6]) + "," +
+                          String(_hueOffsetPerPixel[7]) + "," +
+                          String(_hueOffsetPerPixel[8]) + "," +
+                          String(_hueOffsetPerPixel[9]) + "," +
+                          String(_hueOffsetPerPixel[10]) + "," +
+                          String(_hueOffsetPerPixel[11]) + "," +
+                          String(_hueOffsetPerPixel[12]) + "," +
+                          String(_hueOffsetPerPixel[13]) + ",");
+  #endif
 }
 
 // ************************************************************
@@ -79,27 +104,21 @@ void LEDManager_::setBlanked(boolean blanked)
 // ************************************************************
 void LEDManager_::setBacklightLEDs(byte red, byte green, byte blue) {
   for (int i = 0 ; i < NUM_BL_PIXELS ; i++) {
-    setBacklightLED(i, red, green, blue, _invertSecondLed);
+    setBacklightLED(i, red, green, blue);
   }
 }
 
 // ************************************************************
 // Set a single back light LEDs to a colour
 // ************************************************************
-void LEDManager_::setBacklightLED(byte index, byte red, byte green, byte blue, bool invert) {
-  if ((invert) && isSecondLED(index)) {
-    uint8_t inv_red = 0;
-    uint8_t inv_green = 0;
-    uint8_t inv_blue = 0;
-    adjustRGB(red, green, blue, inv_red, inv_green, inv_blue, _hueOffset);
-    ledRb[LED_ADDR[index]] = inv_red;
-    ledGb[LED_ADDR[index]] = inv_green;
-    ledBb[LED_ADDR[index]] = inv_blue;
-  } else {
-    ledRb[LED_ADDR[index]] = red;
-    ledGb[LED_ADDR[index]] = green;
-    ledBb[LED_ADDR[index]] = blue;
-  }
+void LEDManager_::setBacklightLED(byte index, byte red, byte green, byte blue) {
+  uint8_t inv_red = 0;
+  uint8_t inv_green = 0;
+  uint8_t inv_blue = 0;
+  adjustRGB(red, green, blue, inv_red, inv_green, inv_blue, _hueOffsetPerPixel[LED_ADDR[index]]);
+  _ledRb[LED_ADDR[index]] = inv_red;
+  _ledGb[LED_ADDR[index]] = inv_green;
+  _ledBb[LED_ADDR[index]] = inv_blue;
 }
 
 // ************************************************************
@@ -110,14 +129,15 @@ void LEDManager_::setTowerLEDs(byte red, byte green, byte blue) {
     uint8_t inv_red = 0;
     uint8_t inv_green = 0;
     uint8_t inv_blue = 0;
-    adjustRGB(red, green, blue, inv_red, inv_green, inv_blue, _towerHueOffset);
-    ledRb[4] = inv_red;
-    ledGb[4] = inv_green;
-    ledBb[4] = inv_blue;
+    adjustRGB(red, green, blue, inv_red, inv_green, inv_blue, _hueOffsetPerPixel[TOWER_1]);
+    _ledRb[TOWER_1] = inv_red;
+    _ledGb[TOWER_1] = inv_green;
+    _ledBb[TOWER_1] = inv_blue;
     
-    ledRb[9] = inv_red;
-    ledGb[9] = inv_green;
-    ledBb[9] = inv_blue;
+    adjustRGB(red, green, blue, inv_red, inv_green, inv_blue, _hueOffsetPerPixel[TOWER_2]);
+    _ledRb[TOWER_2] = inv_red;
+    _ledGb[TOWER_2] = inv_green;
+    _ledBb[TOWER_2] = inv_blue;
   #endif
 }
 
@@ -158,7 +178,7 @@ void LEDManager_::outputLEDBuffer() {
 #ifdef REVERSE_BL_OUTPUT
     RgbColor color(ledRb[NUM_BL_PIXELS - i - 1], ledGb[NUM_BL_PIXELS - i - 1], ledBb[NUM_BL_PIXELS - i - 1]);
 #else
-    RgbColor color(ledRb[i], ledGb[i], ledBb[i]);
+    RgbColor color(_ledRb[i], _ledGb[i], _ledBb[i]);
 #endif
     leds.SetPixelColor(i, color);
   }
@@ -167,7 +187,7 @@ void LEDManager_::outputLEDBuffer() {
 #ifdef REVERSE_UL_OUTPUT
     RgbColor color(ledRu[DIGIT_COUNT - i - 1], ledGu[DIGIT_COUNT - i - 1], ledBu[DIGIT_COUNT - i - 1]);
 #else
-    RgbColor color(ledRu[i], ledGu[i], ledBu[i]);
+    RgbColor color(_ledRu[i], _ledGu[i], _ledBu[i]);
 #endif
     leds.SetPixelColor(i + NUM_BL_PIXELS, color);
   }
@@ -199,13 +219,13 @@ void LEDManager_::processLedStatus() {
           break;
         }
       case BACKLIGHT_CYCLE: {
-          cycleColours3(colors);
-          setBacklightLEDs( getLEDAdjustedBL(colors[0]),
-                            getLEDAdjustedBL(colors[1]),
-                            getLEDAdjustedBL(colors[2]));
-          setUnderlightLEDs(getLEDAdjustedUL(colors[0]),
-                            getLEDAdjustedUL(colors[1]),
-                            getLEDAdjustedUL(colors[2]));
+          cycleColours3(_colors);
+          setBacklightLEDs( getLEDAdjustedBL(_colors[0]),
+                            getLEDAdjustedBL(_colors[1]),
+                            getLEDAdjustedBL(_colors[2]));
+          setUnderlightLEDs(getLEDAdjustedUL(_colors[0]),
+                            getLEDAdjustedUL(_colors[1]),
+                            getLEDAdjustedUL(_colors[2]));
           break;
         }
       case BACKLIGHT_COLOUR_TIME: {
@@ -215,8 +235,7 @@ void LEDManager_::processLedStatus() {
               setBacklightLED(i,
                               getLEDAdjustedBL(colourTimeR[numVal]),
                               getLEDAdjustedBL(colourTimeG[numVal]),
-                              getLEDAdjustedBL(colourTimeB[numVal]),
-                              _invertSecondLed);
+                              getLEDAdjustedBL(colourTimeB[numVal]));
               setUnderlightLED(i, 
                               getLEDAdjustedUL(colourTimeR[numVal]),
                               getLEDAdjustedUL(colourTimeG[numVal]),
@@ -254,8 +273,7 @@ void LEDManager_::setTestValue(byte value) {
     setBacklightLED(i, 
                     testColoursR[numVal],
                     testColoursG[numVal],
-                    testColoursB[numVal],
-                    false);
+                    testColoursB[numVal]);
     setUnderlightLED(i, 
                     testColoursR[numVal],
                     testColoursG[numVal],
@@ -321,14 +339,14 @@ void LEDManager_::cycleColours3(int colors[3]) {
   if (_cycleCount > cc->cycleSpeed) {
     _cycleCount = 0;
 
-    if (changeSteps == 0) {
-      changeSteps = random(256);
-      currentColour = random(3);
+    if (_changeSteps == 0) {
+      _changeSteps = random(256);
+      _currentColour = random(3);
     }
 
-    changeSteps--;
+    _changeSteps--;
 
-    switch (currentColour) {
+    switch (_currentColour) {
       case 0:
         if (colors[0] < 255) {
           colors[0]++;
@@ -339,7 +357,7 @@ void LEDManager_::cycleColours3(int colors[3]) {
             colors[2]--;
           }
         } else {
-          changeSteps = 0;
+          _changeSteps = 0;
         }
         break;
       case 1:
@@ -352,7 +370,7 @@ void LEDManager_::cycleColours3(int colors[3]) {
             colors[2]--;
           }
         } else {
-          changeSteps = 0;
+          _changeSteps = 0;
         }
         break;
       case 2:
@@ -365,7 +383,7 @@ void LEDManager_::cycleColours3(int colors[3]) {
             colors[1]--;
           }
         } else {
-          changeSteps = 0;
+          _changeSteps = 0;
         }
         break;
     }
@@ -386,32 +404,25 @@ void LEDManager_::setSyncColourTime(boolean value) {
 void LEDManager_::setDiagnosticLED(byte stepNumber, byte state) {
   for (int i = 0 ; i < DIGIT_COUNT ; i++) {
     if (i > stepNumber) {
-      setBacklightLED(i, 0x1f, 0x1f, 0x1f, false);
+      setBacklightLED(i, 0x1f, 0x1f, 0x1f);
       setUnderlightLED(i, 0x1f, 0x1f, 0x1f);
     } else if (i == stepNumber) {
       if (state == STATUS_RED) {
-      setBacklightLED(i, 0xff, 0, 0, false);
+      setBacklightLED(i, 0xff, 0, 0);
       setUnderlightLED(i, 0xff, 0, 0);
       } else if (state == STATUS_YELLOW) {
-      setBacklightLED(i, 0xff, 0x7f, 0x0f, false);
+      setBacklightLED(i, 0xff, 0x7f, 0x0f);
       setUnderlightLED(i, 0xff, 0x7f, 0x0f);
       } else if (state == STATUS_GREEN) {
-      setBacklightLED(i, 0, 0xff, 0, false);
+      setBacklightLED(i, 0, 0xff, 0);
       setUnderlightLED(i, 0, 0xff, 0);
       } else if (state == STATUS_BLUE) {
-      setBacklightLED(i, 0, 0, 0xff, false);
+      setBacklightLED(i, 0, 0, 0xff);
       setUnderlightLED(i, 0, 0, 0xff);
       }
     }
   }
   outputLEDBuffer();
-}
-
-// ************************************************************
-// See if the led should be inverted
-// ************************************************************
-bool LEDManager_::isSecondLED(byte index) {
-  return (index %2 == 1);
 }
 
 // ************************************************************

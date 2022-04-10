@@ -10,6 +10,7 @@ typedef void (*DebugCallback) (String);
 #define debugMsgBlm(message) debugManager.debugMsg("[BLM]", message);
 #define debugMsgGps(message) debugManager.debugMsg("[GPS]", message);
 #define debugMsgLdr(message) debugManager.debugMsg("[LDR]", message);
+#define debugMsgLed(message) debugManager.debugMsg("[LED]", message);
 #define debugMsgNtp(message) debugManager.debugMsg("[NTP]", message);
 #define debugMsgOtm(message) debugManager.debugMsg("[OTM]", message);
 #define debugMsgRtc(message) debugManager.debugMsg("[RTC]", message);
@@ -25,6 +26,7 @@ typedef void (*DebugCallback) (String);
 #define debugMsgBlm(message)
 #define debugMsgGps(message)
 #define debugMsgLdr(message)
+#define debugMsgLed(message)
 #define debugMsgNtp(message)
 #define debugMsgOtm(message)
 #define debugMsgRtc(message)
@@ -38,9 +40,11 @@ typedef void (*DebugCallback) (String);
 #endif
 
 // Extended debug settings - these allow trace level debugging
-#define TZM_EXTENDED_DEBUG_ON
-#define RTC_EXTENDED_DEBUG_ON
-#define NTP_EXTENDED_DEBUG_ON
+#define TZM_EXTENDED_DEBUG_OFF
+#define RTC_EXTENDED_DEBUG_OFF
+#define NTP_EXTENDED_DEBUG_OFF
+#define LDR_EXTENDED_DEBUG_OFF
+#define LED_EXTENDED_DEBUG_OFF
 
 class DebugManager_ {
   private:

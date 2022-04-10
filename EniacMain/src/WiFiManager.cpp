@@ -1,8 +1,5 @@
 #include "WiFiManager.h"
 
-// forward private decls
-void processScanResults();
-
 void wpsInitConfig()
 {
   wps_config.crypto_funcs = &g_wifi_default_wps_crypto_funcs;
@@ -33,16 +30,16 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
     break;
   case SYSTEM_EVENT_AP_START:
     debugMsgWfm("AP Mode Started");
-    startWiFiServicesPortal();
+    wifiManager.startWiFiServicesPortal();
     break;
   case SYSTEM_EVENT_STA_GOT_IP:
     debugMsgWfm("Connected to:" + WiFi.SSID() + ", password: " + WiFi.psk());
     debugMsgWfm("IP Address: " + WiFi.localIP().toString());
     debugMsgWfm("MAC Address: " + WiFi.macAddress());
     debugMsgWfm("Host name: " + String(WiFi.getHostname()));
-    saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
-    startWiFiServices();
-    flashMenuMessage("WiFi Status", "WiFi connected to\nSSID:\n"+WiFi.SSID());
+    wifiManager.saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
+    wifiManager.startWiFiServices();
+    flashMenuMessage("WiFi Status", "WiFi connected to\n"+WiFi.SSID());
     break;
   case SYSTEM_EVENT_STA_DISCONNECTED:
     debugMsgWfm("Disconnected from station");
@@ -53,7 +50,7 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
     break;
   case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
     debugMsgWfm("WPS Successfull, saving credentials. SSID: |" + WiFi.SSID() + "| password: |" + WiFi.psk() + "|");
-    saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
+    wifiManager.saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
     esp_wifi_wps_disable();
     flashMenuMessage("WPS Status", "WPS was successful\nPassword:\n"+WiFi.psk());
     break;
@@ -71,14 +68,14 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
     break;
   case SYSTEM_EVENT_SCAN_DONE:
     debugMsgWfm("Scan complete");
-    processScanResults();
+    wifiManager.processScanResults();
     break;
   default:
     break;
   }
 }
 
-void setUpWiFi() {
+void WiFiManager_::setUpWiFi() {
   WiFi.onEvent(WiFiEvent);
 
   String mac = String(WiFi.macAddress());
@@ -89,7 +86,7 @@ void setUpWiFi() {
   WiFi.setHostname(uniqHostname.c_str());
 }
 
-void startScanWiFiNetworks() {
+void WiFiManager_::startScanWiFiNetworks() {
   WiFi.onEvent(WiFiEvent, SYSTEM_EVENT_SCAN_DONE);
 
   WiFi.mode(WIFI_AP_STA);
@@ -99,7 +96,10 @@ void startScanWiFiNetworks() {
   WiFi.scanNetworks(true);
 }
 
-void processScanResults() {
+// ************************************************************
+// Process the results of the SSID scan
+// ************************************************************
+void WiFiManager_::processScanResults() {
   int n = WiFi.scanComplete();
   if (n == 0) {
     debugMsgWfm("no networks found");
@@ -107,9 +107,15 @@ void processScanResults() {
   } else {
     debugMsgWfm("");
     debugMsgWfm(String(n) + " networks found");
-    flashMenuMessage("Scan Done", "Found\n" + String(n) + "\nnetworks.");
+    flashMenuMessage("Scan Done", "Found " + String(n) + " networks.");
     String result = "";
     for (int i = 0; i < n; ++i) {
+      if (ssidList.containsIgnoreCase(WiFi.SSID(i))) {
+        debugMsgWfm("Already have: " + WiFi.SSID(i));
+      } else {
+        debugMsgWfm("Add: " + WiFi.SSID(i));
+        ssidList.add(WiFi.SSID(i));
+      }
       #ifdef DEBUG_ON
       // Print SSID and RSSI for each network found
       bool encrypted = WiFi.encryptionType(i) == WIFI_AUTH_OPEN;
@@ -129,18 +135,27 @@ void processScanResults() {
   }
 }
 
-int getLastScanResultCount() {
-  return WiFi.scanComplete();
+// ************************************************************
+// Get the number of SSIDs we found so far
+// ************************************************************
+int WiFiManager_::getLastScanResultCount() {
+  return ssidList.length();
 }
 
-String getLastScanResultSSID(int index) {
-  return WiFi.SSID(index);
+// ************************************************************
+// Get the nth entry in the SSID list
+// ************************************************************
+String WiFiManager_::getLastScanResultSSID(int index) {
+  auto ssid = ssidList.nth(index);
+  return *ssid;
 }
 
-
+// ************************************************************
+// Start up Smart Config - fire and forget
 // http://www.iotsharing.com/2017/05/how-to-use-smartconfig-on-esp32.html
-void startSmartConfig() {
-  flashMenuMessage("Smartconfig", "Starting\"Smartconfig""\nmode.");
+// ************************************************************
+void WiFiManager_::startSmartConfig() {
+  flashMenuMessage("Smartconfig", "Starting\nSmartconfig\nmode.");
   WiFi.disconnect();
   delay(500);
 
@@ -148,15 +163,21 @@ void startSmartConfig() {
   WiFi.beginSmartConfig();
 }
 
-void connectToLastAP() {
+// ************************************************************
+// Reconnect to the last registered SSID
+// ************************************************************
+void WiFiManager_::connectToLastAP() {
   if(wifiCredentialsReceived()) {
     debugMsgWfm("Trying to reconnect to last known AP");
-    flashMenuMessage("Reconnect","Reconnecting to:\nSSID:\n" + cc->WiFiSSID + "\n");
+    flashMenuMessage("Reconnect","Reconnecting to:\n" + cc->WiFiSSID + "\n");
     wifiBeginWithCredentials();
   }
 }
 
-bool connectWithWPS() {
+// ************************************************************
+// Kick off WPS connect - fire and forget
+// ************************************************************
+bool WiFiManager_::connectWithWPS() {
   // Autoreconnect is needed for WPS!
   doAutoReconnect = true;
 
@@ -183,10 +204,12 @@ bool connectWithWPS() {
   }
 }
 
-void openAccessPortal() {
+// ************************************************************
+// Start up AP mode
+// ************************************************************
+void WiFiManager_::openAccessPortal() {
   // Captive portal
   if (WiFi.status() != WL_CONNECTED) {
-    // preload the wifi list 
     startScanWiFiNetworks();
 
     debugMsgWfm("");
@@ -200,11 +223,16 @@ void openAccessPortal() {
     delay(100);
     debugMsgWfm("Soft-AP IP address = ");
     debugMsgWfm(WiFi.softAPIP().toString());
-    flashMenuMessage("Portal", "Opened access\nportal at\nIP: " + WiFi.softAPIP().toString());
+    flashMenuMessage("Portal", "Opened access\nportal at IP: " + WiFi.softAPIP().toString());
+  } else {
+    flashMenuMessage("Portal", "WiFi is already\nconnected to:\n" + WiFi.SSID());
   }
 }
 
-void startMDNS() {
+// ************************************************************
+// Start up mDNS
+// ************************************************************
+void WiFiManager_::startMDNS() {
   // The MDNS host name does not seem to work at the moment - it is being set by OTA
   if(!MDNS.begin(uniqHostname.c_str())) {
       debugMsgWfm("Error starting mDNS");
@@ -214,7 +242,10 @@ void startMDNS() {
   MDNS.addService("http", "tcp", 80);
 }
 
-void startWiFiServices() {
+// ************************************************************
+// Start up the web server for normal use
+// ************************************************************
+void WiFiManager_::startWiFiServices() {
   if (WiFi.isConnected()) {
     // -------------------------------------------------------------------------
 
@@ -241,13 +272,19 @@ void startWiFiServices() {
   }
 }
 
-void startWiFiServicesPortal() {
+// ************************************************************
+// Start the web server with Access Portal set up
+// ************************************************************
+void WiFiManager_::startWiFiServicesPortal() {
   debugMsgWfm("Start up WebServer for Portal services" );
 
   webManager.beginPortal();
 }
 
-void wifiBeginWithCredentials() {
+// ************************************************************
+// Startup th WiFi using the credentials we have
+// ************************************************************
+void WiFiManager_::wifiBeginWithCredentials() {
   WiFi.disconnect();
   delay(1000);
   WiFi.mode(WIFI_MODE_STA);
@@ -255,7 +292,10 @@ void wifiBeginWithCredentials() {
   WiFi.begin(cc->WiFiSSID.c_str(), cc->WiFiPassword.c_str());
 }
 
-void saveWiFiCredentials(String newWiFiSSID, String newWiFiPassword) {
+// ************************************************************
+// Save the credentials to SPIFFS if they are valid
+// ************************************************************
+void WiFiManager_::saveWiFiCredentials(String newWiFiSSID, String newWiFiPassword) {
   if ((cc->WiFiSSID != newWiFiSSID || 
       cc->WiFiPassword != newWiFiPassword) && 
       newWiFiSSID.length() > 0 &&
@@ -271,17 +311,36 @@ void saveWiFiCredentials(String newWiFiSSID, String newWiFiPassword) {
   }
 }
 
-void disconnectWiFi() {
+// ************************************************************
+// Undock from the WiFi mothership
+// ************************************************************
+void WiFiManager_::disconnectWiFi() {
   WiFi.disconnect();
 }
 
-void resetWiFiCredentials() {
+// ************************************************************
+// Clear down credentials
+// ************************************************************
+void WiFiManager_::resetWiFiCredentials() {
   cc->WiFiSSID = "";
   cc->WiFiPassword = "";
   cc->WifiOnAtStart = false;
   spiffsStorage.saveConfigToSpiffs();
 }
 
-bool wifiCredentialsReceived() {
+// ************************************************************
+// Return true if we have received and stored some credentials
+// ************************************************************
+bool WiFiManager_::wifiCredentialsReceived() {
   return (cc->WiFiSSID.length() > 0 && cc->WiFiPassword.length() > 0);
 }
+
+// ************************************************************
+// Library internal singleton wiring
+// ************************************************************
+WiFiManager_ &WiFiManager_::getInstance() {
+  static WiFiManager_ instance;
+  return instance;
+}
+
+WiFiManager_ &wifiManager = wifiManager.getInstance();

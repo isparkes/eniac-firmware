@@ -5,11 +5,13 @@
 // ************************************************************
 void LDRManager_::setUp() {
   pinMode(LDRPin, INPUT);
+  #ifdef LDR_EXTENDED_DEBUG_ON
   debugMsgLdr("Config useLDR: " + String(cc->useLDR));
   debugMsgLdr("Config sensitivityLDR: " + String(cc->sensitivityLDR));
   debugMsgLdr("Config thresholdBright: " + String(cc->thresholdBright));
   debugMsgLdr("Config sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
-  debugMsgLdr("Config minDim %: " + String(cc->minDim));
+  debugMsgLdr("Config minDim%: " + String(cc->minDim));
+  #endif
 }
 
 // ************************************************************

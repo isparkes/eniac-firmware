@@ -196,6 +196,9 @@ bool SpiffsStorage_::getConfigFromSpiffs()
         cc->outputOnTime = json["outputOnTime"];
         debugMsgSpf("Loaded outputOnTime: " + String(cc->outputOnTime));
 
+        cc->backlightGradient = json["backlightGradient"];
+        debugMsgSpf("Loaded backlightGradient: " + String(cc->backlightGradient));
+
         loaded = true;
       }
       else
@@ -265,6 +268,7 @@ void SpiffsStorage_::saveConfigToSpiffs()
   json["blinkenLightsMode"] = cc->blinkenLightsMode;
   json["slaveMode"] = cc->slaveMode;
   json["outputOnTime"] = cc->outputOnTime;
+  json["backlightGradient"] = cc->backlightGradient;
   
   File configFile = SPIFFS.open("/config/config.json", "w");
   if (!configFile)
