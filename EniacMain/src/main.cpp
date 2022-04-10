@@ -44,6 +44,7 @@ void setup()
 
   pinMode(BLANKPin, OUTPUT);
   pinMode(PPSPin, OUTPUT);
+  digitalWrite(PPSPin, LOW);
   
   pinMode(BTN1Pin, INPUT_PULLUP);
   pinMode(BTN2Pin, INPUT_PULLUP);

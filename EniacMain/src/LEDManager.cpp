@@ -23,20 +23,19 @@ void LEDManager_::recalculateVariables() {
   #endif
 
   // Calculate the gradient per NP
-  float _hueOffsetIncrement = ((cc->backlightGradient * 100) / (NUM_BL_PIXELS * 100.0));
+  float _hueOffsetIncrement = ((cc->backlightGradient * 100) / (DIGIT_COUNT * 100.0));
   #ifdef LED_EXTENDED_DEBUG_ON
   debugMsgLed("Gradient: " + String(cc->backlightGradient) + "/" + String(NUM_BL_PIXELS) + " -> " + String(_hueOffsetIncrement));
   debugMsgLed("Offset:   " + String(cc->hueOffset));
   #endif
 
-  // Calculate the offset array
-  for (int index = 0 ; index < NUM_BL_PIXELS ; index++) {
-    int gradientOffset = (int) (_hueOffsetIncrement * index);
-    if (index % 2 == 0) {
-      _hueOffsetPerPixel[LED_ADDR[index]] = (gradientOffset % 360) / 360.0;
-    } else {
-      _hueOffsetPerPixel[LED_ADDR[index]] = ((gradientOffset + cc->hueOffset) % 360) / 360.0;
-    }
+  // Calculate the offset array - for the gradient we work in LED pairs
+  // only the hue offset affects the individual LEDs in a pair
+  for (int index = 0 ; index < DIGIT_COUNT ; index++) {
+    // we want each pair of LEDs to have the same increment
+    int gradientOffset = (int) (_hueOffsetIncrement*index);
+    _hueOffsetPerPixel[LED_ADDR[index*2]] = (gradientOffset % 360) / 360.0;
+    _hueOffsetPerPixel[LED_ADDR[index*2+1]] = ((gradientOffset + cc->hueOffset) % 360) / 360.0;
   }
 
   #ifdef FEATURE_SEP_LED
@@ -60,6 +59,9 @@ void LEDManager_::recalculateVariables() {
                           String(_hueOffsetPerPixel[12]) + "," +
                           String(_hueOffsetPerPixel[13]) + ",");
   #endif
+
+  // Invert the sense of the cycle speed
+  _cycleSpeed = CYCLE_SPEED_MAP[cc->cycleSpeed];
 }
 
 // ************************************************************
@@ -336,7 +338,7 @@ byte LEDManager_::getLEDAdjustedUL(byte rawValue) {
 // ************************************************************
 void LEDManager_::cycleColours3(int colors[3]) {
   _cycleCount++;
-  if (_cycleCount > cc->cycleSpeed) {
+  if (_cycleCount > _cycleSpeed) {
     _cycleCount = 0;
 
     if (_changeSteps == 0) {

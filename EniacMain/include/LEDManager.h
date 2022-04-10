@@ -38,9 +38,9 @@
 #define BACKLIGHT_DEFAULT               1
 
 // -------------------------------------------------------------------------------
-#define CYCLE_SPEED_MIN                 4
-#define CYCLE_SPEED_MAX                 64
-#define CYCLE_SPEED_DEFAULT             10
+#define CYCLE_SPEED_MIN                 1
+#define CYCLE_SPEED_MAX                 10
+#define CYCLE_SPEED_DEFAULT             5
 
 // -------------------------------------------------------------------------------
 #define COLOUR_CNL_MAX                  15
@@ -101,36 +101,6 @@
 #define BACKLIGHT_DIM_FACTOR_MIN        10
 #define BACKLIGHT_DIM_FACTOR_MAX        100
 #define BACKLIGHT_DIM_FACTOR_DEFAULT    100
-
-#define BACKLIGHT_MIN                   0
-#define BACKLIGHT_FIXED                 0  // Just define a colour and stick to it
-#define BACKLIGHT_CYCLE                 1  // cycle through random colours, strategy 3
-#define BACKLIGHT_COLOUR_TIME           2  // use "ColourTime" - different colours for each digit value
-#define BACKLIGHT_DAY_OF_WEEK           3  // use "DayOfWeek" - different colours for each day
-#define BACKLIGHT_MAX                   3
-#define BACKLIGHT_DEFAULT               1
-
-// -------------------------------------------------------------------------------
-#define CYCLE_SPEED_MIN                 4
-#define CYCLE_SPEED_MAX                 64
-#define CYCLE_SPEED_DEFAULT             10
-
-// -------------------------------------------------------------------------------
-#define COLOUR_CNL_MAX                  15
-#define COLOUR_RED_CNL_DEFAULT          15
-#define COLOUR_GRN_CNL_DEFAULT          0
-#define COLOUR_BLU_CNL_DEFAULT          0
-#define COLOUR_CNL_MIN                  0
-
-// -------------------------------------------------------------------------------
-#define BACKLIGHT_DIM_FACTOR_MIN        10
-#define BACKLIGHT_DIM_FACTOR_MAX        100
-#define BACKLIGHT_DIM_FACTOR_DEFAULT    100
-
-// -------------------------------------------------------------------------------
-#define EXT_DIM_FACTOR_MIN              10
-#define EXT_DIM_FACTOR_MAX              100
-#define EXT_DIM_FACTOR_DEFAULT          100
 
 // ************************** Pin Allocations *************************
 
@@ -285,5 +255,9 @@ const byte LED_ADDR[] = { 0, 1, 2, 3, 5, 6, 7, 8, 10, 11, 12, 13 };
 #else
 const byte LED_ADDR[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 #endif
+
+// 1 extra element at array index 0 to make the conversion from
+// user range 1 - 10 easier
+const byte CYCLE_SPEED_MAP[] = { 64, 64, 54, 42, 30, 20, 13, 9, 4, 2, 1 };
 
 extern LEDManager_ &ledManager;
