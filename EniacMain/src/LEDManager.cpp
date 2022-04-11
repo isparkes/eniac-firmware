@@ -31,11 +31,21 @@ void LEDManager_::recalculateVariables() {
 
   // Calculate the offset array - for the gradient we work in LED pairs
   // only the hue offset affects the individual LEDs in a pair
-  for (int index = 0 ; index < DIGIT_COUNT ; index++) {
-    // we want each pair of LEDs to have the same increment
-    int gradientOffset = (int) (_hueOffsetIncrement*index);
-    _hueOffsetPerPixel[LED_ADDR[index*2]] = (gradientOffset % 360) / 360.0;
-    _hueOffsetPerPixel[LED_ADDR[index*2+1]] = ((gradientOffset + cc->hueOffset) % 360) / 360.0;
+  // Do not use for ColourTime
+  if (cc->backlightMode != BACKLIGHT_COLOUR_TIME) { 
+    for (int index = 0 ; index < DIGIT_COUNT ; index++) {
+      // we want each pair of LEDs to have the same increment
+      int gradientOffset = (int) (_hueOffsetIncrement*index);
+      _hueOffsetPerPixel[LED_ADDR[index*2]] = (gradientOffset % 360) / 360.0;
+      _hueOffsetPerPixel[LED_ADDR[index*2+1]] = ((gradientOffset + cc->hueOffset) % 360) / 360.0;
+    }
+  } else {
+    for (int index = 0 ; index < DIGIT_COUNT ; index++) {
+      // we want each pair of LEDs to have the same increment
+      int gradientOffset = (int) (_hueOffsetIncrement*index);
+      _hueOffsetPerPixel[LED_ADDR[index*2]] = 0.0;
+      _hueOffsetPerPixel[LED_ADDR[index*2+1]] = 0.0;
+    }
   }
 
   #ifdef FEATURE_SEP_LED
