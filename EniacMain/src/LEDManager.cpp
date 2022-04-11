@@ -41,8 +41,6 @@ void LEDManager_::recalculateVariables() {
     }
   } else {
     for (int index = 0 ; index < DIGIT_COUNT ; index++) {
-      // we want each pair of LEDs to have the same increment
-      int gradientOffset = (int) (_hueOffsetIncrement*index);
       _hueOffsetPerPixel[LED_ADDR[index*2]] = 0.0;
       _hueOffsetPerPixel[LED_ADDR[index*2+1]] = 0.0;
     }
@@ -72,6 +70,27 @@ void LEDManager_::recalculateVariables() {
 
   // Invert the sense of the cycle speed
   _cycleSpeed = CYCLE_SPEED_MAP[cc->cycleSpeed];
+
+  // Set the blanking status
+  _blanked = blankingManager.getCurrentBlankLEDs();
+  _towersBlanked = blankingManager.getCurrentBlankTowers();
+
+  // We don't need to set these each loop if we are blanked
+  // so we set once here
+  if (_blanked) {
+    setBacklightLEDs( getLEDAdjustedBL(0),
+                      getLEDAdjustedBL(0),
+                      getLEDAdjustedBL(0));
+    setUnderlightLEDs(getLEDAdjustedUL(0),
+                      getLEDAdjustedUL(0),
+                      getLEDAdjustedUL(0));
+  }
+
+  if (_towersBlanked) {
+    setTowerLEDs(   getLEDAdjustedUL(0),
+                    getLEDAdjustedUL(0),
+                    getLEDAdjustedUL(0));
+  }
 }
 
 // ************************************************************
@@ -101,14 +120,6 @@ void LEDManager_::setPulseValue(unsigned int secsDelta)
     // Calculate the brightness factor based on the "pulse"
     _pwmFactor = (float) secsDelta / (float) 1000.0;
   }
-}
-
-// ************************************************************
-// Set blank status
-// ************************************************************
-void LEDManager_::setBlanked(boolean blanked)
-{
-  _blanked = blanked;
 }
 
 // ************************************************************
@@ -212,14 +223,7 @@ void LEDManager_::outputLEDBuffer() {
 void LEDManager_::processLedStatus() {
   // -------------------------------- Backlights / Underlights -------------------------------
 
-  if (_blanked) {
-    setBacklightLEDs( getLEDAdjustedBL(0),
-                      getLEDAdjustedBL(0),
-                      getLEDAdjustedBL(0));
-    setUnderlightLEDs(getLEDAdjustedUL(0),
-                      getLEDAdjustedUL(0),
-                      getLEDAdjustedUL(0));
-  } else {
+  if (!_blanked) {
     switch (cc->backlightMode) {
       case BACKLIGHT_FIXED: {
           setBacklightLEDs( getLEDAdjustedBL(rgb_backlight_curve[cc->redCnl]),
@@ -266,9 +270,12 @@ void LEDManager_::processLedStatus() {
           break;
         }
     }
+  }
+
+  if (!_towersBlanked) {
     setTowerLEDs(   getLEDAdjustedUL(255),
                     getLEDAdjustedUL(0),
-                    getLEDAdjustedUL(0));    
+                    getLEDAdjustedUL(0));
   }
 
   outputLEDBuffer();

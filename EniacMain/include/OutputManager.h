@@ -132,7 +132,7 @@ class OutputManager_ {
     outputModes _outputMode;
 
     void processStunts();
-    uint32_t decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, bool blankTens, bool blankUnits, bool bl1, bool bl2, bool led1, bool led2);
+    uint32_t decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, bool blankTubes, bool blankSeparators, bool bl1, bool bl2, bool led1, bool led2);
     void setCurrentTransition();
     void processSeparators();
 };

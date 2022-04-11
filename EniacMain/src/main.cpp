@@ -359,8 +359,6 @@ void performOncePerSecondProcessing() {
 
   blankingManager.getBlankingStatus(weekday(), hour());
 
-  ledManager.setBlanked(blankingManager.getCurrentBlankLEDs());
-
   ledManager.recalculateVariables();
 
   // Feed the GPS parser

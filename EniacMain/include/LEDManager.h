@@ -130,9 +130,6 @@ class LEDManager_
     // recalculate internal values based on the pulsing factor
     void setPulseValue(unsigned int secsDelta);
 
-    // Change LED blanking status
-    void setBlanked(boolean blanked);
-
     void setSyncColourTime(boolean value);
     void setDiagnosticLED(byte stepNumber, byte state);
 
@@ -154,6 +151,7 @@ class LEDManager_
     float _ldrRange = 100.0;
     float _pwmFactor = 1.0;
     bool _blanked = false;
+    bool _towersBlanked = false;
     byte _ledMode = BACKLIGHT_DEFAULT;
     byte _cycleCount = 0;
     byte _cycleSpeed = CYCLE_SPEED_DEFAULT;
