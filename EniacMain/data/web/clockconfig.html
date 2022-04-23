@@ -677,6 +677,10 @@
             postBody["blinkenLightsMode"] = $("#blinkenLightsMode").val();
         }
 
+        if (localConfig.slaveMode!=$("#slaveMode").val()) {
+            postBody["slaveMode"] = $("#slaveMode").val();
+        }
+
         if (localConfig.sepMode!=$("#sepMode").val()) {
             postBody["sepMode"] = $("#sepMode").val();
         }
