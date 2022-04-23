@@ -46,11 +46,12 @@ class LDRManager_
     void setUp();
     void setUpPWM();
 
-    void getDimmingFromLDR();
-    int  getLDRValue();
-    bool isMinLDRValue();
-    void setLDRValueToMax();
-    void resetMaxLDRValue();
+    void  getDimmingFromLDR();
+    int   getLDRValue();
+    float getLDRValuePct();
+    bool  isMinLDRValue();
+    void  setLDRValueToMax();
+    void  resetMaxLDRValue();
   private:
     double sensorLDRSmoothed = 0;
     double sensorFactor = (double)SENSOR_SENSIT_DEFAULT / 100.0;

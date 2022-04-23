@@ -305,7 +305,9 @@ void OutputManager_::triggerStunts() {
     }
 
     if (_acpOffset != 0) {
+      #ifdef OTM_EXTENDED_DEBUG
       debugMsgOtm("Triggering ACP");
+      #endif
       _outputMode = acpMode;
     }
   }
@@ -313,7 +315,9 @@ void OutputManager_::triggerStunts() {
   if (cc->slotsMode > SLOTS_MODE_NONE) {
     // Initialise the slots transition values and start it
     if (second() == SLOTS_TRIGGER_SECOND) {
+      #ifdef OTM_EXTENDED_DEBUG
       debugMsgOtm("Triggering Slots mode: " + String(cc->slotsMode));
+      #endif
 
       _outputMode = slotsMode;
       setCurrentTransition();
@@ -360,11 +364,15 @@ void OutputManager_::processStunts() {
           _acpTick = 0;
           _acpOffset++;
 
+          #ifdef OTM_EXTENDED_DEBUG
           debugMsgOtm("ACP: " + String(_acpOffset-2));
+          #endif
           loadNumberArraySameValue(_acpOffset-2);
           if (_acpOffset == 12) {
             _acpOffset = 0;
+            #ifdef OTM_EXTENDED_DEBUG
             debugMsgOtm("ACP End");
+            #endif
             _outputMode = timeMode;
           }
         } else {
@@ -382,7 +390,9 @@ void OutputManager_::processStunts() {
         }
       } else {
         // We were in slots but now we're not, so that means the last call ended them
+        #ifdef OTM_EXTENDED_DEBUG
         debugMsgOtm("Ending slots");
+        #endif
         _outputMode = timeMode;
       }
       break;        

@@ -307,7 +307,7 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
     root["rtcvalid"] = 0;
   }
 
-  float ldrPerc = (4095 - ldrValue) / 4095.0 * 100.0;
+  float ldrPerc = ldrManager.getLDRValuePct();
   root["ldrvalue"] = String(ldrPerc, 2) + "% (" + String(ldrValue) + ")";
 
   bool pirInstalled = blankingManager.getCurrentPIRInstalled();

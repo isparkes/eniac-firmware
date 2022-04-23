@@ -68,10 +68,17 @@ void LDRManager_::getDimmingFromLDR() {
 }
 
 // ************************************************************
-// Return previously calculated value
+// Return previously calculated value, range 0 - 4095
 // ************************************************************
 int LDRManager_::getLDRValue() {
   return _ldrValue;
+}
+
+// ************************************************************
+// Return previously calculated value, range 0 - 100
+// ************************************************************
+float LDRManager_::getLDRValuePct() {
+  return (LDR_VALUE_MAX - ldrValue) / (float) LDR_VALUE_MAX * 100.0;
 }
 
 // ************************************************************

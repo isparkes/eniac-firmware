@@ -40,6 +40,7 @@ typedef void (*DebugCallback) (String);
 #endif
 
 // Extended debug settings - these allow trace level debugging
+#define OTM_EXTENDED_DEBUG_OFF
 #define TZM_EXTENDED_DEBUG_OFF
 #define RTC_EXTENDED_DEBUG_OFF
 #define NTP_EXTENDED_DEBUG_OFF

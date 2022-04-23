@@ -38,8 +38,6 @@
 #define DIGIT_DISPLAY_ON      0    // Switch on the digit at the beginning by default
 #define DIGIT_DISPLAY_OFF     999  // Switch off the digit at the end by default
 #define DIGIT_DISPLAY_NEVER   -1   // When we don't want to switch on or off (i.e. blanking)
-#define DISPLAY_COUNT_MAX     2000 // Maximum value we can set to
-#define DISPLAY_COUNT_MIN     500  // Minimum value we can set to
 
 // Dimming value
 const int DIM_VALUE = DIGIT_DISPLAY_COUNT / 5;
@@ -84,7 +82,7 @@ const int DIM_VALUE = DIGIT_DISPLAY_COUNT / 5;
 #define BACKLIGHT_COLOUR_TIME           6   // use "ColourTime" - different colours for each digit value
 #define BACKLIGHT_COLOUR_TIME_DIM       7   // use "ColourTime" - dims with bulb dimming
 #define BACKLIGHT_MAX                   7
-#define BACKLIGHT_DEFAULT               4
+#define BACKLIGHT_DEFAULT               3
 
 #define CYCLE_SPEED_MIN                 4
 #define CYCLE_SPEED_MAX                 64
@@ -134,8 +132,10 @@ byte NumberArray[DIGIT_COUNT]     = {0, 0, 0, 0};
 byte currNumberArray[DIGIT_COUNT] = {0, 0, 0, 0};
 byte displayType[DIGIT_COUNT]     = {FADE, FADE, FADE, FADE};
 byte fadeState[DIGIT_COUNT]       = {0, 0, 0, 0};
+
 byte dateToShow;
 byte monthToShow;
+byte dimming;
 byte secondToShow;
 byte hundredths;
 
@@ -150,7 +150,7 @@ boolean fade = true;
 int dispCount = DIGIT_DISPLAY_COUNT;
 float fadeStep = DIGIT_DISPLAY_COUNT / fadeSteps;
 
-byte blankMode = 0;
+byte blankMode = BLANK_MODE_BOTH;
 
 // For software blinking
 int blinkCounter = 0;
@@ -460,20 +460,20 @@ void loadNumberArraySeconds() {
 // Display preset
 // ************************************************************
 void allFade() {
-  if (displayType[0] != FADE) displayType[0] = FADE;
-  if (displayType[1] != FADE) displayType[1] = FADE;
-  if (displayType[2] != FADE) displayType[2] = FADE;
-  if (displayType[3] != FADE) displayType[3] = FADE;
+  displayType[0] = FADE;
+  displayType[1] = FADE;
+  displayType[2] = FADE;
+  displayType[3] = FADE;
 }
 
 // ************************************************************
 // Display preset
 // ************************************************************
 void allNormal() {
-  if (displayType[0] != NORMAL) displayType[0] = NORMAL;
-  if (displayType[1] != NORMAL) displayType[1] = NORMAL;
-  if (displayType[2] != NORMAL) displayType[2] = NORMAL;
-  if (displayType[3] != NORMAL) displayType[3] = NORMAL;
+  displayType[0] = NORMAL;
+  displayType[1] = NORMAL;
+  displayType[2] = NORMAL;
+  displayType[3] = NORMAL;
 }
 
 // ************************************************************
@@ -491,10 +491,10 @@ void allFadeOrNormal(boolean blanking) {
 // Display preset
 // ************************************************************
 void allBlanked() {
-  if (displayType[0] != BLANKED) displayType[0] = BLANKED;
-  if (displayType[1] != BLANKED) displayType[1] = BLANKED;
-  if (displayType[2] != BLANKED) displayType[2] = BLANKED;
-  if (displayType[3] != BLANKED) displayType[3] = BLANKED;
+  displayType[0] = BLANKED;
+  displayType[1] = BLANKED;
+  displayType[2] = BLANKED;
+  displayType[3] = BLANKED;
 }
 
 // ************************************************************
@@ -707,10 +707,11 @@ void outputDisplay()
  */
 void receiveEvent(int bytes) {
   // the operation tells us what we are getting
-  int operation = Wire.read();
-    secondToShow = Wire.read();
-    dateToShow = Wire.read();
-    monthToShow = Wire.read();
+  int operation    = Wire.read();
+      secondToShow = Wire.read();
+      dateToShow   = Wire.read();
+      monthToShow  = Wire.read();
+      dimming      = Wire.read();
 
   switch (operation) {
     case I2C_SET_SLAVE_DATA: {
@@ -726,6 +727,13 @@ void receiveEvent(int bytes) {
       break;      
     }
   }
+
+  // detect the blanking status
+  blanked = (dimming == 0);
+
+  // set the dimming
+  digitOffCount = dimming * 10;
+  if (digitOffCount > DIGIT_DISPLAY_OFF) digitOffCount = DIGIT_DISPLAY_OFF;
 }
 
 /**
