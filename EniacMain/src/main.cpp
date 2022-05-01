@@ -5,7 +5,6 @@
 #include "TimerManager.h"
 #include "LDRManager.h"
 #include "LEDManager.h"
-#include "MyLib.h"
 #include "GPSManager.h"
 #include "BlankingManager.h"
 #include "TZManager.h"
@@ -19,6 +18,13 @@
 
 void setup()
 {
+  // This is added as a debug for the GPS startup problem
+  pinMode(LED_PIN, OUTPUT);
+  for (int i = 0; i < 20 ; i++) {
+    digitalWrite(LED_PIN, (i % 2) == 0);   
+    delay(100);   
+  }
+
   // -------------------------------------------------------------------------
 
   #ifdef DEBUG_ON
@@ -89,7 +95,7 @@ void setup()
   debugMsgMain("Starting OLED");
   oled.setUp();
   oled.clearDisplay();
-  flashMenuMessage(CLOCK_MENU_TITLE, "Starting");
+  menuManager.flashMenuMessage(CLOCK_MENU_TITLE, "Starting");
 
   // -------------------------------------------------------------------------
 
@@ -132,7 +138,7 @@ void setup()
 
   if (cc->WifiOnAtStart && wifiManager.wifiCredentialsReceived()) {
     debugMsgMain("Starting WiFi");
-    flashMenuMessage("WiFi", "Starting WiFi");
+    menuManager.flashMenuMessage("WiFi", "Starting WiFi");
 
     debugMsgMain("Connecting to previous AP");
     
@@ -189,7 +195,7 @@ void setup()
   // -------------------------------------------------------------------------
   
   debugMsgMain("Start up Menu Manager...");
-  setupMenuManager();
+  menuManager.setupMenuManager();
 
   // -------------------------------------------------------------------------
   
@@ -205,15 +211,9 @@ void setup()
 
   // -------------------------------------------------------------------------
 
-  // Example for singleton library
-  MyLib.begin();
-  MyLib.doStuff();
-
-  // -------------------------------------------------------------------------
-
   oled.setUp();
   oled.clearDisplay();
-  flashMenuMessage(CLOCK_MENU_TITLE, "Welcome to the\nNixie Chronometer\n" + String(SOFTWARE_VERSION));
+  menuManager.flashMenuMessage(CLOCK_MENU_TITLE, "Welcome to the\nNixie Chronometer\n" + String(SOFTWARE_VERSION));
   delay(2000);
 
   // -------------------------------------------------------------------------
@@ -266,7 +266,7 @@ void performOncePerLoop() {
   #ifdef DIGIT_DIAGNOSTICS
   if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
     ldrManager.setLDRValueToMax();
-    int rawEncPos = getCurrentEncoderPos()/2;
+    int rawEncPos = menuManager.getCurrentEncoderPos()/2;
     while (rawEncPos < 0) rawEncPos+=60; 
     int burnVal = rawEncPos % 60;
     outputManager.loadNumberArrayBurn(burnVal);
@@ -308,7 +308,7 @@ void performOncePerLoop() {
 
   // -------------------------------------------------------------------------------
   
-  menuLoop();
+  menuManager.menuLoop();
 }
 
 // ************************************************************
@@ -334,7 +334,7 @@ void performOncePerSecondProcessing() {
   } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
     outputManager.loadNumberArraySameValue(minute());
   } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
-    int rawEncPos = getCurrentEncoderPos()/2;
+    int rawEncPos = menuManager.getCurrentEncoderPos()/2;
     while (rawEncPos < 0) rawEncPos+=60; 
   }
   #else
@@ -351,7 +351,7 @@ void performOncePerSecondProcessing() {
     setLedFlashType(1);
   }
 
-  menuOncePerSecond();
+  menuManager.menuOncePerSecond();
 
   #ifdef COG_CRANK_OUTPUT
   if (cogCrankSecsLeft > 0) {
@@ -413,7 +413,7 @@ void performOncePerMinuteProcessing() {
 void performOncePerHourProcessing() {
   debugMsgMain("---> OncePerHourProcessing");
 
-  menuOncePerHour();
+  menuManager.menuOncePerHour();
   
   tzManager.setUTCTimeFromTimeSourceHourly();
   tzManager.calculateCurrentOffsetFromTimeT();

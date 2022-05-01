@@ -1,111 +1,10 @@
 #include "MenuManager.h"
 
-enum menuTargets {
-  noTarget,
-  unmappedOption,
-
-  // Move around in menus
-  backToMain,
-  gotoWifiMenu,
-  gotoOptionsMenu,
-  gotoDisplayMenu,
-  menuOff,
-
-  toggleWiFiAtStart,
-  disconnectWifi,
-  resetWiFiInfo,
-  connectWPS,
-  reconnectPrevious,
-  openAccessPoint,
-  getSSIDList,
-  smartConfig,
-  scanWiFi,
-  showWifiSelection,
-  enterWiFiPassword,
-  saveWiFiPassword,
-  enterWiFiSSID,
-  saveWiFiSSID,
-  
-  toggleTubeDimming,
-  toggleBLDimming,
-  setDimming,
-  saveDimming,
-  nextBlnknMode,
-
-  restartClock,
-  saveStats,
-  saveConfig,
-  displayTest,
-  startSlave,
-  stopSlave,
-  toggleHourMode,
-  toggleFade,
-  toggleScrollback,
-  setNextACPMode,
-  setNextSlotsMode,
-  debugOn10mins
-};
-
-// modes that the menu system can be in
-enum menuModes {
-  off,                                  // display is off
-  menu,                                 // a menu is active
-  value,                                // 'enter a numeric value' non blocking is active
-  stringValue,                          // 'enter a string value' non blocking is active
-  message,                              // displaying a message
-  blocking                              // a blocking procedure is in progress (see enter value)
-};
-menuModes menuMode = off;                 // default mode at startup is off
-
-struct oledMenus {
-  // menu
-  String menuTitle = "";                    // the title of active mode
-  int noOfmenuItems = 0;                    // number if menu items in the active menu
-  int selectedMenuItem = 0;                 // when a menu item is selected it is flagged here until actioned and cleared
-  int highlightedMenuItem = 0;              // which item is curently highlighted in the menu
-  String menuItems[maxmenuItems+1];         // store for the menu item titles
-  menuTargets menuActions[maxmenuItems+1];  // The action to carry out
-  uint32_t lastMenuActivity = 0;            // time the menu last saw any activity (used for timeout)
-
-  // 'enter a value'
-  int mValueEntered = 0;                    // store for number entered by value entry menu
-  int mValueLow = 0;                        // lowest allowed value
-  int mValueHigh = 0;                       // highest allowed value
-  int mValueStep = 0;                       // step size when encoder is turned
-  menuTargets nextTarget = noTarget;        // the target to continue when a value is received
-  bool needUpdate;                          // If the menu changed and needs to be output again
-  String enteredString = "";
-};
-oledMenus oledMenu;
-
-struct rotaryEncoders {
-  volatile int encoder0Pos = 0;                          // current value selected with rotary encoder (updated by interrupt routine)
-  volatile bool encoderPrevA;                            // used to debounced rotary encoder
-  volatile bool encoderPrevB;                            // used to debounced rotary encoder
-  uint32_t reLastButtonChange = 0;                       // last time state of button changed (for debouncing)
-  bool encoderPrevButton = 0;                            // used to debounce button
-  int reButtonDebounced = 0;                             // debounced current button state (1 when pressed)
-  const bool reButtonPressedState = BUTTONPRESSEDSTATE;  // the logic level when the button is pressed
-  const uint32_t reDebounceDelay = DEBOUNCEDELAY;        // button debounce delay setting
-  bool reButtonPressed = 0;                              // flag set when the button is pressed (it has to be manually reset)
-};
-rotaryEncoders rotaryEncoder;
-
-// Private fwd decls
-void setDimmingValue(menuTargets nextAction);
-void setStringValue(String title, menuTargets nextAction);
-void serviceMenu();
-void serviceValue();
-void menuActions(menuTargets target);
-
-// trigger for Oled reset
-static bool resetDisplay;
-
 // -------------------------------------------------------------------------------------------------
 //                                         menus below here
 // -------------------------------------------------------------------------------------------------
 
-void mainMenu() {
+void MenuManager_::mainMenu() {
   resetMenu();
   byte menuCount = 1;
   menuMode = menu;
@@ -117,7 +16,7 @@ void mainMenu() {
   oledMenu.noOfmenuItems = --menuCount;
 }
 
-void wifiMenu() {
+void MenuManager_::wifiMenu() {
   resetMenu();
   menuMode = menu;
   String onOffMsg;
@@ -150,7 +49,7 @@ void wifiMenu() {
   oledMenu.noOfmenuItems = --menuCount;
 }
 
-void optionsMenu() {
+void MenuManager_::optionsMenu() {
   resetMenu();
   menuMode = menu;
   byte menuCount = 1;
@@ -166,7 +65,7 @@ void optionsMenu() {
   oledMenu.noOfmenuItems = --menuCount;
 }
 
-void displayMenu() {
+void MenuManager_::displayMenu() {
   resetMenu();
   menuMode = menu;
   byte menuCount = 1;
@@ -203,7 +102,7 @@ void displayMenu() {
   oledMenu.noOfmenuItems = --menuCount;
 }
 
-void wifiSelectMenu() {
+void MenuManager_::wifiSelectMenu() {
   resetMenu();
   menuMode = menu;
   byte menuCount = 1;
@@ -219,7 +118,7 @@ void wifiSelectMenu() {
 }
 
 // actions for menu selections are put in here
-void menuActions(menuTargets selectedAction) {
+void MenuManager_::menuActions(menuTargets selectedAction) {
   switch (selectedAction) {
     case noTarget: {
       break;
@@ -459,7 +358,7 @@ void menuActions(menuTargets selectedAction) {
 //                -----------------------------------------------
 
 
-void setDimmingValue(menuTargets target) {
+void MenuManager_::setDimmingValue(menuTargets target) {
   resetMenu();                           // clear any previous menu
   menuMode = value;                      // enable value entry
   oledMenu.menuTitle = "Dim value";      // title (used to identify which number was entered)
@@ -470,7 +369,7 @@ void setDimmingValue(menuTargets target) {
   oledMenu.nextTarget = target;          // action to call when button pressed
 }
 
-void setStringValue(String title, menuTargets target) {
+void MenuManager_::setStringValue(String title, menuTargets target) {
   resetMenu();                           // clear any previous menu
   menuMode = stringValue;                // enable value entry
   oledMenu.menuTitle = title;            // title (used to identify which number was entered)
@@ -482,7 +381,7 @@ void setStringValue(String title, menuTargets target) {
   oledMenu.enteredString = "";
 }
 
-void flashMenuMessage(String heading, String message) {
+void MenuManager_::flashMenuMessage(String heading, String message) {
   resetTimeouts();
   flashTimeout = FLASH_TIME;
   displayMessage(heading, message);  
@@ -497,7 +396,12 @@ void flashMenuMessage(String heading, String message) {
 // ----------------------------------------------------------------
 // called from main setup
 
-void setupMenuManager() {
+// call the instance variable doEncoder()
+void doEncoderWrapper() {
+  menuManager.doEncoder();
+}
+
+void MenuManager_::setupMenuManager() {
   // configure gpio pins for rotary encoder
   pinMode(ENC_BTN, INPUT_PULLUP);
   pinMode(ENC_APin, INPUT);
@@ -505,16 +409,15 @@ void setupMenuManager() {
 
   // Interrupt for reading the rotary encoder position
   rotaryEncoder.encoder0Pos = 0;
-  attachInterrupt(digitalPinToInterrupt(ENC_APin), doEncoder, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ENC_APin), doEncoderWrapper, CHANGE);
 }
-
 
 // ----------------------------------------------------------------
 //                              -loop
 // ----------------------------------------------------------------
 // called from main loop
 
-void menuLoop() {
+void MenuManager_::menuLoop() {
   reUpdateButton();               // update rotary encoder button status (if pressed activate default menu)
   if (menuMode == off) return;    // if menu system is turned off do nothing more
 
@@ -575,7 +478,7 @@ void menuLoop() {
 // ----------------------------------------------------------------
 // update rotary encoder current button status
 
-void reUpdateButton() {
+void MenuManager_::reUpdateButton() {
     bool tReading = digitalRead(ENC_BTN);        // read current button state
     if (tReading != rotaryEncoder.encoderPrevButton) rotaryEncoder.reLastButtonChange = nowMillis;     // if it has changed reset timer
     if ( (unsigned long)(nowMillis - rotaryEncoder.reLastButtonChange) > rotaryEncoder.reDebounceDelay ) {  // if button state is stable
@@ -601,7 +504,7 @@ void reUpdateButton() {
 //                       -service active menu
 // ----------------------------------------------------------------
 
-void serviceMenu() {
+void MenuManager_::serviceMenu() {
   if (rotaryEncoder.encoder0Pos >= itemTrigger) {
     rotaryEncoder.encoder0Pos -= itemTrigger;
     oledMenu.highlightedMenuItem++;
@@ -662,7 +565,7 @@ void serviceMenu() {
 // ----------------------------------------------------------------
 //                        -service value entry
 // ----------------------------------------------------------------
-void serviceValue() {
+void MenuManager_::serviceValue() {
   // If we timed out, just reset
   if (configTimeout == 0) {
     resetMenu();
@@ -797,7 +700,7 @@ void serviceValue() {
 // e.g.       String tList[]={"main menu", "2", "3", "4", "5", "6"};
 //            createList("demo_list", 6, &tList[0]);
 
-void createList(String _title, int _noOfElements, String *_list) {
+void MenuManager_::createList(String _title, int _noOfElements, String *_list) {
   resetMenu();                      // clear any previous menu
   menuMode = menu;                  // enable menu mode
   oledMenu.noOfmenuItems = _noOfElements;    // set the number of items in this menu
@@ -815,7 +718,7 @@ void createList(String _title, int _noOfElements, String *_list) {
 // 21 characters per line, use "\n" for next line
 // assistant:  <     line 1        ><     line 2        ><     line 3        ><     line 4         >
 
- void displayMessage(String _title, String _message) {
+ void MenuManager_::displayMessage(String _title, String _message) {
   resetMenu();
   menuMode = message;
 
@@ -847,7 +750,7 @@ void createList(String _title, int _noOfElements, String *_list) {
 //                        -reset menu system
 // ----------------------------------------------------------------
 
-void resetMenu() {
+void MenuManager_::resetMenu() {
   // reset all menu variables / flags
   menuMode = off;
   oledMenu.selectedMenuItem = noTarget;
@@ -871,7 +774,7 @@ void resetMenu() {
 // rotary encoder interrupt routine to update position counter when turned
 //     interrupt info: https://www.gammon.com.au/forum/bbshowpost.php?id=11488
 
-void ICACHE_RAM_ATTR doEncoder() {
+void ICACHE_RAM_ATTR MenuManager_::doEncoder() {
   bool pinA = digitalRead(ENC_APin);
   bool pinB = digitalRead(ENC_BPin);
   int delta = 0;
@@ -910,7 +813,7 @@ void ICACHE_RAM_ATTR doEncoder() {
 
 // ---------------------------------------------- end ----------------------------------------------
 
-void resetTimeouts() {
+void MenuManager_::resetTimeouts() {
   // first press: wake up
   if (oledTimeout == 0) {
     debugMsgMnm("OLED: ON");
@@ -922,7 +825,7 @@ void resetTimeouts() {
   oledTimeout = OLED_ON_TIME;
 }
 
-void countdownMenuTimeouts() {
+void MenuManager_::countdownMenuTimeouts() {
   if (flashTimeout > 0) {
     flashTimeout--;
     if(flashTimeout == 0) {
@@ -948,14 +851,14 @@ void countdownMenuTimeouts() {
   }
 }
 
-int getCurrentEncoderPos() {
+int MenuManager_::getCurrentEncoderPos() {
   return rotaryEncoder.encoder0Pos;
 }
 
 // ************************************************************
 // Build the status display
 // ************************************************************
-void menuOncePerSecond() {
+void MenuManager_::menuOncePerSecond() {
   // Manage timeouts
   countdownMenuTimeouts();
 
@@ -995,8 +898,18 @@ void menuOncePerSecond() {
 // ************************************************************
 // Things that need updating once per hour
 // ************************************************************
-void menuOncePerHour() {
+void MenuManager_::menuOncePerHour() {
   if (oledTimeout > 0 && configTimeout == 0 && flashTimeout == 0) {
     oled.setAMStatus(isAM());
   }
 }
+
+// ************************************************************
+// Library internal singleton wiring
+// ************************************************************
+MenuManager_ &MenuManager_::getInstance() {
+  static MenuManager_ instance;
+  return instance;
+}
+
+MenuManager_ &menuManager = menuManager.getInstance();
