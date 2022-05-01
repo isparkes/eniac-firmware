@@ -3,7 +3,7 @@
 // ************************************************************
 // Convert normal decimal to binary coded decimal numbers
 // ************************************************************
-uint8_t DS1307_::decToBcd(uint8_t val)
+uint8_t RtcManager_::decToBcd(uint8_t val)
 {
     return ( (val/10*16) + (val%10) );
 }
@@ -11,13 +11,13 @@ uint8_t DS1307_::decToBcd(uint8_t val)
 // ************************************************************
 // Convert binary coded decimal to normal decimal numbers
 // ************************************************************
-uint8_t DS1307_::bcdToDec(uint8_t val)
+uint8_t RtcManager_::bcdToDec(uint8_t val)
 {
     return ( (val/16*10) + (val%16) );
 }
 
 // only need to call if you did not already start Wire
-void DS1307_::begin()
+void RtcManager_::begin()
 {
     Wire.begin();
 }
@@ -25,14 +25,14 @@ void DS1307_::begin()
 // ************************************************************
 // Start the hardware RTC
 // ************************************************************
-void DS1307_::startClock(void)                    // set the ClockHalt bit low to start the rtc
+void RtcManager_::startClock(void)                    // set the ClockHalt bit low to start the rtc
 {
-  Wire.beginTransmission(DS1307_I2C_ADDRESS);
+  Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write(0x00);                      // Register 0x00 holds the oscillator start/stop bit
   Wire.endTransmission();
-  Wire.requestFrom(DS1307_I2C_ADDRESS, 1);
+  Wire.requestFrom(RtcManager_I2C_ADDRESS, 1);
   _second = Wire.read() & 0x7f;                    // save actual seconds and AND sec with bit 7 (sart/stop bit) = clock started
-  Wire.beginTransmission(DS1307_I2C_ADDRESS);
+  Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write(0x00);
   Wire.write(_second);                    // write seconds back and start the clock
   Wire.endTransmission();
@@ -41,14 +41,14 @@ void DS1307_::startClock(void)                    // set the ClockHalt bit low t
 // ************************************************************
 // Stop the hardware RTC
 // ************************************************************
-void DS1307_::stopClock(void)                     // set the ClockHalt bit high to stop the rtc
+void RtcManager_::stopClock(void)                     // set the ClockHalt bit high to stop the rtc
 {
-  Wire.beginTransmission(DS1307_I2C_ADDRESS);
+  Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write(0x00);                      // Register 0x00 holds the oscillator start/stop bit
   Wire.endTransmission();
-  Wire.requestFrom(DS1307_I2C_ADDRESS, 1);
+  Wire.requestFrom(RtcManager_I2C_ADDRESS, 1);
   _second = Wire.read() | 0x80;                    // save actual seconds and OR sec with bit 7 (sart/stop bit) = clock stopped
-  Wire.beginTransmission(DS1307_I2C_ADDRESS);
+  Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write(0x00);
   Wire.write(_second);                    // write seconds back and stop the clock
   Wire.endTransmission();
@@ -57,13 +57,13 @@ void DS1307_::stopClock(void)                     // set the ClockHalt bit high 
 // ************************************************************
 // Get the display time back from the hardware
 // ************************************************************
-void DS1307_::getTimeRTCHardware()
+void RtcManager_::getTimeRTCHardware()
 {
   // Reset the register pointer
-  Wire.beginTransmission(DS1307_I2C_ADDRESS);
+  Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write((uint8_t)0x00);
   Wire.endTransmission();  
-  Wire.requestFrom(DS1307_I2C_ADDRESS, 7);
+  Wire.requestFrom(RtcManager_I2C_ADDRESS, 7);
   // A few of these need masks because certain bits are control bits
   _second     = bcdToDec(Wire.read() & 0x7f);
   _minute     = bcdToDec(Wire.read());
@@ -81,9 +81,9 @@ void DS1307_::getTimeRTCHardware()
 // ************************************************************
 // Put the display time into the RTC hardware
 // ************************************************************
-void DS1307_::setTimeRTCHardware()
+void RtcManager_::setTimeRTCHardware()
 {
-    Wire.beginTransmission(DS1307_I2C_ADDRESS);
+    Wire.beginTransmission(RtcManager_I2C_ADDRESS);
     Wire.write((uint8_t)0x00);
     Wire.write(decToBcd(_second));// 0 to bit 7 starts the clock
     Wire.write(decToBcd(_minute));
@@ -100,7 +100,7 @@ void DS1307_::setTimeRTCHardware()
 // ************************************************************
 // Fill DoW
 // ************************************************************
-void DS1307_::fillDayOfWeek(uint8_t dow)
+void RtcManager_::fillDayOfWeek(uint8_t dow)
 {
     _dayOfWeek = dow;
 }
@@ -108,23 +108,23 @@ void DS1307_::fillDayOfWeek(uint8_t dow)
 // ************************************************************
 // Check that the RTC is actually running
 // ************************************************************
-unsigned char DS1307_::isRunning()
+unsigned char RtcManager_::isRunning()
 {
-  Wire.beginTransmission(DS1307_I2C_ADDRESS);
+  Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write((uint8_t)0x00); 
   Wire.endTransmission();
 
   // Just fetch the seconds register and check the top bit
-  Wire.requestFrom(DS1307_I2C_ADDRESS, 1);
+  Wire.requestFrom(RtcManager_I2C_ADDRESS, 1);
   return !(Wire.read() & 0x80);
 }
 
 // ************************************************************
 // Check that we still have access to the time from the RTC
 // ************************************************************
-bool DS1307_::testRTCTimeProvider() {
+bool RtcManager_::testRTCTimeProvider() {
   debugMsgRtc("Testing RTC");
-  Wire.beginTransmission(DS1307_I2C_ADDRESS);
+  Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   _useRTC = (Wire.endTransmission(true) == 0);
   debugMsgRtc("Set useRTC to: " + String(_useRTC));
   if (!_useRTC) {
@@ -140,7 +140,7 @@ bool DS1307_::testRTCTimeProvider() {
 // ************************************************************
 // Get the time from the RTC, returns as UTC
 // ************************************************************
-time_t DS1307_::getRTCTimeAsTimeT() {
+time_t RtcManager_::getRTCTimeAsTimeT() {
   if (_useRTC) {
     getTimeRTCHardware();
 
@@ -175,7 +175,7 @@ time_t DS1307_::getRTCTimeAsTimeT() {
 // ************************************************************
 // Set the time from the value we get back from a UTC time source
 // ************************************************************
-void DS1307_::setTimeFromUTCSource(time_t currentTime, bool updateRTC) {
+void RtcManager_::setTimeFromUTCSource(time_t currentTime, bool updateRTC) {
 
   struct tm info_gm;
   gmtime_r(&currentTime, &info_gm);
@@ -200,16 +200,16 @@ void DS1307_::setTimeFromUTCSource(time_t currentTime, bool updateRTC) {
 // ************************************************************
 // Was the RTC valid the last time we checked
 // ************************************************************
-bool DS1307_::getRTCValid() {
+bool RtcManager_::getRTCValid() {
   return _useRTC;
 }
 
 // ************************************************************
 // Get singleton instance
 // ************************************************************
-DS1307_ &DS1307_::getInstance() {
-  static DS1307_ instance;
+RtcManager_ &RtcManager_::getInstance() {
+  static RtcManager_ instance;
   return instance;
 }
 
-DS1307_ &rtcManager = rtcManager.getInstance();
+RtcManager_ &rtcManager = rtcManager.getInstance();

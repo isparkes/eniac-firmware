@@ -373,8 +373,8 @@ void MenuManager_::setStringValue(String title, menuTargets target) {
   resetMenu();                           // clear any previous menu
   menuMode = stringValue;                // enable value entry
   oledMenu.menuTitle = title;            // title (used to identify which number was entered)
-  oledMenu.mValueLow = 0;                // minimum value allowed
-  oledMenu.mValueHigh = 82;              // maximum value allowed
+  oledMenu.mValueLow = 0;                // minimum value allowed - this refers to the character set!
+  oledMenu.mValueHigh = 82;              // maximum value allowed - this refers to the character set!
   oledMenu.mValueStep = 1;               // step size
   oledMenu.mValueEntered = 0;            // starting value
   oledMenu.nextTarget = target;          // action to call when button pressed

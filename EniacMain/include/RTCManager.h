@@ -9,7 +9,7 @@
 
 // ----------------------- Defines -----------------------
 
-#define DS1307_I2C_ADDRESS 0x68
+#define RtcManager_I2C_ADDRESS 0x68
 
 #define MON 1
 #define TUE 2
@@ -23,11 +23,11 @@
 // ------------------------------------------- RTC Component ------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-class DS1307_ {
+class RtcManager_ {
   public:
-    static DS1307_ &getInstance(); // Accessor for singleton instance
-    DS1307_(const DS1307_ &) = delete; // no copying
-    DS1307_ &operator=(const DS1307_ &) = delete;
+    static RtcManager_ &getInstance(); // Accessor for singleton instance
+    RtcManager_(const RtcManager_ &) = delete; // no copying
+    RtcManager_ &operator=(const RtcManager_ &) = delete;
 
     void begin();
     void startClock(void);
@@ -41,7 +41,7 @@ class DS1307_ {
     void setTimeFromUTCSource(time_t currentTime, bool updateRTC);
     unsigned long getLastRTCSetTime();
 private:
-    DS1307_() = default; // Make constructor private
+    RtcManager_() = default; // Make constructor private
 
     uint8_t decToBcd(uint8_t val);
     uint8_t bcdToDec(uint8_t val);
@@ -62,4 +62,4 @@ private:
     uint16_t _year;
 };
 
-extern DS1307_ &rtcManager;
+extern RtcManager_ &rtcManager;
