@@ -38,3 +38,9 @@
   int getCurrentEncoderPos();
   void menuOncePerSecond();
   void menuOncePerHour();
+
+  const String CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+@#*%&/()=?!$-_ ";
+  const int BACKSPACE = 80;
+  const int DONE = 81;
+  const int RESTART = 82;
+
