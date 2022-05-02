@@ -18,28 +18,33 @@
 
 void setup()
 {
-  // This is added as a debug for the GPS startup problem
+  // Show that we booted - useful for remote debugging
   pinMode(LED_PIN, OUTPUT);
-  for (int i = 0; i < 20 ; i++) {
+  for (int i = 0; i < 10 ; i++) {
     digitalWrite(LED_PIN, (i % 2) == 0);   
-    delay(100);   
+    delay(25);   
   }
 
   // -------------------------------------------------------------------------
 
-  #ifdef DEBUG_ON
+  // for reliable startup with GPS connected, change line 200 of esp32-hal-uart.c from
+  //
+  //      uartFlush(uart);
+  //  to
+  //      uartFlushTxOnly(uart, false);
+  //
+  // Which causes the receive buffer to be flushed 
+
   Serial.begin(SERIAL_BAUD_RATE);
+
+  #ifdef DEBUG_ON
   // Debug for 10 minutes
   debugManager.setDebugAutoOff(600);
   #endif
 
-  debugMsgMain("Start up Serial...");
-
   // -------------------------------------------------------------------------
 
   debugMsgMain("Start up GPIOs");
-  pinMode(LED_PIN, OUTPUT);
-
   pinMode(CLKPin, OUTPUT);
   pinMode(DATA1Pin, OUTPUT);
   pinMode(LATCH1Pin, OUTPUT);
@@ -59,10 +64,6 @@ void setup()
   // -------------------------------------------------------------------------
 
   nowMillis = millis();
-
-  // -------------------------------------------------------------------------
-
-  debugMsgMain("Start up output manager");
 
   // -------------------------------------------------------------------------
 

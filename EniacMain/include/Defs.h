@@ -43,6 +43,8 @@
 // Internally defined
 #define SDAint    21
 #define SCLint    22
+#define RX0Pin    3
+#define TX0Pin    1
 
 // Touch capable buttons
 #define BTN1Pin   15
