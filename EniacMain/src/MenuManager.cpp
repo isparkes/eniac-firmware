@@ -38,8 +38,8 @@ void MenuManager_::wifiMenu() {
     oledMenu.menuItems[menuCount] = "Start SmartConfig";     oledMenu.menuActions[menuCount++] = smartConfig;
     oledMenu.menuItems[menuCount] = "Open Access Point";     oledMenu.menuActions[menuCount++] = openAccessPoint;
     oledMenu.menuItems[menuCount] = "Select SSID";           oledMenu.menuActions[menuCount++] = getSSIDList;
-    oledMenu.menuItems[menuCount] = "Enter password";        oledMenu.menuActions[menuCount++] = enterWiFiPassword;
     oledMenu.menuItems[menuCount] = "Enter SSID";            oledMenu.menuActions[menuCount++] = enterWiFiSSID;
+    oledMenu.menuItems[menuCount] = "Enter password";        oledMenu.menuActions[menuCount++] = enterWiFiPassword;
     oledMenu.menuItems[menuCount] = "WiFi start: "+ status;  oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
     oledMenu.menuItems[menuCount] = "Scan Wifi";             oledMenu.menuActions[menuCount++] = scanWiFi;
     oledMenu.menuItems[menuCount] = "Select WiFi";           oledMenu.menuActions[menuCount++] = showWifiSelection;
@@ -281,7 +281,7 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       break;
     }
     case enterWiFiPassword: {
-      setStringValue("Enter password", saveWiFiPassword);
+      setStringValue("Enter WiFi password", saveWiFiPassword, cc->WiFiPassword);
       break;
     }
     case saveWiFiPassword: {
@@ -291,7 +291,7 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       break;
     }
     case enterWiFiSSID: {
-      setStringValue("Enter name", saveWiFiSSID);
+      setStringValue("Enter WiFi name", saveWiFiSSID, cc->WiFiSSID);
       break;
     }
     case saveWiFiSSID: {
@@ -369,7 +369,7 @@ void MenuManager_::setDimmingValue(menuTargets target) {
   oledMenu.nextTarget = target;          // action to call when button pressed
 }
 
-void MenuManager_::setStringValue(String title, menuTargets target) {
+void MenuManager_::setStringValue(String title, menuTargets target, String initialValue) {
   resetMenu();                           // clear any previous menu
   menuMode = stringValue;                // enable value entry
   oledMenu.menuTitle = title;            // title (used to identify which number was entered)
@@ -378,7 +378,7 @@ void MenuManager_::setStringValue(String title, menuTargets target) {
   oledMenu.mValueStep = 1;               // step size
   oledMenu.mValueEntered = 0;            // starting value
   oledMenu.nextTarget = target;          // action to call when button pressed
-  oledMenu.enteredString = "";
+  oledMenu.enteredString = initialValue;
 }
 
 void MenuManager_::flashMenuMessage(String heading, String message) {

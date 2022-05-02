@@ -148,7 +148,7 @@ class MenuManager_ {
     void wifiSelectMenu();
     void menuActions(menuTargets selectedAction);
     void setDimmingValue(menuTargets target);
-    void setStringValue(String title, menuTargets target);
+    void setStringValue(String title, menuTargets target, String intialValue);
 
     void serviceMenu();
     void serviceValue();
