@@ -42,7 +42,7 @@ void LEDManager_::recalculateVariables() {
   } else {
     for (int index = 0 ; index < DIGIT_COUNT ; index++) {
       _hueOffsetPerPixel[LED_ADDR[index*2]] = 0.0;
-      _hueOffsetPerPixel[LED_ADDR[index*2+1]] = 0.0;
+      _hueOffsetPerPixel[LED_ADDR[index*2+1]] = (cc->hueOffset % 360) / 360.0;
     }
   }
 

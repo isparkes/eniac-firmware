@@ -214,8 +214,8 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
     case saveDimming: {
       if (cc->minDim != oledMenu.mValueEntered) {
         cc->minDim = oledMenu.mValueEntered;
-        displayMenu();
       }
+      displayMenu();
       break;
     }
     case nextBlnknMode: {
@@ -235,10 +235,12 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
     }
     case saveStats: {
       spiffsStorage.saveStatsToSpiffs();
+      optionsMenu();
       break;
     }
     case saveConfig: {
       spiffsStorage.saveConfigToSpiffs();
+      optionsMenu();
       break;
     }
     case restartClock: {
