@@ -111,19 +111,21 @@ void OutputManager_::outputDisplay() {
   processSeparators();
 
   blinkenlights_t *bl = blinkenlightsManager.getBlinkenlights();
-  byte tmpDispType;
+  bool digitBlanked[DIGIT_COUNT];
   byte tmpNumberArray[DIGIT_COUNT];
 
+  bool blankTubes = blankingManager.getCurrentBlankTubes();
+  bool blankSeparators = blankingManager.getCurrentBlankTowers();
+
   for ( int i = DIGIT_COUNT - 1 ; i >= 0  ; i -- ) {
-    tmpDispType = displayType[i];
+    // Digit blanking
+    digitBlanked[i] = (displayType[i] == BLANKED);
 
     // Digit blinking
-    if (tmpDispType == BLINK) {
-      if (upOrDown) {
-      } else {
-        tmpDispType = BLANKED;
-      }
-    }
+    digitBlanked[i] = digitBlanked[i] | ((displayType[i] == BLINK) && !upOrDown);
+
+    // display blanking
+    digitBlanked[i] = blankTubes;
 
     switch(_outputMode) {
       case timeMode: {
@@ -172,12 +174,11 @@ void OutputManager_::outputDisplay() {
     tmpSwitchTime = PHASE_MAX - (PHASE_MAX * fadeState / cc->fadeSteps);
   }
 
-  bool blankTubes = blankingManager.getCurrentBlankTubes();
-  bool blankSeparators = blankingManager.getCurrentBlankTowers();
   uint32_t tmpnextVal1 = decodeFromNumberArray(
                                 currNumberArray[H10], 
                                 currNumberArray[H1],
-                                blankTubes,
+                                digitBlanked[H10],
+                                digitBlanked[H1],
                                 blankSeparators,
                                 bl->bl1,
                                 bl->bl2,
@@ -186,7 +187,8 @@ void OutputManager_::outputDisplay() {
   uint32_t tmpnextVal2 = decodeFromNumberArray(
                                 currNumberArray[M10], 
                                 currNumberArray[M1],
-                                blankTubes,
+                                digitBlanked[M10],
+                                digitBlanked[M1],
                                 blankSeparators,
                                 bl->bl3,
                                 bl->bl4,
@@ -195,7 +197,8 @@ void OutputManager_::outputDisplay() {
   uint32_t tmpnextVal3 = decodeFromNumberArray(
                                 currNumberArray[S10], 
                                 currNumberArray[S1],
-                                blankTubes,
+                                digitBlanked[S10],
+                                digitBlanked[S1],
                                 blankSeparators,
                                 bl->bl5,
                                 bl->bl6,
@@ -211,7 +214,8 @@ void OutputManager_::outputDisplay() {
     tmpval1 = decodeFromNumberArray(
                                   tmpNumberArray[H10], 
                                   tmpNumberArray[H1],
-                                  blankTubes,
+                                  digitBlanked[H10],
+                                  digitBlanked[H1],
                                   blankSeparators,
                                   bl->bl1,
                                   bl->bl2,
@@ -220,7 +224,8 @@ void OutputManager_::outputDisplay() {
     tmpval2 = decodeFromNumberArray(
                                   tmpNumberArray[M10], 
                                   tmpNumberArray[M1],
-                                  blankTubes,
+                                  digitBlanked[M10],
+                                  digitBlanked[M1],
                                   blankSeparators,
                                   bl->bl3,
                                   bl->bl4,
@@ -229,7 +234,8 @@ void OutputManager_::outputDisplay() {
     tmpval3 = decodeFromNumberArray(
                                   tmpNumberArray[S10], 
                                   tmpNumberArray[S1],
-                                  blankTubes,
+                                  digitBlanked[S10],
+                                  digitBlanked[S1],
                                   blankSeparators,
                                   bl->bl5,
                                   bl->bl6,
@@ -252,11 +258,10 @@ void OutputManager_::outputDisplay() {
 // ************************************************************
 // Turn a display pair into a uint24 ready for output
 // ************************************************************
-uint32_t OutputManager_::decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, bool blankTubes, bool blankSeparators, bool bl1, bool bl2, bool led1, bool led2) {
+uint32_t OutputManager_::decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, bool blankTens, bool blankUnits, bool blankSeparators, bool bl1, bool bl2, bool led1, bool led2) {
   uint32_t decoded = 0;
-  if (!blankTubes) {
-    decoded = decoded | DECODE_DIGIT[valueToDecodeTens] | DECODE_DIGIT[valueToDecodeUnits] << 10;
-  }
+  if (!blankTens) decoded = DECODE_DIGIT[valueToDecodeTens];
+  if (!blankUnits) decoded = decoded | DECODE_DIGIT[valueToDecodeUnits] << 10;
   if (!blankSeparators) {
     if (led1) decoded |= DECODE_LED[0];
     if (led2) decoded |= DECODE_LED[1];
