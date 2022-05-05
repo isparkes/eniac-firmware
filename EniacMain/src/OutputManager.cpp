@@ -119,13 +119,11 @@ void OutputManager_::outputDisplay() {
 
   for ( int i = DIGIT_COUNT - 1 ; i >= 0  ; i -- ) {
     // Digit blanking
-    digitBlanked[i] = (displayType[i] == BLANKED);
-
-    // Digit blinking
-    digitBlanked[i] = digitBlanked[i] | ((displayType[i] == BLINK) && !upOrDown);
-
-    // display blanking
-    digitBlanked[i] = blankTubes;
+    digitBlanked[i] = (displayType[i] == BLANKED) ||
+      // Digit blinking
+      ((displayType[i] == BLINK) && !upOrDown) ||
+      // display blanking
+      blankTubes;
 
     switch(_outputMode) {
       case timeMode: {
