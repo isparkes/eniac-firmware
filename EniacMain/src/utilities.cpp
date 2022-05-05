@@ -591,6 +591,9 @@ void getTimeserverDataHandler(AsyncWebServerRequest *request) {
   request->send(response);
 }
 
+// ************************************************************
+// Time server config Post
+// ************************************************************
 void postTimeserverDataHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api timeserver POST request");
   
@@ -651,6 +654,9 @@ void getCredentialsHandler(AsyncWebServerRequest *request) {
   }
 }
 
+// ************************************************************
+// WiFi Credentials
+// ************************************************************
 void postWiFiCredentialsHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api wifi POST request");
   

@@ -76,6 +76,9 @@ bool SpiffsStorage_::getConfigFromSpiffs()
         cc->scrollSteps = json["scrollSteps"];
         debugMsgSpf("Loaded scrollSteps: " + String(cc->scrollSteps));
 
+        cc->suppressACP = json["suppressACP"];
+        debugMsgSpf("Loaded suppressACP: " + String(cc->suppressACP));
+
         cc->thresholdBright = json["thresholdBright"];
         debugMsgSpf("Loaded thresholdBright: " + String(cc->thresholdBright));
 
@@ -126,12 +129,6 @@ bool SpiffsStorage_::getConfigFromSpiffs()
 
         cc->thresholdBright = json["thresholdBright"];
         debugMsgSpf("Loaded thresholdBright: " + String(cc->thresholdBright));
-
-        cc->sensitivityLDR = json["sensitivityLDR"];
-        debugMsgSpf("Loaded sensitivityLDR: " + String(cc->sensitivityLDR));
-
-        cc->sensorSmoothCountLDR = json["sensorSmoothCountLDR"];
-        debugMsgSpf("Loaded sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
 
         cc->slotsMode = json["slotsMode"];
         debugMsgSpf("Loaded slotsMode: " + String(cc->slotsMode));
@@ -235,6 +232,8 @@ void SpiffsStorage_::saveConfigToSpiffs()
   json["suppressACP"] = cc->suppressACP;
   json["minDim"] = cc->minDim;
   json["backlightMode"] = cc->backlightMode;
+  json["useBLDim"] = cc->useBLDim;
+  json["useBLPulse"] = cc->useBLPulse;
   json["redCnl"] = cc->redCnl;
   json["grnCnl"] = cc->grnCnl;
   json["bluCnl"] = cc->bluCnl;
