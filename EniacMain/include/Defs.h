@@ -116,7 +116,8 @@
 #define DIGIT_DIAGS_MODE_FAST           1
 #define DIGIT_DIAGS_MODE_SLOW           2
 #define DIGIT_DIAGS_MODE_ENCODER        3
-#define DIGIT_DIAGS_MODE_MAX            3
+#define DIGIT_DIAGS_MODE_TEST_GPIOS     4
+#define DIGIT_DIAGS_MODE_MAX            4
 
 // -------------------------------------------------------------------------------
 # define TIME_SOURCE_GPS                0

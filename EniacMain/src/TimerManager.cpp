@@ -224,6 +224,10 @@ void startTimers() {
   setLedFlashType(1);
 }
 
+void stopTimer1() {
+  timerAlarmDisable(timer1);
+}
+
 // ************************************************************
 // Set the LED flash type
 // 0: Connected - short flash 1/s

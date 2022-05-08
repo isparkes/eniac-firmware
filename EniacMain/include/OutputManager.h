@@ -117,6 +117,7 @@ class OutputManager_ {
     String getNextACPModeName(byte modeNumber);
     byte getNextSlotsMode(byte modeNumber);
     String getNextSlotsModeName(byte modeNumber);
+    void toggleGPIOs(bool state);
   private:
     int _acpOffset = 0;
     int _acpTick = 0;

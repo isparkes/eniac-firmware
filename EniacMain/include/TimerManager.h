@@ -10,6 +10,7 @@
 // Public prototypes
 // ************************************************************
 void startTimers();
+void stopTimer1();
 void setLedFlashType(byte flashType);
 void triggerOnePulsePerSec();
 

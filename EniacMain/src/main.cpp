@@ -331,12 +331,18 @@ void performOncePerSecondProcessing() {
       outputManager.loadNumberArrayTime();
     }
   } else if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
+    startTimers();
     outputManager.loadNumberArraySameValue(second());
   } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
+    startTimers();
     outputManager.loadNumberArraySameValue(minute());
   } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
+    startTimers();
     int rawEncPos = menuManager.getCurrentEncoderPos()/2;
     while (rawEncPos < 0) rawEncPos+=60; 
+  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_TEST_GPIOS) {
+    stopTimer1();
+    outputManager.toggleGPIOs((lastMillis % 2) == 1);
   }
   #else
   if (outputManager.getOutputMode() == timeMode) {
@@ -363,6 +369,11 @@ void performOncePerSecondProcessing() {
     }
   }
   #endif
+  if (cogCrankSecsLeft > 0) {
+      debugMsgMain("Cog crank ON");
+  } else {
+      debugMsgMain("Cog crank OFF");
+  }
 
   blankingManager.getBlankingStatus(weekday(), hour());
 

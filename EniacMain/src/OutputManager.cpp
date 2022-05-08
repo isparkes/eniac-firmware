@@ -254,6 +254,19 @@ void OutputManager_::outputDisplay() {
 }
 
 // ************************************************************
+// Used for testing during commissioning
+// ************************************************************
+void OutputManager_::toggleGPIOs(bool state) {
+  digitalWrite(CLKPin, state);
+  digitalWrite(DATA1Pin, state);
+  digitalWrite(LATCH1Pin, state);
+  digitalWrite(DATA2Pin, state);
+  digitalWrite(LATCH2Pin, state);
+  digitalWrite(DATA3Pin, state);
+  digitalWrite(LATCH3Pin, state);
+}
+
+// ************************************************************
 // Turn a display pair into a uint24 ready for output
 // ************************************************************
 uint32_t OutputManager_::decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, bool blankTens, bool blankUnits, bool blankSeparators, bool bl1, bool bl2, bool led1, bool led2) {
