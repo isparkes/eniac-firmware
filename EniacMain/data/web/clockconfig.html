@@ -215,9 +215,16 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="control-label col-xs-3" for="minDim" id="minDimLabel">Min Dim %:</label>
+                    <label class="control-label col-xs-3" for="minDim">Min Dim %:</label>
                     <div class="col-xs-2">
                         <input type="number" class="form-control" name="minDim" id="minDim" min="1" max="100" value="10">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="setDim">Fixed Dim %:</label>
+                    <div class="col-xs-2">
+                        <input type="number" class="form-control" name="setDim" id="setDim" min="1" max="100" value="10">
                     </div>
                 </div>
 
@@ -495,6 +502,7 @@
         // -------------- LDR --------------
         setCurrentRadioValue("#useLDR", "#useLDROff", config.useLDR);
         $("#minDim").val(config.minDim);
+        $("#setDim").val(config.setDim);
         $("#sensitivityLDR").val(config.sensitivityLDR);
         $("#thresholdBright").val(config.thresholdBright);
 
@@ -593,6 +601,10 @@
 
         if (localConfig.minDim!=$("#minDim").val()) {
             postBody["minDim"] = $("#minDim").val();
+        }
+
+        if (localConfig.minDim!=$("#setDim").val()) {
+            postBody["setDim"] = $("#setDim").val();
         }
 
         if (localConfig.sensitivityLDR!=$("#sensitivityLDR").val()) {
@@ -762,11 +774,13 @@
         if($(radioID).prop('checked') && $(radioID).val() == 'on') {
             $("#sensitivityLDR").prop('disabled', false);
             $("#thresholdBright").prop('disabled', false);
-            $("#minDimLabel").text("Min Dim %:");
+            $("#minDim").prop('disabled', false);
+            $("#setDim").prop('disabled', true);
         } else {
             $("#sensitivityLDR").prop('disabled', true);
             $("#thresholdBright").prop('disabled', true);
-            $("#minDimLabel").text("Set Dim %:");
+            $("#minDim").prop('disabled', true);
+            $("#setDim").prop('disabled', false);
         }
     }
 

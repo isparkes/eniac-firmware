@@ -15,6 +15,7 @@ typedef struct {
   String tzs;
   bool hourMode;
   int minDim;
+  int setDim;
   byte dayBlanking;
   bool scrollback;
   bool fade;

@@ -130,6 +130,7 @@ void resetOptions() {
   cc->sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
   cc->sensitivityLDR = SENSOR_SENSIT_DEFAULT;
   cc->minDim = MIN_DIM_DEFAULT;
+  cc->setDim = MIN_DIM_DEFAULT;
   
   cc->fade = FADE_DEFAULT;
   cc->fadeSteps = FADE_STEPS_DEFAULT;
@@ -438,6 +439,7 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
 
   root["useLDR"] = cc->useLDR;
   root["minDim"] = cc->minDim;
+  root["setDim"] = cc->setDim;
   root["thresholdBright"] = cc->thresholdBright;
   root["sensitivityLDR"] = cc->sensitivityLDR;
 
@@ -533,6 +535,7 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
 
     compareAndUpdateBool(json, "useLDR",          &cc->useLDR);
     compareAndUpdateInt (json, "minDim",          &cc->minDim);
+    compareAndUpdateInt (json, "setDim",          &cc->setDim);
     compareAndUpdateInt (json, "thresholdBright", &cc->thresholdBright);
     compareAndUpdateInt (json, "sensitivityLDR",  &cc->sensitivityLDR);
 

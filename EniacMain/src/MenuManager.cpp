@@ -55,13 +55,13 @@ void MenuManager_::optionsMenu() {
   byte menuCount = 1;
   oledMenu.menuTitle = "Options";
   oledMenu.menuItems[menuCount] = "Restart Device"; oledMenu.menuActions[menuCount++] = restartClock;
-  oledMenu.menuItems[menuCount] = "Save stats";     oledMenu.menuActions[menuCount++] = saveStats;
-  oledMenu.menuItems[menuCount] = "Save config";    oledMenu.menuActions[menuCount++] = saveConfig;
   if (tzManager.getPrimaryTimeSource() == TIME_SOURCE_RTC) {
     // only set the time via encoder when we are running from RTC
     oledMenu.menuItems[menuCount] = "Set Hours";      oledMenu.menuActions[menuCount++] = setHours;
     oledMenu.menuItems[menuCount] = "Set minutes";    oledMenu.menuActions[menuCount++] = setMinutes;
   }
+  oledMenu.menuItems[menuCount] = "Save config";    oledMenu.menuActions[menuCount++] = saveConfig;
+  oledMenu.menuItems[menuCount] = "Save stats";     oledMenu.menuActions[menuCount++] = saveStats;
   #ifdef DIGIT_DIAGNOSTICS
   oledMenu.menuItems[menuCount] = "Display Test";   oledMenu.menuActions[menuCount++] = displayTest;
   #endif
@@ -228,11 +228,6 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       time_t newTime = tzManager.convertLocalTimeTMToUTC(nowTm);
       rtcManager.setTimeFromUTCSource(newTime, true);
       tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtcManager.getRTCTimeAsTimeT());
-
-//       time_t nowtime = rtcManager.getRTCTimeAsTimeT();
-//       int offset = oledMenu.mValueEntered - hour();
-// //      debugMsgMnm("Offset = " + String(offset));
-//       nowtime += offset*3600;
       debugMsgMnm("New time = " + String(tzManager.gmtimeToReadableString(newTime)));
       optionsMenu();
       break;
@@ -245,13 +240,6 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       rtcManager.setTimeFromUTCSource(newTime, true);
       tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtcManager.getRTCTimeAsTimeT());
       debugMsgMnm("New time = " + tzManager.gmtimeToReadableString(newTime));
-//       time_t nowtime = rtcManager.getRTCTimeAsTimeT();
-//       int offset = oledMenu.mValueEntered - minute();
-// //      debugMsgMnm("Offset = " + String(offset));
-//       nowtime += offset*60;
-//       nowtime -= second();
-//       rtcManager.setTimeFromUTCSource(nowtime, true);
-//       tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, 0, nowtime);
       optionsMenu();
       break;
     }
@@ -260,8 +248,14 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       break;
     }
     case saveDimming: {
-      if (cc->minDim != oledMenu.mValueEntered) {
-        cc->minDim = oledMenu.mValueEntered;
+      if (cc->useLDR) {
+        if (cc->minDim != oledMenu.mValueEntered) {
+          cc->minDim = oledMenu.mValueEntered;
+        }
+      } else {
+        if (cc->setDim != oledMenu.mValueEntered) {
+          cc->setDim = oledMenu.mValueEntered;
+        }
       }
       displayMenu();
       break;
@@ -417,7 +411,11 @@ void MenuManager_::setDimmingValue(menuTargets target) {
   oledMenu.mValueLow = MIN_DIM_MIN;      // minimum value allowed
   oledMenu.mValueHigh = MIN_DIM_MAX;     // maximum value allowed
   oledMenu.mValueStep = 1;               // step size
-  oledMenu.mValueEntered = cc->minDim;   // starting value
+  if (cc->useLDR) {
+    oledMenu.mValueEntered = cc->minDim; // starting value - when using LDR
+  } else {
+    oledMenu.mValueEntered = cc->setDim; // starting value - fixed
+  }
   oledMenu.nextTarget = target;          // action to call when button pressed
 }
 

@@ -88,6 +88,9 @@ bool SpiffsStorage_::getConfigFromSpiffs()
         cc->minDim = json["minDim"];
         debugMsgSpf("Loaded minDim: " + String(cc->minDim));
 
+        cc->setDim = json["setDim"];
+        debugMsgSpf("Loaded setDim: " + String(cc->setDim));
+
         cc->sensorSmoothCountLDR = json["sensorSmoothCountLDR"];
         debugMsgSpf("Loaded sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
 
@@ -231,6 +234,7 @@ void SpiffsStorage_::saveConfigToSpiffs()
   json["scrollSteps"] = cc->scrollSteps;
   json["suppressACP"] = cc->suppressACP;
   json["minDim"] = cc->minDim;
+  json["setDim"] = cc->setDim;
   json["backlightMode"] = cc->backlightMode;
   json["useBLDim"] = cc->useBLDim;
   json["useBLPulse"] = cc->useBLPulse;
