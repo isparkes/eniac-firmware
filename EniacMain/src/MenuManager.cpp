@@ -57,11 +57,18 @@ void MenuManager_::optionsMenu() {
   oledMenu.menuItems[menuCount] = "Restart Device"; oledMenu.menuActions[menuCount++] = restartClock;
   oledMenu.menuItems[menuCount] = "Save stats";     oledMenu.menuActions[menuCount++] = saveStats;
   oledMenu.menuItems[menuCount] = "Save config";    oledMenu.menuActions[menuCount++] = saveConfig;
+  if (tzManager.getPrimaryTimeSource() == TIME_SOURCE_RTC) {
+    // only set the time via encoder when we are running from RTC
+    oledMenu.menuItems[menuCount] = "Set Hours";      oledMenu.menuActions[menuCount++] = setHours;
+    oledMenu.menuItems[menuCount] = "Set minutes";    oledMenu.menuActions[menuCount++] = setMinutes;
+  }
+  #ifdef DIGIT_DIAGNOSTICS
   oledMenu.menuItems[menuCount] = "Display Test";   oledMenu.menuActions[menuCount++] = displayTest;
-  oledMenu.menuItems[menuCount] = "Back";           oledMenu.menuActions[menuCount++] = backToMain;
+  #endif
   #ifdef DEBUG_ON
   oledMenu.menuItems[menuCount] = "Debug on 10m";   oledMenu.menuActions[menuCount++] = debugOn10mins;
   #endif
+  oledMenu.menuItems[menuCount] = "Back";           oledMenu.menuActions[menuCount++] = backToMain;
   oledMenu.noOfmenuItems = --menuCount;
 }
 
@@ -207,6 +214,47 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       displayMenu();
       break;
     }
+    case setHours: {
+      setHourValue(saveHours);
+      break;
+    }
+    case setMinutes: {
+      setMinuteValue(saveMinutes);
+      break;
+    }
+    case saveHours: {
+      tm nowTm = tzManager.getRTCTimeAsLocalTimeTM();
+      nowTm.tm_hour = oledMenu.mValueEntered;
+      time_t newTime = tzManager.convertLocalTimeTMToUTC(nowTm);
+      rtcManager.setTimeFromUTCSource(newTime, true);
+      tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtcManager.getRTCTimeAsTimeT());
+
+//       time_t nowtime = rtcManager.getRTCTimeAsTimeT();
+//       int offset = oledMenu.mValueEntered - hour();
+// //      debugMsgMnm("Offset = " + String(offset));
+//       nowtime += offset*3600;
+      debugMsgMnm("New time = " + String(tzManager.gmtimeToReadableString(newTime)));
+      optionsMenu();
+      break;
+    }
+    case saveMinutes: {
+      tm nowTm = tzManager.getRTCTimeAsLocalTimeTM();
+      nowTm.tm_min = oledMenu.mValueEntered;
+      nowTm.tm_sec = 0;
+      time_t newTime = tzManager.convertLocalTimeTMToUTC(nowTm);
+      rtcManager.setTimeFromUTCSource(newTime, true);
+      tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtcManager.getRTCTimeAsTimeT());
+      debugMsgMnm("New time = " + tzManager.gmtimeToReadableString(newTime));
+//       time_t nowtime = rtcManager.getRTCTimeAsTimeT();
+//       int offset = oledMenu.mValueEntered - minute();
+// //      debugMsgMnm("Offset = " + String(offset));
+//       nowtime += offset*60;
+//       nowtime -= second();
+//       rtcManager.setTimeFromUTCSource(nowtime, true);
+//       tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, 0, nowtime);
+      optionsMenu();
+      break;
+    }
     case setDimming: {
       setDimmingValue(saveDimming);
       break;
@@ -250,13 +298,16 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       ESP.restart();
       break;
     }
+    #ifdef DIGIT_DIAGNOSTICS
     case displayTest: {
       cc->diagsMode++;
       if (cc->diagsMode > DIGIT_DIAGS_MODE_MAX) {
         cc->diagsMode = DIGIT_DIAGS_MODE_MIN;
       }
+      optionsMenu();
       break;
     }
+    #endif
     case startSlave: {
       slaveManager.startSlaveI2C();
       displayMenu();
@@ -359,7 +410,6 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
 
 //                -----------------------------------------------
 
-
 void MenuManager_::setDimmingValue(menuTargets target) {
   resetMenu();                           // clear any previous menu
   menuMode = value;                      // enable value entry
@@ -368,6 +418,28 @@ void MenuManager_::setDimmingValue(menuTargets target) {
   oledMenu.mValueHigh = MIN_DIM_MAX;     // maximum value allowed
   oledMenu.mValueStep = 1;               // step size
   oledMenu.mValueEntered = cc->minDim;   // starting value
+  oledMenu.nextTarget = target;          // action to call when button pressed
+}
+
+void MenuManager_::setHourValue(menuTargets target) {
+  resetMenu();                           // clear any previous menu
+  menuMode = value;                      // enable value entry
+  oledMenu.menuTitle = "Set hours";      // title (used to identify which number was entered)
+  oledMenu.mValueLow = 0;                // minimum value allowed
+  oledMenu.mValueHigh = 23;              // maximum value allowed
+  oledMenu.mValueStep = 1;               // step size
+  oledMenu.mValueEntered = hour();      // starting value
+  oledMenu.nextTarget = target;          // action to call when button pressed
+}
+
+void MenuManager_::setMinuteValue(menuTargets target) {
+  resetMenu();                           // clear any previous menu
+  menuMode = value;                      // enable value entry
+  oledMenu.menuTitle = "Set minutes";      // title (used to identify which number was entered)
+  oledMenu.mValueLow = 0;                // minimum value allowed
+  oledMenu.mValueHigh = 59;              // maximum value allowed
+  oledMenu.mValueStep = 1;               // step size
+  oledMenu.mValueEntered = minute();      // starting value
   oledMenu.nextTarget = target;          // action to call when button pressed
 }
 
@@ -871,21 +943,6 @@ void MenuManager_::menuOncePerSecond() {
     sprintf(time_c, "%02d:%02d:%02d", hour(), minute(), second());
     oled.setTimeString(String(time_c));
 
-    oled.setWiFiStatus(WiFi.isConnected());
-    oled.setNTPStatus(ntpManager.ntpTimeValid());
-    oled.setGPSStatus(gpsManager.getGPSTimeValid());    
-    oled.setBlankStatus(false);
-    if (digitalRead(PIRPin) == false) {
-      oled.setPIRInstalled(true);  
-    }
-    oled.setPIRStatus(digitalRead(PIRPin));
-    #ifdef COG_CRANK_OUTPUT
-    oled.setAuxOutStatus(cogCrankSecsLeft > 0);
-    #else
-    oled.setAuxOutStatus(digitalRead(BTN1Pin) == LOW);
-    #endif
-    oled.setBTN2Status(digitalRead(BTN2Pin) == LOW);
-
     oled.clearScrollingMessage();
     if (WiFi.isConnected()) {
       oled.showScrollingMessage("IP: " + WiFi.localIP().toString());
@@ -901,9 +958,7 @@ void MenuManager_::menuOncePerSecond() {
 // Things that need updating once per hour
 // ************************************************************
 void MenuManager_::menuOncePerHour() {
-  if (oledTimeout > 0 && configTimeout == 0 && flashTimeout == 0) {
-    oled.setAMStatus(isAM());
-  }
+  // nothing at present
 }
 
 // ************************************************************

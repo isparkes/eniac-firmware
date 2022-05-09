@@ -5,6 +5,8 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_SH110X.h>
+#include "TimeLib.h"
+#include "Globals.h"
 
 // ----------------------- Defines -----------------------
 
@@ -49,15 +51,6 @@ class OLED_
     void showMenuEntry(byte level, String menuText);
     void blankMenuEntry(byte level);
     void showStatusLine();
-    void setWiFiStatus(bool newStatus);
-    void setNTPStatus(bool newStatus);
-    void setPIRStatus(bool newStatus);
-    void setPIRInstalled(bool newStatus);
-    void setBlankStatus(bool newStatus);
-    void setGPSStatus(bool newStatus);
-    void setAuxOutStatus(bool newStatus);
-    void setBTN2Status(bool newStatus);
-    void setAMStatus(bool newStatus);
     void clearDisplay();
     void blankDisplay();
     bool getBlanked();
@@ -77,16 +70,7 @@ class OLED_
     int16_t height();
 
   private:
-    bool _blanked = false;
-    bool _wifiStatus = false;
-    bool _ntpStatus = false;
-    byte _pirStatus = false;
-    byte _pirInstalled = false;
-    bool _blankStatus = false;
-    bool _gStatus = false;
-    bool _1Status = false;
-    bool _2Status = false;
-    bool _ampm = false;
+  bool _blanked;
     String _timeText = "xx:xx:xx";
     String _bufferLines[6] = {"","","","","",""};
     byte _bufferIdx = 0;

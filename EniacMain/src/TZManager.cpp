@@ -176,7 +176,26 @@ void TZManager_::setInternalTimeFromRTC() {
   debugMsgTzm("Set internal time to timesource " + String(TIME_SOURCE_RTC) + ": " + String(_utctime[TIME_SOURCE_RTC]) + " L--> " + localtimeToReadableString(_utctime[TIME_SOURCE_RTC]));
   _utctime[TIME_SOURCE_INT] = _utctime[TIME_SOURCE_RTC] + lastUpdateOffset;
   _lastupdatetime[TIME_SOURCE_INT] = nowMillis;
+}
 
+tm TZManager_::getRTCTimeAsLocalTimeTM() {
+  int lastUpdateOffset = getTimeLastSetFromTimeSource(TIME_SOURCE_RTC);
+  time_t currentUTC = _utctime[TIME_SOURCE_RTC] + lastUpdateOffset;
+  debugMsgTzm("Recovered current UTC from RTC " + String(currentUTC));
+  struct tm info_local;
+  localtime_r(&currentUTC, &info_local);
+  return info_local;
+}
+
+time_t TZManager_::convertLocalTimeTMToUTC(tm tmFrom) {
+    #ifdef TZM_EXTENDED_DEBUG
+    debugMsgTzm("---->Applying offset: " + String(getCurrentUTCOffset()) + " to RTC harware time -> " + 
+      String(tmFrom.tm_year) + ", " + String(tmFrom.tm_mon) + ", " + String(tmFrom.tm_mday) + ", " + 
+      String(tmFrom.tm_hour) + ", " + String(tmFrom.tm_min) + ", " + String(tmFrom.tm_sec));
+    #endif
+
+    time_t _rtctime = mktime(&tmFrom);
+  return _rtctime;
 }
 
 // ************************************************************

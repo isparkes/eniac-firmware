@@ -45,11 +45,8 @@ private:
 
     uint8_t decToBcd(uint8_t val);
     uint8_t bcdToDec(uint8_t val);
-    void setTimeRTCHardware(void);
-    void getTimeRTCHardware(void);
-    void fillByHMS(uint8_t _hour, uint8_t _minute, uint8_t _second);
-    void fillByYMD(uint8_t _year, uint8_t _month, uint8_t _day);
-    void fillDayOfWeek(uint8_t _dow);
+    void setTimeRTCHardware();
+    void getTimeRTCHardware();
 
     bool _useRTC = false;
     bool _onceHadAnRTC = false;

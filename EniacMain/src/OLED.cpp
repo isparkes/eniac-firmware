@@ -93,76 +93,11 @@ void OLED_::showStatusLine()
 void OLED_::setTimeString(String newTimeText)
 {
   _timeText = newTimeText;
-  drawTimeInd();
-  _display->display();
-}
-
-void OLED_::setWiFiStatus(bool newStatus)
-{
-  _wifiStatus = newStatus;
-  drawWiFiInd();
-  _display->display();
-}
-
-void OLED_::setNTPStatus(bool newStatus)
-{
-  _ntpStatus = newStatus;
-  drawNTPInd();
-  _display->display();
-}
-
-void OLED_::setPIRStatus(bool newStatus)
-{
-  _pirStatus = newStatus;
-  drawPIRInd();
-  _display->display();
-}
-
-void OLED_::setPIRInstalled(bool newStatus)
-{
-  _pirInstalled = newStatus;
-  drawPIRInd();
-  _display->display();
-}
-
-void OLED_::setBlankStatus(bool newStatus)
-{
-  _blankStatus = newStatus;
-  drawBlankInd();
-  _display->display();
-}
-
-void OLED_::setGPSStatus(bool newStatus)
-{
-  _gStatus = newStatus;
-  drawGInd();
-  _display->display();
-}
-
-void OLED_::setAuxOutStatus(bool newStatus)
-{
-  _1Status = newStatus;
-  drawAuxOutInd();
-  _display->display();
-}
-
-void OLED_::setBTN2Status(bool newStatus)
-{
-  _2Status = newStatus;
-  drawBTN2Ind();
-  _display->display();
-}
-
-void OLED_::setAMStatus(bool newStatus)
-{
-  _ampm = newStatus;
-  drawAMInd();
-  _display->display();
 }
 
 void OLED_::drawWiFiInd() {
   _display->setCursor(WIFI_IND_X,STATUS_LINE_Y);
-  if (_wifiStatus) {
+  if (WiFi.isConnected()) {
     _display->print("W");
   } else {
     _display->print("w");
@@ -171,7 +106,7 @@ void OLED_::drawWiFiInd() {
 
 void OLED_::drawNTPInd() {
   _display->setCursor(NTP_IND_X,STATUS_LINE_Y);
-  if (_ntpStatus) {
+  if (ntpManager.ntpTimeValid()) {
     _display->print("N");
   } else {
     _display->print("n");
@@ -181,8 +116,8 @@ void OLED_::drawNTPInd() {
 
 void OLED_::drawPIRInd() {
   _display->setCursor(PIR_IND_X,STATUS_LINE_Y);
-  if (_pirInstalled) {
-    if (_pirStatus) {
+  if (blankingManager.getCurrentPIRInstalled()) {
+    if (blankingManager.getCurrentPIRStatus()) {
       _display->print("P");
     } else {
       _display->print("p");
@@ -194,7 +129,7 @@ void OLED_::drawPIRInd() {
 
 void OLED_::drawBlankInd() {
   _display->setCursor(BLANK_IND_X,STATUS_LINE_Y);
-  if (_blankStatus) {
+  if (blankingManager.getCurrentBlankingStatus()) {
     _display->print("B");
   } else {
     _display->print("b");
@@ -203,7 +138,7 @@ void OLED_::drawBlankInd() {
 
 void OLED_::drawGInd() {
   _display->setCursor(G_IND_X,STATUS_LINE_Y);
-  if (_gStatus) {
+  if (gpsManager.getGPSTimeValid()) {
     _display->print("G");
   } else {
     _display->print("g");
@@ -212,16 +147,25 @@ void OLED_::drawGInd() {
 
 void OLED_::drawAuxOutInd() {
   _display->setCursor(Y_IND_X,STATUS_LINE_Y);
-  if (_1Status) {
+
+  #ifdef COG_CRANK_OUTPUT
+  if (cogCrankSecsLeft > 0) {
     _display->print("C");
   } else {
     _display->print("-");
   }
+  #else
+  if (digitalRead(BTN1Pin) == LOW) {
+    _display->print("1");
+  } else {
+    _display->print("-");
+  }
+  #endif
 }
 
 void OLED_::drawBTN2Ind() {
   _display->setCursor(Z_IND_X,STATUS_LINE_Y);
-  if (_2Status) {
+  if (digitalRead(BTN2Pin) == LOW) {
     _display->print("2");
   } else {
     _display->print("-");
@@ -235,7 +179,7 @@ void OLED_::drawTimeInd() {
 
 void OLED_::drawAMInd() {
   _display->setCursor(AM_IND_X,STATUS_LINE_Y);
-  if (_ampm) {
+  if (isAM()) {
     _display->print("AM");
   } else {
     _display->print("PM");

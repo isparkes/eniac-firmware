@@ -44,6 +44,8 @@ class TZManager_ {
 
     String localtimeToReadableString(time_t timeToConvert);
     String gmtimeToReadableString(time_t timeToConvert);
+    tm getRTCTimeAsLocalTimeTM();
+    time_t convertLocalTimeTMToUTC(tm tmFrom);
   private:
     String _tzs = TIME_ZONE_STRING_DEFAULT;
     unsigned long _UTCoffset;

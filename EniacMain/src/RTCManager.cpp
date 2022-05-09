@@ -98,14 +98,6 @@ void RtcManager_::setTimeRTCHardware()
 }
 
 // ************************************************************
-// Fill DoW
-// ************************************************************
-void RtcManager_::fillDayOfWeek(uint8_t dow)
-{
-    _dayOfWeek = dow;
-}
-
-// ************************************************************
 // Check that the RTC is actually running
 // ************************************************************
 unsigned char RtcManager_::isRunning()

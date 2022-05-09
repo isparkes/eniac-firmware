@@ -4,7 +4,6 @@
 #include "Defs.h"
 #include "OLED.h"
 #include "DebugManager.h"
-#include "Globals.h"
 #include "utilities.h"
 #include "WiFiManager.h"
 
@@ -40,21 +39,23 @@ enum menuTargets {
   
   toggleTubeDimming,
   toggleBLDimming,
-  setDimming,
-  saveDimming,
+  setDimming, saveDimming,
   nextBlnknMode,
 
+  toggleHourMode,
+  toggleFade,
+  toggleScrollback,
+  setNextACPMode,
+  setNextSlotsMode,
+
+  setHours, saveHours,
+  setMinutes, saveMinutes,
   restartClock,
   saveStats,
   saveConfig,
   displayTest,
   startSlave,
   stopSlave,
-  toggleHourMode,
-  toggleFade,
-  toggleScrollback,
-  setNextACPMode,
-  setNextSlotsMode,
   debugOn10mins
 };
 
@@ -148,6 +149,8 @@ class MenuManager_ {
     void wifiSelectMenu();
     void menuActions(menuTargets selectedAction);
     void setDimmingValue(menuTargets target);
+    void setHourValue(menuTargets target);
+    void setMinuteValue(menuTargets target);
     void setStringValue(String title, menuTargets target, String intialValue);
 
     void serviceMenu();
