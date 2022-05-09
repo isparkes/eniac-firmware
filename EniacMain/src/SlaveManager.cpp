@@ -29,6 +29,20 @@ void SlaveManager_::stopSlaveI2C() {
 }
 
 // ************************************************************
+// Override the slave mode via front panel switch
+// ************************************************************
+void SlaveManager_::setSlaveModeViaSwitch(bool newSlaveStatus) {
+  if (_slaveModeOverrideStatus != newSlaveStatus) {
+    if (newSlaveStatus) {
+      startSlaveI2C();
+    } else {
+      stopSlaveI2C();
+    }
+  _slaveModeOverrideStatus = newSlaveStatus;
+  }
+}
+
+// ************************************************************
 // return current mode
 // ************************************************************
 bool SlaveManager_::getSlaveMode() {

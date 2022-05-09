@@ -81,6 +81,13 @@ bool BlankingManager_::checkTimeBasedBlanking(byte currentWeekday, byte currentH
 }
 
 // ************************************************************
+// Set if we are overriding the LED blanking via switch
+// ************************************************************
+void BlankingManager_::setCurrentLEDBlankingOverrride(bool newLEDOverrideStatus) {
+  _blankLEDoverride = newLEDOverrideStatus;
+}
+
+// ************************************************************
 // If we are currently blanked based on hours
 // ************************************************************
 bool BlankingManager_::getHoursBlanked(byte currentHour) {
@@ -154,10 +161,16 @@ bool BlankingManager_::getBlankingStatus(byte currentWeekday, byte currentHour) 
   return _blanked;
 }
 
+// ************************************************************
+// Get if the PIR is installed
+// ************************************************************
 bool BlankingManager_::getCurrentPIRInstalled() {
   return _pirInstalled;
 }
 
+// ************************************************************
+// Get if the PIR is active
+// ************************************************************
 bool BlankingManager_::getCurrentPIRStatus() {
   return _pirvalue;
 }
@@ -182,14 +195,23 @@ bool BlankingManager_::getCurrentBlankingIndicator() {
   return _pirBlankingPct > secsDeltaAbs;
 }
 
+// ************************************************************
+// Get if the tubes are blanked
+// ************************************************************
 bool BlankingManager_::getCurrentBlankTubes() {
   return _blankTubes;
 }
 
+// ************************************************************
+// Get if the LEDs are blanked
+// ************************************************************
 bool BlankingManager_::getCurrentBlankLEDs() {
-  return _blankLEDs;
+  return _blankLEDs || _blankLEDoverride;
 }
 
+// ************************************************************
+// Get if the towers are blanked
+// ************************************************************
 bool BlankingManager_::getCurrentBlankTowers() {
   return _blankTowers;
 }

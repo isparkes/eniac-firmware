@@ -47,8 +47,10 @@ class SlaveManager_ {
     void stopSlaveI2C();
     bool getSlaveMode();
     void sendUpdateToSlaveI2C();
+    void setSlaveModeViaSwitch(bool newSlaveStatus);
   private:
     bool _slaveModeStatus;
+    bool _slaveModeOverrideStatus;
     byte _slaveModeFailCount;
 };
 

@@ -68,6 +68,7 @@ class BlankingManager_ {
     bool getCurrentPIRInstalled();
     bool getCurrentBlankingStatus();
     bool getCurrentBlankingIndicator();
+    void setCurrentLEDBlankingOverrride(bool newLEDOverrideStatus);
     int  getBlankAge();
     String getBlankingReason();
   private:
@@ -78,6 +79,7 @@ class BlankingManager_ {
     bool _blanked;
     bool _blankTubes = false;
     bool _blankLEDs = false;
+    bool _blankLEDoverride = false;
     bool _blankTowers = false;
     bool _pirBlanked;
     bool _timeBasedBlanked;

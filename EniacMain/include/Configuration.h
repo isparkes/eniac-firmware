@@ -19,7 +19,7 @@
 // -------------------------------------------------------------------------------
 
 // Define the type of OLED
-#define OLED_SH1106                 // OLED_SH1106 |  OLED_SSD1306
+#define OLED_SSD1306                // OLED_SH1106 |  OLED_SSD1306
 
 #define OLED_ON_TIME  20            // Time in seconds the OLED stays on for
 #define CONFIG_TIME   10            // Time in seconds we stay in config mode
@@ -47,4 +47,4 @@
 // -------------------------------------------------------------------------------
 
 // Paul's special thing
-#define COG_CRANK_OUTPUT            // COG_CRANK_OUTPUT | COG_CRANK_OUTPUT_OFF
+#define COG_CRANK_OUTPUT_OFF        // COG_CRANK_OUTPUT | COG_CRANK_OUTPUT_OFF
