@@ -382,7 +382,7 @@ void performOncePerSecondProcessing() {
 
   debugManager.debugAutoOffCheck();
 
-  blankingManager.setCurrentLEDBlankingOverrride(digitalRead(BTN2Pin) == false);
+  blankingManager.setCurrentLEDBlankingOverrride(digitalRead(BTN2Pin));
 
   feedWatchdog();
 }

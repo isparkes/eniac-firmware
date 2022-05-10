@@ -33,7 +33,7 @@ void SlaveManager_::stopSlaveI2C() {
 // ************************************************************
 void SlaveManager_::setSlaveModeViaSwitch(bool newSlaveStatus) {
   if (_slaveModeOverrideStatus != newSlaveStatus) {
-    if (newSlaveStatus) {
+    if (!newSlaveStatus) {
       startSlaveI2C();
     } else {
       stopSlaveI2C();
