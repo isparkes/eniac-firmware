@@ -24,27 +24,27 @@ void MenuManager_::wifiMenu() {
   byte menuCount = 1;
   if (WiFi.isConnected()) {
     oledMenu.menuTitle = "WiFi Menu";           
-    oledMenu.menuItems[menuCount] = "WiFi start: "+ status;  oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
-    oledMenu.menuItems[menuCount] = "Disconnect WiFi";       oledMenu.menuActions[menuCount++] = disconnectWifi;
-    oledMenu.menuItems[menuCount] = "Reset WiFi";            oledMenu.menuActions[menuCount++] = resetWiFiInfo;
-    oledMenu.menuItems[menuCount] = "Back";                  oledMenu.menuActions[menuCount++] = backToMain;
+    oledMenu.menuItems[menuCount] = "WiFi start: "+ status;    oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
+    oledMenu.menuItems[menuCount] = "Disconnect WiFi";         oledMenu.menuActions[menuCount++] = disconnectWifi;
+    oledMenu.menuItems[menuCount] = "Reset WiFi";              oledMenu.menuActions[menuCount++] = resetWiFiInfo;
+    oledMenu.menuItems[menuCount] = "Back";                    oledMenu.menuActions[menuCount++] = backToMain;
   } else {
     oledMenu.noOfmenuItems = 8;
     oledMenu.menuTitle = "WiFi Menu";
     if (wifiManager.wifiCredentialsReceived()) {
-      oledMenu.menuItems[menuCount] = "Reconnect previous";  oledMenu.menuActions[menuCount++] = reconnectPrevious;
+      oledMenu.menuItems[menuCount] = "Reconnect previous";    oledMenu.menuActions[menuCount++] = reconnectPrevious;
     }
-    oledMenu.menuItems[menuCount] = "Connect with WPS";      oledMenu.menuActions[menuCount++] = connectWPS;
-    oledMenu.menuItems[menuCount] = "Start SmartConfig";     oledMenu.menuActions[menuCount++] = smartConfig;
-    oledMenu.menuItems[menuCount] = "Open Access Point";     oledMenu.menuActions[menuCount++] = openAccessPoint;
-    oledMenu.menuItems[menuCount] = "Select SSID";           oledMenu.menuActions[menuCount++] = getSSIDList;
-    oledMenu.menuItems[menuCount] = "Enter SSID";            oledMenu.menuActions[menuCount++] = enterWiFiSSID;
-    oledMenu.menuItems[menuCount] = "Enter password";        oledMenu.menuActions[menuCount++] = enterWiFiPassword;
-    oledMenu.menuItems[menuCount] = "WiFi start: "+ status;  oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
-    oledMenu.menuItems[menuCount] = "Scan Wifi";             oledMenu.menuActions[menuCount++] = scanWiFi;
-    oledMenu.menuItems[menuCount] = "Select WiFi";           oledMenu.menuActions[menuCount++] = showWifiSelection;
-    oledMenu.menuItems[menuCount] = "reset WiFi";            oledMenu.menuActions[menuCount++] = resetWiFiInfo;
-    oledMenu.menuItems[menuCount] = "Back";                  oledMenu.menuActions[menuCount++] = backToMain;
+    oledMenu.menuItems[menuCount] = "Connect with WPS";        oledMenu.menuActions[menuCount++] = connectWPS;
+    oledMenu.menuItems[menuCount] = "Start SmartConfig";       oledMenu.menuActions[menuCount++] = smartConfig;
+    oledMenu.menuItems[menuCount] = "Open Access Point";       oledMenu.menuActions[menuCount++] = openAccessPoint;
+    oledMenu.menuItems[menuCount] = "Select SSID";             oledMenu.menuActions[menuCount++] = getSSIDList;
+    oledMenu.menuItems[menuCount] = "Enter SSID";              oledMenu.menuActions[menuCount++] = enterWiFiSSID;
+    oledMenu.menuItems[menuCount] = "Enter password";          oledMenu.menuActions[menuCount++] = enterWiFiPassword;
+    oledMenu.menuItems[menuCount] = "WiFi at start: "+ status; oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
+    oledMenu.menuItems[menuCount] = "Scan Wifi";               oledMenu.menuActions[menuCount++] = scanWiFi;
+    oledMenu.menuItems[menuCount] = "Select WiFi";             oledMenu.menuActions[menuCount++] = showWifiSelection;
+    oledMenu.menuItems[menuCount] = "reset WiFi";              oledMenu.menuActions[menuCount++] = resetWiFiInfo;
+    oledMenu.menuItems[menuCount] = "Back";                    oledMenu.menuActions[menuCount++] = backToMain;
   }
   oledMenu.noOfmenuItems = --menuCount;
 }

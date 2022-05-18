@@ -6,6 +6,10 @@
 		{
 			"name": "EniacSlave",
 			"path": "EniacSlave"
+		},
+		{
+			"name": "EniacDecatron",
+			"path": "../EniacDecatron"
 		}
 	],
 	"settings": {
