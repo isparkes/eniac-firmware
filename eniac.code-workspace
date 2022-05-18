@@ -8,8 +8,7 @@
 			"path": "EniacSlave"
 		},
 		{
-			"name": "EniacDecatron",
-			"path": "../EniacDecatron"
+			"path": "EniacDecatron"
 		}
 	],
 	"settings": {
