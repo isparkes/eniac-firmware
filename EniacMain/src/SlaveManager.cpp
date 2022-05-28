@@ -96,6 +96,44 @@ void SlaveManager_::sendUpdateToSlaveI2C() {
   }
 }
 
+String SlaveManager_::getNextSlaveModeName() {
+  switch (getNextSlaveMode()) {
+  case SLAVE_MODE_100THS:
+    return "100ths";
+    break;
+  case SLAVE_MODE_DATE:
+    return "Date";
+    break;
+  case SLAVE_MODE_SECS:
+    return "Secs";
+    break;
+  default:
+    return "Unknown";
+  }
+}
+
+void SlaveManager_::setNextSlaveMode() {
+  cc->slaveMode = getNextSlaveMode();
+}
+
+void SlaveManager_::setSlaveMode(byte newMode) {
+  if (newMode > SLAVE_MODE_MAX) {
+    newMode = SLAVE_MODE_MAX;
+  }
+  if (newMode < SLAVE_MODE_MIN) {
+    newMode = SLAVE_MODE_MIN;
+  }
+  cc->slaveMode = newMode;
+}
+
+byte SlaveManager_::getNextSlaveMode() {
+  byte nextMode = cc->slaveMode + 1;
+  if (nextMode > SLAVE_MODE_MAX) {
+    nextMode = SLAVE_MODE_MIN;
+  }
+  return nextMode;
+}
+
 // ************************************************************
 // Library internal singleton wiring
 // ************************************************************

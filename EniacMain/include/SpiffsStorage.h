@@ -23,8 +23,6 @@ class SpiffsStorage_
     SpiffsStorage_ &operator=(const SpiffsStorage_ &) = delete;
 
   public:
-    void setDebugOutput(bool newDebug);
-
     bool testMountSpiffs();
     bool getSpiffsMounted();
 
@@ -34,9 +32,21 @@ class SpiffsStorage_
     bool getStatsFromSpiffs();
     void saveStatsToSpiffs();
 
+    int getZoneAreaCountFromSpiffs();
+    String getZoneAreaFromSpiffs(int index);
+
+    int getZoneLocationCountFromSpiffs(String location);
+    String getZoneLocationFromSpiffs(String location, int index);
+    String getLocationTZFromSpiffs(String location, int index);
+
     JsonObject& getConfigAsJsonObject();
   private:
     bool _spiffsMounted = false;
+    DynamicJsonBuffer _jsonBuffer;
+    JsonObject* _cachedZonesObj;
+
+    void getZoneInfoFromSpiffs();
+
 };
 
 extern SpiffsStorage_ &spiffsStorage;

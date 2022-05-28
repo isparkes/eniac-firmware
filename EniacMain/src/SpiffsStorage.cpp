@@ -23,15 +23,15 @@ bool SpiffsStorage_::testMountSpiffs()
 bool SpiffsStorage_::getConfigFromSpiffs()
 {
   bool loaded = false;
-  debugMsgSpf("mounted file system config read");
+  debugMsgSpfX("mounted file system config read");
   if (SPIFFS.exists("/config/config.json"))
   {
     // file exists, reading and loading
-    debugMsgSpf("reading config file");
+    debugMsgSpf("Reading config file");
     File configFile = SPIFFS.open("/config/config.json", "r");
     if (configFile)
     {
-      debugMsgSpf("opened config file");
+      debugMsgSpfX("opened config file");
       size_t size = configFile.size();
       // Allocate a buffer to store contents of the file.
       std::unique_ptr<char[]> buf(new char[size]);
@@ -40,164 +40,164 @@ bool SpiffsStorage_::getConfigFromSpiffs()
       JsonObject &json = jsonBuffer.parseObject(buf.get());
       // // Dump the raw JSON
       // if (_debug) json.printTo(Serial);
-      //   debugMsgSpf("\n");
+      //   debugMsgSpfX("\n");
       if (json.success())
       {
-        debugMsgSpf("parsed json");
+        debugMsgSpfX("parsed config json");
         cc->ntpPool = json["ntp_pool"].as<String>();
-        debugMsgSpf("Loaded NTP pool: " + cc->ntpPool)
+        debugMsgSpfX("Loaded NTP pool: " + cc->ntpPool);
         cc->ntpUpdateInterval = json["ntp_update_interval"].as<int>();
-        debugMsgSpf("Loaded NTP update interval: " + String(cc->ntpUpdateInterval));
+        debugMsgSpfX("Loaded NTP update interval: " + String(cc->ntpUpdateInterval));
 
         cc->tzs = json["time_zone_string"].as<String>();
-        debugMsgSpf("Loaded time zone string: " + cc->tzs);
+        debugMsgSpfX("Loaded time zone string: " + cc->tzs);
 
         cc->hourMode = json["hourMode"].as<bool>();
-        debugMsgSpf("Loaded 12/24H mode: " + String(cc->hourMode));
+        debugMsgSpfX("Loaded 12/24H mode: " + String(cc->hourMode));
 
         cc->blankLeading = json["blankLeading"].as<bool>();
-        debugMsgSpf("Loaded lead zero blanking: " + String(cc->blankLeading));
+        debugMsgSpfX("Loaded lead zero blanking: " + String(cc->blankLeading));
 
         cc->dateFormat = json["dateFormat"];
-        debugMsgSpf("Loaded date format: " + String(cc->dateFormat));
+        debugMsgSpfX("Loaded date format: " + String(cc->dateFormat));
 
         cc->dayBlanking = json["dayBlanking"];
-        debugMsgSpf("Loaded dayBlanking: " + String(cc->dayBlanking));
+        debugMsgSpfX("Loaded dayBlanking: " + String(cc->dayBlanking));
 
         cc->fade = json["fade"].as<bool>();
-        debugMsgSpf("Loaded fade: " + String(cc->fade));
+        debugMsgSpfX("Loaded fade: " + String(cc->fade));
 
         cc->fadeSteps = json["fadeSteps"];
-        debugMsgSpf("Loaded fadeSteps: " + String(cc->fadeSteps));
+        debugMsgSpfX("Loaded fadeSteps: " + String(cc->fadeSteps));
 
         cc->scrollback = json["scrollback"].as<bool>();
-        debugMsgSpf("Loaded scrollback: " + String(cc->scrollback));
+        debugMsgSpfX("Loaded scrollback: " + String(cc->scrollback));
 
         cc->scrollSteps = json["scrollSteps"];
-        debugMsgSpf("Loaded scrollSteps: " + String(cc->scrollSteps));
+        debugMsgSpfX("Loaded scrollSteps: " + String(cc->scrollSteps));
 
         cc->suppressACP = json["suppressACP"];
-        debugMsgSpf("Loaded suppressACP: " + String(cc->suppressACP));
+        debugMsgSpfX("Loaded suppressACP: " + String(cc->suppressACP));
 
         cc->thresholdBright = json["thresholdBright"];
-        debugMsgSpf("Loaded thresholdBright: " + String(cc->thresholdBright));
+        debugMsgSpfX("Loaded thresholdBright: " + String(cc->thresholdBright));
 
         cc->sensitivityLDR = json["sensitivityLDR"];
-        debugMsgSpf("Loaded sensitivityLDR: " + String(cc->sensitivityLDR));
+        debugMsgSpfX("Loaded sensitivityLDR: " + String(cc->sensitivityLDR));
 
         cc->minDim = json["minDim"];
-        debugMsgSpf("Loaded minDim: " + String(cc->minDim));
+        debugMsgSpfX("Loaded minDim: " + String(cc->minDim));
 
         cc->setDim = json["setDim"];
-        debugMsgSpf("Loaded setDim: " + String(cc->setDim));
+        debugMsgSpfX("Loaded setDim: " + String(cc->setDim));
 
         cc->sensorSmoothCountLDR = json["sensorSmoothCountLDR"];
-        debugMsgSpf("Loaded sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
+        debugMsgSpfX("Loaded sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
 
         cc->backlightMode = json["backlightMode"];
-        debugMsgSpf("Loaded backlight mode: " + String(cc->backlightMode));
+        debugMsgSpfX("Loaded backlight mode: " + String(cc->backlightMode));
 
         cc->useBLPulse = json["useBLPulse"].as<bool>();
-        debugMsgSpf("Loaded backlight pulse: " + String(cc->useBLPulse));
+        debugMsgSpfX("Loaded backlight pulse: " + String(cc->useBLPulse));
 
         cc->useBLDim = json["useBLDim"].as<bool>();
-        debugMsgSpf("Loaded backlight dim: " + String(cc->useBLDim));
+        debugMsgSpfX("Loaded backlight dim: " + String(cc->useBLDim));
 
         cc->redCnl = json["redCnl"];
-        debugMsgSpf("Loaded redCnl: " + String(cc->redCnl));
+        debugMsgSpfX("Loaded redCnl: " + String(cc->redCnl));
 
         cc->grnCnl = json["grnCnl"];
-        debugMsgSpf("Loaded grnCnl: " + String(cc->grnCnl));
+        debugMsgSpfX("Loaded grnCnl: " + String(cc->grnCnl));
 
         cc->bluCnl = json["bluCnl"];
-        debugMsgSpf("Loaded bluCnl: " + String(cc->bluCnl));
+        debugMsgSpfX("Loaded bluCnl: " + String(cc->bluCnl));
 
         cc->blankMode = json["blankMode"];
-        debugMsgSpf("Loaded blankMode: " + String(cc->blankMode));
+        debugMsgSpfX("Loaded blankMode: " + String(cc->blankMode));
 
         cc->blankHourStart = json["blankHourStart"];
-        debugMsgSpf("Loaded blankHourStart: " + String(cc->blankHourStart));
+        debugMsgSpfX("Loaded blankHourStart: " + String(cc->blankHourStart));
 
         cc->blankHourEnd = json["blankHourEnd"];
-        debugMsgSpf("Loaded blankHourEnd: " + String(cc->blankHourEnd));
+        debugMsgSpfX("Loaded blankHourEnd: " + String(cc->blankHourEnd));
 
         cc->cycleSpeed = json["cycleSpeed"];
-        debugMsgSpf("Loaded cycleSpeed: " + String(cc->cycleSpeed));
+        debugMsgSpfX("Loaded cycleSpeed: " + String(cc->cycleSpeed));
 
         cc->mdTimeout = json["mdTimeout"];
-        debugMsgSpf("Loaded mdTimeout: " + String(cc->mdTimeout));
+        debugMsgSpfX("Loaded mdTimeout: " + String(cc->mdTimeout));
 
         cc->useLDR = json["useLDR"];
-        debugMsgSpf("Loaded useLDR: " + String(cc->useLDR));
+        debugMsgSpfX("Loaded useLDR: " + String(cc->useLDR));
 
         cc->thresholdBright = json["thresholdBright"];
-        debugMsgSpf("Loaded thresholdBright: " + String(cc->thresholdBright));
+        debugMsgSpfX("Loaded thresholdBright: " + String(cc->thresholdBright));
 
         cc->slotsMode = json["slotsMode"];
-        debugMsgSpf("Loaded slotsMode: " + String(cc->slotsMode));
+        debugMsgSpfX("Loaded slotsMode: " + String(cc->slotsMode));
 
         cc->webAuthentication = json["webAuthentication"].as<bool>();
-        debugMsgSpf("Loaded webAuthentication: " + String(cc->webAuthentication));
+        debugMsgSpfX("Loaded webAuthentication: " + String(cc->webAuthentication));
 
         cc->webUsername = json["webUsername"].as<String>();
-        debugMsgSpf("Loaded webUsername: " + cc->webUsername);
+        debugMsgSpfX("Loaded webUsername: " + cc->webUsername);
 
         cc->webPassword = json["webPassword"].as<String>();
-        debugMsgSpf("Loaded webPassword: " + cc->webPassword);
+        debugMsgSpfX("Loaded webPassword: " + cc->webPassword);
 
         cc->acpMode = json["acpMode"];
-        debugMsgSpf("Loaded acpMode: " + String(cc->acpMode));
+        debugMsgSpfX("Loaded acpMode: " + String(cc->acpMode));
 
         cc->mdBlankMode = json["mdBlankMode"];
-        debugMsgSpf("Loaded mdBlankMode: " + String(cc->mdBlankMode));
+        debugMsgSpfX("Loaded mdBlankMode: " + String(cc->mdBlankMode));
 
         cc->alarmMode = json["alarmMode"];
-        debugMsgSpf("Loaded alarmMode: " + String(cc->alarmMode));
+        debugMsgSpfX("Loaded alarmMode: " + String(cc->alarmMode));
 
         cc->alarmHour = json["alarmHour"];
-        debugMsgSpf("Loaded alarmHour: " + String(cc->alarmHour));
+        debugMsgSpfX("Loaded alarmHour: " + String(cc->alarmHour));
 
         cc->alarmMinute = json["alarmMinute"];
-        debugMsgSpf("Loaded alarmMinute: " + String(cc->alarmMinute));
+        debugMsgSpfX("Loaded alarmMinute: " + String(cc->alarmMinute));
 
         cc->sepMode = json["sepMode"];
-        debugMsgSpf("Loaded sepMode: " + String(cc->sepMode));
+        debugMsgSpfX("Loaded sepMode: " + String(cc->sepMode));
 
         cc->hueOffset = json["hueOffset"];
-        debugMsgSpf("Loaded hueOffset: " + String(cc->hueOffset));
+        debugMsgSpfX("Loaded hueOffset: " + String(cc->hueOffset));
 
         cc->towerHueOffset = json["towerHueOffset"];
-        debugMsgSpf("Loaded towerHueOffset: " + String(cc->towerHueOffset));
+        debugMsgSpfX("Loaded towerHueOffset: " + String(cc->towerHueOffset));
 
         cc->backlightDimFactor = json["backlightDimFactor"];
-        debugMsgSpf("Loaded backlightDimFactor: " + String(cc->backlightDimFactor));
+        debugMsgSpfX("Loaded backlightDimFactor: " + String(cc->backlightDimFactor));
 
         cc->testMode = json["testMode"].as<bool>();
-        debugMsgSpf("Loaded testMode: " + String(cc->testMode));
+        debugMsgSpfX("Loaded testMode: " + String(cc->testMode));
 
         cc->wasSetup = json["wasSetup"].as<bool>();
-        debugMsgSpf("Loaded wasSetup: " + String(cc->wasSetup));
+        debugMsgSpfX("Loaded wasSetup: " + String(cc->wasSetup));
 
         cc->WiFiSSID = json["WiFiSSID"].as<String>();
-        debugMsgSpf("Loaded WiFiSSID: " + String(cc->WiFiSSID));
+        debugMsgSpfX("Loaded WiFiSSID: " + String(cc->WiFiSSID));
 
         cc->WiFiPassword = json["WiFiPassword"].as<String>();
-        debugMsgSpf("Loaded WiFiPassword: " + String(cc->WiFiPassword));
+        debugMsgSpfX("Loaded WiFiPassword: " + String(cc->WiFiPassword));
 
         cc->WifiOnAtStart = json["WifiOnAtStart"].as<bool>();
-        debugMsgSpf("Loaded WifiOnAtStart: " + String(cc->WifiOnAtStart));
+        debugMsgSpfX("Loaded WifiOnAtStart: " + String(cc->WifiOnAtStart));
 
         cc->blinkenLightsMode = json["blinkenLightsMode"];
-        debugMsgSpf("Loaded blinkenLightsMode: " + String(cc->blinkenLightsMode));
+        debugMsgSpfX("Loaded blinkenLightsMode: " + String(cc->blinkenLightsMode));
 
         cc->slaveMode = json["slaveMode"];
-        debugMsgSpf("Loaded slaveMode: " + String(cc->slaveMode));
+        debugMsgSpfX("Loaded slaveMode: " + String(cc->slaveMode));
 
         cc->outputOnTime = json["outputOnTime"];
-        debugMsgSpf("Loaded outputOnTime: " + String(cc->outputOnTime));
+        debugMsgSpfX("Loaded outputOnTime: " + String(cc->outputOnTime));
 
         cc->backlightGradient = json["backlightGradient"];
-        debugMsgSpf("Loaded backlightGradient: " + String(cc->backlightGradient));
+        debugMsgSpfX("Loaded backlightGradient: " + String(cc->backlightGradient));
 
         loaded = true;
       }
@@ -205,19 +205,20 @@ bool SpiffsStorage_::getConfigFromSpiffs()
       {
         debugMsgSpf("failed to load json config");
       }
-      debugMsgSpf("Closing config file");
+      debugMsgSpfX("Closing config file");
 
       configFile.close();
     }
   }
   return loaded;
 }
+
 // ************************************************************
 // Save config back to the SPIFFS
 // ************************************************************
 void SpiffsStorage_::saveConfigToSpiffs()
 {
-  debugMsgSpf("saving config");
+  debugMsgSpf("Saving config");
 
   DynamicJsonBuffer jsonBuffer;
   JsonObject &json = jsonBuffer.createObject();
@@ -276,7 +277,7 @@ void SpiffsStorage_::saveConfigToSpiffs()
   File configFile = SPIFFS.open("/config/config.json", "w");
   if (!configFile)
   {
-    debugMsgSpf("failed to open config file for writing");
+    debugMsgSpf("Failed to open config file for writing");
 
     configFile.close();
     return;
@@ -285,6 +286,7 @@ void SpiffsStorage_::saveConfigToSpiffs()
   configFile.close();
   debugMsgSpf("Saved config");
 }
+
 // ************************************************************
 // Get the statistics from the SPIFFS
 // ************************************************************
@@ -294,12 +296,12 @@ bool SpiffsStorage_::getStatsFromSpiffs()
   if (SPIFFS.exists("/config/stats.json"))
   {
     // file exists, reading and loading
-    debugMsgSpf("reading stats file");
+    debugMsgSpf("Reading stats file");
 
     File statsFile = SPIFFS.open("/config/stats.json", "r");
     if (statsFile)
     {
-      debugMsgSpf("opened stats file");
+      debugMsgSpfX("opened stats file");
 
       size_t size = statsFile.size();
       // Allocate a buffer to store contents of the file.
@@ -309,21 +311,21 @@ bool SpiffsStorage_::getStatsFromSpiffs()
       JsonObject &json = jsonBuffer.parseObject(buf.get());
       if (json.success())
       {
-        debugMsgSpf("parsed stats json");
+        debugMsgSpfX("parsed stats json");
 
         cs->uptimeMins = json.get<unsigned long>("uptime");
-        debugMsgSpf("Loaded uptime: " + String(cs->uptimeMins));
+        debugMsgSpfX("Loaded uptime: " + String(cs->uptimeMins));
 
         cs->tubeOnTimeMins = json.get<unsigned long>("tubeontime");
-        debugMsgSpf("Loaded tubeontime: " + String(cs->tubeOnTimeMins));
+        debugMsgSpfX("Loaded tubeontime: " + String(cs->tubeOnTimeMins));
 
         loaded = true;
       }
       else
       {
-        debugMsgSpf("failed to load json config");
+        debugMsgSpf("Failed to load json config");
       }
-      debugMsgSpf("Closing stats file");
+      debugMsgSpfX("Closing stats file");
 
       statsFile.close();
     }
@@ -336,7 +338,7 @@ bool SpiffsStorage_::getStatsFromSpiffs()
 // ************************************************************
 void SpiffsStorage_::saveStatsToSpiffs()
 {
-  debugMsgSpf("saving stats");
+  debugMsgSpf("Saving stats");
   DynamicJsonBuffer jsonBuffer;
   JsonObject &json = jsonBuffer.createObject();
   json.set("uptime", cs->uptimeMins);
@@ -344,7 +346,7 @@ void SpiffsStorage_::saveStatsToSpiffs()
   File statsFile = SPIFFS.open("/config/stats.json", "w");
   if (!statsFile)
   {
-    debugMsgSpf("failed to open stats file for writing");
+    debugMsgSpf("Failed to open stats file for writing");
     statsFile.close();
     return;
   }
@@ -352,9 +354,191 @@ void SpiffsStorage_::saveStatsToSpiffs()
   statsFile.close();
   debugMsgSpf("Saved stats");
 }
-SpiffsStorage_ &SpiffsStorage_::getInstance()
-{
+
+// ************************************************************
+// Get the zones object from SPIFFS
+// ************************************************************
+void SpiffsStorage_::getZoneInfoFromSpiffs() {
+  if (SPIFFS.exists("/config/zones.json"))
+  {
+    // file exists, reading and loading
+    debugMsgSpfX("Reading zones file");
+
+    File zonesFile = SPIFFS.open("/config/zones.json", "r");
+    if (zonesFile) {
+      debugMsgSpfX("Opened zones file");
+
+      size_t size = zonesFile.size();
+      // Allocate a buffer to store contents of the file.
+      std::unique_ptr<char[]> buf(new char[size]);
+      zonesFile.readBytes(buf.get(), size);
+      JsonObject &zonesJson = _jsonBuffer.parseObject(buf.get());
+
+      #ifdef SPF_EXTENDED_DEBUG
+      debugMsgSpfX("DUMP cacheZonesFromSpiffs");
+      zonesJson.printTo(Serial);
+      debugMsgSpfX("\n");
+      #endif
+
+      if (zonesJson.success())
+      {
+        debugMsgSpfX("parsed zones json");
+
+        _cachedZonesObj = &zonesJson;
+      } else {
+        debugMsgSpf("Failed to load json zones");
+      }
+      debugMsgSpfX("Closing stats file");
+
+      zonesFile.close();
+    }
+  }
+}
+
+// ************************************************************
+// Get the number of Zone Areas
+// ************************************************************
+int SpiffsStorage_::getZoneAreaCountFromSpiffs() {
+  debugMsgSpfX("getZoneAreaCountFromSpiffs");
+  getZoneInfoFromSpiffs();
+  int count = 0;
+  for (JsonPair keyValue : *_cachedZonesObj) {
+    String key = String(keyValue.key);
+    count++;
+  }
+  debugMsgSpfX("getZoneAreaCountFromSpiffs count: " + String(count));
+  return count;
+}
+
+// ************************************************************
+// Get the given Zone Area
+// ************************************************************
+String SpiffsStorage_::getZoneAreaFromSpiffs(int index) {
+  debugMsgSpfX("getZoneAreaFromSpiffs idx: " + String(index));
+  getZoneInfoFromSpiffs();
+  int count = 0;
+  String result = "";
+  for (JsonPair keyValue : *_cachedZonesObj) {
+    String key = String(keyValue.key);
+    if (count == index) {
+      result = key;
+    }
+    count++;
+  }
+  debugMsgSpfX("getZoneAreaFromSpiffs result: " + result);
+  return result;
+}
+
+// ************************************************************
+// Get the number of Zone Locations in the Area
+// ************************************************************
+int SpiffsStorage_::getZoneLocationCountFromSpiffs(String location) {
+  debugMsgSpfX("getZoneLocationCountFromSpiffs for location: " + location);
+  getZoneInfoFromSpiffs();
+  int count = 0;
+
+  for (JsonPair keyValue : *_cachedZonesObj) {
+    String key = String(keyValue.key);
+
+    if (key == location) {
+      // String value = String(keyValue.value.as<char*>());
+      // debugMsgSpfX("Found location object: " + key + " with value " + value);
+      JsonObject &locationObj = keyValue.value.as<JsonObject>();
+
+      #ifdef SPF_EXTENDED_DEBUG
+      debugMsgSpfX("DUMP getZoneLocationCountFromSpiffs");
+      locationObj.printTo(Serial);
+      debugMsgSpfX("\n");
+      #endif
+
+      for (JsonPair keyValueLocation : locationObj) {
+        String key = String(keyValueLocation.key);
+        count++;
+      }
+    }
+  }
+  debugMsgSpfX("getZoneLocationCountFromSpiffs count: " + String(count));
+  return count;
+}
+
+// ************************************************************
+// Get a given Zone Locations in the Area
+// ************************************************************
+String SpiffsStorage_::getZoneLocationFromSpiffs(String location, int index) {
+  debugMsgSpfX("getZoneLocationFromSpiffs for location: " + location + " and index: " + String(index));
+  getZoneInfoFromSpiffs();
+  int count = 0;
+  String result = "";
+
+  for (JsonPair keyValue : *_cachedZonesObj) {
+    String key = String(keyValue.key);
+
+    if (key == location) {
+      // String value = String(keyValue.value.as<char*>());
+      // debugMsgSpfX("Found location object: " + key + " with value " + value);
+      JsonObject &locationObj = keyValue.value.as<JsonObject>();
+
+      #ifdef SPF_EXTENDED_DEBUG
+      debugMsgSpfX("DUMP getZoneLocationFromSpiffs");
+      locationObj.printTo(Serial);
+      debugMsgSpfX("\n");
+      #endif
+
+      for (JsonPair keyValueLocation : locationObj) {
+        String keyLocation = String(keyValueLocation.key);
+        if (count == index) {
+          result = keyLocation;
+        }
+        count++;
+      }
+    }
+  }
+  debugMsgSpfX("getZoneLocationFromSpiffs result: " + result);
+  return result;
+}
+
+// ************************************************************
+// Get the TZ of a given Zone Locations in the Area
+// ************************************************************
+String SpiffsStorage_::getLocationTZFromSpiffs(String location, int index) {
+  debugMsgSpfX("getLocationTZFromSpiffs for location: " + location + " and index: " + String(index));
+  getZoneInfoFromSpiffs();
+  int count = 0;
+  String result = "";
+
+  for (JsonPair keyValue : *_cachedZonesObj) {
+    String key = String(keyValue.key);
+
+    if (key == location) {
+      JsonObject &locationObj = keyValue.value.as<JsonObject>();
+
+      #ifdef SPF_EXTENDED_DEBUG
+      debugMsgSpfX("DUMP getLocationTZFromSpiffs");
+      locationObj.printTo(Serial);
+      debugMsgSpfX("\n");
+      #endif
+
+      for (JsonPair keyValueLocation : locationObj) {
+        String keyLocation = String(keyValueLocation.value.as<char*>());
+        if (count == index) {
+          result = keyLocation;
+        }
+        count++;
+      }
+    }
+  }
+  debugMsgSpfX("getLocationTZFromSpiffs result: " + result);
+  return result;
+}
+
+
+// ************************************************************
+// Internal plumbing
+// ************************************************************
+
+SpiffsStorage_ &SpiffsStorage_::getInstance() {
   static SpiffsStorage_ instance;
   return instance;
 }
+
 SpiffsStorage_ &spiffsStorage = spiffsStorage.getInstance();

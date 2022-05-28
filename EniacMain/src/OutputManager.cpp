@@ -408,8 +408,8 @@ void OutputManager_::processStunts() {
 // ************************************************************
 // The number of the next ACP mode
 // ************************************************************
-byte OutputManager_::getNextACPMode(byte modeNumber) {
-  byte nextNodeNumber = modeNumber+1;
+byte OutputManager_::getNextACPMode() {
+  byte nextNodeNumber = cc->acpMode + 1;
   if (nextNodeNumber > ACP_MODE_MAX) {
     nextNodeNumber = ACP_MODE_MIN;
   }
@@ -420,11 +420,8 @@ byte OutputManager_::getNextACPMode(byte modeNumber) {
 // ************************************************************
 // The name of the next ACP mode
 // ************************************************************
-String OutputManager_::getNextACPModeName(byte modeNumber) {
-  byte nextNodeNumber = modeNumber+1;
-  if (nextNodeNumber > ACP_MODE_MAX) {
-    nextNodeNumber = ACP_MODE_MIN;
-  }
+String OutputManager_::getNextACPModeName() {
+  byte nextNodeNumber = getNextACPMode();
 
   switch (nextNodeNumber) {
     case ACP_MODE_NONE: {
@@ -447,11 +444,21 @@ String OutputManager_::getNextACPModeName(byte modeNumber) {
   return "Unknown";
 }
 
+void OutputManager_::setACPMode(byte newMode) {
+  if (newMode > ACP_MODE_MAX) newMode = ACP_MODE_MAX;
+  if (newMode < ACP_MODE_MIN) newMode = ACP_MODE_MIN;
+  cc->acpMode = newMode;
+}
+
+void OutputManager_::setNextACPMode() {
+  cc->acpMode = getNextACPMode();
+}
+
 // ************************************************************
 // The number of the next Slots mode
 // ************************************************************
-byte OutputManager_::getNextSlotsMode(byte modeNumber) {
-  byte nextNodeNumber = modeNumber+1;
+byte OutputManager_::getNextSlotsMode() {
+  byte nextNodeNumber = cc->slotsMode + 1;
   if (nextNodeNumber > SLOTS_MODE_MAX) {
     nextNodeNumber = SLOTS_MODE_MIN;
   }
@@ -462,11 +469,8 @@ byte OutputManager_::getNextSlotsMode(byte modeNumber) {
 // ************************************************************
 // The name of the next ACP mode
 // ************************************************************
-String OutputManager_::getNextSlotsModeName(byte modeNumber) {
-  byte nextNodeNumber = modeNumber+1;
-  if (nextNodeNumber > SLOTS_MODE_MAX) {
-    nextNodeNumber = SLOTS_MODE_MIN;
-  }
+String OutputManager_::getNextSlotsModeName() {
+  byte nextNodeNumber = getNextSlotsMode();
 
   switch (nextNodeNumber) {
     case SLOTS_MODE_NONE: {
@@ -483,6 +487,16 @@ String OutputManager_::getNextSlotsModeName(byte modeNumber) {
     }
   } 
   return "Unknown";
+}
+
+void OutputManager_::setSlotsMode(byte newMode) {
+  if (newMode > SLOTS_MODE_MAX) newMode = SLOTS_MODE_MAX;
+  if (newMode < SLOTS_MODE_MIN) newMode = SLOTS_MODE_MIN;
+  cc->slotsMode = newMode;
+}
+
+void OutputManager_::setNextSlotsMode() {
+  cc->acpMode = getNextSlotsMode();
 }
 
 // ************************************************************

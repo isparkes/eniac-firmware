@@ -1,8 +1,19 @@
 #pragma once
 
 #include <Arduino.h>
+#include "Configuration.h"
 
 typedef void (*DebugCallback) (String);
+
+// Extended debug settings - these allow trace level debugging
+#define OTM_EXTENDED_DEBUG_OFF
+#define TZM_EXTENDED_DEBUG_OFF
+#define RTC_EXTENDED_DEBUG_OFF
+#define NTP_EXTENDED_DEBUG_OFF
+#define LDR_EXTENDED_DEBUG_OFF
+#define LED_EXTENDED_DEBUG_OFF
+#define WFM_EXTENDED_DEBUG_OFF
+#define SPF_EXTENDED_DEBUG_OFF
 
 // Basic debug settings
 #ifdef DEBUG_ON
@@ -20,7 +31,7 @@ typedef void (*DebugCallback) (String);
 #define debugMsgWbm(message) debugManager.debugMsg("[WEB]", message);
 #define debugMsgMnm(message) debugManager.debugMsg("[MNM]", message);
 #define debugMsgUtl(message) debugManager.debugMsg("[UTL]", message);
-#define debugMsgWfm(message) debugManager.debugMsg("[UTL]", message);
+#define debugMsgWfm(message) debugManager.debugMsg("[WFM]", message);
 #else
 #define debugMsgMain(message)
 #define debugMsgBlm(message)
@@ -39,13 +50,13 @@ typedef void (*DebugCallback) (String);
 #define debugMsgWfm(message)
 #endif
 
-// Extended debug settings - these allow trace level debugging
-#define OTM_EXTENDED_DEBUG_OFF
-#define TZM_EXTENDED_DEBUG_OFF
-#define RTC_EXTENDED_DEBUG_OFF
-#define NTP_EXTENDED_DEBUG_OFF
-#define LDR_EXTENDED_DEBUG_OFF
-#define LED_EXTENDED_DEBUG_OFF
+// Extended debug settings
+#ifdef SPF_EXTENDED_DEBUG
+#define debugMsgSpfX(message) debugManager.debugMsg("[UTL]", message);
+#else
+#define debugMsgSpfX(message)
+#endif
+
 
 class DebugManager_ {
   private:

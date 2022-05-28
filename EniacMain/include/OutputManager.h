@@ -113,10 +113,14 @@ class OutputManager_ {
     outputModes getOutputMode();
     void setOutputMode(outputModes newMode);
 
-    byte getNextACPMode(byte modeNumber);
-    String getNextACPModeName(byte modeNumber);
-    byte getNextSlotsMode(byte modeNumber);
-    String getNextSlotsModeName(byte modeNumber);
+    byte getNextACPMode();
+    String getNextACPModeName();
+    void setACPMode(byte newMode);
+    void setNextACPMode();
+    byte getNextSlotsMode();
+    String getNextSlotsModeName();
+    void setSlotsMode(byte newMode);
+    void setNextSlotsMode();
   private:
     int _acpOffset = 0;
     int _acpTick = 0;

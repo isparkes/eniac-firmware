@@ -46,12 +46,16 @@ class SlaveManager_ {
     void startSlaveI2C();
     void stopSlaveI2C();
     bool getSlaveMode();
+    String getNextSlaveModeName();
+    void setNextSlaveMode();
+    void setSlaveMode(byte newMode);
     void sendUpdateToSlaveI2C();
     void setSlaveModeViaSwitch(bool newSlaveStatus);
   private:
     bool _slaveModeStatus;
     bool _slaveModeOverrideStatus;
     byte _slaveModeFailCount;
+    byte getNextSlaveMode();
 };
 
 extern SlaveManager_ &slaveManager;

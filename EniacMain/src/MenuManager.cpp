@@ -9,10 +9,14 @@ void MenuManager_::mainMenu() {
   byte menuCount = 1;
   menuMode = menu;
   oledMenu.menuTitle = "Main Menu";
-  oledMenu.menuItems[menuCount] = "Wifi";       oledMenu.menuActions[menuCount++] = gotoWifiMenu;
-  oledMenu.menuItems[menuCount] = "Display";    oledMenu.menuActions[menuCount++] = gotoDisplayMenu;
-  oledMenu.menuItems[menuCount] = "Options";    oledMenu.menuActions[menuCount++] = gotoOptionsMenu;
-  oledMenu.menuItems[menuCount] = "Menu Off";   oledMenu.menuActions[menuCount++] = menuOff;
+  oledMenu.menuItems[menuCount] = "Wifi";            oledMenu.menuActions[menuCount++] = gotoWifiMenu;
+  oledMenu.menuItems[menuCount] = "Nixie Clock";     oledMenu.menuActions[menuCount++] = gotoDisplayMenu;
+  oledMenu.menuItems[menuCount] = "System";          oledMenu.menuActions[menuCount++] = gotoOptionsMenu;
+  if (tzManager.getPrimaryTimeSource() == TIME_SOURCE_RTC) {
+    // only set the time via encoder when we are running from RTC
+    oledMenu.menuItems[menuCount] = "Manual time set"; oledMenu.menuActions[menuCount++] = gotoTimeSetMenu;
+  }
+  oledMenu.menuItems[menuCount] = "Menu Off";        oledMenu.menuActions[menuCount++] = menuOff;
   oledMenu.noOfmenuItems = --menuCount;
 }
 
@@ -20,16 +24,14 @@ void MenuManager_::wifiMenu() {
   resetMenu();
   menuMode = menu;
   String onOffMsg;
-  String status = cc->WifiOnAtStart ? "off" : "on";
   byte menuCount = 1;
+  String wcTag = "("+String(wifiManager.getLastScanResultCount())+")";
   if (WiFi.isConnected()) {
     oledMenu.menuTitle = "WiFi Menu";           
-    oledMenu.menuItems[menuCount] = "WiFi start: "+ status;    oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
     oledMenu.menuItems[menuCount] = "Disconnect WiFi";         oledMenu.menuActions[menuCount++] = disconnectWifi;
     oledMenu.menuItems[menuCount] = "Reset WiFi";              oledMenu.menuActions[menuCount++] = resetWiFiInfo;
     oledMenu.menuItems[menuCount] = "Back";                    oledMenu.menuActions[menuCount++] = backToMain;
   } else {
-    oledMenu.noOfmenuItems = 8;
     oledMenu.menuTitle = "WiFi Menu";
     if (wifiManager.wifiCredentialsReceived()) {
       oledMenu.menuItems[menuCount] = "Reconnect previous";    oledMenu.menuActions[menuCount++] = reconnectPrevious;
@@ -37,46 +39,20 @@ void MenuManager_::wifiMenu() {
     oledMenu.menuItems[menuCount] = "Connect with WPS";        oledMenu.menuActions[menuCount++] = connectWPS;
     oledMenu.menuItems[menuCount] = "Start SmartConfig";       oledMenu.menuActions[menuCount++] = smartConfig;
     oledMenu.menuItems[menuCount] = "Open Access Point";       oledMenu.menuActions[menuCount++] = openAccessPoint;
-    oledMenu.menuItems[menuCount] = "Select SSID";             oledMenu.menuActions[menuCount++] = getSSIDList;
+    oledMenu.menuItems[menuCount] = "Scan Wifi";               oledMenu.menuActions[menuCount++] = scanWiFi;
+    oledMenu.menuItems[menuCount] = "Select WiFi " + wcTag;    oledMenu.menuActions[menuCount++] = showWifiSelection;
     oledMenu.menuItems[menuCount] = "Enter SSID";              oledMenu.menuActions[menuCount++] = enterWiFiSSID;
     oledMenu.menuItems[menuCount] = "Enter password";          oledMenu.menuActions[menuCount++] = enterWiFiPassword;
-    oledMenu.menuItems[menuCount] = "WiFi at start: "+ status; oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
-    oledMenu.menuItems[menuCount] = "Scan Wifi";               oledMenu.menuActions[menuCount++] = scanWiFi;
-    oledMenu.menuItems[menuCount] = "Select WiFi";             oledMenu.menuActions[menuCount++] = showWifiSelection;
-    oledMenu.menuItems[menuCount] = "reset WiFi";              oledMenu.menuActions[menuCount++] = resetWiFiInfo;
     oledMenu.menuItems[menuCount] = "Back";                    oledMenu.menuActions[menuCount++] = backToMain;
   }
   oledMenu.noOfmenuItems = --menuCount;
 }
 
-void MenuManager_::optionsMenu() {
+void MenuManager_::nixieClockMenu() {
   resetMenu();
   menuMode = menu;
   byte menuCount = 1;
-  oledMenu.menuTitle = "Options";
-  oledMenu.menuItems[menuCount] = "Restart Device"; oledMenu.menuActions[menuCount++] = restartClock;
-  if (tzManager.getPrimaryTimeSource() == TIME_SOURCE_RTC) {
-    // only set the time via encoder when we are running from RTC
-    oledMenu.menuItems[menuCount] = "Set Hours";      oledMenu.menuActions[menuCount++] = setHours;
-    oledMenu.menuItems[menuCount] = "Set minutes";    oledMenu.menuActions[menuCount++] = setMinutes;
-  }
-  oledMenu.menuItems[menuCount] = "Save config";    oledMenu.menuActions[menuCount++] = saveConfig;
-  oledMenu.menuItems[menuCount] = "Save stats";     oledMenu.menuActions[menuCount++] = saveStats;
-  #ifdef DIGIT_DIAGNOSTICS
-  oledMenu.menuItems[menuCount] = "Display Test";   oledMenu.menuActions[menuCount++] = displayTest;
-  #endif
-  #ifdef DEBUG_ON
-  oledMenu.menuItems[menuCount] = "Debug on 10m";   oledMenu.menuActions[menuCount++] = debugOn10mins;
-  #endif
-  oledMenu.menuItems[menuCount] = "Back";           oledMenu.menuActions[menuCount++] = backToMain;
-  oledMenu.noOfmenuItems = --menuCount;
-}
-
-void MenuManager_::displayMenu() {
-  resetMenu();
-  menuMode = menu;
-  byte menuCount = 1;
-  oledMenu.menuTitle = "display";
+  oledMenu.menuTitle = "Nixie Clock";
   String status = cc->useLDR ? "off" : "on";
   oledMenu.menuItems[menuCount] = "Tube Dimming " + status;     oledMenu.menuActions[menuCount++] = toggleTubeDimming;
   status =  cc->useBLDim ? "off" : "on";
@@ -91,21 +67,51 @@ void MenuManager_::displayMenu() {
   status = cc->scrollback ? "off" : "on";
   oledMenu.menuItems[menuCount] = "Scrollback " + status;       oledMenu.menuActions[menuCount++] = toggleScrollback;
   oledMenu.menuItems[menuCount] = "Set Dimming value";          oledMenu.menuActions[menuCount++] = setDimming;
-  String nextBLModeName = blinkenlightsManager.getNextBlinkenlightsModeName(cc->blinkenLightsMode);
-  oledMenu.menuItems[menuCount] = "BL mode: " + nextBLModeName; oledMenu.menuActions[menuCount++] = nextBlnknMode;
-  if (slaveManager.getSlaveMode()) {
-    oledMenu.menuItems[menuCount] = "Stop slave";               oledMenu.menuActions[menuCount++] = stopSlave;
-  } else {
-    oledMenu.menuItems[menuCount] = "Start slave";              oledMenu.menuActions[menuCount++] = startSlave;
-  }
+  String nextBLModeName = blinkenlightsManager.getNextBlinkenlightsModeName();
+  oledMenu.menuItems[menuCount] = "IND mode: " + nextBLModeName; oledMenu.menuActions[menuCount++] = nextBlnknMode;
+  String nextSlaveModeName = slaveManager.getNextSlaveModeName();
+  oledMenu.menuItems[menuCount] = "Slave Mode " + nextSlaveModeName; oledMenu.menuActions[menuCount++] = nextSlaveMode;
 
-  String nextACPMode = outputManager.getNextACPModeName(cc->acpMode);
+  String nextACPMode = outputManager.getNextACPModeName();
   oledMenu.menuItems[menuCount] = "ACP: " + nextACPMode;        oledMenu.menuActions[menuCount++] = setNextACPMode;
 
-  String nextSlotsMode = outputManager.getNextSlotsModeName(cc->slotsMode);
+  String nextSlotsMode = outputManager.getNextSlotsModeName();
   oledMenu.menuItems[menuCount] = "Date: " + nextSlotsMode;     oledMenu.menuActions[menuCount++] = setNextSlotsMode;
 
   oledMenu.menuItems[menuCount] = "Back";                       oledMenu.menuActions[menuCount++] = backToMain;
+  oledMenu.noOfmenuItems = --menuCount;
+}
+
+void MenuManager_::systemMenu() {
+  resetMenu();
+  menuMode = menu;
+  byte menuCount = 1;
+  oledMenu.menuTitle = "System";
+  oledMenu.menuItems[menuCount] = "Restart Device"; oledMenu.menuActions[menuCount++] = restartClock;
+  oledMenu.menuItems[menuCount] = "Save config";    oledMenu.menuActions[menuCount++] = saveConfig;
+  oledMenu.menuItems[menuCount] = "Save stats";     oledMenu.menuActions[menuCount++] = saveStats;
+  #ifdef DIGIT_DIAGNOSTICS
+  oledMenu.menuItems[menuCount] = "Display Test";   oledMenu.menuActions[menuCount++] = displayTest;
+  #endif
+  String status = cc->WifiOnAtStart ? "off" : "on";
+  oledMenu.menuItems[menuCount] = "WiFi at start: "+ status; oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
+  #ifdef DEBUG_ON
+  oledMenu.menuItems[menuCount] = "Debug on 10m";   oledMenu.menuActions[menuCount++] = debugOn10mins;
+  #endif
+  oledMenu.menuItems[menuCount] = "Set Location";   oledMenu.menuActions[menuCount++] = selectLocationArea;
+  oledMenu.menuItems[menuCount] = "Reset WiFi";     oledMenu.menuActions[menuCount++] = resetWiFiInfo;
+  oledMenu.menuItems[menuCount] = "Back";           oledMenu.menuActions[menuCount++] = backToMain;
+  oledMenu.noOfmenuItems = --menuCount;
+}
+
+void MenuManager_::setTimeMenu() {
+  resetMenu();
+  menuMode = menu;
+  byte menuCount = 1;
+  oledMenu.menuTitle = "Set Time";
+  oledMenu.menuItems[menuCount] = "Set Hours";      oledMenu.menuActions[menuCount++] = setHours;
+  oledMenu.menuItems[menuCount] = "Set minutes";    oledMenu.menuActions[menuCount++] = setMinutes;
+  oledMenu.menuItems[menuCount] = "Back";           oledMenu.menuActions[menuCount++] = backToMain;
   oledMenu.noOfmenuItems = --menuCount;
 }
 
@@ -115,18 +121,52 @@ void MenuManager_::wifiSelectMenu() {
   byte menuCount = 1;
   oledMenu.menuTitle = "Select network";
 
-  debugMsgMnm("Last result: " + String(wifiManager.getLastScanResultCount()));
+  int numberOfEntries = wifiManager.getLastScanResultCount() < maxmenuItems ? wifiManager.getLastScanResultCount() : maxmenuItems;
+  
+  // Leave some room for the "Back" option
+  numberOfEntries--;
+  debugMsgMnm("Showing entries: " + String(numberOfEntries));
 
-  for (int i = 0; i < wifiManager.getLastScanResultCount() ; i++) {
-    oledMenu.menuItems[menuCount] = wifiManager.getLastScanResultSSID(i);   oledMenu.menuActions[menuCount++] = startSlave;
+  if (wifiManager.getLastScanResultCount() < numberOfEntries) numberOfEntries = wifiManager.getLastScanResultCount();
+  for (int i = 0; i < numberOfEntries ; i++) {
+    oledMenu.menuItems[menuCount] = wifiManager.getLastScanResultSSID(i); oledMenu.menuActions[menuCount++] = selectWiFiSSID;
   }
-  oledMenu.menuItems[menuCount] = "Back";                       oledMenu.menuActions[menuCount++] = backToMain;
+  oledMenu.menuItems[menuCount] = "Back"; oledMenu.menuActions[menuCount++] = backToMain;
+  oledMenu.noOfmenuItems = --menuCount;
+}
+
+void MenuManager_::locationAreaMenu() {
+  resetMenu();
+  menuMode = menu;
+  byte menuCount = 1;
+  int numberOfEntries = spiffsStorage.getZoneAreaCountFromSpiffs();
+
+  oledMenu.menuTitle = "Location Area";
+  for (int i = 0; i < numberOfEntries ; i++) {
+    oledMenu.menuItems[menuCount] = spiffsStorage.getZoneAreaFromSpiffs(i); oledMenu.menuActions[menuCount++] = selectLocation;
+  }
+  oledMenu.menuItems[menuCount] = "Back";           oledMenu.menuActions[menuCount++] = backToMain;
+  oledMenu.noOfmenuItems = --menuCount;
+}
+
+void MenuManager_::locationMenu() {
+  resetMenu();
+  menuMode = menu;
+  byte menuCount = 1;
+  int numberOfEntries = spiffsStorage.getZoneLocationCountFromSpiffs(_chosenArea);
+
+  oledMenu.menuTitle = "Location";
+  for (int i = 0; i < numberOfEntries ; i++) {
+    oledMenu.menuItems[menuCount] = spiffsStorage.getZoneLocationFromSpiffs(_chosenArea, i); oledMenu.menuActions[menuCount++] = setLocation;
+  }
+  oledMenu.menuItems[menuCount] = "Back";           oledMenu.menuActions[menuCount++] = backToMain;
   oledMenu.noOfmenuItems = --menuCount;
 }
 
 // actions for menu selections are put in here
 void MenuManager_::menuActions(menuTargets selectedAction) {
   switch (selectedAction) {
+    // Top Level Menu & Management
     case noTarget: {
       break;
     }
@@ -144,24 +184,31 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       break;
     }
     case gotoOptionsMenu: {
-      optionsMenu();
+      systemMenu();
       break;
     }
     case gotoDisplayMenu: {
-      displayMenu();
+      nixieClockMenu();
+      break;
+    }
+    case gotoTimeSetMenu: {
+      setTimeMenu();
       break;
     }
     case menuOff: {
       resetMenu();
       break;
     }
-    case toggleWiFiAtStart: {
-      cc->WifiOnAtStart = ! cc->WifiOnAtStart;
+
+    // --------------------------------------------------
+    // "WiFi Menu Items"
+    case reconnectPrevious: {
+      wifiManager.connectToLastAP();
       wifiMenu();
       break;
     }
-    case getSSIDList: {
-      wifiManager.startScanWiFiNetworks();
+    case connectWPS: {
+      wifiManager.connectWithWPS();
       wifiMenu();
       break;
     }
@@ -170,13 +217,8 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       wifiMenu();
       break;
     }
-    case disconnectWifi: {
-      wifiManager.disconnectWiFi();
-      wifiMenu();
-      break;
-    }
-    case resetWiFiInfo: {
-      resetWiFi();
+    case openAccessPoint: {
+      wifiManager.openAccessPortal();
       wifiMenu();
       break;
     }
@@ -185,146 +227,18 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       wifiMenu();
       break;
     }
+    case selectWiFiSSID: {
+      setWiFiSSIDFromSelection();
+      wifiMenu();
+      break;
+    }
     case showWifiSelection: {
       wifiSelectMenu();
       break;
     }
-    case connectWPS: {
-      wifiManager.connectWithWPS();
+    case disconnectWifi: {
+      wifiManager.disconnectWiFi();
       wifiMenu();
-      break;
-    }
-    case reconnectPrevious: {
-      wifiManager.connectToLastAP();
-      wifiMenu();
-      break;
-    }
-    case openAccessPoint: {
-      wifiManager.openAccessPortal();
-      wifiMenu();
-      break;
-    }
-    case toggleTubeDimming: {
-      cc->useLDR = ! cc->useLDR;
-      displayMenu();
-      break;
-    }
-    case toggleBLDimming: {
-      cc->useBLDim = ! cc->useBLDim;
-      displayMenu();
-      break;
-    }
-    case setHours: {
-      setHourValue(saveHours);
-      break;
-    }
-    case setMinutes: {
-      setMinuteValue(saveMinutes);
-      break;
-    }
-    case saveHours: {
-      tm nowTm = tzManager.getRTCTimeAsLocalTimeTM();
-      nowTm.tm_hour = oledMenu.mValueEntered;
-      time_t newTime = tzManager.convertLocalTimeTMToUTC(nowTm);
-      rtcManager.setTimeFromUTCSource(newTime, true);
-      tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtcManager.getRTCTimeAsTimeT());
-      debugMsgMnm("New time = " + String(tzManager.gmtimeToReadableString(newTime)));
-      optionsMenu();
-      break;
-    }
-    case saveMinutes: {
-      tm nowTm = tzManager.getRTCTimeAsLocalTimeTM();
-      nowTm.tm_min = oledMenu.mValueEntered;
-      nowTm.tm_sec = 0;
-      time_t newTime = tzManager.convertLocalTimeTMToUTC(nowTm);
-      rtcManager.setTimeFromUTCSource(newTime, true);
-      tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtcManager.getRTCTimeAsTimeT());
-      debugMsgMnm("New time = " + tzManager.gmtimeToReadableString(newTime));
-      optionsMenu();
-      break;
-    }
-    case setDimming: {
-      setDimmingValue(saveDimming);
-      break;
-    }
-    case saveDimming: {
-      if (cc->useLDR) {
-        if (cc->minDim != oledMenu.mValueEntered) {
-          cc->minDim = oledMenu.mValueEntered;
-        }
-      } else {
-        if (cc->setDim != oledMenu.mValueEntered) {
-          cc->setDim = oledMenu.mValueEntered;
-        }
-      }
-      displayMenu();
-      break;
-    }
-    case nextBlnknMode: {
-      cc->blinkenLightsMode = blinkenlightsManager.getNextBlinkenlightsMode(cc->blinkenLightsMode);
-      displayMenu();
-      break;
-    }
-    case setNextACPMode: {
-      cc->acpMode = outputManager.getNextACPMode(cc->acpMode);
-      displayMenu();
-      break;
-    }
-    case setNextSlotsMode: {
-      cc->slotsMode = outputManager.getNextSlotsMode(cc->slotsMode);
-      displayMenu();
-      break;
-    }
-    case saveStats: {
-      spiffsStorage.saveStatsToSpiffs();
-      optionsMenu();
-      break;
-    }
-    case saveConfig: {
-      spiffsStorage.saveConfigToSpiffs();
-      optionsMenu();
-      break;
-    }
-    case restartClock: {
-      spiffsStorage.saveStatsToSpiffs();
-      flashMenuMessage("Restart","Restarting\nchronometer\ndevice now");
-      delay(1000);
-      ESP.restart();
-      break;
-    }
-    #ifdef DIGIT_DIAGNOSTICS
-    case displayTest: {
-      cc->diagsMode++;
-      if (cc->diagsMode > DIGIT_DIAGS_MODE_MAX) {
-        cc->diagsMode = DIGIT_DIAGS_MODE_MIN;
-      }
-      optionsMenu();
-      break;
-    }
-    #endif
-    case startSlave: {
-      slaveManager.startSlaveI2C();
-      displayMenu();
-      break;
-    }
-    case stopSlave: {
-      slaveManager.stopSlaveI2C();
-      displayMenu();
-      break;
-    }
-    case toggleHourMode: {
-      cc->hourMode = !cc->hourMode;
-      displayMenu();
-      break;
-    }
-    case toggleFade: {
-      cc->fade = !cc->fade;
-      displayMenu();
-      break;
-    }
-    case toggleScrollback: {
-      cc->scrollback = !cc->scrollback;
-      displayMenu();
       break;
     }
     case enterWiFiPassword: {
@@ -347,13 +261,159 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       wifiMenu();
       break;
     }
-    #ifdef DEBUG_ON
-    case debugOn10mins: {
-      debugManager.setDebugAutoOff(600);
-      displayMenu();
+
+    // --------------------------------------------------
+    // "Nixie Clock Menu Items"
+    case toggleTubeDimming: {
+      cc->useLDR = ! cc->useLDR;
+      nixieClockMenu();
+      break;
+    }
+    case toggleBLDimming: {
+      cc->useBLDim = ! cc->useBLDim;
+      nixieClockMenu();
+      break;
+    }
+    case toggleHourMode: {
+      cc->hourMode = !cc->hourMode;
+      nixieClockMenu();
+      break;
+    }
+    case toggleFade: {
+      cc->fade = !cc->fade;
+      nixieClockMenu();
+      break;
+    }
+    case toggleScrollback: {
+      cc->scrollback = !cc->scrollback;
+      nixieClockMenu();
+      break;
+    }
+    case setDimming: {
+      setDimmingValue(saveDimming);
+      break;
+    }
+    case saveDimming: {
+      if (cc->useLDR) {
+        if (cc->minDim != oledMenu.mValueEntered) {
+          cc->minDim = oledMenu.mValueEntered;
+        }
+      } else {
+        if (cc->setDim != oledMenu.mValueEntered) {
+          cc->setDim = oledMenu.mValueEntered;
+        }
+      }
+      nixieClockMenu();
+      break;
+    }
+    case nextBlnknMode: {
+      cc->blinkenLightsMode = blinkenlightsManager.getNextBlinkenlightsMode();
+      nixieClockMenu();
+      break;
+    }
+    case setNextSlotsMode: {
+      cc->slotsMode = outputManager.getNextSlotsMode();
+      nixieClockMenu();
+      break;
+    }
+    case setNextACPMode: {
+      cc->acpMode = outputManager.getNextACPMode();
+      nixieClockMenu();
+      break;
+    }
+
+    // --------------------------------------------------
+    // "System Menu Items"
+    case restartClock: {
+      spiffsStorage.saveStatsToSpiffs();
+      flashMenuMessage("Restart","Restarting\nchronometer\ndevice now");
+      delay(1000);
+      ESP.restart();
+      break;
+    }
+    case saveConfig: {
+      spiffsStorage.saveConfigToSpiffs();
+      systemMenu();
+      break;
+    }
+    case saveStats: {
+      spiffsStorage.saveStatsToSpiffs();
+      systemMenu();
+      break;
+    }
+    #ifdef DIGIT_DIAGNOSTICS
+    case displayTest: {
+      cc->diagsMode++;
+      if (cc->diagsMode > DIGIT_DIAGS_MODE_MAX) {
+        cc->diagsMode = DIGIT_DIAGS_MODE_MIN;
+      }
+      systemMenu();
       break;
     }
     #endif
+    case toggleWiFiAtStart: {
+      cc->WifiOnAtStart = ! cc->WifiOnAtStart;
+      wifiMenu();
+      break;
+    }
+    case nextSlaveMode: {
+      slaveManager.setNextSlaveMode();
+      nixieClockMenu();
+      break;
+    }
+    #ifdef DEBUG_ON
+    case debugOn10mins: {
+      debugManager.setDebugAutoOff(600);
+      nixieClockMenu();
+      break;
+    }
+    #endif
+    case resetWiFiInfo: {
+      resetWiFi();
+      wifiMenu();
+      break;
+    }
+    case selectLocationArea: {
+      locationAreaMenu();
+      break;
+    }
+    case selectLocation: {
+      _chosenArea = spiffsStorage.getZoneAreaFromSpiffs(oledMenu.selectedMenuItem - 1);
+      debugMsgMnm("Chose location area: " + _chosenArea);
+      locationMenu();
+      break;
+    }
+    case setLocation: {
+      String _chosenLocation = spiffsStorage.getZoneLocationFromSpiffs(_chosenArea, oledMenu.selectedMenuItem - 1);
+      debugMsgMnm("Chose location: " + _chosenLocation);
+      String _chosenTZ = spiffsStorage.getLocationTZFromSpiffs(_chosenArea, oledMenu.selectedMenuItem - 1);
+      debugMsgMnm("Chose TZ: " + _chosenTZ);
+      flashMenuMessage("TZ Set","Set TZ to\n" + _chosenTZ);
+      cc->tzs = _chosenTZ;
+      systemMenu();
+      break;
+    }
+
+    // --------------------------------------------------
+    // "Manual time set"
+    case setHours: {
+      setHourValue(saveHours);
+      break;
+    }
+    case setMinutes: {
+      setMinuteValue(saveMinutes);
+      break;
+    }
+    case saveHours: {
+      calculateAndSaveHourValue();
+      setTimeMenu();
+      break;
+    }
+    case saveMinutes: {
+      calculateAndSaveMinuteValue();
+      setTimeMenu();
+      break;
+    }
   }
 
   oledMenu.selectedMenuItem = noTarget;
@@ -459,30 +519,14 @@ void MenuManager_::flashMenuMessage(String heading, String message) {
   displayMessage(heading, message);  
 } 
 
+void MenuManager_::scrollMenuMessage(String message) {
+  resetTimeouts();
+  oled.showScrollingMessage(message);  
+} 
+
 // -------------------------------------------------------------------------------------------------
 //                                         menus above here
 // -------------------------------------------------------------------------------------------------
-
-// ----------------------------------------------------------------
-//                              -setup
-// ----------------------------------------------------------------
-// called from main setup
-
-// call the instance variable doEncoder()
-void doEncoderWrapper() {
-  menuManager.doEncoder();
-}
-
-void MenuManager_::setupMenuManager() {
-  // configure gpio pins for rotary encoder
-  pinMode(ENC_BTN, INPUT_PULLUP);
-  pinMode(ENC_APin, INPUT);
-  pinMode(ENC_BPin, INPUT);
-
-  // Interrupt for reading the rotary encoder position
-  rotaryEncoder.encoder0Pos = 0;
-  attachInterrupt(digitalPinToInterrupt(ENC_APin), doEncoderWrapper, CHANGE);
-}
 
 // ----------------------------------------------------------------
 //                              -loop
@@ -817,7 +861,6 @@ void MenuManager_::createList(String _title, int _noOfElements, String *_list) {
 
  }
 
-
 // ----------------------------------------------------------------
 //                        -reset menu system
 // ----------------------------------------------------------------
@@ -883,7 +926,9 @@ void ICACHE_RAM_ATTR MenuManager_::doEncoder() {
   }
 }
 
-// ---------------------------------------------- end ----------------------------------------------
+// ----------------------------------------------------------------
+//                        -utility functions
+// ----------------------------------------------------------------
 
 void MenuManager_::resetTimeouts() {
   // first press: wake up
@@ -927,6 +972,36 @@ int MenuManager_::getCurrentEncoderPos() {
   return rotaryEncoder.encoder0Pos;
 }
 
+void MenuManager_::calculateAndSaveHourValue() {
+  tm nowTm = tzManager.getRTCTimeAsLocalTimeTM();
+  nowTm.tm_hour = oledMenu.mValueEntered;
+  time_t newTime = tzManager.convertLocalTimeTMToUTC(nowTm);
+  rtcManager.setTimeFromUTCSource(newTime, true);
+  tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtcManager.getRTCTimeAsTimeT());
+  debugMsgMnm("New time = " + String(tzManager.gmtimeToReadableString(newTime)));
+}
+
+void MenuManager_::calculateAndSaveMinuteValue() {
+  tm nowTm = tzManager.getRTCTimeAsLocalTimeTM();
+  nowTm.tm_min = oledMenu.mValueEntered;
+  nowTm.tm_sec = 0;
+  time_t newTime = tzManager.convertLocalTimeTMToUTC(nowTm);
+  rtcManager.setTimeFromUTCSource(newTime, true);
+  tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtcManager.getRTCTimeAsTimeT());
+  debugMsgMnm("New time = " + tzManager.gmtimeToReadableString(newTime));
+}
+
+void MenuManager_::setWiFiSSIDFromSelection() {
+  debugMsgMnm("Selected option = " + String(oledMenu.selectedMenuItem));
+  String selectedWiFi = wifiManager.getLastScanResultSSID(oledMenu.selectedMenuItem - 1);
+  debugMsgMnm("Selected WiFi = " + selectedWiFi);
+  cc->WiFiSSID = selectedWiFi;
+}
+
+// ----------------------------------------------------------------
+//                              -hooks
+// ----------------------------------------------------------------
+
 // ************************************************************
 // Build the status display
 // ************************************************************
@@ -957,6 +1032,26 @@ void MenuManager_::menuOncePerSecond() {
 // ************************************************************
 void MenuManager_::menuOncePerHour() {
   // nothing at present
+}
+
+// ----------------------------------------------------------------
+//                        -internal plumbing
+// ----------------------------------------------------------------
+
+// call the instance variable doEncoder()
+void doEncoderWrapper() {
+  menuManager.doEncoder();
+}
+
+void MenuManager_::setupMenuManager() {
+  // configure gpio pins for rotary encoder
+  pinMode(ENC_BTN, INPUT_PULLUP);
+  pinMode(ENC_APin, INPUT);
+  pinMode(ENC_BPin, INPUT);
+
+  // Interrupt for reading the rotary encoder position
+  rotaryEncoder.encoder0Pos = 0;
+  attachInterrupt(digitalPinToInterrupt(ENC_APin), doEncoderWrapper, CHANGE);
 }
 
 // ************************************************************

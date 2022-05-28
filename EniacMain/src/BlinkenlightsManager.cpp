@@ -9,16 +9,16 @@
 #include "NTPManager.h"
 #include "TimeLib.h"
 
-byte BlinkenlightsManager_::getNextBlinkenlightsMode(byte currentMode) {
-  byte newMode = currentMode+1;
+byte BlinkenlightsManager_::getNextBlinkenlightsMode() {
+  byte newMode = cc->blinkenLightsMode + 1;
   if (newMode > BLNKN_MODE_MAX) {
     newMode = BLNKN_MODE_MIN;
   }
   return newMode;
 }
 
-String BlinkenlightsManager_::getNextBlinkenlightsModeName(byte currentMode) {
-  byte nextMode = getNextBlinkenlightsMode(currentMode);
+String BlinkenlightsManager_::getNextBlinkenlightsModeName() {
+  byte nextMode = getNextBlinkenlightsMode();
   switch(nextMode) {
     case BLNKN_MODE_STATUS: {
       return "Status";
@@ -34,7 +34,19 @@ String BlinkenlightsManager_::getNextBlinkenlightsModeName(byte currentMode) {
   }
 }
 
+void BlinkenlightsManager_::setNextBlinkenlightsMode() {
+  byte newMode = getNextBlinkenlightsMode();
+  debugMsgBlm("Set BL Mode: " + String(newMode));
+  cc->blinkenLightsMode = newMode;
+}
+
 void BlinkenlightsManager_::setBlinkenlightsMode(byte newMode) {
+  if (newMode > BLNKN_MODE_MAX) {
+    newMode = BLNKN_MODE_MAX;
+  }
+  if (newMode < BLNKN_MODE_MIN) {
+    newMode = BLNKN_MODE_MIN;
+  }
   debugMsgBlm("Set BL Mode: " + String(newMode));
   cc->blinkenLightsMode = newMode;
 }

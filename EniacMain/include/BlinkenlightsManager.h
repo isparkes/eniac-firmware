@@ -29,10 +29,11 @@ class BlinkenlightsManager_ {
 
   public:
     void setBlinkenlightsMode(byte newMode);
+    void setNextBlinkenlightsMode();
     void setBlinkenlightsExtern(blinkenlights_t *blext);
     void updateBlinkenlights();
-    byte getNextBlinkenlightsMode(byte currentMode);
-    String getNextBlinkenlightsModeName(byte modeNumber);
+    byte getNextBlinkenlightsMode();
+    String getNextBlinkenlightsModeName();
     blinkenlights_t* getBlinkenlights();
   private:
     blinkenlights_t blinkenLights;

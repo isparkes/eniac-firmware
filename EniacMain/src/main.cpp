@@ -114,7 +114,6 @@ void setup()
     return;
   }
 
-  debugMsgMain("Startup SPIFFS storage");
   bool statsLoaded = spiffsStorage.getStatsFromSpiffs();
 
   if (!statsLoaded) {

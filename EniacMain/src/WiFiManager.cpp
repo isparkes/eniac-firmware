@@ -116,7 +116,7 @@ void WiFiManager_::processScanResults() {
         debugMsgWfm("Add: " + WiFi.SSID(i));
         ssidList.add(WiFi.SSID(i));
       }
-      #ifdef DEBUG_ON
+      #ifdef WFM_EXTENDED_DEBUG
       // Print SSID and RSSI for each network found
       bool encrypted = WiFi.encryptionType(i) == WIFI_AUTH_OPEN;
       String msg = String(i) + " : " + WiFi.SSID(i) + " (" + WiFi.RSSI(i) + ")";
@@ -130,7 +130,9 @@ void WiFiManager_::processScanResults() {
       }
       result = result + WiFi.SSID(i);
     }
+    #ifdef WFM_EXTENDED_DEBUG
     debugMsgWfm("Returning network list: " + result);
+    #endif
     lastWiFiScan = result;
   }
 }
@@ -155,7 +157,7 @@ String WiFiManager_::getLastScanResultSSID(int index) {
 // http://www.iotsharing.com/2017/05/how-to-use-smartconfig-on-esp32.html
 // ************************************************************
 void WiFiManager_::startSmartConfig() {
-  menuManager.flashMenuMessage("Smartconfig", "Starting\nSmartconfig\nmode.");
+  menuManager.flashMenuMessage("Smartconfig", "Open Smartconfig\napp and enter\nyour information.");
   WiFi.disconnect();
   delay(500);
 
@@ -184,7 +186,7 @@ bool WiFiManager_::connectWithWPS() {
   if (WiFi.status() != WL_CONNECTED) {
     debugMsgWfm("Connect using WPS");
     // ToDo show this status better
-    menuManager.flashMenuMessage("WPS", "Connect using WPS");
+    menuManager.flashMenuMessage("WPS", "Press the WPS\nbutton on your\nrouter now.");
 
     WiFi.mode(WIFI_STA);
     delay(1000);

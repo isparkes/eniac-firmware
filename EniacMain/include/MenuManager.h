@@ -20,6 +20,7 @@ enum menuTargets {
   gotoWifiMenu,
   gotoOptionsMenu,
   gotoDisplayMenu,
+  gotoTimeSetMenu,
   menuOff,
 
   toggleWiFiAtStart,
@@ -28,10 +29,10 @@ enum menuTargets {
   connectWPS,
   reconnectPrevious,
   openAccessPoint,
-  getSSIDList,
   smartConfig,
   scanWiFi,
   showWifiSelection,
+  selectWiFiSSID,
   enterWiFiPassword,
   saveWiFiPassword,
   enterWiFiSSID,
@@ -54,9 +55,11 @@ enum menuTargets {
   saveStats,
   saveConfig,
   displayTest,
-  startSlave,
-  stopSlave,
-  debugOn10mins
+  nextSlaveMode,
+  debugOn10mins,
+  selectLocationArea,
+  selectLocation,
+  setLocation
 };
 
 // modes that the menu system can be in
@@ -129,7 +132,8 @@ class MenuManager_ {
     void setupMenuManager();
     void ICACHE_RAM_ATTR doEncoder();
     void flashMenuMessage(String heading, String message);
-    int getCurrentEncoderPos();
+    void scrollMenuMessage(String message);
+    int  getCurrentEncoderPos();
     void menuOncePerSecond();
     void menuOncePerHour();
     void menuLoop();
@@ -137,6 +141,7 @@ class MenuManager_ {
     menuModes menuMode = off;                 // default mode at startup is off
     oledMenus oledMenu;
     rotaryEncoders rotaryEncoder;
+    String _chosenArea;
 
     // trigger for Oled reset
     bool resetDisplay;
@@ -144,9 +149,13 @@ class MenuManager_ {
     // Menus
     void mainMenu();
     void wifiMenu();
-    void optionsMenu();
-    void displayMenu();
+    void systemMenu();
+    void nixieClockMenu();
     void wifiSelectMenu();
+    void setTimeMenu();
+    void locationAreaMenu();
+    void locationMenu();
+
     void menuActions(menuTargets selectedAction);
     void setDimmingValue(menuTargets target);
     void setHourValue(menuTargets target);
@@ -163,6 +172,10 @@ class MenuManager_ {
     void resetTimeouts();
     void countdownMenuTimeouts();
     void manageMenu();
+
+    void calculateAndSaveHourValue();
+    void calculateAndSaveMinuteValue();
+    void setWiFiSSIDFromSelection();
 };
 
 extern MenuManager_ &menuManager;
