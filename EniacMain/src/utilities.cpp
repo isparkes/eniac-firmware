@@ -696,7 +696,7 @@ void getWiFiNetworksHandler(AsyncWebServerRequest *request) {
   if (WiFi.isConnected()) {
     AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"connected\": \"true\", \"SSID\": \"" + WiFi.SSID() + "\"}");
     request->send(response);        
-    debugMsgUtl("Scan done");
+    debugMsgUtl("Scan aborted because we are already connected");
   } else {
     AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"connected\": \"false\", \"SSIDs\": \"" + lastWiFiScan + "\"}");
     request->send(response);        

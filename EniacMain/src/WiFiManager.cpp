@@ -110,11 +110,11 @@ void WiFiManager_::processScanResults() {
     menuManager.flashMenuMessage("Scan Done", "Found " + String(n) + " networks.");
     String result = "";
     for (int i = 0; i < n; ++i) {
-      if (ssidList.containsIgnoreCase(WiFi.SSID(i))) {
+      if (_ssidList.containsIgnoreCase(WiFi.SSID(i))) {
         debugMsgWfm("Already have: " + WiFi.SSID(i));
       } else {
         debugMsgWfm("Add: " + WiFi.SSID(i));
-        ssidList.add(WiFi.SSID(i));
+        _ssidList.add(WiFi.SSID(i));
       }
       #ifdef WFM_EXTENDED_DEBUG
       // Print SSID and RSSI for each network found
@@ -141,14 +141,14 @@ void WiFiManager_::processScanResults() {
 // Get the number of SSIDs we found so far
 // ************************************************************
 int WiFiManager_::getLastScanResultCount() {
-  return ssidList.length();
+  return _ssidList.length();
 }
 
 // ************************************************************
 // Get the nth entry in the SSID list
 // ************************************************************
 String WiFiManager_::getLastScanResultSSID(int index) {
-  auto ssid = ssidList.nth(index);
+  auto ssid = _ssidList.nth(index);
   return *ssid;
 }
 
@@ -223,9 +223,9 @@ void WiFiManager_::openAccessPortal() {
     debugMsgWfm("Setting soft-AP configuration ... ");
     WiFi.softAP(uniqHostname.c_str());
     delay(100);
-    debugMsgWfm("Soft-AP IP address = ");
-    debugMsgWfm(WiFi.softAPIP().toString());
+    debugMsgWfm("Soft-AP IP address: " + WiFi.softAPIP().toString());
     menuManager.flashMenuMessage("Portal", "Opened access\nportal at IP: " + WiFi.softAPIP().toString());
+    _isOpenAP = true;
   } else {
     menuManager.flashMenuMessage("Portal", "WiFi is already\nconnected to:\n" + WiFi.SSID());
   }
@@ -242,6 +242,36 @@ void WiFiManager_::startMDNS() {
   }
 
   MDNS.addService("http", "tcp", 80);
+}
+
+// ************************************************************
+// Start up DNS for captive portal capture
+// ************************************************************
+void WiFiManager_::startDNSD() {
+  dnsServer.reset(new DNSServer());
+
+  /* Setup the DNS server redirecting all the domains to the apIP */
+  dnsServer->setErrorReplyCode(DNSReplyCode::NoError);
+  debugMsgWfm("dns server started with ip: " + WiFi.softAPIP().toString());
+  dnsServer->start(DNS_PORT, F("*"), WiFi.softAPIP());
+}
+
+// ************************************************************
+// Stop DNS for captive portal capture
+// ************************************************************
+void WiFiManager_::stopDNSD() {
+  dnsServer->stop();
+  dnsServer.reset();
+}
+
+// ************************************************************
+// Reular update to allow DNS process to be managed while in
+// Captive Portal mode
+// ************************************************************
+void WiFiManager_::manageDNSInOpenAP() {
+  if (_isOpenAP) {
+    dnsServer->processNextRequest();
+  }
 }
 
 // ************************************************************

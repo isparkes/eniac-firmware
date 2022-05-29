@@ -72,7 +72,7 @@ public:
 
   void handleRequest(AsyncWebServerRequest *request) {
     debugMsgWbm("Sending captive page");
-    request->send(SPIFFS, "/portal.html", String(), false);
+    request->send(SPIFFS, "/web/portal.html", String(), false);
   }
 };
 
@@ -82,16 +82,10 @@ public:
 void WebManager_::beginPortal() {
   debugMsgWbm("Setting up server endpoints for Portal");
   server.reset();
-  server.serveStatic("/", SPIFFS, "/web/").setDefaultFile("portal.html");
 
   // serve the captive page
   server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);
 
-  // Summary and diagnostics
-  server.on("/api/getSummary", HTTP_GET, getSummaryDataHandler);
-  server.on("/api/getDiags", HTTP_GET, getDiagsDataHandler);
-  server.on("/api/postDiags", HTTP_POST, postDiagsDataHandler);
-  
   // wifi credentials
   server.on("/api/postWiFiCredentials", HTTP_POST, postWiFiCredentialsHandler);
   server.on("/api/credentials", HTTP_GET, getCredentialsHandler);
@@ -102,13 +96,12 @@ void WebManager_::beginPortal() {
   server.on("/utils/scanI2C", HTTP_GET, getI2CScanHandler);
   server.on("/utils/saveStats", HTTP_GET, saveStatsHandler);
 
+  // All your DNS requests are belong to us
+  wifiManager.startDNSD();
+
   debugMsgWbm("Start up web server");
 
   server.begin();
-
-  // All your requests are belong to us
-  DNSServer dnsServer;
-  dnsServer.start(53, "*", WiFi.softAPIP());
 }
 
 // ************************************************************

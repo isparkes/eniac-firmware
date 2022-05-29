@@ -10,6 +10,9 @@
 #include "WebManager.h"
 #include "MenuManager.h"
 #include "StringArray.h"
+#include <DNSServer.h>
+
+const byte    DNS_PORT                = 53;
 
 class WiFiManager_ {
   private:
@@ -41,9 +44,18 @@ class WiFiManager_ {
     void wifiBeginWithCredentials();
     void saveWiFiCredentials(String newWiFiSSID, String newWiFiPassword);
     void processScanResults();
-  private:
-    StringArray ssidList;
 
+    // For captive portal
+    void startDNSD();
+    void stopDNSD();
+    void manageDNSInOpenAP();
+
+  private:
+    StringArray _ssidList;
+    bool _isOpenAP = false;
+    std::unique_ptr<DNSServer>        dnsServer;    
+
+    // For resolving names to esp32xxxxx.local
     void startMDNS();
 };
 

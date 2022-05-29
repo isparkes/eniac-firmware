@@ -514,14 +514,20 @@ void MenuManager_::setStringValue(String title, menuTargets target, String initi
 }
 
 void MenuManager_::flashMenuMessage(String heading, String message) {
-  resetTimeouts();
-  flashTimeout = FLASH_TIME;
-  displayMessage(heading, message);  
+  // Only flash the message if the display is already on
+  if (!oled.getBlanked()) {
+    resetTimeouts();
+    flashTimeout = FLASH_TIME;
+    displayMessage(heading, message);
+  }
 } 
 
 void MenuManager_::scrollMenuMessage(String message) {
-  resetTimeouts();
-  oled.showScrollingMessage(message);  
+  // Only show the message if the display is already on
+  if (!oled.getBlanked()) {
+    resetTimeouts();
+    oled.showScrollingMessage(message);
+  }
 } 
 
 // -------------------------------------------------------------------------------------------------
