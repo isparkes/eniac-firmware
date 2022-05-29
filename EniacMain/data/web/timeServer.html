@@ -63,6 +63,13 @@
                 </div>
             </div>
             <div class="form-group">
+                <label class="control-label col-xs-6">Time Zone List:</label>
+                <div class="col-xs-4">
+                    <select class="form-control" name="tzList" id="tzList" onchange="selectTimezone()">
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
                 <label class="control-label col-xs-3" for="tzs">Time Zone String</label>
                 <div class="col-xs-8">
                     <input type="text" class="form-control" name="tzs" id="tzs" value="CET-1CEST,M3.5.0,M10.5.0/3">
@@ -108,13 +115,61 @@
         return deferred;
     };
 
+    getTimeServerZonesConfig = function getTimeServerZonesConfig() {
+        var deferred = $.Deferred();
+        console.log('get time server values');
+        var ajaxOptions = {
+            url: '/api/getZonesList',
+            type: 'GET',
+            Accept: 'application/json; charset=utf-8'
+        };
+        $.ajax(ajaxOptions).done(function (config) {
+            console.log("Received zone data: " + JSON.stringify(config));
+            deferred.resolve(config);
+        }).fail(function (jqXHR) {
+            console.log("Get api error " + jqXHR.status);
+            deferred.reject(jqXHR.status);
+        });
+        return deferred;
+    };
+
+    function addOptionToTZList(newVal, newText) {
+        var option = document.createElement("option");
+        option.value = newVal;
+        option.text = newText;
+        tzList.appendChild(option);
+    };
+
+    getZonesConfig = function () {
+        getTimeServerZonesConfig().then(function (zones) {
+            let count = 0;
+            const areas = Object.keys(zones);
+            for (var key in zones) {
+                if (zones.hasOwnProperty(key)) {
+                    for(tzlocation in zones[key]) {
+                        if(zones[key].hasOwnProperty(tzlocation)) {
+                            const tzEntry = key + "/" + tzlocation + " -> " + zones[key][tzlocation];
+                            console.log(tzEntry);
+                            addOptionToTZList(count, tzEntry);
+                            count++;
+                        }
+                    }
+                }
+            }
+        });
+    };
+
+    function selectTimezone(l) {
+        const selectedValue = tzList.options[tzList.value].text.split(' -> ')[1];
+        document.getElementById('tzs').value = selectedValue;
+    };
+        
     getConfig = function () {
         getTimeServerConfig().then(function (config) {
             $("#ntpPool").val(config.ntpPool);
             $("#ntpUpdateInterval").val(config.ntpUpdateInterval);
             $("#tzs").val(config.tzs);
-        })
-            .then(() => removeLoader());
+        });
     };
 
     postTimeServerConfig = function postTimeServerConfig() {
@@ -140,13 +195,11 @@
         return deferred;
     };
 
-    saveConfig = function () {
+    saveConfig = async function () {
         addLoader();
-        postTimeServerConfig()
-            .then(function (res) {
-                console.log("Saved config");
-                removeLoader();
-            });
+        await postTimeServerConfig();
+        console.log("Saved config");
+        removeLoader();
     };
 
     function addLoader() {
@@ -159,8 +212,14 @@
         });
     }
 
-    addLoader();
-    getConfig();
+    const loadData = async function() {
+        await addLoader();
+        await getConfig();
+        await getZonesConfig();
+        await removeLoader();
+    }
+
+    loadData();
 </script>
 
 </html>

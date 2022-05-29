@@ -61,6 +61,7 @@ void postDiagsDataHandler(AsyncWebServerRequest *request);
 
 void getTimeserverDataHandler(AsyncWebServerRequest *request);
 void postTimeserverDataHandler(AsyncWebServerRequest *request);
+void getZonesListDataHandler(AsyncWebServerRequest *request);
 
 void getConfigDataHandler(AsyncWebServerRequest *request);
 void postConfigDataHandler(AsyncWebServerRequest *request);

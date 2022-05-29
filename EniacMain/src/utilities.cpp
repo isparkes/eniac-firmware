@@ -639,6 +639,17 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
 }
 
 // ************************************************************
+// Time server page
+// ************************************************************
+void getZonesListDataHandler(AsyncWebServerRequest *request) {
+  debugMsgUtl("Got api timeserver zone list GET request");
+  
+  AsyncWebServerResponse* response = request->beginResponse(200, "text/json", spiffsStorage.getZoneConfigSpiffs());
+  request->send(response);        
+}
+
+
+// ************************************************************
 // WiFi
 // ************************************************************
 void getCredentialsHandler(AsyncWebServerRequest *request) {

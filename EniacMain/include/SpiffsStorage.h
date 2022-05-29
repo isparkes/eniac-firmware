@@ -32,6 +32,8 @@ class SpiffsStorage_
     bool getStatsFromSpiffs();
     void saveStatsToSpiffs();
 
+    String getZoneConfigSpiffs();
+
     int getZoneAreaCountFromSpiffs();
     String getZoneAreaFromSpiffs(int index);
 

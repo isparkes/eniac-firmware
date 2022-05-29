@@ -388,11 +388,36 @@ void SpiffsStorage_::getZoneInfoFromSpiffs() {
       } else {
         debugMsgSpf("Failed to load json zones");
       }
-      debugMsgSpfX("Closing stats file");
+      debugMsgSpfX("Closing zones file");
 
       zonesFile.close();
     }
   }
+}
+
+// ************************************************************
+// Get the zones object from SPIFFS and return as a string
+// Used for the web config page
+// ************************************************************
+String SpiffsStorage_::getZoneConfigSpiffs() {
+  debugMsgSpfX("getZoneConfigSpiffs");
+  String result = "";
+  if (SPIFFS.exists("/config/zones.json")) {
+    // file exists, reading and loading
+    debugMsgSpfX("Reading zones file");
+
+    File zonesFile = SPIFFS.open("/config/zones.json", "r");
+    if (zonesFile) {
+      debugMsgSpfX("Opened zones file");
+      result = zonesFile.readString();
+
+      debugMsgSpfX("Closing zones file");
+
+      zonesFile.close();
+    }
+  }
+
+  return result;
 }
 
 // ************************************************************

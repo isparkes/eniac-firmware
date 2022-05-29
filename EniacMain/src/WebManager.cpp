@@ -19,6 +19,7 @@ void WebManager_::begin() {
   // Configure time server
   server.on("/api/getTimeserver", HTTP_GET, getTimeserverDataHandler);
   server.on("/api/postTimeserver", HTTP_POST, postTimeserverDataHandler);
+  server.on("/api/getZonesList", HTTP_GET, getZonesListDataHandler);
   
   // Configure options
   server.on("/api/getConfig", HTTP_GET, getConfigDataHandler);
