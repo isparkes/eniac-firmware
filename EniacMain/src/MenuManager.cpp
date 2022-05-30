@@ -29,7 +29,6 @@ void MenuManager_::wifiMenu() {
   if (WiFi.isConnected()) {
     oledMenu.menuTitle = "WiFi Menu";           
     oledMenu.menuItems[menuCount] = "Disconnect WiFi";         oledMenu.menuActions[menuCount++] = disconnectWifi;
-    oledMenu.menuItems[menuCount] = "Reset WiFi";              oledMenu.menuActions[menuCount++] = resetWiFiInfo;
     oledMenu.menuItems[menuCount] = "Back";                    oledMenu.menuActions[menuCount++] = backToMain;
   } else {
     oledMenu.menuTitle = "WiFi Menu";
@@ -353,7 +352,7 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
     #endif
     case toggleWiFiAtStart: {
       cc->WifiOnAtStart = ! cc->WifiOnAtStart;
-      wifiMenu();
+      systemMenu();
       break;
     }
     case nextSlaveMode: {
@@ -364,13 +363,13 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
     #ifdef DEBUG_ON
     case debugOn10mins: {
       debugManager.setDebugAutoOff(600);
-      nixieClockMenu();
+      systemMenu();
       break;
     }
     #endif
     case resetWiFiInfo: {
       resetWiFi();
-      wifiMenu();
+      systemMenu();
       break;
     }
     case selectLocationArea: {
