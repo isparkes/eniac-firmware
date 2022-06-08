@@ -26,7 +26,8 @@
 #define SLAVE_MODE_100THS               0
 #define SLAVE_MODE_DATE                 1
 #define SLAVE_MODE_SECS                 2
-#define SLAVE_MODE_MAX                  2
+#define SLAVE_MODE_OFF                  3
+#define SLAVE_MODE_MAX                  3
 #define SLAVE_MODE_DEFAULT              0
 
 class SlaveManager_ {
