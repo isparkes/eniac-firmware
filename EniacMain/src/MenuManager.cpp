@@ -77,6 +77,14 @@ void MenuManager_::nixieClockMenu() {
   String nextSlotsMode = outputManager.getNextSlotsModeName();
   oledMenu.menuItems[menuCount] = "Date: " + nextSlotsMode;     oledMenu.menuActions[menuCount++] = setNextSlotsMode;
 
+  String nextBlankMode = blankingManager.getNextBlankingModeName();
+  oledMenu.menuItems[menuCount] = "Blank: " + nextBlankMode;    oledMenu.menuActions[menuCount++] = setNextBlankingMode;
+
+  if(blankingManager.getCurrentModeWantsHours()) {
+    oledMenu.menuItems[menuCount] = "Blank start hour";          oledMenu.menuActions[menuCount++] = setBlankingHourStart;
+    oledMenu.menuItems[menuCount] = "Blank end hour";            oledMenu.menuActions[menuCount++] = setBlankingHourEnd;
+  }
+
   oledMenu.menuItems[menuCount] = "Back";                       oledMenu.menuActions[menuCount++] = backToMain;
   oledMenu.noOfmenuItems = --menuCount;
 }
@@ -320,6 +328,29 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       nixieClockMenu();
       break;
     }
+    case setNextBlankingMode: {
+      cc->dayBlanking = blankingManager.getNextBlankingMode();
+      nixieClockMenu();
+      break;
+    }
+    case setBlankingHourStart: {
+      setHourValue("Blank start hour", cc->blankHourStart, saveBlankHourStart);
+      break;
+    }
+    case saveBlankHourStart: {
+      cc->blankHourStart = oledMenu.mValueEntered;
+      nixieClockMenu();
+      break;
+    }
+    case setBlankingHourEnd: {
+      setHourValue("Blank end hour", cc->blankHourEnd, saveBlankHourEnd);
+      break;
+    }
+    case saveBlankHourEnd: {
+      cc->blankHourEnd = oledMenu.mValueEntered;
+      nixieClockMenu();
+      break;
+    }
 
     // --------------------------------------------------
     // "System Menu Items"
@@ -396,7 +427,7 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
     // --------------------------------------------------
     // "Manual time set"
     case setHours: {
-      setHourValue(saveHours);
+      setHourValue("Set hour", hour(), saveHours);
       break;
     }
     case setMinutes: {
@@ -478,14 +509,14 @@ void MenuManager_::setDimmingValue(menuTargets target) {
   oledMenu.nextTarget = target;          // action to call when button pressed
 }
 
-void MenuManager_::setHourValue(menuTargets target) {
+void MenuManager_::setHourValue(String title, byte startValue, menuTargets target) {
   resetMenu();                           // clear any previous menu
   menuMode = value;                      // enable value entry
-  oledMenu.menuTitle = "Set hours";      // title (used to identify which number was entered)
+  oledMenu.menuTitle = title;            // title (used to identify which number was entered)
   oledMenu.mValueLow = 0;                // minimum value allowed
   oledMenu.mValueHigh = 23;              // maximum value allowed
   oledMenu.mValueStep = 1;               // step size
-  oledMenu.mValueEntered = hour();      // starting value
+  oledMenu.mValueEntered = startValue;   // starting value
   oledMenu.nextTarget = target;          // action to call when button pressed
 }
 

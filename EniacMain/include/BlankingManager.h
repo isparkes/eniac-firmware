@@ -69,6 +69,9 @@ class BlankingManager_ {
     bool getCurrentBlankingStatus();
     bool getCurrentBlankingIndicator();
     void setCurrentLEDBlankingOverrride(bool newLEDOverrideStatus);
+    String getNextBlankingModeName();
+    byte getNextBlankingMode();
+    bool getCurrentModeWantsHours();
     int  getBlankAge();
     String getBlankingReason();
   private:

@@ -9,7 +9,7 @@
 
 #define BUTTONPRESSEDSTATE 0              // rotary encoder gpio pin logic level when the button is pressed (usually 0)
 #define DEBOUNCEDELAY 100                 // debounce delay for button inputs
-#define maxmenuItems 12                   // max number of items used in any of the menus (keep as low as possible to save memory)
+#define maxmenuItems 15                   // max number of items used in any of the menus (keep as low as possible to save memory)
 
 enum menuTargets {
   noTarget,
@@ -48,6 +48,11 @@ enum menuTargets {
   toggleScrollback,
   setNextACPMode,
   setNextSlotsMode,
+  setNextBlankingMode,
+  setBlankingHourStart,
+  setBlankingHourEnd,
+  saveBlankHourStart,
+  saveBlankHourEnd,
 
   setHours, saveHours,
   setMinutes, saveMinutes,
@@ -158,7 +163,7 @@ class MenuManager_ {
 
     void menuActions(menuTargets selectedAction);
     void setDimmingValue(menuTargets target);
-    void setHourValue(menuTargets target);
+    void setHourValue(String title, byte startValue, menuTargets target);
     void setMinuteValue(menuTargets target);
     void setStringValue(String title, menuTargets target, String intialValue);
 

@@ -60,30 +60,26 @@ void SlaveManager_::sendUpdateToSlaveI2C() {
 
     debugMsgSlv("Slave update: mode: " + String(cc->slaveMode) + "," + String(second()) + "," + String(month()) + "," + String(day()) + "," + String(dimmingPct));
 
-    byte error = 0;
+    Wire.beginTransmission(SLAVE_MODULE_I2C_ADDRESS);
     switch (cc->slaveMode) {
-      case SLAVE_MODE_100THS: {
-        Wire.beginTransmission(SLAVE_MODULE_I2C_ADDRESS);
+      case SLAVE_MODE_DIMMING: {
         Wire.write((uint8_t)0x1a);
         Wire.write((uint8_t)dimmingPct);
         Wire.write((uint8_t)0x1a);
-        byte error = Wire.endTransmission();
         break;
       }
       case SLAVE_MODE_DATE: {
-        Wire.beginTransmission(SLAVE_MODULE_I2C_ADDRESS);
         Wire.write((uint8_t)0x1b);
         Wire.write((uint8_t)day());
         Wire.write((uint8_t)month());
         Wire.write((uint8_t)0x1b);
-        byte error = Wire.endTransmission();
         break;
       }
+      case SLAVE_MODE_100THS:
       case SLAVE_MODE_SECS: {
-        Wire.beginTransmission(SLAVE_MODULE_I2C_ADDRESS);
         Wire.write((uint8_t)0x1c);
         Wire.write((uint8_t)second());
-        byte error = Wire.endTransmission();
+        Wire.write((uint8_t)0x1c);
         break;
       }
       case SLAVE_MODE_OFF: {
@@ -94,6 +90,7 @@ void SlaveManager_::sendUpdateToSlaveI2C() {
       }
     }
 
+    byte error = Wire.endTransmission();
 
     if (error == 0) {
       debugMsgSlv("Sent slave update");

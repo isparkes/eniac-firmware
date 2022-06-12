@@ -229,13 +229,66 @@ String BlankingManager_::getBlankingReason() {
   } else {
     return "Not blanked";
   }
+}
 
+// ************************************************************
+// The next mode name
+// ************************************************************
+String BlankingManager_::getNextBlankingModeName() {
+  switch(getNextBlankingMode()) {
+    case DAY_BLANKING_NEVER:
+      return "off";
+      break;
+    case DAY_BLANKING_HOURS:
+      return "hours";
+      break;
+    case DAY_BLANKING_WEEKEND:
+      return "weekend";
+      break;
+    case DAY_BLANKING_WEEKEND_OR_HOURS:
+      return "weekday or hours";
+      break;
+    case DAY_BLANKING_WEEKEND_AND_HOURS:
+      return "weekend & hours";
+      break;
+    case DAY_BLANKING_WEEKDAY:
+      return "weekday";
+      break;
+    case DAY_BLANKING_WEEKDAY_OR_HOURS:
+      return "weekday or hours";
+      break;
+    case DAY_BLANKING_WEEKDAY_AND_HOURS:
+      return "weekday & hours";
+      break;
+    case DAY_BLANKING_ALWAYS:
+      return "always";
+      break;
+    default:
+      return "unknown";
+      break;
+  }
+}
+
+// ************************************************************
+// If we should accept hours settings
+// ************************************************************
+bool BlankingManager_::getCurrentModeWantsHours() {
+  return (cc->dayBlanking > 3);
+}
+
+// ************************************************************
+// The next mode
+// ************************************************************
+byte BlankingManager_::getNextBlankingMode() {
+  byte nextMode = cc->dayBlanking + 1;
+  if (nextMode > DAY_BLANKING_MAX) nextMode = DAY_BLANKING_MIN;
+  return nextMode;
 }
 
 // ************************************************************
 // How long ago we last saw movement
 // ************************************************************
-int  BlankingManager_::getBlankAge()
+int BlankingManager_::getBlankAge()
 {
     int lastMotionDetection = (nowMillis - _pirLastSeen) / 1000.0;
     return lastMotionDetection;
