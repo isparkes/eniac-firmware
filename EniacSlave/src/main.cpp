@@ -151,6 +151,7 @@ boolean blankLEDs = false;
 // State variables for detecting changes
 unsigned long nowMillis = 0;
 unsigned long lastCheckMillis = 0;
+unsigned long hundredthsMillis = 0;
 boolean triggeredThisSec = false;
 
 boolean blanked = false;
@@ -685,41 +686,79 @@ void outputDisplay()
 //**********************************************************************************
 //**********************************************************************************
 
-#define I2C_SET_SLAVE_DATA     0x1A
-#define I2C_SET_SLAVE_DATE     0x1B
-#define I2C_SET_SLAVE_SECS     0x1C
+#define SLAVE_MODE_DIMMING              0
+#define SLAVE_MODE_100THS               1
+#define SLAVE_MODE_DATE                 2
+#define SLAVE_MODE_SECS                 3
+#define SLAVE_MODE_OFF                  4
+#define SLAVE_MODE_MAX                  4
+
 /**
  * receive information from the master
  */
 void receiveEvent(int bytes) {
   // the operation tells us what we are getting
-  int operation    = Wire.read();
-      secondToShow = Wire.read();
-      dateToShow   = Wire.read();
-      monthToShow  = Wire.read();
-      dimming      = Wire.read();
+  int operation = Wire.read();
+  int dimming = -1;
+  int checksum = -1;
+  int secs = -1;
+  int day = -1;
+  int month = -1;
 
   switch (operation) {
-    case I2C_SET_SLAVE_DATA: {
-      slaveDisplayMode = hundredthsMode;
+    case SLAVE_MODE_DIMMING:
+    case SLAVE_MODE_OFF: {
+      dimming  = Wire.read();
+      checksum = Wire.read();
+      break;
+    }
+    case SLAVE_MODE_100THS:
+    case SLAVE_MODE_SECS: {
+      secs = Wire.read();
+      checksum = Wire.read();
       break;      
     }
-    case I2C_SET_SLAVE_DATE: {
-      slaveDisplayMode = dateMode;
-      break;      
-    }
-    case I2C_SET_SLAVE_SECS: {
-      slaveDisplayMode = secondsMode;
+    case SLAVE_MODE_DATE: {
+      day = Wire.read();
+      month = Wire.read();
+      checksum = Wire.read();
       break;      
     }
   }
 
-  // detect the blanking status
-  blanked = (dimming == 0);
+  if (operation == checksum) {
+    // we got a transmission
+    switch (operation) {
+      case SLAVE_MODE_DIMMING:
+      case SLAVE_MODE_OFF: {
+        // detect the blanking status
+        blanked = (dimming == 0);
 
-  // set the dimming
-  digitOffCount = dimming * 10;
-  if (digitOffCount > DIGIT_DISPLAY_OFF) digitOffCount = DIGIT_DISPLAY_OFF;
+        // set the dimming
+        digitOffCount = dimming * 10;
+        if (digitOffCount > DIGIT_DISPLAY_OFF) digitOffCount = DIGIT_DISPLAY_OFF;
+        break;
+      }
+      case SLAVE_MODE_100THS: {
+        hundredthsMillis = nowMillis;
+        slaveDisplayMode = hundredthsMode;
+        break;      
+      }
+      case SLAVE_MODE_SECS: {
+        slaveDisplayMode = secondsMode;
+        secondToShow = secs;
+        break;      
+      }
+      case SLAVE_MODE_DATE: {
+        slaveDisplayMode = dateMode;
+        dateToShow   = day;
+        monthToShow  = month;
+        break;      
+      }
+    }
+  } else {
+    // There was an error in the receive, don't update anything
+  }
 }
 
 /**
@@ -800,8 +839,8 @@ void loop()
   
   // -------------------------------------------------------------------------------
 
-  hundredths++;
-  if (hundredths > 99) hundredths = 0;
+  unsigned long hundredthsDelta = (nowMillis - hundredthsMillis)/10;
+  hundredths = (byte) hundredthsDelta;
 
   // -------------------------------------------------------------------------------
 
