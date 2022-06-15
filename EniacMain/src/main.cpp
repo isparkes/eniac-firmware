@@ -222,8 +222,10 @@ void setup()
   enableWatchdog();
   // -------------------------------------------------------------------------
   
+  #ifdef SLAVE_OUTPUT
   debugMsgMain("Start up Slave");
   slaveManager.testSlave();
+  #endif
 
 }
 
@@ -381,7 +383,9 @@ void performOncePerSecondProcessing() {
 
   triggerOnePulsePerSec();
 
+  #ifdef SLAVE_OUTPUT
   slaveManager.sendUpdateToSlaveI2C();
+  #endif
 
   debugManager.debugAutoOffCheck();
 

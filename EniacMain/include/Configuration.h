@@ -28,7 +28,7 @@
 // -------------------------------------------------------------------------------
 
 // include the NeoPixels in the separator towers
-#define FEATURE_SEP_LED             // FEATURE_SEP_LED | FEATURE_SEP_LED_OFF
+#define FEATURE_SEP_LED_OFF         // FEATURE_SEP_LED | FEATURE_SEP_LED_OFF
 
 // Define the type of NeoPixels
 #define WS2812B                     // APA106, WS2812B
@@ -38,6 +38,9 @@
 
 // If we output the underlight string reversed
 #define NORMAL_UL_OUTPUT            // REVERSE_UL_OUTPUT | NORMAL_UL_OUTPUT
+
+// If we want a slave or not
+#define SLAVE_OUTPUT_OFF            // SLAVE_OUTPUT | SLAVE_OUTPUT_OFF
 
 // -------------------------------------------------------------------------------
 

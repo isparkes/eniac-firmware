@@ -570,7 +570,11 @@ void OutputManager_::processSeparators() {
   #ifdef COG_CRANK_OUTPUT
   _indLed1 = (cogCrankSecsLeft > 0);
   #else
+  #ifdef SLAVE_OUTPUT
   _indLed1 = slaveManager.getSlaveMode();
+  #else
+  _indLed1 = false;
+  #endif
   #endif
   _indLed2 = upOrDown;
 }

@@ -123,7 +123,7 @@ byte dateToShow;
 byte monthToShow;
 byte dimming;
 byte secondToShow;
-byte hundredths;
+int hundredths;
 
 // how many fade steps to increment (out of DIGIT_DISPLAY_COUNT) each impression
 // 100 is about 1 second
@@ -229,7 +229,9 @@ void performOncePerSecondProcessing() {
   // Change the direction of the pulse
   upOrDown = !upOrDown;
 
-  setTubesAndLEDSBlankMode();
+  // setTubesAndLEDSBlankMode();
+
+  Serial.println("H: " + String(hundredths));
 
   // feed the watchdog
   wdt_reset();
@@ -796,13 +798,16 @@ void setup()
 
   setAllLEDs(0,0,0);
 
+  Serial.begin(115200);
+  Serial.println("Start");
+
   // **********************************************************************
 
   // Set up the LED output
   leds.Begin();
 
   // reset the LEDs
-  setLeds();
+  //setLeds();
 
   // initialise the internal time (in case we don't find the time provider)
   nowMillis = millis();
@@ -842,6 +847,8 @@ void loop()
   unsigned long hundredthsDelta = (nowMillis - hundredthsMillis)/10;
   hundredths = (byte) hundredthsDelta;
 
+  hundredths = hundredths % 100;
+
   // -------------------------------------------------------------------------------
 
   // get the LDR ambient light reading
@@ -862,8 +869,5 @@ void loop()
     }
   }
   outputDisplay();
-
-  // Prepare the tick and backlight LEDs
-  setLeds();
 }
 

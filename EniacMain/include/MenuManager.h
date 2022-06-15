@@ -60,7 +60,9 @@ enum menuTargets {
   saveStats,
   saveConfig,
   displayTest,
+  #ifdef SLAVE_OUTPUT
   nextSlaveMode,
+  #endif
   debugOn10mins,
   selectLocationArea,
   selectLocation,

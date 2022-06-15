@@ -68,8 +68,10 @@ void MenuManager_::nixieClockMenu() {
   oledMenu.menuItems[menuCount] = "Set Dimming value";          oledMenu.menuActions[menuCount++] = setDimming;
   String nextBLModeName = blinkenlightsManager.getNextBlinkenlightsModeName();
   oledMenu.menuItems[menuCount] = "IND mode: " + nextBLModeName; oledMenu.menuActions[menuCount++] = nextBlnknMode;
+  #ifdef SLAVE_OUTPUT
   String nextSlaveModeName = slaveManager.getNextSlaveModeName();
   oledMenu.menuItems[menuCount] = "Slave Mode " + nextSlaveModeName; oledMenu.menuActions[menuCount++] = nextSlaveMode;
+  #endif
 
   String nextACPMode = outputManager.getNextACPModeName();
   oledMenu.menuItems[menuCount] = "ACP: " + nextACPMode;        oledMenu.menuActions[menuCount++] = setNextACPMode;
@@ -386,11 +388,13 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       systemMenu();
       break;
     }
+    #ifdef SLAVE_OUTPUT
     case nextSlaveMode: {
       slaveManager.setNextSlaveMode();
       nixieClockMenu();
       break;
     }
+    #endif
     #ifdef DEBUG_ON
     case debugOn10mins: {
       debugManager.setDebugAutoOff(600);
