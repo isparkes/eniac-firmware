@@ -384,8 +384,8 @@ void performOncePerSecondProcessing() {
   triggerOnePulsePerSec();
 
   #ifdef SLAVE_OUTPUT
-  slaveManager.sendUpdateToSlaveI2C();
-  slaveManager.setSlaveModeViaSwitch(digitalRead(BTN1Pin) == LOW);
+  slaveManager.updateOncePerSecond();
+  slaveManager.setSlaveEnabled(digitalRead(BTN1Pin) == HIGH);
   #endif
 
   debugManager.debugAutoOffCheck();
@@ -416,6 +416,8 @@ void performOncePerMinuteProcessing() {
 
   // manage the primary source - it might have changed
   tzManager.getPrimaryTimeSource();
+
+  slaveManager.updateOncePerMinute();
 }
 
 // ************************************************************

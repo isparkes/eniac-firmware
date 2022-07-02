@@ -566,17 +566,18 @@ void OutputManager_::processSeparators() {
       }
   }
 
-  // will probably think of something better sooner or later  
+  // will probably think of something better sooner or later
+  // Remember that the LEDs are inverted: The work as active low
   #ifdef COG_CRANK_OUTPUT
-  _indLed1 = (cogCrankSecsLeft > 0);
+  _indLed1 = !(cogCrankSecsLeft > 0);
   #else
   #ifdef SLAVE_OUTPUT
-  _indLed1 = slaveManager.getSlaveMode();
+  _indLed1 = !slaveManager.getSlaveMode();
   #else
   _indLed1 = false;
   #endif
   #endif
-  _indLed2 = upOrDown;
+  _indLed2 = !upOrDown;
 }
 
 // ************************************************************

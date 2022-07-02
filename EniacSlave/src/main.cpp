@@ -5,11 +5,15 @@
 #include <avr/io.h>
 #include <Wire.h>
 //#include <avr/wdt.h>
+#include <TimeLib.h>            // https://playground.arduino.cc/Code/Time/ (Margolis 1.5.0)
 
 #include <NeoPixelBus.h>        // https://github.com/Makuna/NeoPixelBus (Makuna 2.6.2)
 
 // Other parts of the code, broken out for clarity
 #include "DisplayDefs.h"
+
+// Use the NeoPixels to tell us about the I2C status
+#define DIAG_BACKLIGHTS_OFF
 
 #define WS2812                  // WS2812, APA106
 #define NORMAL_LEDS             // NORMAL_LEDS, FLIP_LEDS
@@ -50,13 +54,6 @@ const int DIM_VALUE = DIGIT_DISPLAY_COUNT / 5;
 // Clock modes - normal running is MODE_TIME, other modes accessed by a middle length ( 1S < press < 2S ) button press
 #define MODE_TIME                       0
 #define MODE_MIN                        MODE_TIME
-
-#define BLANK_MODE_MIN                  0
-#define BLANK_MODE_TUBES                0  // Use blanking for tubes only 
-#define BLANK_MODE_LEDS                 1  // Use blanking for LEDs only
-#define BLANK_MODE_BOTH                 2  // Use blanking for tubes and LEDs
-#define BLANK_MODE_MAX                  2
-#define BLANK_MODE_DEFAULT              2
 
 #define BACKLIGHT_MIN                   0
 #define BACKLIGHT_FIXED                 0   // Just define a colour and stick to it
@@ -101,7 +98,8 @@ const int DIM_VALUE = DIGIT_DISPLAY_COUNT / 5;
 enum slaveDisplayModes {
   hundredthsMode,
   dateMode,
-  secondsMode
+  secondsMode,
+  offMode
 };
 slaveDisplayModes slaveDisplayMode = hundredthsMode;   
 
@@ -136,17 +134,9 @@ boolean fade = false;
 int dispCount = DIGIT_DISPLAY_COUNT;
 float fadeStep = DIGIT_DISPLAY_COUNT / fadeSteps;
 
-byte blankMode = BLANK_MODE_BOTH;
-
 // For software blinking
 int blinkCounter = 0;
 boolean blinkState = true;
-
-// leading digit blanking
-boolean blankLeading = false;
-
-boolean blankTubes = false;
-boolean blankLEDs = false;
 
 // State variables for detecting changes
 unsigned long nowMillis = 0;
@@ -189,38 +179,6 @@ byte ledB[DIGIT_COUNT];
 // Strategy 3
 int changeSteps = 0;
 byte currentColour = 0;
-
-// ************************************************************
-// Set the tubes and LEDs blanking variables based on blanking mode and 
-// blank mode settings
-// ************************************************************
-void setTubesAndLEDSBlankMode() {
-  if (blanked) {
-    switch(blankMode) {
-      case BLANK_MODE_TUBES:
-      {
-        blankTubes = true;
-        blankLEDs = false;
-        break;
-      }
-      case BLANK_MODE_LEDS:
-      {
-        blankTubes = false;
-        blankLEDs = true;
-        break;
-      }
-      case BLANK_MODE_BOTH:
-      {
-        blankTubes = true;
-        blankLEDs = true;
-        break;
-      }
-    }
-  } else {
-    blankTubes = false;
-    blankLEDs = false;
-  }
-}
 
 // ************************************************************
 // Put the led buffers out
@@ -345,62 +303,55 @@ void setLeds()
   float dimFactor = (float) digitOffCount / (float) DIGIT_DISPLAY_OFF;
   float pwmFactor = (float) secsTriangle / (float) 1000.0;
 
-  // ------------ Back light LEDs in normal mode ----------
-  if (blankLEDs) {
-          setAllLEDs( getLEDAdjusted(0, 1, 1), 
-                      getLEDAdjusted(0, 1, 1), 
-                      getLEDAdjusted(0, 1, 1));
-  } else {
-    switch (backlightMode) {
-      case BACKLIGHT_FIXED:
-        setAllLEDs( getLEDAdjusted(rgb_backlight_curve[redCnl], 1, 1), 
-                    getLEDAdjusted(rgb_backlight_curve[grnCnl], 1, 1), 
-                    getLEDAdjusted(rgb_backlight_curve[bluCnl], 1, 1));
-        break;
-      case BACKLIGHT_PULSE:
-        setAllLEDs( getLEDAdjusted(rgb_backlight_curve[redCnl], pwmFactor, 1),
-                    getLEDAdjusted(rgb_backlight_curve[grnCnl], pwmFactor, 1),
-                    getLEDAdjusted(rgb_backlight_curve[bluCnl], pwmFactor, 1));
-        break;
-      case BACKLIGHT_CYCLE:
-        cycleColours3(colors);
-        setAllLEDs( getLEDAdjusted(colors[0], 1, 1),
-                    getLEDAdjusted(colors[1], 1, 1),
-                    getLEDAdjusted(colors[2], 1, 1));
-        break;
-      case BACKLIGHT_FIXED_DIM:
-        setAllLEDs( getLEDAdjusted(rgb_backlight_curve[redCnl], 1, dimFactor), 
-                    getLEDAdjusted(rgb_backlight_curve[grnCnl], 1, dimFactor), 
-                    getLEDAdjusted(rgb_backlight_curve[bluCnl], 1, dimFactor));
-        break;
-      case BACKLIGHT_PULSE_DIM:
-        setAllLEDs( getLEDAdjusted(rgb_backlight_curve[redCnl], pwmFactor, dimFactor),
-                    getLEDAdjusted(rgb_backlight_curve[grnCnl], pwmFactor, dimFactor),
-                    getLEDAdjusted(rgb_backlight_curve[bluCnl], pwmFactor, dimFactor));
-        break;
-      case BACKLIGHT_CYCLE_DIM:
-        cycleColours3(colors);
-        setAllLEDs( getLEDAdjusted(colors[0], 1, dimFactor),
-                    getLEDAdjusted(colors[1], 1, dimFactor),
-                    getLEDAdjusted(colors[2], 1, dimFactor));
-        break;
-      case BACKLIGHT_COLOUR_TIME:
-          for (int i = 0 ; i < DIGIT_COUNT ; i++) {
-            ledR[DIGIT_COUNT-1-i] = getLEDAdjusted(colourTimeR[NumberArray[i]],1,1);
-            ledG[DIGIT_COUNT-1-i] = getLEDAdjusted(colourTimeG[NumberArray[i]],1,1);
-            ledB[DIGIT_COUNT-1-i] = getLEDAdjusted(colourTimeB[NumberArray[i]],1,1);
-          }
-          outputLEDBuffer();
-        break;
-      case BACKLIGHT_COLOUR_TIME_DIM:
-          for (int i = 0 ; i < DIGIT_COUNT ; i++) {
-            ledR[DIGIT_COUNT-1-i] = getLEDAdjusted(colourTimeR[NumberArray[i]],1,dimFactor);
-            ledG[DIGIT_COUNT-1-i] = getLEDAdjusted(colourTimeG[NumberArray[i]],1,dimFactor);
-            ledB[DIGIT_COUNT-1-i] = getLEDAdjusted(colourTimeB[NumberArray[i]],1,dimFactor);
-          }
-          outputLEDBuffer();
-        break;
-    }
+  switch (backlightMode) {
+    case BACKLIGHT_FIXED:
+      setAllLEDs( getLEDAdjusted(rgb_backlight_curve[redCnl], 1, 1), 
+                  getLEDAdjusted(rgb_backlight_curve[grnCnl], 1, 1), 
+                  getLEDAdjusted(rgb_backlight_curve[bluCnl], 1, 1));
+      break;
+    case BACKLIGHT_PULSE:
+      setAllLEDs( getLEDAdjusted(rgb_backlight_curve[redCnl], pwmFactor, 1),
+                  getLEDAdjusted(rgb_backlight_curve[grnCnl], pwmFactor, 1),
+                  getLEDAdjusted(rgb_backlight_curve[bluCnl], pwmFactor, 1));
+      break;
+    case BACKLIGHT_CYCLE:
+      cycleColours3(colors);
+      setAllLEDs( getLEDAdjusted(colors[0], 1, 1),
+                  getLEDAdjusted(colors[1], 1, 1),
+                  getLEDAdjusted(colors[2], 1, 1));
+      break;
+    case BACKLIGHT_FIXED_DIM:
+      setAllLEDs( getLEDAdjusted(rgb_backlight_curve[redCnl], 1, dimFactor), 
+                  getLEDAdjusted(rgb_backlight_curve[grnCnl], 1, dimFactor), 
+                  getLEDAdjusted(rgb_backlight_curve[bluCnl], 1, dimFactor));
+      break;
+    case BACKLIGHT_PULSE_DIM:
+      setAllLEDs( getLEDAdjusted(rgb_backlight_curve[redCnl], pwmFactor, dimFactor),
+                  getLEDAdjusted(rgb_backlight_curve[grnCnl], pwmFactor, dimFactor),
+                  getLEDAdjusted(rgb_backlight_curve[bluCnl], pwmFactor, dimFactor));
+      break;
+    case BACKLIGHT_CYCLE_DIM:
+      cycleColours3(colors);
+      setAllLEDs( getLEDAdjusted(colors[0], 1, dimFactor),
+                  getLEDAdjusted(colors[1], 1, dimFactor),
+                  getLEDAdjusted(colors[2], 1, dimFactor));
+      break;
+    case BACKLIGHT_COLOUR_TIME:
+        for (int i = 0 ; i < DIGIT_COUNT ; i++) {
+          ledR[DIGIT_COUNT-1-i] = getLEDAdjusted(colourTimeR[NumberArray[i]],1,1);
+          ledG[DIGIT_COUNT-1-i] = getLEDAdjusted(colourTimeG[NumberArray[i]],1,1);
+          ledB[DIGIT_COUNT-1-i] = getLEDAdjusted(colourTimeB[NumberArray[i]],1,1);
+        }
+        outputLEDBuffer();
+      break;
+    case BACKLIGHT_COLOUR_TIME_DIM:
+        for (int i = 0 ; i < DIGIT_COUNT ; i++) {
+          ledR[DIGIT_COUNT-1-i] = getLEDAdjusted(colourTimeR[NumberArray[i]],1,dimFactor);
+          ledG[DIGIT_COUNT-1-i] = getLEDAdjusted(colourTimeG[NumberArray[i]],1,dimFactor);
+          ledB[DIGIT_COUNT-1-i] = getLEDAdjusted(colourTimeB[NumberArray[i]],1,dimFactor);
+        }
+        outputLEDBuffer();
+      break;
   }
 }
 
@@ -551,7 +502,7 @@ void outputDisplay()
 
   for ( int i = 2 ; i < DIGIT_COUNT ; i ++ )
   {
-    if (blankTubes) {
+    if (blanked) {
       tmpDispType = BLANKED;
     } else {
       tmpDispType = displayType[i];
@@ -683,85 +634,76 @@ void outputDisplay()
 //**********************************************************************************
 //**********************************************************************************
 
-#define SLAVE_MODE_DIMMING              0x1a
-#define SLAVE_MODE_100THS               0x1b
-#define SLAVE_MODE_DATE                 0x1c
-#define SLAVE_MODE_SECS                 0x1d
-#define SLAVE_MODE_OFF                  0x1e
+#define SLAVE_MODE_100THS               0
+#define SLAVE_MODE_DATE                 1
+#define SLAVE_MODE_SECS                 2
+#define SLAVE_MODE_OFF                  3
 
 /**
  * receive information from the master
  */
-void receiveEvent(int bytes) {
-  int dimming = -1;
-  int checksum = -1;
-  int secs = -1;
-  int day = -1;
-  int month = -1;
+void receiveEvent(int receivedBytes) {
 
-  // the operation tells us what we are getting
-  int operation = Wire.read();
+  #ifdef DIAG_BACKLIGHTS
+  setLED(3,0,255,0);
+  #endif
 
-  setLED(3,0,0,255);
+  if (receivedBytes == 5) {
+    #ifdef DIAG_BACKLIGHTS
+    setLED(2,0,255,0);
+    #endif
 
-  switch (operation) {
-    case SLAVE_MODE_DIMMING:
-    case SLAVE_MODE_OFF: {
-      dimming  = Wire.read();
-      break;
-    }
-    case SLAVE_MODE_100THS:
-    case SLAVE_MODE_SECS: {
-      secs = Wire.read();
-      break;      
-    }
-    case SLAVE_MODE_DATE: {
-      day = Wire.read();
-      month = Wire.read();
-      break;      
-    }
-  }
-  setLED(2,0,0,255);
+    // if we got an update, just say that it is a new second
+    // for the 100ths
+    hundredthsMillis = nowMillis;
 
-  checksum = Wire.read();
+    // resync the per second update, so that the "seconds" align 
+    // between main and slave
+    lastCheckMillis = nowMillis;
 
+    byte mode = Wire.read();
+    byte dimming  = Wire.read();
+    secondToShow = Wire.read();
+    dateToShow = Wire.read();
+    monthToShow = Wire.read();
 
-  if (operation == checksum) {
+    #ifdef DIAG_BACKLIGHTS
     setLED(1,0,255,0);
-    // we got a transmission
-    switch (operation) {
-      case SLAVE_MODE_DIMMING:
-      case SLAVE_MODE_OFF: {
-        // detect the blanking status
-        blanked = (dimming == 0);
+    #endif
 
-        // set the dimming
-        digitOffCount = dimming * 10;
-        if (digitOffCount > DIGIT_DISPLAY_OFF) digitOffCount = DIGIT_DISPLAY_OFF;
-        break;
-      }
+    // detect the blanking status
+    blanked = (dimming == 0);
+
+    // set the dimming
+    digitOffCount = dimming * 10;
+    if (digitOffCount > DIGIT_DISPLAY_OFF) digitOffCount = DIGIT_DISPLAY_OFF;
+
+    // we got a transmission
+    switch (mode) {
       case SLAVE_MODE_100THS: {
-        hundredthsMillis = nowMillis;
         slaveDisplayMode = hundredthsMode;
         break;      
       }
       case SLAVE_MODE_SECS: {
         slaveDisplayMode = secondsMode;
-        secondToShow = secs;
         break;      
       }
       case SLAVE_MODE_DATE: {
         slaveDisplayMode = dateMode;
-        dateToShow   = day;
-        monthToShow  = month;
+        break;      
+      }
+      case SLAVE_MODE_OFF: {
+        slaveDisplayMode = offMode;
         break;      
       }
     }
-    setLED(0,0,0,255);
-
+    #ifdef DIAG_BACKLIGHTS
+    setLED(0,0,255,0);
+    #endif
   } else {
-    // There was an error in the receive, don't update anything
-    setLED(1,255,0,0);
+    #ifdef DIAG_BACKLIGHTS
+    setLED(2,255,0,0);
+    #endif
   }
 }
 
@@ -772,9 +714,16 @@ void performOncePerSecondProcessing() {
   // Change the direction of the pulse
   upOrDown = !upOrDown;
 
-  // setTubesAndLEDSBlankMode();
+  secondToShow++;
+  if (secondToShow > 59) {
+    secondToShow = 0;
+  }
 
-  setAllLEDs(10,0,0);
+  #ifdef DIAG_BACKLIGHTS
+  setAllLEDs(0,0,0);
+  #endif
+
+  // setTubesAndLEDSBlankMode();
 
   // feed the watchdog
 //  wdt_reset();
@@ -812,7 +761,7 @@ void setup()
   // initialise the internal time (in case we don't find the time provider)
   nowMillis = millis();
 
-  setAllLEDs(10,0,0);
+  setAllLEDs(0,0,0);
 
   Wire.begin(I2C_SLAVE_ADDR);
   Wire.onReceive(receiveEvent);
@@ -839,10 +788,9 @@ void loop()
   
   // -------------------------------------------------------------------------------
 
-  unsigned long hundredthsDelta = (nowMillis - hundredthsMillis)/200;
+  unsigned long hundredthsDelta = (nowMillis - hundredthsMillis)/10;
   hundredthsDelta = hundredthsDelta % 100;
   hundredths = (byte) hundredthsDelta;
-//  hundredths = (nowMillis / 200) % 100;
 
   // -------------------------------------------------------------------------------
 
@@ -851,15 +799,22 @@ void loop()
 
   switch (slaveDisplayMode) {
     case hundredthsMode: {
+      allNormal();
       loadNumberArrayHundredths();
       break;
     }
     case dateMode: {
+      allNormal();
       loadNumberArrayDate();
       break;      
     }
     case secondsMode: {
+      allNormal();
       loadNumberArraySeconds();
+      break;      
+    }
+    case offMode: {
+      allBlanked();
       break;      
     }
   }

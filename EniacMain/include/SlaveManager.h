@@ -18,17 +18,13 @@
 
 #define SLAVE_MODULE_I2C_ADDRESS 105
 
-// Used for timing out on the slave
-#define SLAVE_MODE_MAX_RETRIES 20
-
 // -------------------------------------------------------------------------------
 #define SLAVE_MODE_MIN                  0
-#define SLAVE_MODE_DIMMING              0
-#define SLAVE_MODE_100THS               1
-#define SLAVE_MODE_DATE                 2
-#define SLAVE_MODE_SECS                 3
-#define SLAVE_MODE_OFF                  4
-#define SLAVE_MODE_MAX                  4
+#define SLAVE_MODE_100THS               0
+#define SLAVE_MODE_DATE                 1
+#define SLAVE_MODE_SECS                 2
+#define SLAVE_MODE_OFF                  3
+#define SLAVE_MODE_MAX                  3
 #define SLAVE_MODE_DEFAULT              0
 
 class SlaveManager_ {
@@ -43,21 +39,24 @@ class SlaveManager_ {
 
   public:
     void begin();
-
     void testSlave();
-    void startSlaveI2C();
-    void stopSlaveI2C();
     bool getSlaveMode();
     String getNextSlaveModeName();
     void setNextSlaveMode();
     void setSlaveMode(byte newMode);
-    void sendUpdateToSlaveI2C();
-    void setSlaveModeViaSwitch(bool newSlaveStatus);
+    void setSlaveEnabled(bool newSlaveStatus);
+    void updateOncePerSecond();
+    void updateOncePerMinute();
+    unsigned int getTryCount();
+    unsigned int getFailCount();
   private:
-    bool _slaveModeStatus;
-    bool _slaveModeOverrideStatus;
-    byte _slaveModeFailCount;
+    bool _slaveEnabled;
+    unsigned int _slaveModeFailCount;
+    unsigned int _slaveModeTryCount;
+    byte previousMode = 255;
     byte getNextSlaveMode();
+    void sendUpdateToSlaveI2C();
+    void blankSlaveI2C();
 };
 
 extern SlaveManager_ &slaveManager;
