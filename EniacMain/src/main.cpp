@@ -385,11 +385,12 @@ void performOncePerSecondProcessing() {
 
   #ifdef SLAVE_OUTPUT
   slaveManager.sendUpdateToSlaveI2C();
+  slaveManager.setSlaveModeViaSwitch(digitalRead(BTN1Pin) == LOW);
   #endif
 
   debugManager.debugAutoOffCheck();
 
-  blankingManager.setCurrentLEDBlankingOverrride(digitalRead(BTN2Pin));
+  blankingManager.setCurrentLEDBlankingOverrride(digitalRead(BTN2Pin) == LOW);
 
   feedWatchdog();
 }

@@ -6,6 +6,7 @@
 void SlaveManager_::testSlave() {
   // we only want to try once on the startup test
   _slaveModeFailCount = SLAVE_MODE_MAX_RETRIES;
+  _slaveModeStatus = true;
   sendUpdateToSlaveI2C();
   if (_slaveModeStatus)
     debugMsgSlv("Slave detected")
@@ -58,17 +59,23 @@ void SlaveManager_::sendUpdateToSlaveI2C() {
     if (!blankingManager.getCurrentBlankTubes())
       dimmingPct = (byte) ldrManager.getLDRValuePct();
 
-    debugMsgSlv("Slave update: mode: " + String(cc->slaveMode) + "," + String(second()) + "," + String(month()) + "," + String(day()) + "," + String(dimmingPct));
+    byte effectiveMode = cc->slaveMode;
+
+    if (_slaveModeOverrideStatus) {
+      effectiveMode = SLAVE_MODE_OFF;
+    }
 
     Wire.beginTransmission(SLAVE_MODULE_I2C_ADDRESS);
-    switch (cc->slaveMode) {
+    switch (effectiveMode) {
       case SLAVE_MODE_DIMMING: {
+        debugMsgSlv("Slave update: mode: 0x1a, " + String(dimmingPct) + ", 0x1a");
         Wire.write((uint8_t)0x1a);
         Wire.write((uint8_t)dimmingPct);
         Wire.write((uint8_t)0x1a);
         break;
       }
       case SLAVE_MODE_DATE: {
+        debugMsgSlv("Slave update: mode: 0x1b, " + String(day()) + "," + String(month()) + ", 0x1b");
         Wire.write((uint8_t)0x1b);
         Wire.write((uint8_t)day());
         Wire.write((uint8_t)month());
@@ -77,12 +84,14 @@ void SlaveManager_::sendUpdateToSlaveI2C() {
       }
       case SLAVE_MODE_100THS:
       case SLAVE_MODE_SECS: {
+        debugMsgSlv("Slave update: mode: 0x1c, " + String(second()) + ", 0x1c");
         Wire.write((uint8_t)0x1c);
         Wire.write((uint8_t)second());
         Wire.write((uint8_t)0x1c);
         break;
       }
       case SLAVE_MODE_OFF: {
+        debugMsgSlv("Slave update: mode: 0x1a, 0 (blanked), 0x1a");
         Wire.write((uint8_t)0x1a);
         Wire.write((uint8_t)0);
         Wire.write((uint8_t)0x1a);

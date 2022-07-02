@@ -4,7 +4,7 @@
 // Standard Libraries
 #include <avr/io.h>
 #include <Wire.h>
-#include <avr/wdt.h>
+//#include <avr/wdt.h>
 
 #include <NeoPixelBus.h>        // https://github.com/Makuna/NeoPixelBus (Makuna 2.6.2)
 
@@ -130,8 +130,8 @@ int hundredths;
 int fadeSteps = FADE_STEPS_DEFAULT;
 int digitOffCount = DIGIT_DISPLAY_OFF;
 int scrollSteps = SCROLL_STEPS_DEFAULT;
-boolean scrollback = true;
-boolean fade = true;
+boolean scrollback = false;
+boolean fade = false;
 
 int dispCount = DIGIT_DISPLAY_COUNT;
 float fadeStep = DIGIT_DISPLAY_COUNT / fadeSteps;
@@ -223,21 +223,6 @@ void setTubesAndLEDSBlankMode() {
 }
 
 // ************************************************************
-// Called once per second
-// ************************************************************
-void performOncePerSecondProcessing() {
-  // Change the direction of the pulse
-  upOrDown = !upOrDown;
-
-  // setTubesAndLEDSBlankMode();
-
-  Serial.println("H: " + String(hundredths));
-
-  // feed the watchdog
-  wdt_reset();
-}
-
-// ************************************************************
 // Put the led buffers out
 // ************************************************************
 void outputLEDBuffer() {
@@ -260,6 +245,16 @@ void setAllLEDs(byte red, byte green, byte blue) {
     ledG[i] = green;
     ledB[i] = blue;
   }
+  outputLEDBuffer();
+}
+
+// ************************************************************
+// Set back light LEDs to the same colour
+// ************************************************************
+void setLED(byte i, byte red, byte green, byte blue) {
+  ledR[i] = red;
+  ledG[i] = green;
+  ledB[i] = blue;
   outputLEDBuffer();
 }
 
@@ -688,47 +683,51 @@ void outputDisplay()
 //**********************************************************************************
 //**********************************************************************************
 
-#define SLAVE_MODE_DIMMING              0
-#define SLAVE_MODE_100THS               1
-#define SLAVE_MODE_DATE                 2
-#define SLAVE_MODE_SECS                 3
-#define SLAVE_MODE_OFF                  4
-#define SLAVE_MODE_MAX                  4
+#define SLAVE_MODE_DIMMING              0x1a
+#define SLAVE_MODE_100THS               0x1b
+#define SLAVE_MODE_DATE                 0x1c
+#define SLAVE_MODE_SECS                 0x1d
+#define SLAVE_MODE_OFF                  0x1e
 
 /**
  * receive information from the master
  */
 void receiveEvent(int bytes) {
-  // the operation tells us what we are getting
-  int operation = Wire.read();
   int dimming = -1;
   int checksum = -1;
   int secs = -1;
   int day = -1;
   int month = -1;
 
+  // the operation tells us what we are getting
+  int operation = Wire.read();
+
+  setLED(3,0,0,255);
+
   switch (operation) {
     case SLAVE_MODE_DIMMING:
     case SLAVE_MODE_OFF: {
       dimming  = Wire.read();
-      checksum = Wire.read();
       break;
     }
     case SLAVE_MODE_100THS:
     case SLAVE_MODE_SECS: {
       secs = Wire.read();
-      checksum = Wire.read();
       break;      
     }
     case SLAVE_MODE_DATE: {
       day = Wire.read();
       month = Wire.read();
-      checksum = Wire.read();
       break;      
     }
   }
+  setLED(2,0,0,255);
+
+  checksum = Wire.read();
+
 
   if (operation == checksum) {
+    setLED(1,0,255,0);
     // we got a transmission
     switch (operation) {
       case SLAVE_MODE_DIMMING:
@@ -758,25 +757,27 @@ void receiveEvent(int bytes) {
         break;      
       }
     }
+    setLED(0,0,0,255);
+
   } else {
     // There was an error in the receive, don't update anything
+    setLED(1,255,0,0);
   }
 }
 
-/**
-   send information to the master
-*/
-void requestEvent() {
-}
+// ************************************************************
+// Called once per second
+// ************************************************************
+void performOncePerSecondProcessing() {
+  // Change the direction of the pulse
+  upOrDown = !upOrDown;
 
-byte encodeBooleanForI2C(boolean valueToProcess) {
-  if (valueToProcess) {
-    byte byteToSend = 1;
-    return byteToSend;
-  } else {
-    byte byteToSend = 0;
-    return byteToSend;
-  }
+  // setTubesAndLEDSBlankMode();
+
+  setAllLEDs(10,0,0);
+
+  // feed the watchdog
+//  wdt_reset();
 }
 
 //**********************************************************************************
@@ -796,28 +797,28 @@ void setup()
   pinMode(ledPin_a_3, OUTPUT);
   pinMode(ledPin_a_4, OUTPUT);
 
-  setAllLEDs(0,0,0);
-
-  Serial.begin(115200);
-  Serial.println("Start");
-
   // **********************************************************************
+
+  delay(100);
 
   // Set up the LED output
   leds.Begin();
 
+  delay(100);
+
   // reset the LEDs
-  //setLeds();
+  // setLeds();
 
   // initialise the internal time (in case we don't find the time provider)
   nowMillis = millis();
 
+  setAllLEDs(10,0,0);
+
   Wire.begin(I2C_SLAVE_ADDR);
   Wire.onReceive(receiveEvent);
-  Wire.onRequest(requestEvent);
 
   // enable watchdog
-  wdt_enable(WDTO_8S);
+//  wdt_enable(WDTO_8S);
 }
 
 //**********************************************************************************
@@ -832,22 +833,16 @@ void loop()
   // -------------------------------------------------------------------------------
 
   if (abs(nowMillis - lastCheckMillis) >= 1000) {
-    if (!triggeredThisSec) {
-      performOncePerSecondProcessing();
-    }
-
-    // Make sure we don't call multiple times
-    triggeredThisSec = true;
-
+    performOncePerSecondProcessing();
     lastCheckMillis = nowMillis;
   }
   
   // -------------------------------------------------------------------------------
 
-  unsigned long hundredthsDelta = (nowMillis - hundredthsMillis)/10;
+  unsigned long hundredthsDelta = (nowMillis - hundredthsMillis)/200;
+  hundredthsDelta = hundredthsDelta % 100;
   hundredths = (byte) hundredthsDelta;
-
-  hundredths = hundredths % 100;
+//  hundredths = (nowMillis / 200) % 100;
 
   // -------------------------------------------------------------------------------
 
