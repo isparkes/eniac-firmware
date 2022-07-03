@@ -102,6 +102,7 @@ class OutputManager_ {
     void loadNumberArrayDate();
     void loadNumberArraySameValue(byte value);
     void loadNumberArrayBurn(byte value);
+    void loadNumberArrayValue(byte hrs10, byte hrs1, byte mins10, byte mins1, byte secs10, byte secs1);
 
     void allNormal(bool leadingBlank);
     void allBlanked();

@@ -48,3 +48,8 @@
     background-color:#000;
     opacity: 0.5;
 }
+
+/* pad top element after navbar*/
+.after-fixed-navbar {
+    margin-top: 40px; /* Add a top margin to avoid content overlay */
+  }

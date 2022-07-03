@@ -329,25 +329,98 @@ void performOncePerSecondProcessing() {
     ntpManager.getTimeFromNTP();
   }
 
-  #ifdef DIGIT_DIAGNOSTICS
-  if (cc->diagsMode == DIGIT_DIAGS_MODE_NONE) {
+  #ifdef COUNTDOWN
+    if (cc->countdownTarget.length() == 10) {
+
+      struct tm targetTime;
+      targetTime.tm_year = cc->countdownTarget.substring(0,4).toInt() - 1900;
+      targetTime.tm_mon = cc->countdownTarget.substring(5,7).toInt() - 1; 
+      targetTime.tm_mday = cc->countdownTarget.substring(8,10).toInt(); 
+      targetTime.tm_hour = 0; 
+      targetTime.tm_min = 0;
+      targetTime.tm_sec = 0;
+      targetTime.tm_isdst = tzManager.getCurrentUTCIsDST();
+
+      time_t tTarget = mktime(&targetTime) + tzManager.getCurrentUTCOffset();
+
+      debugMsgOtm("target date U--> " + tzManager.gmtimeToReadableString(tTarget));
+
+      // calculate the seconds left
+      time_t now = tzManager.getRawUTCTimeFromTimeSource(TIME_SOURCE_INT);
+
+      unsigned long tTargetLong = (unsigned long) tTarget;
+      unsigned long nowLong = (unsigned long) now;
+
+      debugMsgOtm("Target raw --> " + String(tTargetLong));
+      debugMsgOtm("Now raw --> " + String(nowLong));
+
+      if (tTargetLong > nowLong) {
+        // show the countdown
+        unsigned long diff = tTargetLong - nowLong;
+        debugMsgOtm("Diff raw --> " + String(diff));
+
+        if (diff > 999999) {
+          diff = diff / 60;
+          debugMsgOtm("Diff mins --> " + String(diff));
+        }
+        if (diff > 999999) {
+          diff = diff / 60;
+          debugMsgOtm("Diff hours --> " + String(diff));
+        }
+
+        if (diff > 999999) {
+          diff = 999999;
+          debugMsgOtm("Diff max --> " + String(diff));
+        }
+
+        byte s1 = diff % 10;
+        diff = diff / 10;
+        byte s10 = diff % 10;
+        diff = diff / 10;
+        byte m1 = diff % 10;
+        diff = diff / 10;
+        byte m10 = diff % 10;
+        diff = diff / 10;
+        byte h1 = diff % 10;
+        diff = diff / 10;
+        byte h10 = diff % 10;
+
+        debugMsgOtm("Digits --> " + String(h10) + "," + String(h1) + "," + String(m10) + "," + String(m1) + "," + String(s10) + "," + String(s1));
+
+        outputManager.allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+        outputManager.loadNumberArrayValue(h10, h1, m10, m1, s10, s1);
+      } else {
+        // show the normal time
+        if (outputManager.getOutputMode() == timeMode) {
+          outputManager.allNormal(APPLY_LEAD_0_BLANK);
+          outputManager.loadNumberArrayTime();
+        }
+      }
+
+    } else {
+//      debugMsgOtm("target date wrong format" + cc->countdownTarget);
+    }
+  #else  
+    #ifdef DIGIT_DIAGNOSTICS
+    if (cc->diagsMode == DIGIT_DIAGS_MODE_NONE) {
+      if (outputManager.getOutputMode() == timeMode) {
+        outputManager.allNormal(APPLY_LEAD_0_BLANK);
+        outputManager.loadNumberArrayTime();
+      }
+    } else if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
+      outputManager.loadNumberArraySameValue(second());
+    } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
+      outputManager.loadNumberArraySameValue(minute());
+    } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
+      int rawEncPos = menuManager.getCurrentEncoderPos()/2;
+      while (rawEncPos < 0) rawEncPos+=60; 
+    }
+    #else
     if (outputManager.getOutputMode() == timeMode) {
       outputManager.allNormal(APPLY_LEAD_0_BLANK);
       outputManager.loadNumberArrayTime();
     }
-  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
-    outputManager.loadNumberArraySameValue(second());
-  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
-    outputManager.loadNumberArraySameValue(minute());
-  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
-    int rawEncPos = menuManager.getCurrentEncoderPos()/2;
-    while (rawEncPos < 0) rawEncPos+=60; 
-  }
-  #else
-  if (outputManager.getOutputMode() == timeMode) {
-    outputManager.allNormal(APPLY_LEAD_0_BLANK);
-    outputManager.loadNumberArrayTime();
-  }
+    #endif
   #endif
 
   // Maintain the LED next to the controller

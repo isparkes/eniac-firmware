@@ -38,7 +38,7 @@
                 </div>
             </div>
         </nav>
-        <div class="container" role="main">
+        <div class="container after-fixed-navbar" role="main">
             <h3 class="sub-header">Diagnostics</h3>
             <div class="table-responsive">
                 <table class="table table-striped">
@@ -88,6 +88,14 @@
                         <tr>
                             <td>Total Tube hours</td>
                             <td id="ontime"></td>
+                        </tr>
+                        <tr>
+                            <td>Total Tube hours</td>
+                            <td id="ontime"></td>
+                        </tr>
+                        <tr id="slaveupdaterow" hidden>
+                            <td>Slave updates total/failed</td>
+                            <td id="slaveupdates">0/0</td>
                         </tr>
                         <tr>
                             <td>Last raw GPS string</td>
@@ -234,6 +242,11 @@
             $("#utcrtcraw").text(diags.utcrtcraw + "@" + diags.utcrtcat + " --> " + (diags.utcrtcraw + diags.utcrtcat));
             $("#utcintraw").text(diags.utcintraw + "@" + diags.utcintat + " --> " + (diags.utcintraw + diags.utcintat));
             $("#oledtype").text(diags.oledtype);
+            $("#slaveupdates").text(diags.slavetrycount + "/" + diags.slavefailcount);
+
+            if (diags.slavetrycount > 0) {
+                $("#slaveupdaterow").prop('hidden', false);
+            }
 
             if (diags.diagsMode != undefined) {
                 $("#digitDiagsContainer").prop('hidden', false);

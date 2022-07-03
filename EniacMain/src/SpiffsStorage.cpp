@@ -199,6 +199,11 @@ bool SpiffsStorage_::getConfigFromSpiffs()
         cc->backlightGradient = json["backlightGradient"];
         debugMsgSpfX("Loaded backlightGradient: " + String(cc->backlightGradient));
 
+        #ifdef COUNTDOWN
+        cc->countdownTarget = json["countdownTarget"].as<String>();
+        debugMsgSpfX("Loaded countdownTarget: " + String(cc->countdownTarget));
+        #endif
+
         loaded = true;
       }
       else
@@ -273,6 +278,9 @@ void SpiffsStorage_::saveConfigToSpiffs()
   json["slaveMode"] = cc->slaveMode;
   json["outputOnTime"] = cc->outputOnTime;
   json["backlightGradient"] = cc->backlightGradient;
+  #ifdef COUNTDOWN
+  json["countdownTarget"] = cc->countdownTarget;
+  #endif
   
   File configFile = SPIFFS.open("/config/config.json", "w");
   if (!configFile)

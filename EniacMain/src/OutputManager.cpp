@@ -20,6 +20,18 @@ void OutputManager_::loadNumberArrayTime() {
 // ************************************************************
 // Break the time into displayable digits
 // ************************************************************
+void OutputManager_::loadNumberArrayValue(byte hrs10, byte hrs1, byte mins10, byte mins1, byte secs10, byte secs1) {
+  numberArray[S1]  = secs1  % 10;
+  numberArray[S10] = secs10 % 10;
+  numberArray[M1]  = mins1  % 10;
+  numberArray[M10] = mins10 % 10;
+  numberArray[H1]  = hrs1   % 10;
+  numberArray[H10] = hrs10  % 10;
+}
+
+// ************************************************************
+// Break the time into displayable digits
+// ************************************************************
 void OutputManager_::loadNumberArrayBurn(byte value) {
   allBlanked();
   loadNumberArraySameValue(value % 10);

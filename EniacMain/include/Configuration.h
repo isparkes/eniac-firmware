@@ -18,6 +18,11 @@
 
 // -------------------------------------------------------------------------------
 
+// Countdown functionality
+#define COUNTDOWN                   // COUNTDOWN | COUNTDOWN_OFF
+
+// -------------------------------------------------------------------------------
+
 // Define the type of OLED
 #define OLED_SH1106                 // OLED_SH1106 |  OLED_SSD1306
 

@@ -16,7 +16,9 @@
 //
 // -------------------------------------------------------------------------------
 
-#define SLAVE_MODULE_I2C_ADDRESS 105
+#define SLAVE_MODULE_I2C_ADDRESS  105
+
+#define MAX_SLAVE_MODE_FAIL_COUNT 20
 
 // -------------------------------------------------------------------------------
 #define SLAVE_MODE_MIN                  0

@@ -60,6 +60,9 @@ typedef struct {
   byte slaveMode;
   byte outputOnTime;
   int  backlightGradient;
+  #ifdef COUNTDOWN
+  String countdownTarget;
+  #endif
 
   // not saved
   int diagsMode;

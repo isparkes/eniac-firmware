@@ -177,6 +177,10 @@ void resetOptions() {
   cc->blinkenLightsMode = BLNKN_MODE_DEFAULT;
   cc->slaveMode = SLAVE_MODE_DEFAULT;
 
+  #ifdef COUNTDOWN
+  cc->countdownTarget = "";
+  #endif
+
   spiffsStorage.saveConfigToSpiffs();
   debugMsgUtl("Saved factory config");
 }
@@ -368,6 +372,8 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["utcrtcat"] = tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_RTC);
   root["utcintat"] = tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_INT);
   root["utcoffset"] = String(tzManager.getCurrentUTCOffset());
+  root["slavetrycount"] = String(slaveManager.getTryCount());
+  root["slavefailcount"] = String(slaveManager.getFailCount());
   #ifdef OLED_SSD1306
   root["oledtype"] = "SSD1306";
   #endif
@@ -465,10 +471,15 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["backlightGradient"] = cc->backlightGradient;
   root["blinkenLightsMode"] = cc->blinkenLightsMode;
   root["slaveMode"] = cc->slaveMode;
+
   #ifdef COG_CRANK_OUTPUT
   root["outputOnTime"] = cc->outputOnTime;
   #else
   root["outputOnTime"] = 255;
+  #endif
+
+  #ifdef COUNTDOWN
+  root["countdownTarget"] = cc->countdownTarget;
   #endif
 
   response->setLength();
@@ -499,6 +510,17 @@ void compareAndUpdateInt(JsonObject& json, const char* key, int* variable) {
 void compareAndUpdateBool(JsonObject& json, const char* key, bool* variable) {
   if (json.containsKey(key)) {
     bool newVal = json[key].as<bool>();
+    if (*variable != newVal) {
+      debugMsgUtl(String(key) + " old: " + String(*variable));
+      *variable = newVal;
+      debugMsgUtl(String(key) + " new: " + String(*variable));
+    }
+  }
+}
+
+void compareAndUpdateString(JsonObject& json, const char* key, String* variable) {
+  if (json.containsKey(key)) {
+    String newVal = json[key];
     if (*variable != newVal) {
       debugMsgUtl(String(key) + " old: " + String(*variable));
       *variable = newVal;
@@ -564,7 +586,15 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateInt (json, "backlightGradient",  &cc->backlightGradient);
     compareAndUpdateByte(json, "blinkenLightsMode",  &cc->blinkenLightsMode);
     compareAndUpdateByte(json, "slaveMode",          &cc->slaveMode);
+
+    #ifdef COG_CRANK_OUTPUT
     compareAndUpdateByte(json, "outputOnTime",       &cc->outputOnTime);
+    #endif
+
+    #ifdef COUNTDOWN
+    compareAndUpdateString(json, "countdownTarget",  &cc->countdownTarget);
+    #endif
+
 
     // ------------------------------------------------------------
 
