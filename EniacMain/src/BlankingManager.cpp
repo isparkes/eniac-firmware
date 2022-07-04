@@ -83,7 +83,7 @@ bool BlankingManager_::checkTimeBasedBlanking(byte currentWeekday, byte currentH
 // ************************************************************
 // Set if we are overriding the LED blanking via switch
 // ************************************************************
-void BlankingManager_::setCurrentLEDBlankingOverrride(bool newLEDOverrideStatus) {
+void BlankingManager_::setCurrentLEDBlankingOverride(bool newLEDOverrideStatus) {
   _blankLEDoverride = newLEDOverrideStatus;
 }
 

@@ -15,6 +15,7 @@
 #include "MenuManager.h"
 #include "WiFiManager.h"
 #include "OutputManager.h"
+#include "CountdownManager.h"
 
 void setup()
 {
@@ -210,6 +211,13 @@ void setup()
   blankingManager.begin();
 
   // -------------------------------------------------------------------------
+  
+  #ifdef COUNTDOWN
+  debugMsgMain("Start up countdown manager");
+  countdownManager.begin();
+  #endif
+
+  // -------------------------------------------------------------------------
 
   oled.setUp();
   oled.clearDisplay();
@@ -330,66 +338,20 @@ void performOncePerSecondProcessing() {
   }
 
   #ifdef COUNTDOWN
-    if (cc->countdownTarget.length() == 10) {
+  countdownManager.calculateCountdown();
 
-      struct tm targetTime;
-      targetTime.tm_year = cc->countdownTarget.substring(0,4).toInt() - 1900;
-      targetTime.tm_mon = cc->countdownTarget.substring(5,7).toInt() - 1; 
-      targetTime.tm_mday = cc->countdownTarget.substring(8,10).toInt(); 
-      targetTime.tm_hour = 0; 
-      targetTime.tm_min = 0;
-      targetTime.tm_sec = 0;
-      targetTime.tm_isdst = tzManager.getCurrentUTCIsDST();
-
-      time_t tTarget = mktime(&targetTime) + tzManager.getCurrentUTCOffset();
-
-      debugMsgOtm("target date U--> " + tzManager.gmtimeToReadableString(tTarget));
-
-      // calculate the seconds left
-      time_t now = tzManager.getRawUTCTimeFromTimeSource(TIME_SOURCE_INT);
-
-      unsigned long tTargetLong = (unsigned long) tTarget;
-      unsigned long nowLong = (unsigned long) now;
-
-      debugMsgOtm("Target raw --> " + String(tTargetLong));
-      debugMsgOtm("Now raw --> " + String(nowLong));
-
-      if (tTargetLong > nowLong) {
-        // show the countdown
-        outputManager.setOutputMode(valueMode);
-        unsigned long diff = tTargetLong - nowLong;
-        debugMsgOtm("Diff raw --> " + String(diff));
-
-        if (diff > 999999) {
-          diff = diff / 60;
-          debugMsgOtm("Diff mins --> " + String(diff));
-        }
-        if (diff > 999999) {
-          diff = diff / 60;
-          debugMsgOtm("Diff hours --> " + String(diff));
-        }
-
-        if (diff > 999999) {
-          diff = 999999;
-          debugMsgOtm("Diff max --> " + String(diff));
-        }
-
-        debugMsgOtm("Scoped diff --> " + String(diff));
-
-        outputManager.allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
-        outputManager.loadNumberArrayValue(diff);
-      } else {
-        // show the normal time
-        if (outputManager.getOutputMode() == valueMode) {
-          outputManager.setOutputMode(valueMode);
-        }
-        outputManager.allNormal(APPLY_LEAD_0_BLANK);
-        outputManager.loadNumberArrayTime();
-      }
-
-    } else {
-//      debugMsgOtm("target date wrong format" + cc->countdownTarget);
+  if (countdownManager.getCountdownActive())
+  {
+    outputManager.allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+    outputManager.loadNumberArrayValue(countdownManager.getRemaining());
+  } else {
+    // show the normal time
+    if (outputManager.getOutputMode() == valueMode) {
+      outputManager.setOutputMode(valueMode);
     }
+    outputManager.allNormal(APPLY_LEAD_0_BLANK);
+    outputManager.loadNumberArrayTime();
+  }
   #else  
     #ifdef DIGIT_DIAGNOSTICS
     if (cc->diagsMode == DIGIT_DIAGS_MODE_NONE) {
@@ -453,7 +415,7 @@ void performOncePerSecondProcessing() {
 
   debugManager.debugAutoOffCheck();
 
-  blankingManager.setCurrentLEDBlankingOverrride(digitalRead(BTN2Pin) == LOW);
+  blankingManager.setCurrentLEDBlankingOverride(digitalRead(BTN2Pin) == LOW);
 
   feedWatchdog();
 }

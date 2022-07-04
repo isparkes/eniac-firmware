@@ -68,7 +68,7 @@ class BlankingManager_ {
     bool getCurrentPIRInstalled();
     bool getCurrentBlankingStatus();
     bool getCurrentBlankingIndicator();
-    void setCurrentLEDBlankingOverrride(bool newLEDOverrideStatus);
+    void setCurrentLEDBlankingOverride(bool newLEDOverrideStatus);
     String getNextBlankingModeName();
     byte getNextBlankingMode();
     bool getCurrentModeWantsHours();
