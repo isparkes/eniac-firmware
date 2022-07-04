@@ -20,13 +20,29 @@ void OutputManager_::loadNumberArrayTime() {
 // ************************************************************
 // Break the time into displayable digits
 // ************************************************************
-void OutputManager_::loadNumberArrayValue(byte hrs10, byte hrs1, byte mins10, byte mins1, byte secs10, byte secs1) {
-  numberArray[S1]  = secs1  % 10;
-  numberArray[S10] = secs10 % 10;
-  numberArray[M1]  = mins1  % 10;
-  numberArray[M10] = mins10 % 10;
-  numberArray[H1]  = hrs1   % 10;
-  numberArray[H10] = hrs10  % 10;
+void OutputManager_::loadNumberArrayValue(unsigned int value) {
+  unsigned int valueBound = value;
+  if (valueBound > 999999)
+    valueBound = 999999;
+  
+  byte s1 = valueBound % 10;
+  valueBound = valueBound / 10;
+  byte s10 = valueBound % 10;
+  valueBound = valueBound / 10;
+  byte m1 = valueBound % 10;
+  valueBound = valueBound / 10;
+  byte m10 = valueBound % 10;
+  valueBound = valueBound / 10;
+  byte h1 = valueBound % 10;
+  valueBound = valueBound / 10;
+  byte h10 = valueBound % 10;
+
+  numberArray[S1]  = s1  % 10;
+  numberArray[S10] = s10 % 10;
+  numberArray[M1]  = m1  % 10;
+  numberArray[M10] = m10 % 10;
+  numberArray[H1]  = h1  % 10;
+  numberArray[H10] = h10 % 10;
 }
 
 // ************************************************************
@@ -299,6 +315,10 @@ void OutputManager_::applyBlanking() {
 // Trigger slots/ACP processing
 // ************************************************************
 void OutputManager_::triggerStunts() {
+  // only trigger stunts in time mode
+  if (_outputMode != timeMode)
+    return;
+
   if (_acpOffset == 0) {
     if (second() == ACP_TRIGGER_SECOND) {
       if ((cc->acpMode == ACP_MODE_1M) ||

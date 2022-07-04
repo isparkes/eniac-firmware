@@ -80,11 +80,12 @@
 
 typedef void (*DebugCallback) (String);
 
-enum outputModes {
-  diagsMode,                                // Used during startup test
-  timeMode,                                 // normal time mode
-  slotsMode,                                // dates slots
-  acpMode                                   // acp
+enum outputModes {                          //                              ACP Allowed   Slots Allowed
+  diagsMode,                                // Used during startup test           N             N
+  timeMode,                                 // normal time mode                   Y             Y
+  slotsMode,                                // dates slots                        N             -
+  valueMode,                                // we are displaying a value          N             N
+  acpMode                                   // acp                                -             N
 };
 
 class OutputManager_ {
@@ -102,7 +103,7 @@ class OutputManager_ {
     void loadNumberArrayDate();
     void loadNumberArraySameValue(byte value);
     void loadNumberArrayBurn(byte value);
-    void loadNumberArrayValue(byte hrs10, byte hrs1, byte mins10, byte mins1, byte secs10, byte secs1);
+    void loadNumberArrayValue(unsigned int value);
 
     void allNormal(bool leadingBlank);
     void allBlanked();

@@ -23,7 +23,7 @@ void SlaveManager_::testSlave() {
 // Override the slave mode via front panel switch
 // ************************************************************
 void SlaveManager_::setSlaveEnabled(bool newSlaveStatus) {
-  if ((_slaveEnabled != newSlaveStatus) && (!_slaveEnabled)) {
+  if ((_slaveEnabled != newSlaveStatus) && (!newSlaveStatus)) {
     blankSlaveI2C();
   }
   _slaveEnabled = newSlaveStatus;

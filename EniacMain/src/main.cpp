@@ -356,6 +356,7 @@ void performOncePerSecondProcessing() {
 
       if (tTargetLong > nowLong) {
         // show the countdown
+        outputManager.setOutputMode(valueMode);
         unsigned long diff = tTargetLong - nowLong;
         debugMsgOtm("Diff raw --> " + String(diff));
 
@@ -373,28 +374,17 @@ void performOncePerSecondProcessing() {
           debugMsgOtm("Diff max --> " + String(diff));
         }
 
-        byte s1 = diff % 10;
-        diff = diff / 10;
-        byte s10 = diff % 10;
-        diff = diff / 10;
-        byte m1 = diff % 10;
-        diff = diff / 10;
-        byte m10 = diff % 10;
-        diff = diff / 10;
-        byte h1 = diff % 10;
-        diff = diff / 10;
-        byte h10 = diff % 10;
-
-        debugMsgOtm("Digits --> " + String(h10) + "," + String(h1) + "," + String(m10) + "," + String(m1) + "," + String(s10) + "," + String(s1));
+        debugMsgOtm("Scoped diff --> " + String(diff));
 
         outputManager.allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
-        outputManager.loadNumberArrayValue(h10, h1, m10, m1, s10, s1);
+        outputManager.loadNumberArrayValue(diff);
       } else {
         // show the normal time
-        if (outputManager.getOutputMode() == timeMode) {
-          outputManager.allNormal(APPLY_LEAD_0_BLANK);
-          outputManager.loadNumberArrayTime();
+        if (outputManager.getOutputMode() == valueMode) {
+          outputManager.setOutputMode(valueMode);
         }
+        outputManager.allNormal(APPLY_LEAD_0_BLANK);
+        outputManager.loadNumberArrayTime();
       }
 
     } else {
