@@ -14,6 +14,7 @@ typedef void (*DebugCallback) (String);
 #define LED_EXTENDED_DEBUG_OFF
 #define WFM_EXTENDED_DEBUG_OFF
 #define SPF_EXTENDED_DEBUG_OFF
+#define CDM_EXTENDED_DEBUG_OFF
 
 // Basic debug settings
 #ifdef DEBUG_ON

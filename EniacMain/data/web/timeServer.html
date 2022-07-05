@@ -143,6 +143,8 @@
     getZonesConfig = function () {
         getTimeServerZonesConfig().then(function (zones) {
             let count = 0;
+            let tzs = $("#tzs").val();
+            let ourkey = -1;
             const areas = Object.keys(zones);
             for (var key in zones) {
                 if (zones.hasOwnProperty(key)) {
@@ -151,10 +153,16 @@
                             const tzEntry = key + "/" + tzlocation + " -> " + zones[key][tzlocation];
                             console.log(tzEntry);
                             addOptionToTZList(count, tzEntry);
+                            if (tzs === zones[key][tzlocation]) {
+                                ourkey = count;
+                            }
                             count++;
                         }
                     }
                 }
+            }
+            if (ourkey > -1) {
+                document.getElementById("tzList").selectedIndex = ourkey;
             }
         });
     };
@@ -163,7 +171,7 @@
         const selectedValue = tzList.options[tzList.value].text.split(' -> ')[1];
         document.getElementById('tzs').value = selectedValue;
     };
-        
+
     getConfig = function () {
         getTimeServerConfig().then(function (config) {
             $("#ntpPool").val(config.ntpPool);

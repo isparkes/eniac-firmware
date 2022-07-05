@@ -17,8 +17,10 @@ void CountdownManager_::calculateCountdown() {
   time_t now = tzManager.getRawUTCTimeFromTimeSource(TIME_SOURCE_INT);
   unsigned long nowLong = (unsigned long) now;
 
+  #ifdef CDM_EXTENDED_DEBUG
   debugMsgCdm("Target raw --> " + String(_tTargetLong));
   debugMsgCdm("Now raw --> " + String(nowLong));
+  #endif
 
   _inCoundown = (_tTargetLong > nowLong);
 
@@ -26,33 +28,43 @@ void CountdownManager_::calculateCountdown() {
     // show the countdown
     outputManager.setOutputMode(valueMode);
     unsigned long diff = _tTargetLong - nowLong;
+    #ifdef CDM_EXTENDED_DEBUG
     debugMsgCdm("Diff raw --> " + String(diff));
+    #endif
 
     _units = COUNTDOWN_UNITS_SECS;
 
     if (diff > 999999) {
       diff = diff / 60;
       _units = COUNTDOWN_UNITS_MINS;
+      #ifdef CDM_EXTENDED_DEBUG
       debugMsgCdm("Diff mins --> " + String(diff));
+      #endif
     }
     if (diff > 999999) {
       diff = diff / 60;
       _units = COUNTDOWN_UNITS_HRS;
+      #ifdef CDM_EXTENDED_DEBUG
       debugMsgCdm("Diff hours --> " + String(diff));
+      #endif
     }
     if (diff > 999999) {
       diff = diff / 24;
       _units = COUNTDOWN_UNITS_DAYS;
+      #ifdef CDM_EXTENDED_DEBUG
       debugMsgCdm("Diff days --> " + String(diff));
+      #endif
     }
     if (diff > 999999) {
       diff = 999999;
+      #ifdef CDM_EXTENDED_DEBUG
       debugMsgCdm("Diff max --> " + String(diff));
+      #endif
     }
 
     _remainingUntilTarget = diff;
 
-    debugMsgCdm("Scoped diff --> " + String(_remainingUntilTarget));
+    debugMsgCdm("Scoped diff --> " + String(_remainingUntilTarget) + ", scope: " + String(_units));
 
     outputManager.allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     outputManager.loadNumberArrayValue(diff);
