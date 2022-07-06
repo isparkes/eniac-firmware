@@ -21,10 +21,14 @@ void BlankingManager_::begin() {
 bool BlankingManager_::checkPIR() {
   _pirvalue = (digitalRead(PIRPin) == HIGH);
 
+  #ifdef BLK_EXTENDED_DEBUG
+  debugMsgBlk("PIR reading: " + String(_pirvalue));
+  #endif
+  bool pirBlanked = false;
+
   if (_pirvalue) {
     _pirLastSeen = nowMillis;
     _pirBlankingPct = 0;
-    return false;
   } else {
     // Note that we have a pir
     _pirInstalled = true;
@@ -35,11 +39,15 @@ bool BlankingManager_::checkPIR() {
       _pirBlankingPct = 0;
     }
     if (nowMillis > (_pirLastSeen + (cc->mdTimeout * 1000))) {
-      return true;
-    } else {
-      return false;
+      pirBlanked = true;
     }
   }
+
+  #ifdef BLK_EXTENDED_DEBUG
+  debugMsgBlk("PIR based blanking: " + String(pirBlanked));
+  #endif
+
+  return pirBlanked;
 }
 
 // ************************************************************
@@ -75,6 +83,10 @@ bool BlankingManager_::checkTimeBasedBlanking(byte currentWeekday, byte currentH
       _blanked = true;
       break;
   }
+
+  #ifdef BLK_EXTENDED_DEBUG
+  debugMsgBlk("Time based blanking: " + String(_blanked));
+  #endif
 
   // default, should never reach here
   return _blanked;

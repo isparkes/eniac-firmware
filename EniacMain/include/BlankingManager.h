@@ -3,6 +3,7 @@
 #include "Defs.h"
 #include "Arduino.h"
 #include "Globals.h"
+#include "DebugManager.h"
 
 // -------------------------------------------------------------------------------
 #define MD_TIMEOUT_MIN                 60    // 1 minute in seconds

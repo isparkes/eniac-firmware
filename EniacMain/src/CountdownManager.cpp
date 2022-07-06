@@ -9,7 +9,7 @@ void CountdownManager_::begin() {
 }
 
 bool CountdownManager_::getCountdownActive() {
-  return _inCoundown;
+  return _inCountdown;
 }
 
 void CountdownManager_::calculateCountdown() {
@@ -22,9 +22,9 @@ void CountdownManager_::calculateCountdown() {
   debugMsgCdm("Now raw --> " + String(nowLong));
   #endif
 
-  _inCoundown = (_tTargetLong > nowLong);
+  _inCountdown = (_tTargetLong > nowLong);
 
-  if (_inCoundown) {
+  if (_inCountdown) {
     // show the countdown
     outputManager.setOutputMode(valueMode);
     unsigned long diff = _tTargetLong - nowLong;
@@ -80,6 +80,7 @@ byte CountdownManager_::getRemainingUnits() {
 }
 
 void CountdownManager_::calculateTargetTime() {
+  #ifdef COUNTDOWN
   struct tm targetTime;
   if (cc->countdownTarget.length() == 10) {
     targetTime.tm_year = cc->countdownTarget.substring(0,4).toInt() - 1900;
@@ -94,6 +95,7 @@ void CountdownManager_::calculateTargetTime() {
   _tTargetLong = (unsigned long) tTargetTime;
 
   debugMsgCdm("target date U--> " + tzManager.gmtimeToReadableString(tTargetTime));
+  #endif
 }
 
 CountdownManager_ &CountdownManager_::getInstance() {

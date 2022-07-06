@@ -5,8 +5,16 @@
 #include "Defs.h"
 #include "esp_wps.h"
 
+#ifdef FEATURE_BACKLIGHTS
+#include "LEDManager.h"
+#endif
+
 #include "SpiffsStorage.h"          // Access to config objects
+
+#ifdef FEATURE_BLINKENLIGHTS
 #include "BlinkenlightsManager.h"   // Access to blinkenlights
+#endif
+
 #include "OutputManager.h"          // Defintions for number arrays
 #include "StorageTypes.h"           // Config and Stats objects
 

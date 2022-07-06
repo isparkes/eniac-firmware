@@ -4,12 +4,10 @@
 #include "WiFi.h"
 #include "TimerManager.h"
 #include "LDRManager.h"
-#include "LEDManager.h"
 #include "GPSManager.h"
 #include "BlankingManager.h"
 #include "TZManager.h"
 #include "RTCManager.h"
-#include "BlinkenlightsManager.h"
 #include "NTPManager.h"
 #include "DebugManager.h"
 #include "MenuManager.h"
@@ -101,9 +99,11 @@ void setup()
 
   // -------------------------------------------------------------------------
 
+  #ifdef FEATURE_BACKLIGHTS
   debugMsgMain("Start up neopixels");
   ledManager.setUp();
   ledManager.setLDRRange(LDR_VALUE_MAX);
+  #endif
 
   // -------------------------------------------------------------------------
   
@@ -242,10 +242,11 @@ void setup()
 // ************************************************************
 void setLeds()
 {
-  unsigned int secsDelta;
   secsDeltaAbs = (nowMillis - lastMillis) % 1000;
   upOrDown = (second() % 2) == 0;
   
+  #ifdef FEATURE_BACKLIGHTS
+  unsigned int secsDelta;
   if (upOrDown) {
     secsDelta = secsDeltaAbs;
   } else {
@@ -255,9 +256,10 @@ void setLeds()
   // output the backlight/underlight LEDs
   ledManager.setPulseValue(secsDelta);  
   ledManager.processLedStatus();
+  #endif
 }
 
-#ifdef DIGIT_DIAGNOSTICS
+#if defined(DIGIT_DIAGNOSTICS) && defined(FEATURE_BACKLIGHTS)
 // ************************************************************
 // Set the seconds tick led(s) and the back lights for diags
 // ************************************************************
@@ -292,12 +294,14 @@ void performOncePerLoop() {
     ldrManager.resetMaxLDRValue();
     ldrManager.getDimmingFromLDR();
     ldrValue = ldrManager.getLDRValue();
+    #ifdef FEATURE_BACKLIGHTS
     ledManager.setLDRValue(ldrValue);
+    #endif
   }
 
   // -------------------------------------------------------------------------------
   
-  #ifdef DIGIT_DIAGNOSTICS
+#if defined(DIGIT_DIAGNOSTICS) && defined(FEATURE_BACKLIGHTS)
   // output the backlight/underlight LEDs
   if (cc->diagsMode > 0) {
     setLedsDiags();
@@ -314,7 +318,9 @@ void performOncePerLoop() {
 
   // -------------------------------------------------------------------------------
   
+  #ifdef FEATURE_BLINKENLIGHTS
   blinkenlightsManager.updateBlinkenlights();
+  #endif
 
   // -------------------------------------------------------------------------------
   
@@ -396,7 +402,9 @@ void performOncePerSecondProcessing() {
 
   blankingManager.getBlankingStatus(weekday(), hour());
 
+  #ifdef FEATURE_BACKLIGHTS
   ledManager.recalculateVariables();
+  #endif
 
   // Feed the GPS parser
   while (Serial.available()) {
@@ -475,7 +483,9 @@ void performOncePerHourProcessing() {
 void performOncePerDayProcessing() {
   debugMsgMain("---> OncePerDayProcessing");
 
+  #ifdef FEATURE_BACKLIGHTS
   ledManager.setDayOfWeek(weekday() - 1);
+  #endif
 
   spiffsStorage.saveStatsToSpiffs();
 }

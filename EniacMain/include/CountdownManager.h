@@ -28,7 +28,7 @@ class CountdownManager_ {
     unsigned long _tTargetLong;
     unsigned long _remainingUntilTarget;
     byte _units;
-    bool _inCoundown;
+    bool _inCountdown;
 };
 
 extern CountdownManager_ &countdownManager;

@@ -140,17 +140,27 @@ void resetOptions() {
   cc->acpMode = ACP_MODE_DEFAULT;
   cc->suppressACP = SUPPRESS_ACP_DEFAULT;
   
-  cc->backlightMode = BACKLIGHT_DEFAULT;
   cc->useBLDim = true;
   cc->useBLPulse = false;
+  #ifdef FEATURE_BACKLIGHTS
+  cc->backlightMode = BACKLIGHT_DEFAULT;
   cc->redCnl = COLOUR_RED_CNL_DEFAULT;
   cc->grnCnl = COLOUR_GRN_CNL_DEFAULT;
   cc->bluCnl = COLOUR_BLU_CNL_DEFAULT;
   cc->cycleSpeed = CYCLE_SPEED_DEFAULT;
   cc->backlightDimFactor = BACKLIGHT_DIM_FACTOR_DEFAULT;
-//  cc->extDimFactor = EXT_DIM_FACTOR_DEFAULT;
-//  cc->separatorDimFactor = SEPARATOR_DIM_FACTOR_DEFAULT;
   cc->ledMode = LED_BLINK_DEFAULT;
+  cc->hueOffset = HUE_OFFSET_DEFAULT;
+  #else
+  cc->backlightMode      = 0;
+  cc->redCnl             = 0;
+  cc->grnCnl             = 0;
+  cc->bluCnl             = 0;
+  cc->cycleSpeed         = 0;
+  cc->backlightDimFactor = 0;
+  cc->ledMode            = 0;
+  cc->hueOffset          = 0;
+  #endif
 
   cc->blankMode = BLANK_MODE_DEFAULT;
   cc->blankHourStart = 0;
@@ -166,7 +176,6 @@ void resetOptions() {
   // setWebAuthentication(WEB_AUTH_DEFAULT);
   // setWebUserName(WEB_USERNAME_DEFAULT);
   // setWebPassword(WEB_PASSWORD_DEFAULT);
-  cc->hueOffset = HUE_OFFSET_DEFAULT;
   
   cc->testMode = true;
   cc->wasSetup = true;
@@ -174,7 +183,11 @@ void resetOptions() {
   cc->WiFiSSID = "";
   cc->WiFiPassword = "";
   cc->WifiOnAtStart = false;
+  #ifdef FEATURE_BLINKENLIGHTS
   cc->blinkenLightsMode = BLNKN_MODE_DEFAULT;
+  #else
+  cc->blinkenLightsMode = 0;
+  #endif
   cc->slaveMode = SLAVE_MODE_DEFAULT;
 
   #ifdef COUNTDOWN

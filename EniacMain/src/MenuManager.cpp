@@ -66,8 +66,10 @@ void MenuManager_::nixieClockMenu() {
   status = cc->scrollback ? "off" : "on";
   oledMenu.menuItems[menuCount] = "Scrollback " + status;       oledMenu.menuActions[menuCount++] = toggleScrollback;
   oledMenu.menuItems[menuCount] = "Set Dimming value";          oledMenu.menuActions[menuCount++] = setDimming;
+  #ifdef FEATURE_BLINKENLIGHTS
   String nextBLModeName = blinkenlightsManager.getNextBlinkenlightsModeName();
   oledMenu.menuItems[menuCount] = "IND mode: " + nextBLModeName; oledMenu.menuActions[menuCount++] = nextBlnknMode;
+  #endif
   #ifdef SLAVE_OUTPUT
   String nextSlaveModeName = slaveManager.getNextSlaveModeName();
   oledMenu.menuItems[menuCount] = "Slave Mode " + nextSlaveModeName; oledMenu.menuActions[menuCount++] = nextSlaveMode;
@@ -315,11 +317,13 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       nixieClockMenu();
       break;
     }
+    #ifdef FEATURE_BLINKENLIGHTS
     case nextBlnknMode: {
       cc->blinkenLightsMode = blinkenlightsManager.getNextBlinkenlightsMode();
       nixieClockMenu();
       break;
     }
+    #endif
     case setNextSlotsMode: {
       cc->slotsMode = outputManager.getNextSlotsMode();
       nixieClockMenu();

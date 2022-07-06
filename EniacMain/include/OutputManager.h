@@ -67,7 +67,7 @@
 #define SEP_ON              5
 #define SEP_OFF             6
 #define SEP_AM_PM           7
-#define SEP_BLINK_DEFAULT   LED_RAILROAD
+#define SEP_BLINK_DEFAULT   SEP_RAILROAD
 #define SEP_MODE_MAX        7
 
 // -------------------------------------------------------------------------------

@@ -41,7 +41,9 @@ enum menuTargets {
   toggleTubeDimming,
   toggleBLDimming,
   setDimming, saveDimming,
+  #ifdef FEATURE_BLINKENLIGHTS
   nextBlnknMode,
+  #endif
 
   toggleHourMode,
   toggleFade,

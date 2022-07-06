@@ -15,9 +15,6 @@
 #include <Wire.h>
 #include "SpiffsStorage.h"
 #include "LDRManager.h"
-#include "LEDManager.h"
-
-#include "LDRManager.h"
 #include "TimerManager.h"
 #include "Globals.h"
 #include "GPSManager.h"

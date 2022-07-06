@@ -138,7 +138,9 @@ void OutputManager_::outputDisplay() {
   processStunts();
   processSeparators();
 
+  #ifdef FEATURE_BLINKENLIGHTS
   blinkenlights_t *bl = blinkenlightsManager.getBlinkenlights();
+  #endif
   bool digitBlanked[DIGIT_COUNT];
   byte tmpNumberArray[DIGIT_COUNT];
 
@@ -206,8 +208,13 @@ void OutputManager_::outputDisplay() {
                                 digitBlanked[H10],
                                 digitBlanked[H1],
                                 blankSeparators,
+                                #ifdef FEATURE_BLINKENLIGHTS
                                 bl->bl1,
                                 bl->bl2,
+                                #else
+                                false,
+                                false,
+                                #endif
                                 _led1State,
                                 _led2State);
   uint32_t tmpnextVal2 = decodeFromNumberArray(
@@ -216,8 +223,13 @@ void OutputManager_::outputDisplay() {
                                 digitBlanked[M10],
                                 digitBlanked[M1],
                                 blankSeparators,
+                                #ifdef FEATURE_BLINKENLIGHTS
                                 bl->bl3,
                                 bl->bl4,
+                                #else
+                                false,
+                                false,
+                                #endif
                                 _led3State,
                                 _led4State);
   uint32_t tmpnextVal3 = decodeFromNumberArray(
@@ -226,8 +238,13 @@ void OutputManager_::outputDisplay() {
                                 digitBlanked[S10],
                                 digitBlanked[S1],
                                 blankSeparators,
+                                #ifdef FEATURE_BLINKENLIGHTS
                                 bl->bl5,
                                 bl->bl6,
+                                #else
+                                false,
+                                false,
+                                #endif
                                 _indLed1,
                                 _indLed2);
 
@@ -243,8 +260,13 @@ void OutputManager_::outputDisplay() {
                                   digitBlanked[H10],
                                   digitBlanked[H1],
                                   blankSeparators,
+                                  #ifdef FEATURE_BLINKENLIGHTS
                                   bl->bl1,
                                   bl->bl2,
+                                  #else
+                                  false,
+                                  false,
+                                  #endif
                                   _led1State,
                                   _led2State);
     tmpval2 = decodeFromNumberArray(
@@ -253,8 +275,13 @@ void OutputManager_::outputDisplay() {
                                   digitBlanked[M10],
                                   digitBlanked[M1],
                                   blankSeparators,
+                                  #ifdef FEATURE_BLINKENLIGHTS
                                   bl->bl3,
                                   bl->bl4,
+                                  #else
+                                  false,
+                                  false,
+                                  #endif
                                   _led3State,
                                   _led4State);
     tmpval3 = decodeFromNumberArray(
@@ -263,8 +290,13 @@ void OutputManager_::outputDisplay() {
                                   digitBlanked[S10],
                                   digitBlanked[S1],
                                   blankSeparators,
+                                  #ifdef FEATURE_BLINKENLIGHTS
                                   bl->bl5,
                                   bl->bl6,
+                                  #else
+                                  false,
+                                  false,
+                                  #endif
                                   _indLed1,
                                   _indLed2);
   }

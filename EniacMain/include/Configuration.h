@@ -4,10 +4,6 @@
 // This files hold high level hardware configurations
 // -------------------------------------------------------------------------------
 
-#define PROTO4                      // Proto 2 and below has the encoder B and btn3 swapped 
-
-// -------------------------------------------------------------------------------
-
 // Add debug statments to code - needs extra space
 #define DEBUG_ON                    // DEBUG_ON | DEBUG_OFF
 
@@ -19,7 +15,7 @@
 // -------------------------------------------------------------------------------
 
 // Countdown functionality
-#define COUNTDOWN                   // COUNTDOWN | COUNTDOWN_OFF
+#define COUNTDOWN_OFF               // COUNTDOWN | COUNTDOWN_OFF
 
 // -------------------------------------------------------------------------------
 
@@ -31,6 +27,9 @@
 #define FLASH_TIME     6            // Time in seconds we show an OLED flash message for
 
 // -------------------------------------------------------------------------------
+
+// If we want support for NeoPixel backlights 
+#define FEATURE_BACKLIGHTS          // FEATURE_BACKLIGHTS | FEATURE_BACKLIGHTS_OFF
 
 // include the NeoPixels in the separator towers
 #define FEATURE_SEP_LED             // FEATURE_SEP_LED | FEATURE_SEP_LED_OFF
@@ -44,8 +43,15 @@
 // If we output the underlight string reversed
 #define NORMAL_UL_OUTPUT            // REVERSE_UL_OUTPUT | NORMAL_UL_OUTPUT
 
+// -------------------------------------------------------------------------------
+
+// If we want support for neon blinkenlights
+#define FEATURE_BLINKENLIGHTS       // FEATURE_BLINKENLIGHTS | FEATURE_BLINKENLIGHTS_OFF
+
+// -------------------------------------------------------------------------------
+
 // If we want a slave or not
-#define SLAVE_OUTPUT                // SLAVE_OUTPUT | SLAVE_OUTPUT_OFF
+#define SLAVE_OUTPUT_OFF            // SLAVE_OUTPUT | SLAVE_OUTPUT_OFF
 
 // -------------------------------------------------------------------------------
 
@@ -56,3 +62,6 @@
 
 // Paul's special thing
 #define COG_CRANK_OUTPUT_OFF        // COG_CRANK_OUTPUT | COG_CRANK_OUTPUT_OFF
+
+// -------------------------------------------------------------------------------
+

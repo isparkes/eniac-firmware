@@ -15,6 +15,7 @@ typedef void (*DebugCallback) (String);
 #define WFM_EXTENDED_DEBUG_OFF
 #define SPF_EXTENDED_DEBUG_OFF
 #define CDM_EXTENDED_DEBUG_OFF
+#define BLK_EXTENDED_DEBUG_OFF
 
 // Basic debug settings
 #ifdef DEBUG_ON
@@ -34,6 +35,7 @@ typedef void (*DebugCallback) (String);
 #define debugMsgUtl(message) debugManager.debugMsg("[UTL]", message);
 #define debugMsgWfm(message) debugManager.debugMsg("[WFM]", message);
 #define debugMsgCdm(message) debugManager.debugMsg("[CDM]", message);
+#define debugMsgBlk(message) debugManager.debugMsg("[BLK]", message);
 #else
 #define debugMsgMain(message)
 #define debugMsgBlm(message)
@@ -51,6 +53,7 @@ typedef void (*DebugCallback) (String);
 #define debugMsgUtl(message)
 #define debugMsgWfm(message)
 #define debugMsgCdm(message)
+#define debugMsgBlk(message)
 #endif
 
 // Extended debug settings
