@@ -92,13 +92,11 @@ void TZManager_::setUTCTimeFromTimeSource(byte timesource, unsigned long readTim
   _utctime[timesource] = utcTime;
   _lastupdatetime[timesource] = readTime;
 
-  #ifdef DEBUG_ON
   if (timesource == _primarysource) {
     debugMsgTzm("Update PRIMARY time from source " + String(timesource) + ": " + String(utcTime) + " at millis: " + String(readTime));
   } else {
     debugMsgTzm("Update time from source " + String(timesource) + ": " + String(utcTime) + " at millis: " + String(readTime));
   }
-  #endif
 
   if (timesource == TIME_SOURCE_GPS) {
     unsigned long lastRTCUpdate = getTimeLastSetFromTimeSource(TIME_SOURCE_RTC);

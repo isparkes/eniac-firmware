@@ -291,7 +291,7 @@ void performOncePerLoop() {
   if (outputManager.getOutputMode() == acpMode) {
     ldrManager.setLDRValueToMax();
   } else {
-    ldrManager.resetMaxLDRValue();
+    ldrManager.resetFixedLDRValue();
     ldrManager.getDimmingFromLDR();
     ldrValue = ldrManager.getLDRValue();
     #ifdef FEATURE_BACKLIGHTS
@@ -343,17 +343,21 @@ void performOncePerSecondProcessing() {
     ntpManager.getTimeFromNTP();
   }
 
+  // -------------------------------------------------------------------------------
+  
   #ifdef COUNTDOWN
   countdownManager.calculateCountdown();
 
-  if (countdownManager.getCountdownActive())
-  {
+  if (countdownManager.getCountdownActive()) {
+    if (outputManager.getOutputMode() != valueMode) {
+      outputManager.setOutputMode(valueMode);
+    }
     outputManager.allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     outputManager.loadNumberArrayValue(countdownManager.getRemaining());
   } else {
     // show the normal time
     if (outputManager.getOutputMode() == valueMode) {
-      outputManager.setOutputMode(valueMode);
+      outputManager.setOutputMode(timeMode);
     }
     outputManager.allNormal(APPLY_LEAD_0_BLANK);
     outputManager.loadNumberArrayTime();
@@ -381,6 +385,8 @@ void performOncePerSecondProcessing() {
     #endif
   #endif
 
+  // -------------------------------------------------------------------------------
+  
   // Maintain the LED next to the controller
   if (WiFi.status() == WL_CONNECTED) {
     setLedFlashType(0);
@@ -388,8 +394,8 @@ void performOncePerSecondProcessing() {
     setLedFlashType(1);
   }
 
-  menuManager.menuOncePerSecond();
-
+  // -------------------------------------------------------------------------------
+  
   #ifdef COG_CRANK_OUTPUT
   if (cogCrankSecsLeft > 0) {
     cogCrankSecsLeft--;
@@ -400,30 +406,51 @@ void performOncePerSecondProcessing() {
   }
   #endif
 
-  blankingManager.getBlankingStatus(weekday(), hour());
-
+  // -------------------------------------------------------------------------------
+  
   #ifdef FEATURE_BACKLIGHTS
   ledManager.recalculateVariables();
   #endif
 
+  // -------------------------------------------------------------------------------
+  
   // Feed the GPS parser
   while (Serial.available()) {
     char c = Serial.read();
     gpsManager.parseNMEAMsg(c);
   }
 
+  // ------------------------------ switch handling -----------------------------------
+  
+  #if defined(SLAVE_OUTPUT)
+  slaveManager.updateOncePerSecond();
+  slaveManager.setSlaveEnabled(digitalRead(BTN1Pin) == HIGH);
+  #elif defined(COUNTDOWN)
+  countdownManager.setCountdownInhibit(digitalRead(BTN1Pin) == LOW);
+  #else
+  // The switch "on" imposes min dimming
+  if ((digitalRead(BTN1Pin) == LOW) && !ldrManager.getIsFixedLDRValue()) {
+    ldrManager.setLDRValueToMin();
+  }
+  // Switch off resets it
+  if ((digitalRead(BTN1Pin) == HIGH) && ldrManager.getIsFixedLDRValue()) {
+    ldrManager.resetFixedLDRValue();
+  }
+  #endif
+
+  blankingManager.setCurrentLEDBlankingOverride(digitalRead(BTN2Pin) == LOW);
+
+  // -------------------------------------------------------------------------------
+  
+  blankingManager.getBlankingStatus(weekday(), hour());
+
+  menuManager.menuOncePerSecond();
+
   outputManager.triggerStunts();
 
   triggerOnePulsePerSec();
 
-  #ifdef SLAVE_OUTPUT
-  slaveManager.updateOncePerSecond();
-  slaveManager.setSlaveEnabled(digitalRead(BTN1Pin) == HIGH);
-  #endif
-
   debugManager.debugAutoOffCheck();
-
-  blankingManager.setCurrentLEDBlankingOverride(digitalRead(BTN2Pin) == LOW);
 
   feedWatchdog();
 }

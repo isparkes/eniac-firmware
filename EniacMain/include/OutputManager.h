@@ -80,12 +80,12 @@
 
 typedef void (*DebugCallback) (String);
 
-enum outputModes {                          //                              ACP Allowed   Slots Allowed
-  diagsMode,                                // Used during startup test           N             N
-  timeMode,                                 // normal time mode                   Y             Y
-  slotsMode,                                // dates slots                        N             -
-  valueMode,                                // we are displaying a value          N             N
-  acpMode                                   // acp                                -             N
+enum outputModes {                          //                              ACP Allowed   Slots Allowed   Fade   Scroll
+  diagsMode,                                // Used during startup test           N             N          N       N
+  timeMode,                                 // normal time mode                   Y             Y          Y       Y
+  slotsMode,                                // dates slots                        N             -          Y       Y
+  valueMode,                                // we are displaying a value          N             N          N       N
+  acpMode                                   // acp                                -             N          N       N
 };
 
 class OutputManager_ {

@@ -24,11 +24,13 @@ class CountdownManager_ {
     byte getRemainingUnits();
     void calculateCountdown();
     void calculateTargetTime();
+    void setCountdownInhibit(bool inhibitValue);
   private:
     unsigned long _tTargetLong;
     unsigned long _remainingUntilTarget;
     byte _units;
     bool _inCountdown;
+    bool _suppressCountdown = false;
 };
 
 extern CountdownManager_ &countdownManager;

@@ -15,7 +15,7 @@
 // -------------------------------------------------------------------------------
 
 // Countdown functionality
-#define COUNTDOWN_OFF               // COUNTDOWN | COUNTDOWN_OFF
+#define COUNTDOWN                   // COUNTDOWN | COUNTDOWN_OFF
 
 // -------------------------------------------------------------------------------
 

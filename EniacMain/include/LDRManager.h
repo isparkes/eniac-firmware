@@ -51,7 +51,9 @@ class LDRManager_
     float getLDRValuePct();
     bool  isMinLDRValue();
     void  setLDRValueToMax();
-    void  resetMaxLDRValue();
+    void  setLDRValueToMin();
+    void  resetFixedLDRValue();
+    bool  getIsFixedLDRValue();
   private:
     double sensorLDRSmoothed = 0;
     double sensorFactor = (double)SENSOR_SENSIT_DEFAULT / 100.0;

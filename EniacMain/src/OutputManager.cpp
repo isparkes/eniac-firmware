@@ -156,7 +156,8 @@ void OutputManager_::outputDisplay() {
       blankTubes;
 
     switch(_outputMode) {
-      case timeMode: {
+      case timeMode:
+      case valueMode: {
         // Trigger scolling and fading - scolling takes precendence
         // _suppressEffects stops any effects for ACP
         if (numberArray[i] != currNumberArray[i]) {

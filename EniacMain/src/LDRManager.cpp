@@ -82,7 +82,7 @@ float LDRManager_::getLDRValuePct() {
 }
 
 // ************************************************************
-// Return brightest LDR value
+// Set the brightest LDR value
 // ************************************************************
 void LDRManager_::setLDRValueToMax() {
   _locked = true;
@@ -90,11 +90,28 @@ void LDRManager_::setLDRValueToMax() {
 }
 
 // ************************************************************
-// Return brightest LDR value
+// Set the dimmest LDR value
 // ************************************************************
-void LDRManager_::resetMaxLDRValue() {
+void LDRManager_::setLDRValueToMin() {
+  _locked = true;
+  int effectiveMinDim = LDR_VALUE_MAX - (cc->minDim * LDR_VALUE_MAX / 100);
+  _isMinDim = true;
+  ledcWrite(LDRPWMChannel, effectiveMinDim);
+}
+
+// ************************************************************
+// Reset an imposed LDR (max/min) value
+// ************************************************************
+void LDRManager_::resetFixedLDRValue() {
   _locked = false;
   ledcWrite(LDRPWMChannel, _ldrValue);
+}
+
+// ************************************************************
+// Return brightest LDR value
+// ************************************************************
+bool LDRManager_::getIsFixedLDRValue() {
+  return _locked;
 }
 
 // ************************************************************

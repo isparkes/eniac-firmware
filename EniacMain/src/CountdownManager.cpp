@@ -9,7 +9,11 @@ void CountdownManager_::begin() {
 }
 
 bool CountdownManager_::getCountdownActive() {
-  return _inCountdown;
+  return _inCountdown && !_suppressCountdown;
+}
+
+void CountdownManager_::setCountdownInhibit(bool inhibitValue) {
+  _suppressCountdown = inhibitValue;
 }
 
 void CountdownManager_::calculateCountdown() {
