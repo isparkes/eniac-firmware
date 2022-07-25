@@ -20,6 +20,7 @@ class CountdownManager_ {
   public:
     void begin();
     bool getCountdownActive();
+    bool getCountdownActiveInternal();
     unsigned int getRemaining();
     byte getRemainingUnits();
     void calculateCountdown();

@@ -14,7 +14,8 @@
 #define TIME_SOURCE_INT           3
 #define TIME_SOURCE_COUNT         4
 
-#define RTC_CACHE_TIME_SEC        120
+#define RTC_READ_CACHE_TIME_SEC   120
+#define RTC_WRITE_CACHE_TIME_SEC  120
 
 class TZManager_ {
   private:
@@ -31,20 +32,20 @@ class TZManager_ {
     String getTZS();
 
     // Offset handling
-    int  getCurrentUTCOffset();
-    int  getCurrentUTCIsDST();
-    void calculateCurrentOffsetFromTimeT();
+    int    getCurrentUTCOffset();
+    int    getCurrentUTCIsDST();
+    void   calculateCurrentOffsetFromTimeT();
 
     String getLocalTimeFromTimeSource(byte timesource);
     unsigned long getTimeLastSetFromTimeSource(byte timesource);
-    void setUTCTimeFromTimeSourceHourly();
-    void setUTCTimeFromTimeSource(byte timesource, unsigned long readTime, time_t utcTime);
-    byte getPrimaryTimeSource();
+    void   setUTCTimeFromTimeSourceHourly();
+    void   setUTCTimeFromTimeSource(byte timesource, unsigned long readTime, time_t utcTime);
+    byte   getPrimaryTimeSource();
     time_t getRawUTCTimeFromTimeSource(byte timesource);
 
     String localtimeToReadableString(time_t timeToConvert);
     String gmtimeToReadableString(time_t timeToConvert);
-    tm getRTCTimeAsLocalTimeTM();
+    tm     getRTCTimeAsLocalTimeTM();
     time_t convertLocalTimeTMToUTC(tm tmFrom);
   private:
     String _tzs = TIME_ZONE_STRING_DEFAULT;
@@ -55,6 +56,7 @@ class TZManager_ {
     byte _primarysource = TIME_SOURCE_RTC;
 
     void setInternalTimeFromRTC();
+    void setRTCTimeFromTimeSource(unsigned long readTime, time_t utcTime);
 };
 
 extern TZManager_ &tzManager;

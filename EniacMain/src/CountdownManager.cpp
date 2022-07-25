@@ -8,16 +8,33 @@ void CountdownManager_::begin() {
   calculateTargetTime();
 }
 
+// ************************************************************
+// See if we are to display the countdown value or not
+// ************************************************************
 bool CountdownManager_::getCountdownActive() {
   return _inCountdown && !_suppressCountdown;
 }
 
+// ************************************************************
+// See if we are to display the countdown value or not - does
+// NOT take into account the inhibit flag.
+// ************************************************************
+bool CountdownManager_::getCountdownActiveInternal() {
+  return _inCountdown;
+}
+
+// ************************************************************
+// Set the "getCountdownActive" to false so that we show the
+// normal display
+// ************************************************************
 void CountdownManager_::setCountdownInhibit(bool inhibitValue) {
   _suppressCountdown = inhibitValue;
 }
 
+// ************************************************************
+// calculate the seconds left
+// ************************************************************
 void CountdownManager_::calculateCountdown() {
-  // calculate the seconds left
   time_t now = tzManager.getRawUTCTimeFromTimeSource(TIME_SOURCE_INT);
   unsigned long nowLong = (unsigned long) now;
 
@@ -75,14 +92,24 @@ void CountdownManager_::calculateCountdown() {
   }
 }
 
+// ************************************************************
+// Return the SCOPED number of units until we reach countdown
+// The scope can be days, hours, minutes or seconds
+// ************************************************************
 unsigned int CountdownManager_::getRemaining() {
   return _remainingUntilTarget;
 }
 
+// ************************************************************
+// Return theunits for the scope (days, hours, minutes or seconds)
+// ************************************************************
 byte CountdownManager_::getRemainingUnits() {
   return _units;
 }
 
+// ************************************************************
+// Calculate the target time - called once at startup
+// ************************************************************
 void CountdownManager_::calculateTargetTime() {
   #ifdef COUNTDOWN
   struct tm targetTime;

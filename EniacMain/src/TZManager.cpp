@@ -89,31 +89,36 @@ int TZManager_::getCurrentUTCIsDST() {
 // we update the RTC time and internal time to the value.
 // ************************************************************
 void TZManager_::setUTCTimeFromTimeSource(byte timesource, unsigned long readTime, time_t utcTime) {
-  _utctime[timesource] = utcTime;
-  _lastupdatetime[timesource] = readTime;
-
   if (timesource == _primarysource) {
     debugMsgTzm("Update PRIMARY time from source " + String(timesource) + ": " + String(utcTime) + " at millis: " + String(readTime));
   } else {
     debugMsgTzm("Update time from source " + String(timesource) + ": " + String(utcTime) + " at millis: " + String(readTime));
   }
 
+  // Because GPS gives us an update every second, we don't want to set the RTC all the time
+  // instead we want to update the RTC only in the case that it has not been set (e.g. at startup)
+  // or that we haven't updated for a time
   if (timesource == TIME_SOURCE_GPS) {
+
+    _utctime[timesource] = utcTime;
+    _lastupdatetime[timesource] = readTime;
+
     unsigned long lastRTCUpdate = getTimeLastSetFromTimeSource(TIME_SOURCE_RTC);
-    if ((lastRTCUpdate > 60) ||                      // The last update is old
-      (_lastupdatetime[TIME_SOURCE_RTC] == 0)) {     // or the RTC was not yet initialised
-        debugMsgTzm("Set RTC time to GPS time " + String(utcTime));
-        rtcManager.setTimeFromUTCSource(utcTime, true);
-        _utctime[TIME_SOURCE_RTC] = utcTime;
-        _lastupdatetime[TIME_SOURCE_RTC] = readTime;
+    if ((lastRTCUpdate > RTC_WRITE_CACHE_TIME_SEC) || // The last update is old
+      (_lastupdatetime[TIME_SOURCE_RTC] == 0)) {      // or the RTC was not yet initialised
+        // Update the RTC time
+        setRTCTimeFromTimeSource(readTime, utcTime);
+        
+        // Set the internal time
+        setInternalTimeFromRTC();
       }
-    // Set the internal time
-    setInternalTimeFromRTC();
   } else if (timesource == TIME_SOURCE_NTP) {
-    debugMsgTzm("Set RTC time to NTP time " + String(utcTime));
-    rtcManager.setTimeFromUTCSource(utcTime, true);
-    _utctime[TIME_SOURCE_RTC] = utcTime;
-    _lastupdatetime[TIME_SOURCE_RTC] = readTime;
+
+    _utctime[timesource] = utcTime;
+    _lastupdatetime[timesource] = readTime;
+
+    // Update the RTC time
+    setRTCTimeFromTimeSource(readTime, utcTime);
 
     // Set the internal time
     setInternalTimeFromRTC();
@@ -121,6 +126,16 @@ void TZManager_::setUTCTimeFromTimeSource(byte timesource, unsigned long readTim
     // Set the internal time
     setInternalTimeFromRTC();
   }
+}
+
+// ************************************************************
+// Update the RTC time
+// ************************************************************
+void TZManager_::setRTCTimeFromTimeSource(unsigned long readTime, time_t utcTime) {
+  debugMsgTzm("Set RTC time to time " + String(utcTime));
+  rtcManager.setTimeFromUTCSource(utcTime, true);
+  _utctime[TIME_SOURCE_RTC] = utcTime;
+  _lastupdatetime[TIME_SOURCE_RTC] = readTime;
 }
 
 // ************************************************************
@@ -176,6 +191,9 @@ void TZManager_::setInternalTimeFromRTC() {
   _lastupdatetime[TIME_SOURCE_INT] = nowMillis;
 }
 
+// ************************************************************
+// gets the local time from the RTC
+// ************************************************************
 tm TZManager_::getRTCTimeAsLocalTimeTM() {
   int lastUpdateOffset = getTimeLastSetFromTimeSource(TIME_SOURCE_RTC);
   time_t currentUTC = _utctime[TIME_SOURCE_RTC] + lastUpdateOffset;
@@ -185,14 +203,17 @@ tm TZManager_::getRTCTimeAsLocalTimeTM() {
   return info_local;
 }
 
+// ************************************************************
+// Convert a tm struct to a UTC time_t
+// ************************************************************
 time_t TZManager_::convertLocalTimeTMToUTC(tm tmFrom) {
-    #ifdef TZM_EXTENDED_DEBUG
-    debugMsgTzm("---->Applying offset: " + String(getCurrentUTCOffset()) + " to RTC harware time -> " + 
-      String(tmFrom.tm_year) + ", " + String(tmFrom.tm_mon) + ", " + String(tmFrom.tm_mday) + ", " + 
-      String(tmFrom.tm_hour) + ", " + String(tmFrom.tm_min) + ", " + String(tmFrom.tm_sec));
-    #endif
+  #ifdef TZM_EXTENDED_DEBUG
+  debugMsgTzm("---->Applying offset: " + String(getCurrentUTCOffset()) + " to RTC harware time -> " + 
+    String(tmFrom.tm_year) + ", " + String(tmFrom.tm_mon) + ", " + String(tmFrom.tm_mday) + ", " + 
+    String(tmFrom.tm_hour) + ", " + String(tmFrom.tm_min) + ", " + String(tmFrom.tm_sec));
+  #endif
 
-    time_t _rtctime = mktime(&tmFrom);
+  time_t _rtctime = mktime(&tmFrom);
   return _rtctime;
 }
 
@@ -209,7 +230,7 @@ String TZManager_::getLocalTimeFromTimeSource(byte timesource) {
   time_t nowtime_t = _utctime[timesource] + offset;
 
   // If we are talking to the RTC, every now and again update the internal time
-  if (timesource == TIME_SOURCE_INT && (offset >= RTC_CACHE_TIME_SEC)) {
+  if (timesource == TIME_SOURCE_INT && (offset >= RTC_READ_CACHE_TIME_SEC)) {
     debugMsgTzm("Internal time is : " + String(offset) + "S old, getting update");
     setInternalTimeFromRTC();
   }

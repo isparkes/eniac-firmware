@@ -426,7 +426,16 @@ void performOncePerSecondProcessing() {
   slaveManager.updateOncePerSecond();
   slaveManager.setSlaveEnabled(digitalRead(BTN1Pin) == HIGH);
   #elif defined(COUNTDOWN)
-  countdownManager.setCountdownInhibit(digitalRead(BTN1Pin) == LOW);
+  // If we are in countdown, the switch can turn it off
+  if (countdownManager.getCountdownActiveInternal()) {
+    countdownManager.setCountdownInhibit(digitalRead(BTN1Pin) == LOW);
+  } else {
+    #if defined(SLAVE_OUTPUT)
+    // otherwise, we use it for the slave management
+    slaveManager.updateOncePerSecond();
+    slaveManager.setSlaveEnabled(digitalRead(BTN1Pin) == HIGH);
+    #endif
+  }
   #else
   // The switch "on" imposes min dimming
   if ((digitalRead(BTN1Pin) == LOW) && !ldrManager.getIsFixedLDRValue()) {
