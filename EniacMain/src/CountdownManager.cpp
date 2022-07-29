@@ -125,9 +125,9 @@ void CountdownManager_::calculateTargetTime() {
     targetTime.tm_hour = 0; 
     targetTime.tm_min = 0;
     targetTime.tm_sec = 0;
-    targetTime.tm_isdst = tzManager.getCurrentUTCIsDST();
+    targetTime.tm_isdst = -1;
   }
-  time_t tTargetTime = mktime(&targetTime) + tzManager.getCurrentUTCOffset();
+  time_t tTargetTime = mktime(&targetTime);
   _tTargetLong = (unsigned long) tTargetTime;
 
   debugMsgCdm("target date U--> " + tzManager.gmtimeToReadableString(tTargetTime));
