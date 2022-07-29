@@ -352,17 +352,23 @@ void performOncePerSecondProcessing() {
     if (outputManager.getOutputMode() != valueMode) {
       outputManager.setOutputMode(valueMode);
     }
-    outputManager.allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
-    outputManager.loadNumberArrayValue(countdownManager.getRemaining());
   } else {
     // show the normal time
     if (outputManager.getOutputMode() == valueMode) {
       outputManager.setOutputMode(timeMode);
     }
+  }
+
+  if (outputManager.getOutputMode() == timeMode) {
     outputManager.allNormal(APPLY_LEAD_0_BLANK);
     outputManager.loadNumberArrayTime();
   }
-  #else  
+
+  if (outputManager.getOutputMode() == valueMode) {
+    outputManager.allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+    outputManager.loadNumberArrayValue(countdownManager.getRemaining());
+  }
+  #else
     #ifdef DIGIT_DIAGNOSTICS
     if (cc->diagsMode == DIGIT_DIAGS_MODE_NONE) {
       if (outputManager.getOutputMode() == timeMode) {
@@ -420,33 +426,78 @@ void performOncePerSecondProcessing() {
     gpsManager.parseNMEAMsg(c);
   }
 
-  // ------------------------------ switch handling -----------------------------------
-  
+  // -------------------------------------------------------------------------------
+
   #if defined(SLAVE_OUTPUT)
   slaveManager.updateOncePerSecond();
-  slaveManager.setSlaveEnabled(digitalRead(BTN1Pin) == HIGH);
-  #elif defined(COUNTDOWN)
+  #endif
+
+  // ------------------------------ switch handling -----------------------------------
+  
+  // Switch 1 has various meanings
+
+  // Countdown mode
+  // If we are in Countdown mode, it switches the display back to "normal"
+  // when countdown is finished, it controls the slave output
+
+  // 
+  #define SW1_NONE                0
+  #define SW1_COUTNDOWN_INHIBIT   1
+  #define SW1_SLAVE_INHIBIT       2
+  #define SW1_MIN_DIM             3
+  byte switch1Meaning = SW1_NONE;
+
+  #if defined(COUNTDOWN)
   // If we are in countdown, the switch can turn it off
   if (countdownManager.getCountdownActiveInternal()) {
-    countdownManager.setCountdownInhibit(digitalRead(BTN1Pin) == LOW);
+    switch1Meaning = SW1_COUTNDOWN_INHIBIT;
   } else {
     #if defined(SLAVE_OUTPUT)
-    // otherwise, we use it for the slave management
-    slaveManager.updateOncePerSecond();
-    slaveManager.setSlaveEnabled(digitalRead(BTN1Pin) == HIGH);
+    switch1Meaning = SW1_SLAVE_INHIBIT;
+    #else
+    switch1Meaning = SW1_MIN_DIM;
     #endif
   }
   #else
-  // The switch "on" imposes min dimming
-  if ((digitalRead(BTN1Pin) == LOW) && !ldrManager.getIsFixedLDRValue()) {
-    ldrManager.setLDRValueToMin();
-  }
-  // Switch off resets it
-  if ((digitalRead(BTN1Pin) == HIGH) && ldrManager.getIsFixedLDRValue()) {
-    ldrManager.resetFixedLDRValue();
-  }
+    #if defined(SLAVE_OUTPUT)
+    switch1Meaning = SW1_SLAVE_INHIBIT;
+    #else
+    switch1Meaning = SW1_MIN_DIM;
+    #endif
   #endif
 
+  switch(switch1Meaning) {
+    case SW1_NONE: {
+      // nothing
+      break;
+    }
+    case SW1_COUTNDOWN_INHIBIT: {
+      if (digitalRead(BTN1Pin) == LOW) {
+        countdownManager.setCountdownInhibit(true);
+        debugMsgMain("Inhibit countdown via switch");
+      } else {
+        countdownManager.setCountdownInhibit(false);
+      }
+      break;
+    }
+    case SW1_SLAVE_INHIBIT: {
+      slaveManager.setSlaveEnabled(digitalRead(BTN1Pin) == HIGH);
+      break;
+    }
+    case SW1_MIN_DIM: {
+      // The switch "on" imposes min dimming
+      if ((digitalRead(BTN1Pin) == LOW) && !ldrManager.getIsFixedLDRValue()) {
+        ldrManager.setLDRValueToMin();
+      }
+      // Switch off resets it
+      if ((digitalRead(BTN1Pin) == HIGH) && ldrManager.getIsFixedLDRValue()) {
+        ldrManager.resetFixedLDRValue();
+      }
+      break;
+    }
+  }
+
+  // Switch 2 blanks the LEDs
   blankingManager.setCurrentLEDBlankingOverride(digitalRead(BTN2Pin) == LOW);
 
   // -------------------------------------------------------------------------------

@@ -4,9 +4,6 @@
 // Break the time into displayable digits
 // ************************************************************
 void OutputManager_::loadNumberArrayTime() {
-  // Suppress updates if we are not showing the time
-  if (_outputMode != timeMode) return;
-
   numberArray[S1]  = second() % 10;
   numberArray[S10] = second() / 10;
   numberArray[M1]  = minute() % 10;

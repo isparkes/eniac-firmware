@@ -51,7 +51,7 @@
 // -------------------------------------------------------------------------------
 
 // If we want a slave or not
-#define SLAVE_OUTPUT_OFF            // SLAVE_OUTPUT | SLAVE_OUTPUT_OFF
+#define SLAVE_OUTPUT               // SLAVE_OUTPUT | SLAVE_OUTPUT_OFF
 
 // -------------------------------------------------------------------------------
 

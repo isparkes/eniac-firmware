@@ -27,8 +27,13 @@ bool CountdownManager_::getCountdownActiveInternal() {
 // Set the "getCountdownActive" to false so that we show the
 // normal display
 // ************************************************************
-void CountdownManager_::setCountdownInhibit(bool inhibitValue) {
-  _suppressCountdown = inhibitValue;
+void CountdownManager_::setCountdownInhibit(bool newInhibitValue) {
+  #ifdef CDM_EXTENDED_DEBUG
+  if (_suppressCountdown != newInhibitValue) {
+    debugMsgCdm("Setting countdown inhibit via switch to: " + newInhibitValue ? "true" : "false");
+  }
+  #endif
+  _suppressCountdown = newInhibitValue;
 }
 
 // ************************************************************
