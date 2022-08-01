@@ -20,7 +20,7 @@
 // -------------------------------------------------------------------------------
 
 // Define the type of OLED
-#define OLED_SH1106                 // OLED_SH1106 |  OLED_SSD1306
+#define OLED_SSD1306                // OLED_SH1106 |  OLED_SSD1306
 
 #define OLED_ON_TIME  20            // Time in seconds the OLED stays on for
 #define CONFIG_TIME   10            // Time in seconds we stay in config mode
@@ -51,11 +51,11 @@
 // -------------------------------------------------------------------------------
 
 // If we want a slave or not
-#define SLAVE_OUTPUT               // SLAVE_OUTPUT | SLAVE_OUTPUT_OFF
+#define SLAVE_OUTPUT_OFF            // SLAVE_OUTPUT | SLAVE_OUTPUT_OFF
 
 // -------------------------------------------------------------------------------
 
-#define SOFTWARE_VERSION "LTC-ESP32 V0.4"
+#define SOFTWARE_VERSION "LTC-ESP32 V0.5"
 #define CLOCK_MENU_TITLE "ENIAC" 
 
 // -------------------------------------------------------------------------------

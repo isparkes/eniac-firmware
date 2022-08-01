@@ -803,7 +803,7 @@ void MenuManager_::serviceValue() {
         case BACKSPACE: {
           oled.setCursor(30, topLine + _valueSpacingY);
           oled.setTextSize(2);
-          oled.println("CANCEL");
+          oled.println("DELETE");
           break;
         }
         case DONE: {
