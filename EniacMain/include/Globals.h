@@ -66,7 +66,6 @@ extern unsigned int configTimeout;
 extern unsigned int flashTimeout;
 
 #ifdef DIGIT_DIAGNOSTICS
-// Used for testing
 extern int digitValue;
 #endif
 

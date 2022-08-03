@@ -117,6 +117,10 @@
                             <td>Current UTC offset</td>
                             <td id="utcoffset"></td>
                         </tr>
+                        <tr>
+                            <td>Features</td>
+                            <td id="features"></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -239,6 +243,7 @@
             $("#utcintraw").text(diags.utcintraw + "@" + diags.utcintat + " --> " + (diags.utcintraw + diags.utcintat));
             $("#oledtype").text(diags.oledtype);
             $("#slaveupdates").text(diags.slavetrycount + "/" + diags.slavefailcount);
+            $("#features").text(diags.features);
 
             if (diags.slavetrycount > 0) {
                 $("#slaveupdaterow").prop('hidden', false);

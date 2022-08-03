@@ -368,27 +368,17 @@ void performOncePerSecondProcessing() {
     outputManager.allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     outputManager.loadNumberArrayValue(countdownManager.getRemaining());
   }
-  #else
-    #ifdef DIGIT_DIAGNOSTICS
-    if (cc->diagsMode == DIGIT_DIAGS_MODE_NONE) {
-      if (outputManager.getOutputMode() == timeMode) {
-        outputManager.allNormal(APPLY_LEAD_0_BLANK);
-        outputManager.loadNumberArrayTime();
-      }
-    } else if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
-      outputManager.loadNumberArraySameValue(second());
-    } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
-      outputManager.loadNumberArraySameValue(minute());
-    } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
-      int rawEncPos = menuManager.getCurrentEncoderPos()/2;
-      while (rawEncPos < 0) rawEncPos+=60; 
-    }
-    #else
-    if (outputManager.getOutputMode() == timeMode) {
-      outputManager.allNormal(APPLY_LEAD_0_BLANK);
-      outputManager.loadNumberArrayTime();
-    }
-    #endif
+  #endif
+
+  #ifdef DIGIT_DIAGNOSTICS
+  if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
+    outputManager.loadNumberArraySameValue(second());
+  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
+    outputManager.loadNumberArraySameValue(minute());
+  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
+    int rawEncPos = menuManager.getCurrentEncoderPos()/2;
+    while (rawEncPos < 0) rawEncPos+=60; 
+  }
   #endif
 
   // -------------------------------------------------------------------------------

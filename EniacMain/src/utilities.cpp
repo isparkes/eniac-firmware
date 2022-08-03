@@ -397,6 +397,65 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["diagsMode"] = cc->diagsMode;
   #endif
 
+  String featureString = "";
+  #ifdef DEBUG_ON
+  featureString += "DEB,";
+  #endif
+
+  #ifdef DIGIT_DIAGNOSTICS
+  featureString += "DIA,";
+  #endif
+
+  #ifdef COUNTDOWN
+  featureString += "CNT,";
+  #endif
+
+  #ifdef OLED_SSD1306
+  featureString += "SSD1306,";
+  #endif
+
+  #ifdef OLED_SH1106
+  featureString += "SH1106,";
+  #endif
+
+  #ifdef FEATURE_BACKLIGHTS
+  featureString += "SH1106,";
+  #endif
+
+  #ifdef FEATURE_SEP_LED
+  featureString += "SH1106,";
+  #endif
+
+  #ifdef WS2812B
+  featureString += "WS2,";
+  #endif
+
+  #ifdef APA106
+  featureString += "APA,";
+  #endif
+  
+  #ifdef REVERSE_BL_OUTPUT
+  featureString += "BLR,";
+  #endif
+
+  #ifdef REVERSE_UL_OUTPUT
+  featureString += "ULR,";
+  #endif
+
+  #ifdef FEATURE_BLINKENLIGHTS
+  featureString += "BLK,";
+  #endif
+
+  #ifdef SLAVE_OUTPUT
+  featureString += "SLV,";
+  #endif
+
+  #ifdef COG_CRANK_OUTPUT
+  featureString += "COG,";
+  #endif
+
+  root["features"] = featureString;
+
   response->setLength();
   request->send(response);
 }

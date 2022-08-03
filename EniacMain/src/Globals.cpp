@@ -62,7 +62,6 @@ unsigned int configTimeout = 0;
 unsigned int flashTimeout = 0;
 
 #ifdef DIGIT_DIAGNOSTICS
-// Used for testing
 int digitValue = 0;
 #endif
 
