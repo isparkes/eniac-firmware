@@ -399,59 +399,59 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
 
   String featureString = "";
   #ifdef DEBUG_ON
-  featureString += "DEB,";
+  featureString += "DEB ";
   #endif
 
   #ifdef DIGIT_DIAGNOSTICS
-  featureString += "DIA,";
+  featureString += "DIAG ";
   #endif
 
   #ifdef COUNTDOWN
-  featureString += "CNT,";
+  featureString += "CNT ";
   #endif
 
   #ifdef OLED_SSD1306
-  featureString += "SSD1306,";
+  featureString += "SSD1306 ";
   #endif
 
   #ifdef OLED_SH1106
-  featureString += "SH1106,";
+  featureString += "SH1106 ";
   #endif
 
   #ifdef FEATURE_BACKLIGHTS
-  featureString += "SH1106,";
+  featureString += "BKCL ";
   #endif
 
   #ifdef FEATURE_SEP_LED
-  featureString += "SH1106,";
+  featureString += "SEP ";
   #endif
 
   #ifdef WS2812B
-  featureString += "WS2,";
+  featureString += "WS2 ";
   #endif
 
   #ifdef APA106
-  featureString += "APA,";
+  featureString += "APA ";
   #endif
   
   #ifdef REVERSE_BL_OUTPUT
-  featureString += "BLR,";
+  featureString += "BLR ";
   #endif
 
   #ifdef REVERSE_UL_OUTPUT
-  featureString += "ULR,";
+  featureString += "ULR ";
   #endif
 
   #ifdef FEATURE_BLINKENLIGHTS
-  featureString += "BLK,";
+  featureString += "BLNK ";
   #endif
 
   #ifdef SLAVE_OUTPUT
-  featureString += "SLV,";
+  featureString += "SLV ";
   #endif
 
   #ifdef COG_CRANK_OUTPUT
-  featureString += "COG,";
+  featureString += "COG ";
   #endif
 
   root["features"] = featureString;
