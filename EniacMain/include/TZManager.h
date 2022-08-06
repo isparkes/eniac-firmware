@@ -34,7 +34,7 @@ class TZManager_ {
     // Offset handling
     int    getCurrentUTCOffset();
     int    getCurrentUTCIsDST();
-    void   calculateCurrentOffsetFromTimeT();
+    void   calculateCurrentOffsetFromTimeT(time_t timeToCheck);
 
     String getLocalTimeFromTimeSource(byte timesource);
     unsigned long getTimeLastSetFromTimeSource(byte timesource);

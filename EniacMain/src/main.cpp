@@ -166,15 +166,14 @@ void setup()
     // first time let's us figure out the UTC offset, it should be right within
     // the bounds of DST variation
     time_t rtctime = rtcManager.getRTCTimeAsTimeT();
-    tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtctime);
-    tzManager.calculateCurrentOffsetFromTimeT();
+    tzManager.calculateCurrentOffsetFromTimeT(rtctime);
 
     debugMsgMain("Recalculate offset based on recovered datetime");
 
     // Second time sets the time based on the calculated DST
     rtctime = rtcManager.getRTCTimeAsTimeT();
     tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtctime);
-    tzManager.calculateCurrentOffsetFromTimeT();
+    tzManager.calculateCurrentOffsetFromTimeT(rtctime);
   } else {
     debugMsgMain("RTC NOT found");
   }
@@ -514,7 +513,7 @@ void performOncePerHourProcessing() {
   menuManager.menuOncePerHour();
   
   tzManager.setUTCTimeFromTimeSourceHourly();
-  tzManager.calculateCurrentOffsetFromTimeT();
+  tzManager.calculateCurrentOffsetFromTimeT(tzManager.getRawUTCTimeFromTimeSource(tzManager.getPrimaryTimeSource()));
 
   rtcManager.testRTCTimeProvider();
 

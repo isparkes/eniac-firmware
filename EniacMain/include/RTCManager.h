@@ -38,15 +38,15 @@ class RtcManager_ {
     time_t getRTCTimeAsTimeT();    
     bool getRTCValid();
 
-    void setTimeFromUTCSource(time_t currentTime, bool updateRTC);
+    bool setTimeFromUTCSource(time_t currentTime);
     unsigned long getLastRTCSetTime();
 private:
     RtcManager_() = default; // Make constructor private
 
     uint8_t decToBcd(uint8_t val);
     uint8_t bcdToDec(uint8_t val);
-    void setTimeRTCHardware();
-    void getTimeRTCHardware();
+    bool setTimeRTCHardware();
+    bool getTimeRTCHardware();
 
     bool _useRTC = false;
     bool _onceHadAnRTC = false;

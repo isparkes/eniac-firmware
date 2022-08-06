@@ -1020,7 +1020,7 @@ void MenuManager_::calculateAndSaveHourValue() {
   tm nowTm = tzManager.getRTCTimeAsLocalTimeTM();
   nowTm.tm_hour = oledMenu.mValueEntered;
   time_t newTime = tzManager.convertLocalTimeTMToUTC(nowTm);
-  rtcManager.setTimeFromUTCSource(newTime, true);
+  rtcManager.setTimeFromUTCSource(newTime);
   tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtcManager.getRTCTimeAsTimeT());
   debugMsgMnm("New time = " + String(tzManager.gmtimeToReadableString(newTime)));
 }
@@ -1030,7 +1030,7 @@ void MenuManager_::calculateAndSaveMinuteValue() {
   nowTm.tm_min = oledMenu.mValueEntered;
   nowTm.tm_sec = 0;
   time_t newTime = tzManager.convertLocalTimeTMToUTC(nowTm);
-  rtcManager.setTimeFromUTCSource(newTime, true);
+  rtcManager.setTimeFromUTCSource(newTime);
   tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtcManager.getRTCTimeAsTimeT());
   debugMsgMnm("New time = " + tzManager.gmtimeToReadableString(newTime));
 }

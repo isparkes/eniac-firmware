@@ -30,7 +30,7 @@ void RtcManager_::startClock(void)                    // set the ClockHalt bit l
   Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write(0x00);                      // Register 0x00 holds the oscillator start/stop bit
   Wire.endTransmission();
-  Wire.requestFrom(RtcManager_I2C_ADDRESS, 1);
+  Wire.requestFrom(RtcManager_I2C_ADDRESS, 1, true);
   _second = Wire.read() & 0x7f;                    // save actual seconds and AND sec with bit 7 (sart/stop bit) = clock started
   Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write(0x00);
@@ -46,7 +46,7 @@ void RtcManager_::stopClock(void)                     // set the ClockHalt bit h
   Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write(0x00);                      // Register 0x00 holds the oscillator start/stop bit
   Wire.endTransmission();
-  Wire.requestFrom(RtcManager_I2C_ADDRESS, 1);
+  Wire.requestFrom(RtcManager_I2C_ADDRESS, 1, true);
   _second = Wire.read() | 0x80;                    // save actual seconds and OR sec with bit 7 (sart/stop bit) = clock stopped
   Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write(0x00);
@@ -57,13 +57,13 @@ void RtcManager_::stopClock(void)                     // set the ClockHalt bit h
 // ************************************************************
 // Get the display time back from the hardware
 // ************************************************************
-void RtcManager_::getTimeRTCHardware()
+bool RtcManager_::getTimeRTCHardware()
 {
   // Reset the register pointer
   Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write((uint8_t)0x00);
   Wire.endTransmission();  
-  Wire.requestFrom(RtcManager_I2C_ADDRESS, 7);
+  Wire.requestFrom(RtcManager_I2C_ADDRESS, 7, true);
   // A few of these need masks because certain bits are control bits
   _second     = bcdToDec(Wire.read() & 0x7f);
   _minute     = bcdToDec(Wire.read());
@@ -81,7 +81,7 @@ void RtcManager_::getTimeRTCHardware()
 // ************************************************************
 // Put the display time into the RTC hardware
 // ************************************************************
-void RtcManager_::setTimeRTCHardware()
+bool RtcManager_::setTimeRTCHardware()
 {
     Wire.beginTransmission(RtcManager_I2C_ADDRESS);
     Wire.write((uint8_t)0x00);
@@ -92,9 +92,15 @@ void RtcManager_::setTimeRTCHardware()
     Wire.write(decToBcd(_dayOfMonth));
     Wire.write(decToBcd(_month));
     Wire.write(decToBcd(_year));
-    Wire.endTransmission();
+    byte result = Wire.endTransmission();
 
-    debugMsgRtc("Set hardware RTC " + String(_year) + ", " + String(_month) + ", " + String(_dayOfMonth) + ", " + String(_hour) + ", " + String(_minute) + ", " + String(_second));
+    if (result != 0) {
+      debugMsgRtc("!!! Failed to set hardware RTC " + String(result));
+      return false;
+    } else {
+      debugMsgRtc("Set hardware RTC " + String(_year) + ", " + String(_month) + ", " + String(_dayOfMonth) + ", " + String(_hour) + ", " + String(_minute) + ", " + String(_second));
+      return true;
+    }
 }
 
 // ************************************************************
@@ -107,7 +113,7 @@ unsigned char RtcManager_::isRunning()
   Wire.endTransmission();
 
   // Just fetch the seconds register and check the top bit
-  Wire.requestFrom(RtcManager_I2C_ADDRESS, 1);
+  Wire.requestFrom(RtcManager_I2C_ADDRESS, 1, true);
   return !(Wire.read() & 0x80);
 }
 
@@ -167,7 +173,7 @@ time_t RtcManager_::getRTCTimeAsTimeT() {
 // ************************************************************
 // Set the time from the value we get back from a UTC time source
 // ************************************************************
-void RtcManager_::setTimeFromUTCSource(time_t currentTime, bool updateRTC) {
+bool RtcManager_::setTimeFromUTCSource(time_t currentTime) {
 
   struct tm info_gm;
   gmtime_r(&currentTime, &info_gm);
@@ -181,12 +187,13 @@ void RtcManager_::setTimeFromUTCSource(time_t currentTime, bool updateRTC) {
   _minute = info_gm.tm_min;
   _second = info_gm.tm_sec;
 
-  if (updateRTC) {
-    // Push the update to the RTC chip
-    setTimeRTCHardware();
-  }
+  bool result=setTimeRTCHardware();
     
-  debugMsgRtc("Set RTC time to time: " + String(currentTime) + " U--> " + tzManager.gmtimeToReadableString(currentTime));
+  if (result) {
+    debugMsgRtc("Set RTC time to time: " + String(currentTime) + " U--> " + tzManager.gmtimeToReadableString(currentTime));
+  }
+
+  return result;
 }
 
 // ************************************************************
