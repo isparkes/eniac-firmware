@@ -26,6 +26,7 @@ class CountdownManager_ {
     void calculateCountdown();
     void calculateTargetTime();
     void setCountdownInhibit(bool inhibitValue);
+    bool getCountdownInhibit();
   private:
     unsigned long _tTargetLong;
     unsigned long _remainingUntilTarget;

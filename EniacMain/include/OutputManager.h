@@ -7,6 +7,7 @@
 #include "BlankingManager.h"
 #include "TransitionManager.h"
 #include "DebugManager.h"
+#include "CountdownManager.h"
 
 // -------------------------------------------------------------------------------
 
@@ -84,7 +85,7 @@ enum outputModes {                          //                              ACP 
   diagsMode,                                // Used during startup test           N             N          N       N
   timeMode,                                 // normal time mode                   Y             Y          Y       Y
   slotsMode,                                // dates slots                        N             -          Y       Y
-  valueMode,                                // we are displaying a value          N             N          N       N
+  valueMode,                                // we are displaying a value          N             N          Y       Y
   acpMode                                   // acp                                -             N          N       N
 };
 
@@ -114,6 +115,8 @@ class OutputManager_ {
     void triggerStunts();
     outputModes getOutputMode();
     void setOutputMode(outputModes newMode);
+
+    void setOutputModeOncePerSecond();
 
     byte getNextACPMode();
     String getNextACPModeName();

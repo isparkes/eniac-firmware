@@ -258,19 +258,19 @@ String BlankingManager_::getNextBlankingModeName() {
       return "weekend";
       break;
     case DAY_BLANKING_WEEKEND_OR_HOURS:
-      return "weekday or hours";
+      return "WE or Hrs";
       break;
     case DAY_BLANKING_WEEKEND_AND_HOURS:
-      return "weekend & hours";
+      return "WE & Hrs";
       break;
     case DAY_BLANKING_WEEKDAY:
       return "weekday";
       break;
     case DAY_BLANKING_WEEKDAY_OR_HOURS:
-      return "weekday or hours";
+      return "WD / Hrs";
       break;
     case DAY_BLANKING_WEEKDAY_AND_HOURS:
-      return "weekday & hours";
+      return "WD & Hrs";
       break;
     case DAY_BLANKING_ALWAYS:
       return "always";

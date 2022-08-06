@@ -345,41 +345,11 @@ void performOncePerSecondProcessing() {
 
   // -------------------------------------------------------------------------------
   
-  #ifdef COUNTDOWN
   countdownManager.calculateCountdown();
 
-  if (countdownManager.getCountdownActive()) {
-    if (outputManager.getOutputMode() != valueMode) {
-      outputManager.setOutputMode(valueMode);
-    }
-  } else {
-    // show the normal time
-    if (outputManager.getOutputMode() == valueMode) {
-      outputManager.setOutputMode(timeMode);
-    }
-  }
-
-  if (outputManager.getOutputMode() == timeMode) {
-    outputManager.allNormal(APPLY_LEAD_0_BLANK);
-    outputManager.loadNumberArrayTime();
-  }
-
-  if (outputManager.getOutputMode() == valueMode) {
-    outputManager.allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
-    outputManager.loadNumberArrayValue(countdownManager.getRemaining());
-  }
-  #endif
-
-  #ifdef DIGIT_DIAGNOSTICS
-  if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
-    outputManager.loadNumberArraySameValue(second());
-  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
-    outputManager.loadNumberArraySameValue(minute());
-  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
-    int rawEncPos = menuManager.getCurrentEncoderPos()/2;
-    while (rawEncPos < 0) rawEncPos+=60; 
-  }
-  #endif
+  // -------------------------------------------------------------------------------
+  
+  outputManager.setOutputModeOncePerSecond();
 
   // -------------------------------------------------------------------------------
   
@@ -432,7 +402,7 @@ void performOncePerSecondProcessing() {
 
   // 
   #define SW1_NONE                0
-  #define SW1_COUTNDOWN_INHIBIT   1
+  #define SW1_COUNTDOWN_INHIBIT   1
   #define SW1_SLAVE_INHIBIT       2
   #define SW1_MIN_DIM             3
   byte switch1Meaning = SW1_NONE;
@@ -440,7 +410,7 @@ void performOncePerSecondProcessing() {
   #if defined(COUNTDOWN)
   // If we are in countdown, the switch can turn it off
   if (countdownManager.getCountdownActiveInternal()) {
-    switch1Meaning = SW1_COUTNDOWN_INHIBIT;
+    switch1Meaning = SW1_COUNTDOWN_INHIBIT;
   } else {
     #if defined(SLAVE_OUTPUT)
     switch1Meaning = SW1_SLAVE_INHIBIT;
@@ -461,12 +431,17 @@ void performOncePerSecondProcessing() {
       // nothing
       break;
     }
-    case SW1_COUTNDOWN_INHIBIT: {
+    case SW1_COUNTDOWN_INHIBIT: {
       if (digitalRead(BTN1Pin) == LOW) {
-        countdownManager.setCountdownInhibit(true);
-        debugMsgMain("Inhibit countdown via switch");
+        if (!countdownManager.getCountdownInhibit()) {
+          countdownManager.setCountdownInhibit(true);
+          debugMsgMain("Set inhibit countdown via switch");
+        }
       } else {
-        countdownManager.setCountdownInhibit(false);
+        if (countdownManager.getCountdownInhibit()) {
+          countdownManager.setCountdownInhibit(false);
+          debugMsgMain("Remove inhibit countdown via switch");
+        }
       }
       break;
     }
@@ -487,7 +462,7 @@ void performOncePerSecondProcessing() {
     }
   }
 
-  // Switch 2 blanks the LEDs
+  // Switch 2 just blanks the LEDs
   blankingManager.setCurrentLEDBlankingOverride(digitalRead(BTN2Pin) == LOW);
 
   // -------------------------------------------------------------------------------

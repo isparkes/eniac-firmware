@@ -379,6 +379,7 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["utcgpsraw"] = tzManager.getRawUTCTimeFromTimeSource(TIME_SOURCE_GPS);
   root["utcntpraw"] = tzManager.getRawUTCTimeFromTimeSource(TIME_SOURCE_NTP);
   root["utcrtcraw"] = tzManager.getRawUTCTimeFromTimeSource(TIME_SOURCE_RTC);
+  root["utcrtcnative"] = rtcManager.getRTCTimeAsTimeT();
   root["utcintraw"] = tzManager.getRawUTCTimeFromTimeSource(TIME_SOURCE_INT);
   root["utcgpsat"] = tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_GPS);
   root["utcntpat"] = tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_NTP);

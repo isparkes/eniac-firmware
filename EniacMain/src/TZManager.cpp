@@ -49,7 +49,7 @@ void TZManager_::setTZS(String tzs) {
 // ************************************************************
 void TZManager_::calculateCurrentOffsetFromTimeT() {
   time_t primarytime_t = getRawUTCTimeFromTimeSource(_primarysource);
-  debugMsgTzm("Input: " + String(primarytime_t) + " from primary source " + String(_primarysource) + " U--> " + tzManager.gmtimeToReadableString(primarytime_t));
+  debugMsgTzm("Offset Input: " + String(primarytime_t) + " from primary source " + String(_primarysource) + " U--> " + tzManager.gmtimeToReadableString(primarytime_t));
 
   struct tm info_local;
   struct tm info_gm;
@@ -123,6 +123,12 @@ void TZManager_::setUTCTimeFromTimeSource(byte timesource, unsigned long readTim
     // Set the internal time
     setInternalTimeFromRTC();
   } else if (timesource == TIME_SOURCE_RTC) {
+    // initialise at start up
+    if (_lastupdatetime[TIME_SOURCE_RTC] == 0) {
+      debugMsgTzm("Setting BOOT time for time source 2: U-->" + String(utcTime) + " at millis: 1");
+      _utctime[TIME_SOURCE_RTC] = utcTime;
+      _lastupdatetime[TIME_SOURCE_RTC] = 1;
+    } 
     // Set the internal time
     setInternalTimeFromRTC();
   }

@@ -37,6 +37,13 @@ void CountdownManager_::setCountdownInhibit(bool newInhibitValue) {
 }
 
 // ************************************************************
+// Get state of the inhibit flag
+// ************************************************************
+bool CountdownManager_::getCountdownInhibit() {
+  return _suppressCountdown;
+}
+
+// ************************************************************
 // calculate the seconds left
 // ************************************************************
 void CountdownManager_::calculateCountdown() {
@@ -52,7 +59,6 @@ void CountdownManager_::calculateCountdown() {
 
   if (_inCountdown) {
     // show the countdown
-    outputManager.setOutputMode(valueMode);
     unsigned long diff = _tTargetLong - nowLong;
     #ifdef CDM_EXTENDED_DEBUG
     debugMsgCdm("Diff raw --> " + String(diff));
@@ -91,9 +97,6 @@ void CountdownManager_::calculateCountdown() {
     _remainingUntilTarget = diff;
 
     debugMsgCdm("Scoped diff --> " + String(_remainingUntilTarget) + ", scope: " + String(_units));
-
-    outputManager.allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
-    outputManager.loadNumberArrayValue(diff);
   }
 }
 

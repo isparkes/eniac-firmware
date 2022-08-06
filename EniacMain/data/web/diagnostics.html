@@ -110,6 +110,10 @@
                             <td id="utcrtcraw"></td>
                         </tr>
                         <tr>
+                            <td>Epoch UTC RTC Hardware</td>
+                            <td id="utcrtcnative"></td>
+                        </tr>
+                        <tr>
                             <td>Epoch UTC Internal</td>
                             <td id="utcintraw"></td>
                         </tr>
@@ -237,10 +241,11 @@
             $("#sdkversion").text(diags.sdkversion);
             $("#sketchmd5").text(diags.sketchmd5);
             $("#utcoffset").text(diags.utcoffset);
-            $("#utcgpsraw").text(diags.utcgpsraw + "@" + diags.utcgpsat + " --> " + (diags.utcgpsraw + diags.utcgpsat));
-            $("#utcntpraw").text(diags.utcntpraw + "@" + diags.utcntpat + " --> " + (diags.utcntpraw + diags.utcntpat));
-            $("#utcrtcraw").text(diags.utcrtcraw + "@" + diags.utcrtcat + " --> " + (diags.utcrtcraw + diags.utcrtcat));
-            $("#utcintraw").text(diags.utcintraw + "@" + diags.utcintat + " --> " + (diags.utcintraw + diags.utcintat));
+            $("#utcgpsraw").text(diags.utcgpsraw + "@" + diags.utcgpsat);
+            $("#utcntpraw").text(diags.utcntpraw + "@" + diags.utcntpat);
+            $("#utcrtcraw").text(diags.utcrtcraw + "@" + diags.utcrtcat);
+            $("#utcrtcnative").text(diags.utcrtcnative);
+            $("#utcintraw").text(diags.utcintraw + "@" + diags.utcintat);
             $("#oledtype").text(diags.oledtype);
             $("#slaveupdates").text(diags.slavetrycount + "/" + diags.slavefailcount);
             $("#features").text(diags.features);

@@ -660,6 +660,50 @@ void OutputManager_::setOutputMode(outputModes newMode) {
 }
 
 // ************************************************************
+// Set the mode we are in
+// ************************************************************
+void OutputManager_::setOutputModeOncePerSecond() {
+  if (_outputMode == acpMode || _outputMode == slotsMode) {
+    return;
+  }
+
+  #ifdef COUNTDOWN
+  // switch to countdown mode if we should be displaying it and we are not in a transition
+  if (countdownManager.getCountdownActive()) {
+    if (_outputMode == timeMode) {
+      _outputMode = valueMode;
+    }
+  } else {
+    // switch back to normal time
+    if (_outputMode == valueMode) {
+      _outputMode = timeMode;
+    }
+  }
+
+  if (_outputMode == timeMode) {
+    allNormal(APPLY_LEAD_0_BLANK);
+    loadNumberArrayTime();
+  }
+
+  if (_outputMode == valueMode) {
+    allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+    loadNumberArrayValue(countdownManager.getRemaining());
+  }
+  #endif
+
+  #ifdef DIGIT_DIAGNOSTICS
+  if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
+    loadNumberArraySameValue(second());
+  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
+    loadNumberArraySameValue(minute());
+  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
+    int rawEncPos = menuManager.getCurrentEncoderPos()/2;
+    while (rawEncPos < 0) rawEncPos+=60; 
+  }
+  #endif
+}
+
+// ************************************************************
 // Library internal singleton wiring
 // ************************************************************
 OutputManager_ &OutputManager_::getInstance() {

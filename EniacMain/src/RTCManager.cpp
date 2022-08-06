@@ -74,7 +74,7 @@ void RtcManager_::getTimeRTCHardware()
   _year       = bcdToDec(Wire.read());
 
   #ifdef RTC_EXTENDED_DEBUG
-  debugMsg("Got RTC " + String(_year) + ", " + String(_month) + ", " + String(_dayOfMonth) + ", " + String(_hour) + ", " + String(_minute) + ", " + String(_second));
+  debugMsgRtc("Got RTC " + String(_year) + ", " + String(_month) + ", " + String(_dayOfMonth) + ", " + String(_hour) + ", " + String(_minute) + ", " + String(_second));
   #endif
 }
 
@@ -145,18 +145,18 @@ time_t RtcManager_::getRTCTimeAsTimeT() {
     rtcCurrentTm.tm_hour = _hour; 
     rtcCurrentTm.tm_min = _minute;
     rtcCurrentTm.tm_sec = _second;
-    rtcCurrentTm.tm_isdst = tzManager.getCurrentUTCIsDST();
+    rtcCurrentTm.tm_isdst = -1;
 
     #ifdef RTC_EXTENDED_DEBUG
-    debugMsg("---->Applying offset: " + String(tzManager.getCurrentUTCOffset()) + " to RTC harware time -> " + 
+    debugMsgRtc("---->Applying offset: " + String(tzManager.getCurrentUTCOffset()) + " to RTC harware time -> " + 
       String(rtcCurrentTm.tm_year) + ", " + String(rtcCurrentTm.tm_mon) + ", " + String(rtcCurrentTm.tm_mday) + ", " + 
       String(rtcCurrentTm.tm_hour) + ", " + String(rtcCurrentTm.tm_min) + ", " + String(rtcCurrentTm.tm_sec));
     #endif
 
-    // mktime gives us the opposite of what local time does, so we have to adjust it by adding in the offset mktime will apply
+    // mktime gives us the opposite of what local time does, so we have to adjust it by adding in the offset mktime will apply    
     time_t _rtctime = mktime(&rtcCurrentTm) + tzManager.getCurrentUTCOffset();
 
-    debugMsgRtc("Recovered RTC time from hardware: " + String(_rtctime) + " U--> " + tzManager.gmtimeToReadableString(_rtctime));
+    debugMsgRtc("Recovered RTC time from hardware: " + String(_rtctime) + " U--> " + tzManager.gmtimeToReadableString(_rtctime) + " L--> " + tzManager.localtimeToReadableString(_rtctime));
 
     return _rtctime;
   } else {
