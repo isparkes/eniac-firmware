@@ -388,12 +388,7 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["utcoffset"] = String(tzManager.getCurrentUTCOffset());
   root["slavetrycount"] = String(slaveManager.getTryCount());
   root["slavefailcount"] = String(slaveManager.getFailCount());
-  #ifdef OLED_SSD1306
-  root["oledtype"] = "SSD1306";
-  #endif
-  #ifdef OLED_SH1106
-  root["oledtype"] = "SH1106";
-  #endif
+  
   #ifdef DIGIT_DIAGNOSTICS
   root["diagsMode"] = cc->diagsMode;
   #endif
