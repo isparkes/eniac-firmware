@@ -30,7 +30,7 @@ void RtcManager_::startClock(void)                    // set the ClockHalt bit l
   Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write(0x00);                      // Register 0x00 holds the oscillator start/stop bit
   Wire.endTransmission();
-  Wire.requestFrom(RtcManager_I2C_ADDRESS, 1, true);
+  Wire.requestFrom(RtcManager_I2C_ADDRESS, 1);
   _second = Wire.read() & 0x7f;                    // save actual seconds and AND sec with bit 7 (sart/stop bit) = clock started
   Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write(0x00);
@@ -46,7 +46,7 @@ void RtcManager_::stopClock(void)                     // set the ClockHalt bit h
   Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write(0x00);                      // Register 0x00 holds the oscillator start/stop bit
   Wire.endTransmission();
-  Wire.requestFrom(RtcManager_I2C_ADDRESS, 1, true);
+  Wire.requestFrom(RtcManager_I2C_ADDRESS, 1);
   _second = Wire.read() | 0x80;                    // save actual seconds and OR sec with bit 7 (sart/stop bit) = clock stopped
   Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write(0x00);
@@ -62,8 +62,14 @@ bool RtcManager_::getTimeRTCHardware()
   // Reset the register pointer
   Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write((uint8_t)0x00);
-  Wire.endTransmission();  
-  Wire.requestFrom(RtcManager_I2C_ADDRESS, 7, true);
+  byte returnCode = Wire.endTransmission();
+
+  if (returnCode != 0) {
+    debugMsgRtc("Error sending request in getTimeRTCHardware");
+    return false;
+  }
+
+  byte readBytes = Wire.requestFrom(RtcManager_I2C_ADDRESS, 7);
   // A few of these need masks because certain bits are control bits
   _second     = bcdToDec(Wire.read() & 0x7f);
   _minute     = bcdToDec(Wire.read());
@@ -76,6 +82,8 @@ bool RtcManager_::getTimeRTCHardware()
   #ifdef RTC_EXTENDED_DEBUG
   debugMsgRtc("Got RTC " + String(_year) + ", " + String(_month) + ", " + String(_dayOfMonth) + ", " + String(_hour) + ", " + String(_minute) + ", " + String(_second));
   #endif
+  
+  return (readBytes == 7);
 }
 
 // ************************************************************
@@ -113,7 +121,7 @@ unsigned char RtcManager_::isRunning()
   Wire.endTransmission();
 
   // Just fetch the seconds register and check the top bit
-  Wire.requestFrom(RtcManager_I2C_ADDRESS, 1, true);
+  Wire.requestFrom(RtcManager_I2C_ADDRESS, 1);
   return !(Wire.read() & 0x80);
 }
 
