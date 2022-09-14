@@ -2,7 +2,6 @@
 
 void wpsInitConfig()
 {
-  wps_config.crypto_funcs = &g_wifi_default_wps_crypto_funcs;
   wps_config.wps_type = ESP_WPS_MODE;
   strcpy(wps_config.factory_info.manufacturer, ESP_MANUFACTURER);
   strcpy(wps_config.factory_info.model_number, ESP_MODEL_NUMBER);
@@ -21,18 +20,18 @@ String wpspin2string(uint8_t a[])
   return (String)wps_pin;
 }
 
-void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
+void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info)
 {
   switch (event)
   {
-  case SYSTEM_EVENT_STA_START:
+  case ARDUINO_EVENT_WIFI_STA_START:
     debugMsgWfm("Station Mode Started");
     break;
-  case SYSTEM_EVENT_AP_START:
+  case ARDUINO_EVENT_WIFI_AP_START:
     debugMsgWfm("AP Mode Started");
     wifiManager.startWiFiServicesPortal();
     break;
-  case SYSTEM_EVENT_STA_GOT_IP:
+  case ARDUINO_EVENT_WIFI_STA_GOT_IP:
     debugMsgWfm("Connected to:" + WiFi.SSID() + ", password: " + WiFi.psk());
     debugMsgWfm("IP Address: " + WiFi.localIP().toString());
     debugMsgWfm("MAC Address: " + WiFi.macAddress());
@@ -41,32 +40,32 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
     wifiManager.startWiFiServices();
     menuManager.flashMenuMessage("WiFi Status", "WiFi connected to\n"+WiFi.SSID());
     break;
-  case SYSTEM_EVENT_STA_DISCONNECTED:
+  case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
     debugMsgWfm("Disconnected from station");
     if (doAutoReconnect) {
       debugMsgWfm("autoreconnect on, trying reconnect");
       WiFi.reconnect();
     }
     break;
-  case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
+  case ARDUINO_EVENT_WPS_ER_SUCCESS:
     debugMsgWfm("WPS Successfull, saving credentials. SSID: |" + WiFi.SSID() + "| password: |" + WiFi.psk() + "|");
     wifiManager.saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
     esp_wifi_wps_disable();
     menuManager.flashMenuMessage("WPS Status", "WPS was successful\nPassword:\n"+WiFi.psk());
     break;
-  case SYSTEM_EVENT_STA_WPS_ER_FAILED:
+  case ARDUINO_EVENT_WPS_ER_FAILED:
     debugMsgWfm("WPS Failed, retrying");
     esp_wifi_wps_disable();
     esp_wifi_wps_enable(&wps_config);
     esp_wifi_wps_start(0);
     break;
-  case SYSTEM_EVENT_STA_WPS_ER_TIMEOUT:
+  case ARDUINO_EVENT_WPS_ER_TIMEOUT:
     debugMsgWfm("WPS Timedout, retrying");
     esp_wifi_wps_disable();
     esp_wifi_wps_enable(&wps_config);
     esp_wifi_wps_start(0);
     break;
-  case SYSTEM_EVENT_SCAN_DONE:
+  case ARDUINO_EVENT_SC_SCAN_DONE:
     debugMsgWfm("Scan complete");
     wifiManager.processScanResults();
     break;
@@ -87,7 +86,7 @@ void WiFiManager_::setUpWiFi() {
 }
 
 void WiFiManager_::startScanWiFiNetworks() {
-  WiFi.onEvent(WiFiEvent, SYSTEM_EVENT_SCAN_DONE);
+  WiFi.onEvent(WiFiEvent, ARDUINO_EVENT_SC_SCAN_DONE);
 
   WiFi.mode(WIFI_AP_STA);
   WiFi.disconnect();

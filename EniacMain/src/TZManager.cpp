@@ -27,9 +27,9 @@
 
 #include "TZManager.h"
 
-// Suppress Intellisense "setenv" error
-_VOID      _EXFUN(tzset,	(_VOID));
-int	_EXFUN(setenv,(const char *__string, const char *__value, int __overwrite));
+// // Suppress Intellisense "setenv" error
+// _VOID      _EXFUN(tzset,	(_VOID));
+// int	_EXFUN(setenv,(const char *__string, const char *__value, int __overwrite));
 
 // ************************************************************
 // Time Zone String getter/setter
