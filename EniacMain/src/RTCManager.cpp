@@ -62,8 +62,14 @@ bool RtcManager_::getTimeRTCHardware()
   // Reset the register pointer
   Wire.beginTransmission(RtcManager_I2C_ADDRESS);
   Wire.write((uint8_t)0x00);
-  Wire.endTransmission();  
-  Wire.requestFrom(RtcManager_I2C_ADDRESS, 7);
+  byte returnCode = Wire.endTransmission();
+
+  if (returnCode != 0) {
+    debugMsgRtc("Error sending request in getTimeRTCHardware");
+    return false;
+  }
+
+  byte readBytes = Wire.requestFrom(RtcManager_I2C_ADDRESS, 7);
   // A few of these need masks because certain bits are control bits
   _second     = bcdToDec(Wire.read() & 0x7f);
   _minute     = bcdToDec(Wire.read());
@@ -76,8 +82,8 @@ bool RtcManager_::getTimeRTCHardware()
   #ifdef RTC_EXTENDED_DEBUG
   debugMsgRtc("Got RTC " + String(_year) + ", " + String(_month) + ", " + String(_dayOfMonth) + ", " + String(_hour) + ", " + String(_minute) + ", " + String(_second));
   #endif
-
-  return true;
+  
+  return (readBytes == 7);
 }
 
 // ************************************************************

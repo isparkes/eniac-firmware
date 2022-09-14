@@ -74,10 +74,6 @@
                             <td id="sdkversion"></td>
                         </tr>
                         <tr>
-                            <td>OLED Display</td>
-                            <td id="oledtype"></td>
-                        </tr>
-                        <tr>
                             <td>Time since last boot</td>
                             <td id="runtime"></td>
                         </tr>
@@ -246,7 +242,6 @@
             $("#utcrtcraw").text(diags.utcrtcraw + "@" + diags.utcrtcat);
             $("#utcrtcnative").text(diags.utcrtcnative);
             $("#utcintraw").text(diags.utcintraw + "@" + diags.utcintat);
-            $("#oledtype").text(diags.oledtype);
             $("#slaveupdates").text(diags.slavetrycount + "/" + diags.slavefailcount);
             $("#features").text(diags.features);
 
