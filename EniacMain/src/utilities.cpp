@@ -539,6 +539,7 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["backlightGradient"] = cc->backlightGradient;
   root["blinkenLightsMode"] = cc->blinkenLightsMode;
   root["slaveMode"] = cc->slaveMode;
+  root["WifiOnAtStart"] = cc->WifiOnAtStart;
 
   #ifdef COG_CRANK_OUTPUT
   root["outputOnTime"] = cc->outputOnTime;
@@ -620,6 +621,7 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateByte(json, "slotsMode",    &cc->slotsMode);
     compareAndUpdateByte(json, "acpMode",      &cc->acpMode);
     compareAndUpdateBool(json, "suppressACP",  &cc->suppressACP);
+    compareAndUpdateBool(json, "WifiOnAtStart",&cc->WifiOnAtStart);
 
     // ------------------------------------------------------------
 

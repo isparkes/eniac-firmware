@@ -189,6 +189,25 @@
                         <input type="number" class="form-control" name="outputOnTime" id="outputOnTime" min="0" max="30" value="10">
                     </div>
                 </div>
+
+                <!-- Comment this out for compatibility with ENIAC manual v1 -->
+                <!--
+                <div class="form-group">
+                    <label class="control-label col-xs-3">WiFi on at start:</label>
+                    <div class="col-xs-1">
+                        <label class="radio-inline">
+                            <input checked type="radio" name="WifiOnAtStart" id="WifiOnAtStartOn" value="on">On
+                        </label>
+                    </div>
+                    <div class="col-xs-1">
+                        <label class="radio-inline">
+                            <input type="radio" name="WifiOnAtStart" id="WifiOnAtStartOff" value="off">Off
+                        </label>
+                    </div>
+                </div>
+                -->
+                <!-- end of comment out -->
+
                 <div>
                     <div class="form-group">
                     <div class="col-xs-offset-3 col-xs-9">
@@ -616,6 +635,10 @@
 
         if (compareRadioChanged("#suppressACP", localConfig.suppressACP)) {
             postBody["suppressACP"] = getCurrentRadioValue("#suppressACP");
+        }
+
+        if (compareRadioChanged("#WifiOnAtStart", localConfig.WifiOnAtStart)) {
+            postBody["WifiOnAtStart"] = getCurrentRadioValue("#WifiOnAtStart");
         }
 
         // -------------- LDR --------------
