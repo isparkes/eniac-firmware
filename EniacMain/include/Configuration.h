@@ -20,7 +20,7 @@
 // -------------------------------------------------------------------------------
 
 // Define the type of OLED
-#define OLED_SH1106                 // OLED_SH1106 |  OLED_SSD1306
+#define OLED_SSD1306                // OLED_SH1106 (1.3") |  OLED_SSD1306 (0.96" and 2.4")
 
 #define OLED_ON_TIME  20            // Time in seconds the OLED stays on for
 #define CONFIG_TIME   10            // Time in seconds we stay in config mode
