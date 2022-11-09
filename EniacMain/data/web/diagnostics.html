@@ -234,7 +234,7 @@
         getClockDiags().then(function(diags){
             const usedMemPC = (diags.sketchsize/diags.freesketch * 100).toFixed(2);
             const usedMsg = usedMemPC + '% (' + diags.sketchsize + '/' + diags.freesketch + ')';
-            const heapMsg = 'current: ' + diags.heap + ',  min: ' + diags.minfreeheap + ')';
+            const heapMsg = 'current: ' + diags.heap + ',  min: ' + diags.minfreeheap;
             $("#lastgpsraw").text(diags.lastgpsraw);
             $("#runtime").text(diags.runtime);
             $("#uptime").text(diags.uptime);
