@@ -17,7 +17,7 @@
 // -------------------------------------------------------------------------------
 
 // invert the sense of the front panel switches
-#define INVERT_SWITCHES             // INVERT_SWITCHES | NORMAL_SWITCHES
+#define NORMAL_SWITCHES             // INVERT_SWITCHES | NORMAL_SWITCHES
 
 // -------------------------------------------------------------------------------
 
@@ -62,7 +62,7 @@
 
 // -------------------------------------------------------------------------------
 
-#define SOFTWARE_VERSION "LTC-ESP32 0.5.5.2"
+#define SOFTWARE_VERSION "LTC-ESP32 0.5.5.3"
 #define CLOCK_MENU_TITLE "ENIAC" 
 
 // -------------------------------------------------------------------------------
