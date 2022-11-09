@@ -58,6 +58,10 @@
                             <td id="sketchsize"></td>
                         </tr>
                         <tr>
+                            <td>Flash size</td>
+                            <td id="flashsize"></td>
+                        </tr>
+                        <tr>
                             <td>Firmware checksum</td>
                             <td id="sketchmd5"></td>
                         </tr>
@@ -88,6 +92,10 @@
                         <tr id="slaveupdaterow" hidden>
                             <td>Slave updates total/failed</td>
                             <td id="slaveupdates">0/0</td>
+                        </tr>
+                        <tr>
+                            <td>Last reset reason</td>
+                            <td id="resetreason"></td>
                         </tr>
                         <tr>
                             <td>Last raw GPS string</td>
@@ -226,12 +234,14 @@
         getClockDiags().then(function(diags){
             const usedMemPC = (diags.sketchsize/diags.freesketch * 100).toFixed(2);
             const usedMsg = usedMemPC + '% (' + diags.sketchsize + '/' + diags.freesketch + ')';
+            const heapMsg = 'current: ' + diags.heap + ',  min: ' + diags.minfreeheap + ')';
             $("#lastgpsraw").text(diags.lastgpsraw);
             $("#runtime").text(diags.runtime);
             $("#uptime").text(diags.uptime);
             $("#ontime").text(diags.ontime);
-            $("#heap").text(diags.heap);
+            $("#heap").text(heapMsg);
             $("#sketchsize").text(usedMsg);
+            $("#flashsize").text(diags.flashsize);
             $("#compiledate").text(diags.compiledate);
             $("#cpufreq").text(diags.cpufreq);
             $("#sdkversion").text(diags.sdkversion);
@@ -244,6 +254,7 @@
             $("#utcintraw").text(diags.utcintraw + "@" + diags.utcintat);
             $("#slaveupdates").text(diags.slavetrycount + "/" + diags.slavefailcount);
             $("#features").text(diags.features);
+            $("#resetreason").text(diags.resetreason);
 
             if (diags.slavetrycount > 0) {
                 $("#slaveupdaterow").prop('hidden', false);

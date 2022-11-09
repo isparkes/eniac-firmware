@@ -364,6 +364,7 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["heap"] = ESP.getFreeHeap();
   root["freesketch"] = ESP.getFreeSketchSpace();
   root["sketchsize"] = ESP.getSketchSize();
+  root["flashsize"] = ESP.getFlashChipSize();
   root["compiledate"] = String(compile_date);
   root["cpufreq"] = ESP.getCpuFreqMHz();
   root["sdkversion"] = ESP.getSdkVersion();
@@ -448,6 +449,10 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
 
   #ifdef COG_CRANK_OUTPUT
   featureString += "COG ";
+  #endif
+
+  #ifdef INVERT_SWITCHES
+  featureString += "INV ";
   #endif
 
   root["features"] = featureString;

@@ -308,7 +308,7 @@ void debugMsgLocal(String message) {
 // See if we have enough flash space for OTA
 // ************************************************************
 boolean getOTAvailable() {
-  return ESP.getSketchSize() * 2 < ESP.getFlashChipRealSize();
+  return ESP.getSketchSize() * 2 < ESP.getFlashChipSize();
 }
 
 // ----------------------------------------------------------------------------------------------------
