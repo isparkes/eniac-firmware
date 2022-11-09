@@ -404,6 +404,7 @@ void performOncePerSecondProcessing() {
   #define SW1_COUNTDOWN_INHIBIT   1
   #define SW1_SLAVE_INHIBIT       2
   #define SW1_MIN_DIM             3
+
   byte switch1Meaning = SW1_NONE;
 
   #if defined(COUNTDOWN)
@@ -425,13 +426,21 @@ void performOncePerSecondProcessing() {
     #endif
   #endif
 
+  #ifdef NORMAL_SWITCHES
+  bool BTNOnstate = LOW;
+  #endif
+
+  #ifdef INVERT_SWITCHES
+  bool BTNOnstate = HIGH;
+  #endif
+
   switch(switch1Meaning) {
     case SW1_NONE: {
       // nothing
       break;
     }
     case SW1_COUNTDOWN_INHIBIT: {
-      if (digitalRead(BTN1Pin) == LOW) {
+      if (digitalRead(BTN1Pin) == BTNOnstate) {
         if (!countdownManager.getCountdownInhibit()) {
           countdownManager.setCountdownInhibit(true);
           debugMsgMain("Set inhibit countdown via switch");
@@ -445,16 +454,16 @@ void performOncePerSecondProcessing() {
       break;
     }
     case SW1_SLAVE_INHIBIT: {
-      slaveManager.setSlaveEnabled(digitalRead(BTN1Pin) == HIGH);
+      slaveManager.setSlaveEnabled(digitalRead(BTN1Pin) == !BTNOnstate);
       break;
     }
     case SW1_MIN_DIM: {
       // The switch "on" imposes min dimming
-      if ((digitalRead(BTN1Pin) == LOW) && !ldrManager.getIsFixedLDRValue()) {
+      if ((digitalRead(BTN1Pin) == BTNOnstate) && !ldrManager.getIsFixedLDRValue()) {
         ldrManager.setLDRValueToMin();
       }
       // Switch off resets it
-      if ((digitalRead(BTN1Pin) == HIGH) && ldrManager.getIsFixedLDRValue()) {
+      if ((digitalRead(BTN1Pin) == !BTNOnstate) && ldrManager.getIsFixedLDRValue()) {
         ldrManager.resetFixedLDRValue();
       }
       break;
@@ -462,7 +471,7 @@ void performOncePerSecondProcessing() {
   }
 
   // Switch 2 just blanks the LEDs
-  blankingManager.setCurrentLEDBlankingOverride(digitalRead(BTN2Pin) == LOW);
+  blankingManager.setCurrentLEDBlankingOverride(digitalRead(BTN2Pin) == BTNOnstate);
 
   // -------------------------------------------------------------------------------
   

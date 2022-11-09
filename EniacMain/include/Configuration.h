@@ -1,6 +1,6 @@
 #pragma once
 
-// Uses PlatformIO package ESP32 v5.5.1
+// Uses PlatformIO package ESP32 v5.2.0
 
 // -------------------------------------------------------------------------------
 // This files hold high level hardware configurations
@@ -13,6 +13,11 @@
 
 // Add the dignostic calls to the GUI
 #define DIGIT_DIAGNOSTICS           // DIGIT_DIAGNOSTICS | DIGIT_DIAGNOSTICS_OFF
+
+// -------------------------------------------------------------------------------
+
+// invert the sense of the front panel switches
+#define INVERT_SWITCHES             // INVERT_SWITCHES | NORMAL_SWITCHES
 
 // -------------------------------------------------------------------------------
 
@@ -57,7 +62,7 @@
 
 // -------------------------------------------------------------------------------
 
-#define SOFTWARE_VERSION "LTC-ESP32 0.5.5.1"
+#define SOFTWARE_VERSION "LTC-ESP32 0.5.5.2"
 #define CLOCK_MENU_TITLE "ENIAC" 
 
 // -------------------------------------------------------------------------------
