@@ -129,6 +129,14 @@
                             <td>Features</td>
                             <td id="features"></td>
                         </tr>
+                        <tr>
+                            <td>Switch 1 meaning</td>
+                            <td id="sw1"></td>
+                        </tr>
+                        <tr>
+                            <td>Switch 2 meaning</td>
+                            <td id="sw2"></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -158,6 +166,20 @@
     </body>
 
 <script>
+    decodeSwitchMeaning = function(switchValue) {
+        // Meanings of switches
+        // #define SW_NONE                 0
+        // #define SW_COUNTDOWN_INHIBIT    1
+        // #define SW_SLAVE_INHIBIT        2
+        // #define SW_MIN_DIM              3
+        // #define SW_DIM_LEDS             4
+        if(switchValue == 0) return "Off"
+        else if (switchValue == 1) return "Inhibit countdown"
+        else if (switchValue == 2) return "Inhibit slave"
+        else if (switchValue == 3) return "Set min dim"
+        else if (switchValue == 4) return "Dim backlights"
+    }
+
     getClockDiags = function getClockDiags() {
         var deferred = $.Deferred();
         console.log('get summary');
@@ -255,6 +277,8 @@
             $("#slaveupdates").text(diags.slavetrycount + "/" + diags.slavefailcount);
             $("#features").text(diags.features);
             $("#resetreason").text(diags.resetreason);
+            $("#sw1").text(decodeSwitchMeaning(diags.sw1));
+            $("#sw2").text(decodeSwitchMeaning(diags.sw2));
 
             if (diags.slavetrycount > 0) {
                 $("#slaveupdaterow").prop('hidden', false);

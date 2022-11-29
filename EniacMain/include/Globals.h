@@ -18,6 +18,13 @@
 #include "OutputManager.h"          // Defintions for number arrays
 #include "StorageTypes.h"           // Config and Stats objects
 
+// Meanings of switches
+#define SW_NONE                 0
+#define SW_COUNTDOWN_INHIBIT    1
+#define SW_SLAVE_INHIBIT        2
+#define SW_MIN_DIM              3
+#define SW_DIM_LEDS             4
+
 // ************************************************************
 // Global shared components and objects
 // ************************************************************
@@ -70,6 +77,9 @@ extern int digitValue;
 #endif
 
 extern bool doAutoReconnect;
+
+extern byte switch1Meaning;
+extern byte switch2Meaning;
 
 extern String uniqHostname;
 

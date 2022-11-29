@@ -75,6 +75,9 @@ AsyncWebServer server(80);
 
 String lastWiFiScan = "";
 
+byte switch1Meaning = SW_NONE;
+byte switch2Meaning = SW_NONE;
+
 // ------------------ Global functions -----------------
 
 void updateNowMillis() {

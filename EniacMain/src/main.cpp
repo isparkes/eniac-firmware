@@ -300,7 +300,7 @@ void performOncePerLoop() {
 
   // -------------------------------------------------------------------------------
   
-#if defined(DIGIT_DIAGNOSTICS) && defined(FEATURE_BACKLIGHTS)
+  #if defined(DIGIT_DIAGNOSTICS) && defined(FEATURE_BACKLIGHTS)
   // output the backlight/underlight LEDs
   if (cc->diagsMode > 0) {
     setLedsDiags();
@@ -399,30 +399,22 @@ void performOncePerSecondProcessing() {
   // If we are in Countdown mode, it switches the display back to "normal"
   // when countdown is finished, it controls the slave output
 
-  // 
-  #define SW1_NONE                0
-  #define SW1_COUNTDOWN_INHIBIT   1
-  #define SW1_SLAVE_INHIBIT       2
-  #define SW1_MIN_DIM             3
-
-  byte switch1Meaning = SW1_NONE;
-
   #if defined(COUNTDOWN)
   // If we are in countdown, the switch can turn it off
   if (countdownManager.getCountdownActiveInternal()) {
-    switch1Meaning = SW1_COUNTDOWN_INHIBIT;
+    switch1Meaning = SW_COUNTDOWN_INHIBIT;
   } else {
     #if defined(SLAVE_OUTPUT)
-    switch1Meaning = SW1_SLAVE_INHIBIT;
+    switch1Meaning = SW_SLAVE_INHIBIT;
     #else
-    switch1Meaning = SW1_MIN_DIM;
+    switch1Meaning = SW_MIN_DIM;
     #endif
   }
   #else
     #if defined(SLAVE_OUTPUT)
-    switch1Meaning = SW1_SLAVE_INHIBIT;
+    switch1Meaning = SW_SLAVE_INHIBIT;
     #else
-    switch1Meaning = SW1_MIN_DIM;
+    switch1Meaning = SW_MIN_DIM;
     #endif
   #endif
 
@@ -435,11 +427,11 @@ void performOncePerSecondProcessing() {
   #endif
 
   switch(switch1Meaning) {
-    case SW1_NONE: {
+    case SW_NONE: {
       // nothing
       break;
     }
-    case SW1_COUNTDOWN_INHIBIT: {
+    case SW_COUNTDOWN_INHIBIT: {
       if (digitalRead(BTN1Pin) == BTNOnstate) {
         if (!countdownManager.getCountdownInhibit()) {
           countdownManager.setCountdownInhibit(true);
@@ -453,11 +445,11 @@ void performOncePerSecondProcessing() {
       }
       break;
     }
-    case SW1_SLAVE_INHIBIT: {
+    case SW_SLAVE_INHIBIT: {
       slaveManager.setSlaveEnabled(digitalRead(BTN1Pin) == !BTNOnstate);
       break;
     }
-    case SW1_MIN_DIM: {
+    case SW_MIN_DIM: {
       // The switch "on" imposes min dimming
       if ((digitalRead(BTN1Pin) == BTNOnstate) && !ldrManager.getIsFixedLDRValue()) {
         ldrManager.setLDRValueToMin();
@@ -472,6 +464,7 @@ void performOncePerSecondProcessing() {
 
   // Switch 2 just blanks the LEDs
   blankingManager.setCurrentLEDBlankingOverride(digitalRead(BTN2Pin) == BTNOnstate);
+  switch2Meaning = SW_DIM_LEDS;
 
   // -------------------------------------------------------------------------------
   

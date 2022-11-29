@@ -142,6 +142,9 @@ void resetOptions() {
   
   cc->useBLDim = true;
   cc->useBLPulse = false;
+
+  // --------------------------------------------------------------------------
+
   #ifdef FEATURE_BACKLIGHTS
   cc->backlightMode = BACKLIGHT_DEFAULT;
   cc->redCnl = COLOUR_RED_CNL_DEFAULT;
@@ -161,6 +164,8 @@ void resetOptions() {
   cc->ledMode            = 0;
   cc->hueOffset          = 0;
   #endif
+
+  // --------------------------------------------------------------------------
 
   cc->blankMode = BLANK_MODE_DEFAULT;
   cc->blankHourStart = 0;
@@ -196,11 +201,6 @@ void resetOptions() {
 
   spiffsStorage.saveConfigToSpiffs();
   debugMsgUtl("Saved factory config");
-}
-
-void resetAll() {
-  resetOptions();
-  resetWiFi();
 }
 
 //**********************************************************************************
@@ -276,6 +276,7 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   
   signed long absNextUpdate = abs(ntpManager.getNextUpdate());
   String overdueInd = "";
+
   if (absNextUpdate < 0) {
     overdueInd = " overdue";
     absNextUpdate = -absNextUpdate;
@@ -389,6 +390,8 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["utcoffset"] = String(tzManager.getCurrentUTCOffset());
   root["slavetrycount"] = String(slaveManager.getTryCount());
   root["slavefailcount"] = String(slaveManager.getFailCount());
+  root["sw1"] = switch1Meaning;
+  root["sw2"] = switch2Meaning;
   
   #ifdef DIGIT_DIAGNOSTICS
   root["diagsMode"] = cc->diagsMode;
@@ -488,6 +491,9 @@ void postDiagsDataHandler(AsyncWebServerRequest *request) {
   request->send(response);
 }
 
+// ************************************************************
+// Command to save current stats
+// ************************************************************
 void saveStatsHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got save stats request");
 
@@ -581,6 +587,7 @@ void compareAndUpdateInt(JsonObject& json, const char* key, int* variable) {
     }
   }
 }
+
 void compareAndUpdateBool(JsonObject& json, const char* key, bool* variable) {
   if (json.containsKey(key)) {
     bool newVal = json[key].as<bool>();
@@ -823,7 +830,6 @@ void getWiFiNetworksHandler(AsyncWebServerRequest *request) {
   }
 }
 
-
 // ************************************************************
 // Reset / restart
 // ************************************************************
@@ -853,6 +859,14 @@ void resetWiFi() {
   WiFi.disconnect();
 
   wifiManager.resetWiFiCredentials();
+}
+
+// ************************************************************
+// Reset everything
+// ************************************************************
+void resetAll() {
+  resetOptions();
+  resetWiFi();
 }
 
 // ************************************************************
