@@ -11,6 +11,7 @@ void LDRManager_::setUp() {
   debugMsgLdr("Config thresholdBright: " + String(cc->thresholdBright));
   debugMsgLdr("Config sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
   debugMsgLdr("Config minDim%: " + String(cc->minDim));
+  debugMsgLdr("Config setDim%: " + String(cc->setDim));
   #endif
 }
 
@@ -61,7 +62,7 @@ void LDRManager_::getDimmingFromLDR() {
     }
     _ldrValue = returnValue;
   } else {
-    _ldrValue = LDR_VALUE_MAX - (cc->minDim * LDR_VALUE_MAX / 100);
+    _ldrValue = LDR_VALUE_MAX - (cc->setDim * LDR_VALUE_MAX / 100);
   }
 
   ledcWrite(LDRPWMChannel, _ldrValue);
