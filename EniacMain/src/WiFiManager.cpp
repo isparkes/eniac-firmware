@@ -24,7 +24,7 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info)
 {
   switch (event)
   {
-  case ARDUINO_EVENT_WIFI_STA_START:
+  case WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_START:
     debugMsgWfm("Station Mode Started");
     break;
   case ARDUINO_EVENT_WIFI_AP_START:
@@ -65,11 +65,12 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info)
     esp_wifi_wps_enable(&wps_config);
     esp_wifi_wps_start(0);
     break;
-  case ARDUINO_EVENT_SC_SCAN_DONE:
+  case ARDUINO_EVENT_WIFI_SCAN_DONE:
     debugMsgWfm("Scan complete");
     wifiManager.processScanResults();
     break;
   default:
+    debugMsgWfm("Wifi event (not mapped): " + String(event));
     break;
   }
 }
@@ -86,6 +87,7 @@ void WiFiManager_::setUpWiFi() {
 }
 
 void WiFiManager_::startScanWiFiNetworks() {
+  debugMsgWfm("Start wifi scan");
   WiFi.onEvent(WiFiEvent, ARDUINO_EVENT_SC_SCAN_DONE);
 
   WiFi.mode(WIFI_AP_STA);
