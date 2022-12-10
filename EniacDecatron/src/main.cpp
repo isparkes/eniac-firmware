@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
 //**********************************************************************************
-//* Code for a Dual Decatron Spinner millicycles display                           *
+//* Code for a Dual Decatron Spinner slave display                                 *
 //*                                                                                *
 //*  nixie@protonmail.ch                                                           *
 //*                                                                                *
@@ -16,6 +16,9 @@
 
 #include "defs.h"
 #include "DebugManager.h"
+#include <Wire.h>
+
+#define I2C_SLAVE_ADDR                0x69
 
 #define DEBUG     true
 
@@ -24,16 +27,19 @@
 int digitStep1 = 0;  // Cathode we are on (0..2)
 int phaseStep1 = 0;  // Step inside of the cathode (0..9)
 int currentPos1 = 0; // The current position we are at (0..29)
-int indexMark1 = 0;  // The current index mark we have detected (0..29)
+int indexMark1 = -1; // The current index mark we have detected (0..29)
 int tdc1 = 0;        // The required Top Dead Center "12 o'clock" (0..29)
+int expPos1 = 0;     // The expected position we are aiming for
 
 int digitStep2 = 0;
 int phaseStep2 = 0;
-int currentPos2 = 0; // The current position we are at (0..29)
-int indexMark2 = 0;
+int currentPos2 = 0;
+int indexMark2 = -1;
 int tdc2 = 0;
+int expPos2 = 0;
 
 bool g1Mark;
+bool g2Mark;
 
 volatile int millisInSecond = 0;
 
@@ -42,16 +48,12 @@ volatile int millisInSecond = 0;
 int impressionsPerSec = 0;
 int lastImpressionsPerSec = 0;
 
-// ----------------- Real time clock -------------------
-
-byte useRTC = false;  // true if we detect an RTC
-boolean onceHadAnRTC = false;
-
 // ------------- Time management variables -------------
 
 unsigned long nowMillis = 0;
 unsigned long lastCheckMillis = 0;
 unsigned long lastSecMillis = nowMillis;
+unsigned long hundredthsMillis = 0;
 int lastSecond = second();
 boolean secondsChanged = false;
 boolean triggeredThisSec = false;
@@ -59,9 +61,23 @@ boolean triggeredThisSec = false;
 // --------------------- Blanking ----------------------
 
 boolean blanked = false;
-byte blankSuppressStep = 0;    // The press we are on: 1 press = suppress for 1 min, 2 press = 1 hour, 3 = 1 day
-unsigned long blankSuppressedMillis = 0;   // The end time of the blanking, 0 if we are not suppressed
-unsigned long blankSuppressedSelectionTimoutMillis = 0;   // Used for determining the end of the blanking period selection timeout
+
+// --------------------- I2C ----------------------
+
+byte dateToShow;
+byte monthToShow;
+byte dimming;
+byte secondToShow;
+int hundredths;
+
+enum slaveDisplayModes {
+  hundredthsMode,
+  dateMode,
+  secondsMode,
+  offMode
+};
+
+slaveDisplayModes slaveDisplayMode = hundredthsMode;   
 
 // --------------------- Misc ----------------------
 
@@ -125,7 +141,7 @@ void G_step2(int CINT)
 // step forward on Decatron 1
 // ************************************************************
 void G1StepBackwards() {
-  debugManager.debugMsg("G1B");
+//  debugManager.debugMsg("G1B");
   phaseStep1++;
 
   if (phaseStep1 > 2) {
@@ -137,7 +153,7 @@ void G1StepBackwards() {
   }
 
   currentPos1 = phaseStep1 + digitStep1 * 3;
-  debugManager.debugMsg("G1 at " + String(currentPos1));
+//  debugManager.debugMsg("G1 at " + String(currentPos1));
 
   G_step1(phaseStep1);
 }
@@ -146,7 +162,7 @@ void G1StepBackwards() {
 // step forward on Decatron 2
 // ************************************************************
 void G2StepBackwards() {
-  debugManager.debugMsg("G2B");
+//  debugManager.debugMsg("G2B");
   phaseStep2++;
 
   if (phaseStep2 > 2) {
@@ -158,7 +174,7 @@ void G2StepBackwards() {
   }
 
   currentPos2 = phaseStep2 + digitStep2 * 3;
-  debugManager.debugMsg("G2 at " + String(currentPos2));
+//  debugManager.debugMsg("G2 at " + String(currentPos2));
 
   G_step2(phaseStep2);
 }
@@ -167,7 +183,7 @@ void G2StepBackwards() {
 // step backward on Decatron 1
 // ************************************************************
 void G1StepForwards() {
-  debugManager.debugMsg("G1F");
+//  debugManager.debugMsg("G1F");
   phaseStep1--;
 
   if (phaseStep1 < 0) {
@@ -180,13 +196,9 @@ void G1StepForwards() {
 
   currentPos1 = phaseStep1 + digitStep1 * 3;
 
-  if (currentPos1 == indexMark1) {
-    g1Mark = true;
-  } else {
-    g1Mark = false;
-  }
+  g1Mark = (currentPos1 == indexMark1);
 
-  debugManager.debugMsg("G1 at " + String(currentPos1));
+//  debugManager.debugMsg("G1 at " + String(currentPos1));
 
   G_step1(phaseStep1);
 }
@@ -195,7 +207,7 @@ void G1StepForwards() {
 // step backward on Decatron 2
 // ************************************************************
 void G2StepForwards() {
-  debugManager.debugMsg("G2F");
+//  debugManager.debugMsg("G2F");
   phaseStep2--;
 
   if (phaseStep2 < 0) {
@@ -206,62 +218,94 @@ void G2StepForwards() {
     }
   }
 
+  g2Mark =  (currentPos2 == indexMark2);
+
   currentPos2 = phaseStep2 + digitStep2 * 3;
-  debugManager.debugMsg("G2 at " + String(currentPos2));
+//  debugManager.debugMsg("G2 at " + String(currentPos2));
 
   G_step2(phaseStep2);
 }
 
 // ************************************************************
-// Set Top Dead Centre on Decatron 1
+// Find the index mark
 // ************************************************************
-void setTDC1() {
-  if (digitalRead(Index1) == LOW) {
-    indexMark1 = currentPos1;
+void findIndexMarks() {
+  indexMark1 = -1;
+  indexMark2 = -1;
 
-    if (currentPos1 != tdc1) {
+  while ((indexMark1 < 0) | (indexMark2 < 0)) {
+    if(indexMark1 < 0) {
       G1StepForwards();
+      delay(10);
+      if (digitalRead(Index1) == LOW) {
+        indexMark1 = currentPos1;
+      }
     }
-  }
-}
 
-// ************************************************************
-// Set Top Dead Centre on Decatron 1
-// ************************************************************
-void setTDC2() {
-  if (digitalRead(Index2) == LOW) {
-    indexMark2 = currentPos2;
-
-    if (currentPos2 != tdc2) {
+    if(indexMark2 < 0) {
       G2StepForwards();
+      delay(10);
+      if (digitalRead(Index2) == LOW) {
+        indexMark2 = currentPos2;
+      }
     }
   }
-}
 
-// ************************************************************
-// Find Top Dead Centre on Decatron 1
-// ************************************************************
-bool getTDC1() {
-  if (digitalRead(Index1) == LOW) {
-    tdc1 = currentPos1;
-    debugManager.debugMsg("G1 found index mark at " + String(tdc1));
-    return true;
+  indexMark1 = -1;
+  G1StepBackwards();
+  delay(10);
+  G1StepBackwards();
+  delay(10);
+  G1StepBackwards();
+  delay(10);
+
+  indexMark2 = -1;
+  G2StepBackwards();
+  delay(10);
+  G2StepBackwards();
+  delay(10);
+  G2StepBackwards();
+  delay(10);
+
+//  delay(1000);
+
+  while ((indexMark1 < 0) | (indexMark2 < 0)) {
+    if(indexMark1 < 0) {
+      G1StepBackwards();
+      delay(10);
+      if (digitalRead(Index1) == LOW) {
+        indexMark1 = currentPos1;
+      }
+    }
+
+    if(indexMark2 < 0) {
+      G2StepBackwards();
+      delay(10);
+      if (digitalRead(Index2) == LOW) {
+        indexMark2 = currentPos2;
+      }
+    }
   }
 
-  return false;
-}
+//  delay(1000);
 
-// ************************************************************
-// Find Top Dead Centre on Decatron 1
-// ************************************************************
-bool getTDC2() {
-  if (digitalRead(Index2) == LOW) {
-    tdc2 = currentPos2;
-    debugManager.debugMsg("G2 found index mark at " + String(tdc2));
-    return true;
-  }
+  // More steps to get to the top
+  G1StepForwards();
+  delay(10);
+  G1StepForwards();
+  delay(10);
 
-  return false;
+  G2StepForwards();
+  delay(10);
+  G2StepForwards();
+  delay(10);
+  G2StepForwards();
+  delay(10);
+
+  tdc1 = currentPos1;
+  tdc2 = currentPos2;
+
+  delay(1000);
 }
 
 // ************************************************************
@@ -273,7 +317,6 @@ void performOncePerSecondProcessing() {
   impressionsPerSec = 0;
 
   // ------------------------------------
-
 }
 
 // ************************************************************
@@ -311,6 +354,69 @@ boolean getOTAvailable() {
   return ESP.getSketchSize() * 2 < ESP.getFlashChipSize();
 }
 
+//**********************************************************************************
+//**********************************************************************************
+//*                                 I2C interface                                  *
+//**********************************************************************************
+//**********************************************************************************
+
+#define SLAVE_MODE_100THS               0
+#define SLAVE_MODE_DATE                 1
+#define SLAVE_MODE_SECS                 2
+#define SLAVE_MODE_OFF                  3
+
+/**
+ * receive information from the master
+ */
+void receiveEvent(int receivedBytes) {
+
+  if (receivedBytes == 5) {
+    // if we got an update, just say that it is a new second
+    // for the 100ths
+    hundredthsMillis = nowMillis;
+
+    // resync the per second update, so that the "seconds" align 
+    // between main and slave
+    lastCheckMillis = nowMillis;
+
+    byte mode = Wire.read();
+    byte dimming  = Wire.read();
+    secondToShow = Wire.read();
+    dateToShow = Wire.read();
+    monthToShow = Wire.read();
+
+    // detect the blanking status
+    blanked = (dimming == 0);
+
+    // we got a transmission
+    switch (mode) {
+      case SLAVE_MODE_100THS: {
+        slaveDisplayMode = hundredthsMode;
+        break;      
+      }
+      case SLAVE_MODE_SECS: {
+        slaveDisplayMode = secondsMode;
+        expPos1 = secondToShow / 10;
+        expPos2 = secondToShow % 10;
+        break;      
+      }
+      case SLAVE_MODE_DATE: {
+        slaveDisplayMode = dateMode;
+        expPos1 = dateToShow / 10;
+        expPos2 = dateToShow % 10;
+        break;      
+      }
+      case SLAVE_MODE_OFF: {
+        slaveDisplayMode = offMode;
+
+        // just turn off the display 
+        blanked = true;
+        break;      
+      }
+    }
+  }
+}
+
 // ----------------------------------------------------------------------------------------------------
 // ----------------------------------------------  Set up  --------------------------------------------
 // ----------------------------------------------------------------------------------------------------
@@ -335,31 +441,11 @@ void setup() {
   enableHV();
 
   debugManager.debugMsg("Find Index Mark");
+  findIndexMarks();
 
-  bool tdc1Found = false;
-  bool tdc2Found = false;
-
-  while (!tdc1Found) { 
-    debugManager.debugMsg("Stepping G1 to find index");
-    G1StepForwards();
-    tdc1Found = getTDC1();
-  }
-
-  // Add another count to get to the real top
-  G1StepForwards();
-  G1StepForwards();
-
-  while (!tdc2Found) { 
-    debugManager.debugMsg("Stepping G2 to find index");
-    G2StepForwards();
-    tdc2Found = getTDC2();
-  }
-
-  // Add another count to get to the real top
-  G2StepForwards();
-  G2StepForwards();
-
-  delay(5000);
+  debugManager.debugMsg("Startup I2C");
+  Wire.begin(I2C_SLAVE_ADDR);
+  Wire.onReceive(receiveEvent);
 
   debugManager.debugMsg("Startup done");
 }
@@ -407,12 +493,20 @@ void loop() {
     digitalWrite(HVEnable, true);
   }
 
-  G1StepForwards();
+  switch (slaveDisplayMode)
+  {
+  case hundredthsMode:
+    {
+      G2StepForwards();
 
-  if (g1Mark) {
-    G2StepForwards();
+      if (g2Mark) {
+        G1StepForwards();
+      }
+      break;
+    }
+  default:
+    break;
   }
-  
-  delay(32);
-}
 
+  delay(1);
+}
