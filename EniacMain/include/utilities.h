@@ -25,7 +25,12 @@
 #include <esp_task_wdt.h>
 #include "WiFiManager.h"
 #include "OutputManager.h"
-#include "SlaveManager.h"
+#ifdef NIXIE_SLAVE
+#include "SlaveManagerNixie.h"
+#endif
+#ifdef DECATRON_SLAVE
+#include "SlaveManagerDecatron.h"
+#endif
 
 // -------------------------------------------------------------------------------
 

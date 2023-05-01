@@ -62,7 +62,7 @@ enum menuTargets {
   saveStats,
   saveConfig,
   displayTest,
-  #ifdef SLAVE_OUTPUT
+  #ifdef NIXE_SLAVE
   nextSlaveMode,
   #endif
   debugOn10mins,

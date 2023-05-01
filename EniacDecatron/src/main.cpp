@@ -16,9 +16,6 @@
 
 #include "defs.h"
 #include "DebugManager.h"
-#include <Wire.h>
-
-#define I2C_SLAVE_ADDR                0x69
 
 #define DEBUG     true
 
@@ -43,11 +40,6 @@ bool g2Mark;
 
 volatile int millisInSecond = 0;
 
-// ------------------ Usage statistics -----------------
-
-int impressionsPerSec = 0;
-int lastImpressionsPerSec = 0;
-
 // ------------- Time management variables -------------
 
 unsigned long nowMillis = 0;
@@ -62,26 +54,20 @@ boolean triggeredThisSec = false;
 
 boolean blanked = false;
 
-// --------------------- I2C ----------------------
+// --------------------- Protocol ----------------------
 
-byte dateToShow;
-byte monthToShow;
-byte dimming;
-byte secondToShow;
-int hundredths;
-
-enum slaveDisplayModes {
-  hundredthsMode,
-  dateMode,
-  secondsMode,
-  offMode
-};
-
-slaveDisplayModes slaveDisplayMode = hundredthsMode;   
+unsigned long lastInterrupt = 0;
+unsigned long lastHigh = 0;
+unsigned long lastLow = 0;
+unsigned long pulseLength = 0;
 
 // --------------------- Misc ----------------------
 
 bool debugVal = DEBUG;
+
+const int interruptPin = 0; //GPIO 0 / D3 (Button)
+
+// -------------------------------------------------
 
 void enableHV() {
   debugManager.debugMsg("HV ON");
@@ -312,10 +298,6 @@ void findIndexMarks() {
 // Called once per second
 // ************************************************************
 void performOncePerSecondProcessing() {
-  // Store the current value and reset
-  lastImpressionsPerSec = impressionsPerSec;
-  impressionsPerSec = 0;
-
   // ------------------------------------
 }
 
@@ -354,67 +336,22 @@ boolean getOTAvailable() {
   return ESP.getSketchSize() * 2 < ESP.getFlashChipSize();
 }
 
-//**********************************************************************************
-//**********************************************************************************
-//*                                 I2C interface                                  *
-//**********************************************************************************
-//**********************************************************************************
+// ************************************************************
+// Interrupt handler
+// ************************************************************
+void handleInterrupt() {
+  lastInterrupt = nowMillis;
 
-#define SLAVE_MODE_100THS               0
-#define SLAVE_MODE_DATE                 1
-#define SLAVE_MODE_SECS                 2
-#define SLAVE_MODE_OFF                  3
+  bool pinState = digitalRead(interruptPin);
 
-/**
- * receive information from the master
- */
-void receiveEvent(int receivedBytes) {
-
-  if (receivedBytes == 5) {
-    // if we got an update, just say that it is a new second
-    // for the 100ths
-    hundredthsMillis = nowMillis;
-
-    // resync the per second update, so that the "seconds" align 
-    // between main and slave
-    lastCheckMillis = nowMillis;
-
-    byte mode = Wire.read();
-    byte dimming  = Wire.read();
-    secondToShow = Wire.read();
-    dateToShow = Wire.read();
-    monthToShow = Wire.read();
-
-    // detect the blanking status
-    blanked = (dimming == 0);
-
-    // we got a transmission
-    switch (mode) {
-      case SLAVE_MODE_100THS: {
-        slaveDisplayMode = hundredthsMode;
-        break;      
-      }
-      case SLAVE_MODE_SECS: {
-        slaveDisplayMode = secondsMode;
-        expPos1 = secondToShow / 10;
-        expPos2 = secondToShow % 10;
-        break;      
-      }
-      case SLAVE_MODE_DATE: {
-        slaveDisplayMode = dateMode;
-        expPos1 = dateToShow / 10;
-        expPos2 = dateToShow % 10;
-        break;      
-      }
-      case SLAVE_MODE_OFF: {
-        slaveDisplayMode = offMode;
-
-        // just turn off the display 
-        blanked = true;
-        break;      
-      }
-    }
+  if (pinState) {
+    lastHigh = nowMillis;
+  } else {
+    lastLow = nowMillis;
+    pulseLength = lastLow - lastHigh;
   }
+
+
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -443,9 +380,8 @@ void setup() {
   debugManager.debugMsg("Find Index Mark");
   findIndexMarks();
 
-  debugManager.debugMsg("Startup I2C");
-  Wire.begin(I2C_SLAVE_ADDR);
-  Wire.onReceive(receiveEvent);
+  pinMode(interruptPin, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(interruptPin), handleInterrupt, CHANGE);  
 
   debugManager.debugMsg("Startup done");
 }
@@ -455,9 +391,6 @@ void setup() {
 // ----------------------------------------------------------------------------------------------------
 void loop() {
   nowMillis = millis();
-
-  // shows us how fast the inner loop is running
-  impressionsPerSec++;
 
   // -------------------------------------------------------------------------------
 
@@ -487,25 +420,30 @@ void loop() {
 
   millisInSecond = nowMillis - lastSecMillis;
 
+  // Manage the state based on the interrupt readings
+  // If we last received a pulse more than a second ago, then blank
+  blanked = ((nowMillis - lastInterrupt) > 1100);
+
   if (blanked) {
     digitalWrite(HVEnable, false);
   } else {
     digitalWrite(HVEnable, true);
   }
 
-  switch (slaveDisplayMode)
-  {
-  case hundredthsMode:
-    {
-      G2StepForwards();
+  // Spin the fast one
+  G2StepForwards();
 
-      if (g2Mark) {
-        G1StepForwards();
-      }
-      break;
+  if (g2Mark) {
+    G1StepForwards();
+  }
+
+  // Align the G1 TDC with the second
+  if (pulseLength > 100) {
+    while (!g1Mark)
+    {
+      G1StepForwards();
+      delay(1);
     }
-  default:
-    break;
   }
 
   delay(1);

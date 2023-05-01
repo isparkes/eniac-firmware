@@ -184,9 +184,22 @@ void IRAM_ATTR onTimer2() {
 // ************************************************************
 // Trigger 1PPS output
 // ************************************************************
-void triggerOnePulsePerSec() {
+void triggerOnePulsePerSecShort() {
   #ifndef COG_CRANK_OUTPUT
   digitalWrite(PPSPin, HIGH);
+  timerAlarmWrite(timer2, 50000, false);
+  timerRestart(timer2);
+  timerAlarmEnable(timer2);
+  #endif
+}
+
+// ************************************************************
+// Set the 1PPS pulse length
+// ************************************************************
+void triggerOnePulsePerSecLong() {
+  #ifndef COG_CRANK_OUTPUT
+  digitalWrite(PPSPin, HIGH);
+  timerAlarmWrite(timer2, 100000, false);
   timerRestart(timer2);
   timerAlarmEnable(timer2);
   #endif

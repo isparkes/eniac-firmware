@@ -1,15 +1,15 @@
-#include "SlaveManager.h"
+#include "SlaveManagerNixie.h"
 
 // ************************************************************
 // Get the numeric value of the next slave mode
 // ************************************************************
-void SlaveManager_::begin() {
+void SlaveManagerNixie_::begin() {
 }
 
 // ************************************************************
 // Detect if there is a slave connected, called at startup
 // ************************************************************
-void SlaveManager_::testSlave() {
+void SlaveManagerNixie_::testSlave() {
   // we only want to try once on the startup test
   _slaveEnabled = true;
   sendUpdateToSlaveI2C();
@@ -22,7 +22,7 @@ void SlaveManager_::testSlave() {
 // ************************************************************
 // Override the slave mode via front panel switch
 // ************************************************************
-void SlaveManager_::setSlaveEnabled(bool newSlaveStatus) {
+void SlaveManagerNixie_::setSlaveEnabled(bool newSlaveStatus) {
   if ((_slaveEnabled != newSlaveStatus) && (!newSlaveStatus)) {
     blankSlaveI2C();
   }
@@ -32,28 +32,28 @@ void SlaveManager_::setSlaveEnabled(bool newSlaveStatus) {
 // ************************************************************
 // return current mode
 // ************************************************************
-bool SlaveManager_::getSlaveMode() {
+bool SlaveManagerNixie_::getSlaveMode() {
   return _slaveEnabled && (cc->slaveMode != SLAVE_MODE_OFF);
 }
 
 // ************************************************************
 // Slave I2C attempts to date
 // ************************************************************
-unsigned int SlaveManager_::getTryCount() {
+unsigned int SlaveManagerNixie_::getTryCount() {
   return _slaveModeTryCount;
 }
 
 // ************************************************************
 // Slave I2C attempts that failed to date
 // ************************************************************
-unsigned int SlaveManager_::getFailCount() {
+unsigned int SlaveManagerNixie_::getFailCount() {
   return _slaveModeFailCount;
 }
 
 // ************************************************************
 // Once per second update for the modes that need it
 // ************************************************************
-void SlaveManager_::updateOncePerSecond() {
+void SlaveManagerNixie_::updateOncePerSecond() {
   // If we change to a per minute update, update the display anyway
   if ((previousMode != cc->slaveMode) ||
       (cc->slaveMode == SLAVE_MODE_100THS) || 
@@ -65,7 +65,7 @@ void SlaveManager_::updateOncePerSecond() {
 // ************************************************************
 // Once per minute update for the modes that need it
 // ************************************************************
-void SlaveManager_::updateOncePerMinute() {
+void SlaveManagerNixie_::updateOncePerMinute() {
   if (cc->slaveMode == SLAVE_MODE_DATE) {
     sendUpdateToSlaveI2C();
   }
@@ -74,7 +74,7 @@ void SlaveManager_::updateOncePerMinute() {
 // ************************************************************
 // Called once per second with update info
 // ************************************************************
-void SlaveManager_::sendUpdateToSlaveI2C() {
+void SlaveManagerNixie_::sendUpdateToSlaveI2C() {
   // deal with blanking the display
   if (previousMode != cc->slaveMode) {
     if (cc->slaveMode == SLAVE_MODE_OFF) {
@@ -110,7 +110,7 @@ void SlaveManager_::sendUpdateToSlaveI2C() {
 // ************************************************************
 // Called once per second with update info
 // ************************************************************
-void SlaveManager_::blankSlaveI2C() {
+void SlaveManagerNixie_::blankSlaveI2C() {
   _slaveModeTryCount++;
 
   Wire.beginTransmission(SLAVE_MODULE_I2C_ADDRESS);
@@ -133,7 +133,7 @@ void SlaveManager_::blankSlaveI2C() {
 // ************************************************************
 // Get the name of the next slave mode: for OLED menu
 // ************************************************************
-String SlaveManager_::getNextSlaveModeName() {
+String SlaveManagerNixie_::getNextSlaveModeName() {
   switch (getNextSlaveMode()) {
   case SLAVE_MODE_100THS:
     return "100ths";
@@ -155,21 +155,21 @@ String SlaveManager_::getNextSlaveModeName() {
 // ************************************************************
 // Set the slave mode by using the next one: OLED
 // ************************************************************
-void SlaveManager_::setNextSlaveMode() {
+void SlaveManagerNixie_::setNextSlaveMode() {
   cc->slaveMode = getNextSlaveMode();
 }
 
 // ************************************************************
 // Set the slave mode explictly
 // ************************************************************
-void SlaveManager_::setSlaveMode(byte newMode) {
+void SlaveManagerNixie_::setSlaveMode(byte newMode) {
   cc->slaveMode = newMode;
 }
 
 // ************************************************************
 // Get the numeric value of the next slave mode
 // ************************************************************
-byte SlaveManager_::getNextSlaveMode() {
+byte SlaveManagerNixie_::getNextSlaveMode() {
   byte nextMode = cc->slaveMode + 1;
   if (nextMode > SLAVE_MODE_MAX) {
     nextMode = SLAVE_MODE_MIN;
@@ -180,9 +180,9 @@ byte SlaveManager_::getNextSlaveMode() {
 // ************************************************************
 // Library internal singleton wiring
 // ************************************************************
-SlaveManager_ &SlaveManager_::getInstance() {
-  static SlaveManager_ instance;
+SlaveManagerNixie_ &SlaveManagerNixie_::getInstance() {
+  static SlaveManagerNixie_ instance;
   return instance;
 }
 
-SlaveManager_ &slaveManager = slaveManager.getInstance();
+SlaveManagerNixie_ &slaveManagerNixie = slaveManagerNixie.getInstance();

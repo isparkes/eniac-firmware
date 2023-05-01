@@ -11,7 +11,8 @@
 // ************************************************************
 void startTimers();
 void setLedFlashType(byte flashType);
-void triggerOnePulsePerSec();
+void triggerOnePulsePerSecShort();
+void triggerOnePulsePerSecLong();
 
 // Published so that we can access these during startup
 void IRAM_ATTR shiftOut24H(uint32_t _val1);

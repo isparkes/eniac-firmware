@@ -193,7 +193,9 @@ void resetOptions() {
   #else
   cc->blinkenLightsMode = 0;
   #endif
+  #ifdef NIXIE_SLAVE
   cc->slaveMode = SLAVE_MODE_DEFAULT;
+  #endif
 
   #ifdef COUNTDOWN
   cc->countdownTarget = "";
@@ -388,8 +390,13 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["utcrtcat"] = tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_RTC);
   root["utcintat"] = tzManager.getTimeLastSetFromTimeSource(TIME_SOURCE_INT);
   root["utcoffset"] = String(tzManager.getCurrentUTCOffset());
-  root["slavetrycount"] = String(slaveManager.getTryCount());
-  root["slavefailcount"] = String(slaveManager.getFailCount());
+  #if defined NIXIE_SLAVE
+  root["slavetrycount"] = String(slaveManagerNixie.getTryCount());
+  root["slavefailcount"] = String(slaveManagerNixie.getFailCount());
+  #else
+  root["slavetrycount"] = "0";
+  root["slavefailcount"] = "0";
+  #endif
   root["sw1"] = switch1Meaning;
   root["sw2"] = switch2Meaning;
   
@@ -446,8 +453,12 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   featureString += "BLNK ";
   #endif
 
-  #ifdef SLAVE_OUTPUT
-  featureString += "SLV ";
+  #ifdef NIXE_SLAVE
+  featureString += "NSLV ";
+  #endif
+
+  #ifdef DECATRON_SLAVE
+  featureString += "DSLV ";
   #endif
 
   #ifdef COG_CRANK_OUTPUT

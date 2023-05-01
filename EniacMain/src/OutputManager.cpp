@@ -636,8 +636,8 @@ void OutputManager_::processSeparators() {
   #ifdef COG_CRANK_OUTPUT
   _indLed1 = !(cogCrankSecsLeft > 0);
   #else
-  #ifdef SLAVE_OUTPUT
-  _indLed1 = !slaveManager.getSlaveMode();
+  #ifdef NIXE_SLAVE
+  _indLed1 = !slaveManagerNixie.getSlaveMode();
   #else
   _indLed1 = false;
   #endif

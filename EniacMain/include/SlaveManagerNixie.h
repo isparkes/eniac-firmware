@@ -29,15 +29,15 @@
 #define SLAVE_MODE_MAX                  3
 #define SLAVE_MODE_DEFAULT              0
 
-class SlaveManager_ {
+class SlaveManagerNixie_ {
   private:
-    SlaveManager_() = default; // Make constructor private
+    SlaveManagerNixie_() = default; // Make constructor private
 
   public:
-    static SlaveManager_ &getInstance(); // Accessor for singleton instance
+    static SlaveManagerNixie_ &getInstance(); // Accessor for singleton instance
 
-    SlaveManager_(const SlaveManager_ &) = delete; // no copying
-    SlaveManager_ &operator=(const SlaveManager_ &) = delete;
+    SlaveManagerNixie_(const SlaveManagerNixie_ &) = delete; // no copying
+    SlaveManagerNixie_ &operator=(const SlaveManagerNixie_ &) = delete;
 
   public:
     void begin();
@@ -61,4 +61,4 @@ class SlaveManager_ {
     void blankSlaveI2C();
 };
 
-extern SlaveManager_ &slaveManager;
+extern SlaveManagerNixie_ &slaveManagerNixie;

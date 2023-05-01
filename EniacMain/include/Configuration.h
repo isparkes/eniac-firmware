@@ -22,7 +22,7 @@
 // -------------------------------------------------------------------------------
 
 // Countdown functionality
-#define COUNTDOWN                   // COUNTDOWN | COUNTDOWN_OFF
+#define COUNTDOWN_OFF                   // COUNTDOWN | COUNTDOWN_OFF
 
 // -------------------------------------------------------------------------------
 
@@ -57,12 +57,12 @@
 
 // -------------------------------------------------------------------------------
 
-// If we want a slave or not
-#define SLAVE_OUTPUT               // SLAVE_OUTPUT | SLAVE_OUTPUT_OFF
+// What type of slave we have: Either Nixie slave over I2C or the Decatron slave over the 1PPS GPIO
+#define NIXIE_SLAVE                 // SLAVE_OUTPUT_OFF | DECATRON_SLAVE | NIXIE_SLAVE
 
 // -------------------------------------------------------------------------------
 
-#define SOFTWARE_VERSION "LTC-ESP32 0.5.5.6"
+#define SOFTWARE_VERSION "LTC-ESP32 0.6.0.0"
 #define CLOCK_MENU_TITLE "ENIAC" 
 
 // -------------------------------------------------------------------------------

@@ -229,9 +229,12 @@ void setup()
   enableWatchdog();
   // -------------------------------------------------------------------------
   
-  #ifdef SLAVE_OUTPUT
-  debugMsgMain("Start up Slave");
-  slaveManager.testSlave();
+  #ifdef NIXE_SLAVE
+  debugMsgMain("Start up Nixie Slave");
+  slaveManagerNixie.testSlave();
+  #endif
+  #ifdef DECATRON_SLAVE
+  debugMsgMain("Start up Decatron Slave");
   #endif
 
 }
@@ -387,8 +390,12 @@ void performOncePerSecondProcessing() {
 
   // -------------------------------------------------------------------------------
 
-  #if defined(SLAVE_OUTPUT)
-  slaveManager.updateOncePerSecond();
+  #if defined(NIXE_SLAVE) 
+  slaveManagerNixie.updateOncePerSecond();
+  #endif
+
+  #if defined(DECATRON_SLAVE) 
+  slaveManagerDecatron.updateOncePerSecond();
   #endif
 
   // ------------------------------ switch handling -----------------------------------
@@ -404,14 +411,14 @@ void performOncePerSecondProcessing() {
   if (countdownManager.getCountdownActiveInternal()) {
     switch1Meaning = SW_COUNTDOWN_INHIBIT;
   } else {
-    #if defined(SLAVE_OUTPUT)
+    #if defined(NIXE_SLAVE) || defined(DECATRON_SLAVE)
     switch1Meaning = SW_SLAVE_INHIBIT;
     #else
     switch1Meaning = SW_MIN_DIM;
     #endif
   }
   #else
-    #if defined(SLAVE_OUTPUT)
+    #if defined(NIXE_SLAVE) || defined(DECATRON_SLAVE)
     switch1Meaning = SW_SLAVE_INHIBIT;
     #else
     switch1Meaning = SW_MIN_DIM;
@@ -446,7 +453,12 @@ void performOncePerSecondProcessing() {
       break;
     }
     case SW_SLAVE_INHIBIT: {
-      slaveManager.setSlaveEnabled(digitalRead(BTN1Pin) == !BTNOnstate);
+      #ifdef NIXE_SLAVE
+      slaveManagerNixie.setSlaveEnabled(digitalRead(BTN1Pin) == !BTNOnstate);
+      #endif
+      #ifdef DECATRON_SLAVE
+      slaveManagerDecatron.setSlaveEnabled(digitalRead(BTN1Pin) == !BTNOnstate);
+      #endif
       break;
     }
     case SW_MIN_DIM: {
@@ -474,7 +486,12 @@ void performOncePerSecondProcessing() {
 
   outputManager.triggerStunts();
 
-  triggerOnePulsePerSec();
+  // If we are using the Decatron slave, let the manager control the 1PPS
+  #ifdef DECATRON_SLAVE
+  slaveManagerDecatron.updateOncePerSecond();
+  #else
+  triggerOnePulsePerSecShort();
+  #endif
 
   debugManager.debugAutoOffCheck();
 
@@ -503,7 +520,14 @@ void performOncePerMinuteProcessing() {
   // manage the primary source - it might have changed
   tzManager.getPrimaryTimeSource();
 
-  slaveManager.updateOncePerMinute();
+  #if defined NIXIE_SLAVE
+  slaveManagerNixie.updateOncePerMinute();
+  #endif
+
+  // If we are using the Decatron slave, let the manager control the 1PPS
+  #ifdef DECATRON_SLAVE
+  slaveManagerDecatron.updateOncePerMinute();
+  #endif
 }
 
 // ************************************************************

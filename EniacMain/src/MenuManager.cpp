@@ -70,8 +70,8 @@ void MenuManager_::nixieClockMenu() {
   String nextBLModeName = blinkenlightsManager.getNextBlinkenlightsModeName();
   oledMenu.menuItems[menuCount] = "IND mode: " + nextBLModeName; oledMenu.menuActions[menuCount++] = nextBlnknMode;
   #endif
-  #ifdef SLAVE_OUTPUT
-  String nextSlaveModeName = slaveManager.getNextSlaveModeName();
+  #ifdef NIXE_SLAVE
+  String nextSlaveModeName = slaveManagerNixie.getNextSlaveModeName();
   oledMenu.menuItems[menuCount] = "Slave Mode " + nextSlaveModeName; oledMenu.menuActions[menuCount++] = nextSlaveMode;
   #endif
 
@@ -392,9 +392,9 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       systemMenu();
       break;
     }
-    #ifdef SLAVE_OUTPUT
+    #ifdef NIXE_SLAVE
     case nextSlaveMode: {
-      slaveManager.setNextSlaveMode();
+      slaveManagerNixie.setNextSlaveMode();
       nixieClockMenu();
       break;
     }

@@ -13,3 +13,6 @@ WiFi credentials
 ================
 curl -v -X POST -d '{"SSID":"TESTSSID","password":"1234"}' "http://esp32-612ce4.local/api/postWiFiCredentials"
 
+Release versions
+v0.6.0.0
+Add Decatron slave type
