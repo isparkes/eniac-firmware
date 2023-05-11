@@ -4,7 +4,6 @@
 #include <ArduinoJson.h>
 #include "SPIFFS.h"
 #include "DebugManager.h"
-#include "Defs.h"
 #include "Globals.h"
 
 // ----------------------------------------------------------------------------------------------------

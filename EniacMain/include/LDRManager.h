@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Defs.h"
 #include "Arduino.h"
 #include "Globals.h"
 #include "SpiffsStorage.h"
