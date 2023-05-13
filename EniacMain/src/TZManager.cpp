@@ -347,4 +347,19 @@ TZManager_ &TZManager_::getInstance() {
   return instance;
 }
 
+// ************************************************************
+// Format a time into an output string
+// ************************************************************
+String timeToReadableStringFromTm(tm timeToFormat) {
+  char buf1[20];
+  sprintf(buf1, "%04d-%02d-%02d %02d:%02d:%02d",
+    timeToFormat.tm_year + 1900,
+    timeToFormat.tm_mon + 1,
+    timeToFormat.tm_mday,
+    timeToFormat.tm_hour,
+    timeToFormat.tm_min,
+    timeToFormat.tm_sec);
+  return String(buf1);
+}
+
 TZManager_ &tzManager = tzManager.getInstance();

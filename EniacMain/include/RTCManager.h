@@ -2,7 +2,6 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-#include "Defs.h"
 #include "utilities.h"
 #include <TimeLib.h>
 #include "DebugManager.h"

@@ -59,4 +59,7 @@ class TZManager_ {
     void setRTCTimeFromTimeSource(unsigned long readTime, time_t utcTime);
 };
 
+// Formatting routines
+String timeToReadableStringFromTm(tm timeToFormat);
+
 extern TZManager_ &tzManager;

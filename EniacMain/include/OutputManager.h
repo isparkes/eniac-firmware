@@ -9,6 +9,8 @@
 #include "DebugManager.h"
 #include "CountdownManager.h"
 
+#define DIGIT_PWM_CHANNEL  0
+
 // -------------------------------------------------------------------------------
 
 #define APPLY_LEAD_0_BLANK true
@@ -72,6 +74,10 @@
 #define SEP_MODE_MAX        7
 
 // -------------------------------------------------------------------------------
+#define DISPLAY_TYPE_TIME   0
+#define DISPLAY_TYPE_DATE   1
+
+// -------------------------------------------------------------------------------
 // Display mode, set per digit
 #define BLANKED  0
 #define NORMAL   1
@@ -83,15 +89,15 @@ typedef void (*DebugCallback) (String);
 
 enum outputModes {                          //                              ACP Allowed   Slots Allowed   Fade   Scroll
   diagsMode,                                // Used during startup test           N             N          N       N
-  timeMode,                                 // normal time mode                   Y             Y          Y       Y
-  slotsMode,                                // dates slots                        N             -          Y       Y
+  primaryDisplayMode,                       // normal time mode                   Y             Y          Y       Y
+  secondaryDisplayMode,                     // dates slots                        N             -          Y       Y
   valueMode,                                // we are displaying a value          N             N          Y       Y
   acpMode                                   // acp                                -             N          N       N
 };
 
 class OutputManager_ {
   private:
-    OutputManager_() = default; // Make constructor private
+    OutputManager_(); // Make constructor private
 
   public:
     static OutputManager_ &getInstance(); // Accessor for singleton instance
@@ -100,6 +106,11 @@ class OutputManager_ {
     OutputManager_ &operator=(const OutputManager_ &) = delete;
 
   public:
+    // These load the configured primary and secondary display modes
+    void loadNumberArrayPrimary();
+    void loadNumberArraySecondary();
+
+    // These are the native modes we can use
     void loadNumberArrayTime();
     void loadNumberArrayDate();
     void loadNumberArraySameValue(byte value);
@@ -126,6 +137,10 @@ class OutputManager_ {
     String getNextSlotsModeName();
     void setSlotsMode(byte newMode);
     void setNextSlotsMode();
+
+    // Digit PWM Channel
+    void setUpDigitPWM();
+    void setDigitPWM(int pwmValue);
   private:
     int _acpOffset = 0;
     int _acpTick = 0;

@@ -278,6 +278,8 @@ void SpiffsStorage_::saveConfigToSpiffs()
   json["slaveMode"] = cc->slaveMode;
   json["outputOnTime"] = cc->outputOnTime;
   json["backlightGradient"] = cc->backlightGradient;
+  json["primaryDisplay"] = cc->primaryDisplay;
+  json["secondaryDisplay"] = cc->secondaryDisplay;
   #ifdef COUNTDOWN
   json["countdownTarget"] = cc->countdownTarget;
   #endif

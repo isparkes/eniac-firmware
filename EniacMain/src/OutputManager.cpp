@@ -1,6 +1,34 @@
 #include "OutputManager.h"
 
 // ************************************************************
+// Get the primary display
+// ************************************************************
+void OutputManager_::loadNumberArrayPrimary() {
+  switch (cc->primaryDisplay) {
+    case DISPLAY_TYPE_TIME:
+      loadNumberArrayTime();
+      break;
+    case DISPLAY_TYPE_DATE:
+      loadNumberArrayDate();
+      break;
+  }
+}
+
+// ************************************************************
+// Get the secondary display
+// ************************************************************
+void OutputManager_::loadNumberArraySecondary() {
+  switch (cc->secondaryDisplay) {
+    case DISPLAY_TYPE_TIME:
+      loadNumberArrayTime();
+      break;
+    case DISPLAY_TYPE_DATE:
+      loadNumberArrayDate();
+      break;
+  }
+}
+
+// ************************************************************
 // Break the time into displayable digits
 // ************************************************************
 void OutputManager_::loadNumberArrayTime() {
@@ -156,7 +184,7 @@ void OutputManager_::outputDisplay() {
       blankTubes;
 
     switch(_outputMode) {
-      case timeMode:
+      case primaryDisplayMode:
       case valueMode: {
         // Trigger scolling and fading - scolling takes precendence
         // _suppressEffects stops any effects for ACP
@@ -348,8 +376,8 @@ void OutputManager_::applyBlanking() {
 // Trigger slots/ACP processing
 // ************************************************************
 void OutputManager_::triggerStunts() {
-  // only trigger stunts in time mode
-  if (_outputMode != timeMode)
+  // only trigger stunts in primary mode
+  if (_outputMode != primaryDisplayMode)
     return;
 
   if (_acpOffset == 0) {
@@ -387,7 +415,7 @@ void OutputManager_::triggerStunts() {
       debugMsgOtm("Triggering Slots mode: " + String(cc->slotsMode));
       #endif
 
-      _outputMode = slotsMode;
+      _outputMode = secondaryDisplayMode;
       setCurrentTransition();
       activeTransition->start(nowMillis);
     }
@@ -441,7 +469,7 @@ void OutputManager_::processStunts() {
             #ifdef OTM_EXTENDED_DEBUG
             debugMsgOtm("ACP End");
             #endif
-            _outputMode = timeMode;
+            _outputMode = primaryDisplayMode;
           }
         } else {
           _acpTick++;
@@ -449,7 +477,7 @@ void OutputManager_::processStunts() {
       }
       break;
     }
-    case slotsMode: {
+    case secondaryDisplayMode: {
       if (activeTransition->isMessageOnDisplay(nowMillis)) {
         // Continue slots transition
         bool msgDisplaying = activeTransition->runEffect(nowMillis, cc->blankLeading);
@@ -461,7 +489,7 @@ void OutputManager_::processStunts() {
         #ifdef OTM_EXTENDED_DEBUG
         debugMsgOtm("Ending slots");
         #endif
-        _outputMode = timeMode;
+        _outputMode = primaryDisplayMode;
       }
       break;        
     }
@@ -663,7 +691,7 @@ void OutputManager_::setOutputMode(outputModes newMode) {
 // Set the mode we are in
 // ************************************************************
 void OutputManager_::setOutputModeOncePerSecond() {
-  if (_outputMode == acpMode || _outputMode == slotsMode) {
+  if (_outputMode == acpMode || _outputMode == secondaryDisplayMode) {
     return;
   }
 
@@ -704,11 +732,41 @@ void OutputManager_::setOutputModeOncePerSecond() {
 }
 
 // ************************************************************
+// Start the PWM - broken out so that we can do the startup
+// Sequence
+// ************************************************************
+void OutputManager_::setUpDigitPWM() {
+  debugMsgOtm("Start up dimming PWM");
+  const int PWMFreq = 500; /* Hz */
+  const int PWMResolution = 12;
+  const int MAX_DUTY_CYCLE = (int)(pow(2, PWMResolution) - 1);
+
+  ledcSetup(DIGIT_PWM_CHANNEL, PWMFreq, PWMResolution);
+  ledcAttachPin(BLANKPin, DIGIT_PWM_CHANNEL);
+  ledcWrite(DIGIT_PWM_CHANNEL, MAX_DUTY_CYCLE);
+}
+
+// ************************************************************
+// Start the PWM - broken out so that we can do the startup
+// Sequence
+// ************************************************************
+void OutputManager_::setDigitPWM(int pwmValue) {
+  ledcWrite(DIGIT_PWM_CHANNEL, pwmValue);
+}
+
+// ************************************************************
 // Library internal singleton wiring
 // ************************************************************
 OutputManager_ &OutputManager_::getInstance() {
   static OutputManager_ instance;
   return instance;
+}
+
+// ************************************************************
+// Constructor
+// ************************************************************
+OutputManager_::OutputManager_() {
+  _outputMode = primaryDisplayMode;
 }
 
 OutputManager_ &outputManager = outputManager.getInstance();

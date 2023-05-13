@@ -21,68 +21,75 @@
 
 // ------------------ Decatron Control ----------------
 
-int digitStep1 = 0;  // Cathode we are on (0..2)
-int phaseStep1 = 0;  // Step inside of the cathode (0..9)
-int currentPos1 = 0; // The current position we are at (0..29)
-int indexMark1 = -1; // The current index mark we have detected (0..29)
-int tdc1 = 0;        // The required Top Dead Center "12 o'clock" (0..29)
-int expPos1 = 0;     // The expected position we are aiming for
+volatile int digitStep1 = 0;  // Cathode we are on (0..2)
+volatile int phaseStep1 = 0;  // Step inside of the cathode (0..9)
+volatile int currentPos1 = 0; // The current position we are at (0..29)
+volatile int indexMark1 = -1; // The current index mark we have detected (0..29)
+volatile int tdc1 = 0;        // The required Top Dead Center "12 o'clock" (0..29)
 
-int digitStep2 = 0;
-int phaseStep2 = 0;
-int currentPos2 = 0;
-int indexMark2 = -1;
-int tdc2 = 0;
-int expPos2 = 0;
+volatile int digitStep2 = 0;
+volatile int phaseStep2 = 0;
+volatile int currentPos2 = 0;
+volatile int indexMark2 = -1;
+volatile int tdc2 = 0;
 
-bool g1Mark;
-bool g2Mark;
+volatile bool g1Mark;
+volatile bool g2Mark;
 
 volatile int millisInSecond = 0;
 
 // ------------- Time management variables -------------
 
-unsigned long nowMillis = 0;
+volatile unsigned long nowMillis = 0;
 unsigned long lastCheckMillis = 0;
 unsigned long lastSecMillis = nowMillis;
-unsigned long hundredthsMillis = 0;
+unsigned long lastPulseMillis = 0;
 int lastSecond = second();
 boolean secondsChanged = false;
 boolean triggeredThisSec = false;
 
 // --------------------- Blanking ----------------------
 
-boolean blanked = false;
+bool blanked = false;
+bool blankedLastState = false;
 
 // --------------------- Protocol ----------------------
 
-unsigned long lastInterrupt = 0;
-unsigned long lastHigh = 0;
-unsigned long lastLow = 0;
+unsigned long lastPulse = 0;
 unsigned long pulseLength = 0;
+bool inPulse = false;
+int shorts = 0;
+int longs = 0;
 
 // --------------------- Misc ----------------------
 
 bool debugVal = DEBUG;
 
-const int interruptPin = 0; //GPIO 0 / D3 (Button)
+volatile uint32_t muxCount = INT_MUX_COUNTS_OFF;
 
 // -------------------------------------------------
 
-void enableHV() {
-  debugManager.debugMsg("HV ON");
-  digitalWrite(HVEnable, HIGH);
-}
+// ----------------------------------------------------------------------------------------------------
+// -----------------------------------------  Utility functions  --------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
-void disableHV() {
-  debugManager.debugMsg("HV OFF");
-  digitalWrite(HVEnable, LOW);
+// ************************************************************
+// Manage HV
+// ************************************************************
+void enableHV(bool state) {
+  if (state) {
+    debugManager.debugMsg("HV ON");
+    digitalWrite(HVEnable, HIGH);
+  } else {
+    debugManager.debugMsg("HV OFF");
+    digitalWrite(HVEnable, LOW);
+  }
 }
 
 // ************************************************************
 // Perform a step on Decatron 1
 // ************************************************************
-void G_step1(int CINT)
+IRAM_ATTR void G_step1(int CINT)
 {
   if (CINT == 0)
   {
@@ -104,7 +111,7 @@ void G_step1(int CINT)
 // ************************************************************
 // Perform a step on Decatron 1
 // ************************************************************
-void G_step2(int CINT)
+IRAM_ATTR void G_step2(int CINT)
 {
   if (CINT == 0)
   {
@@ -126,7 +133,7 @@ void G_step2(int CINT)
 // ************************************************************
 // step forward on Decatron 1
 // ************************************************************
-void G1StepBackwards() {
+IRAM_ATTR void G1StepBackwards() {
 //  debugManager.debugMsg("G1B");
   phaseStep1++;
 
@@ -147,7 +154,7 @@ void G1StepBackwards() {
 // ************************************************************
 // step forward on Decatron 2
 // ************************************************************
-void G2StepBackwards() {
+IRAM_ATTR void G2StepBackwards() {
 //  debugManager.debugMsg("G2B");
   phaseStep2++;
 
@@ -168,7 +175,7 @@ void G2StepBackwards() {
 // ************************************************************
 // step backward on Decatron 1
 // ************************************************************
-void G1StepForwards() {
+IRAM_ATTR void G1StepForwards() {
 //  debugManager.debugMsg("G1F");
   phaseStep1--;
 
@@ -192,7 +199,7 @@ void G1StepForwards() {
 // ************************************************************
 // step backward on Decatron 2
 // ************************************************************
-void G2StepForwards() {
+IRAM_ATTR void G2StepForwards() {
 //  debugManager.debugMsg("G2F");
   phaseStep2--;
 
@@ -207,7 +214,6 @@ void G2StepForwards() {
   g2Mark =  (currentPos2 == indexMark2);
 
   currentPos2 = phaseStep2 + digitStep2 * 3;
-//  debugManager.debugMsg("G2 at " + String(currentPos2));
 
   G_step2(phaseStep2);
 }
@@ -238,22 +244,7 @@ void findIndexMarks() {
   }
 
   indexMark1 = -1;
-  G1StepBackwards();
-  delay(10);
-  G1StepBackwards();
-  delay(10);
-  G1StepBackwards();
-  delay(10);
-
   indexMark2 = -1;
-  G2StepBackwards();
-  delay(10);
-  G2StepBackwards();
-  delay(10);
-  G2StepBackwards();
-  delay(10);
-
-//  delay(1000);
 
   while ((indexMark1 < 0) | (indexMark2 < 0)) {
     if(indexMark1 < 0) {
@@ -273,8 +264,6 @@ void findIndexMarks() {
     }
   }
 
-//  delay(1000);
-
   // More steps to get to the top
   G1StepForwards();
   delay(10);
@@ -291,28 +280,14 @@ void findIndexMarks() {
   tdc1 = currentPos1;
   tdc2 = currentPos2;
 
-  delay(1000);
-}
+  // for (int i = 0 ; i < 90 ; i++) {
+  //   G2StepForwards();
+  //   delay(10);
+  //   G1StepBackwards();
+  //   delay(10);
+  // }
 
-// ************************************************************
-// Called once per second
-// ************************************************************
-void performOncePerSecondProcessing() {
-  // ------------------------------------
-}
-
-// ************************************************************
-// Called once per minute
-// ************************************************************
-void performOncePerMinuteProcessing() {
-  debugManager.debugMsg("---> OncePerMinuteProcessing");
-}
-
-// ************************************************************
-// Called once per hour
-// ************************************************************
-void performOncePerHourProcessing() {
-  debugManager.debugMsg("---> OncePerHourProcessing");
+  // delay(1000);
 }
 
 // ************************************************************
@@ -337,21 +312,53 @@ boolean getOTAvailable() {
 }
 
 // ************************************************************
-// Interrupt handler
+// Called once per second
 // ************************************************************
-void handleInterrupt() {
-  lastInterrupt = nowMillis;
+void performOncePerSecondProcessing() {
+  // ------------------------------------
+  debugManager.debugMsg("Longs: " + String(longs) + ", Shorts: " + String(shorts));
+}
 
-  bool pinState = digitalRead(interruptPin);
+// ************************************************************
+// Called once per minute
+// ************************************************************
+void performOncePerMinuteProcessing() {
+  debugManager.debugMsg("---> OncePerMinuteProcessing");
+}
 
-  if (pinState) {
-    lastHigh = nowMillis;
-  } else {
-    lastLow = nowMillis;
-    pulseLength = lastLow - lastHigh;
-  }
+// ************************************************************
+// Called once per hour
+// ************************************************************
+void performOncePerHourProcessing() {
+  debugManager.debugMsg("---> OncePerHourProcessing");
+}
 
+// ----------------------------------------------------------------------------------------------------
+// ----------------------------------------  Interrupt handlers  --------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
+// ************************************************************
+// Slow Decatron Index Handling! (Fast Decatron runs freely)
+// Detect the falling edge of the Index pin and get the index
+// value - adjust it to allow the display to rotate
+// ************************************************************
+IRAM_ATTR void handleIndexMarkTrigger2() {
+  indexMark2 = digitStep2;
+}
+
+// ************************************************************
+// Slow Decatron Index Handling! (Fast Decatron runs freely)
+// Interrupt routine for scheduled interrupts
+// Spin through each of the pins on the decatron, using a short
+// interrupt time for "off" pins (not really off, but quite dim)
+// and longer dwell times for the lit pins.
+// ************************************************************
+IRAM_ATTR void displayUpdateTimer() {
+  uint32_t delayCount = muxCount;
+
+  G2StepForwards();
+
+  timer1_write(delayCount);
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -375,13 +382,23 @@ void setup() {
   // initialise the internal time (in case we don't find the time provider)
   nowMillis = millis();
 
-  enableHV();
+  enableHV(true);
 
   debugManager.debugMsg("Find Index Mark");
   findIndexMarks();
 
-  pinMode(interruptPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(interruptPin), handleInterrupt, CHANGE);  
+  debugManager.debugMsg("Starting GPIO interrupt handler");
+
+  pinMode(inputPin1, INPUT_PULLUP);
+//   attachInterrupt(digitalPinToInterrupt(inputPin1), handleButtonInterrupt, CHANGE);  
+
+  debugManager.debugMsg("Starting display interrupt handler for scanning");
+
+  attachInterrupt(digitalPinToInterrupt(Index2), handleIndexMarkTrigger2, FALLING);
+
+  timer1_attachInterrupt(displayUpdateTimer);
+  timer1_enable(TIM_DIV16, TIM_EDGE, TIM_SINGLE);
+  timer1_write(muxCount);
 
   debugManager.debugMsg("Startup done");
 }
@@ -420,29 +437,40 @@ void loop() {
 
   millisInSecond = nowMillis - lastSecMillis;
 
+  if ((nowMillis - lastPulseMillis) > 33) {
+    G1StepForwards();
+    lastPulseMillis = nowMillis;
+  }
+
+  blankedLastState = blanked;
+
   // Manage the state based on the interrupt readings
   // If we last received a pulse more than a second ago, then blank
-  blanked = ((nowMillis - lastInterrupt) > 1100);
+  blanked = ((nowMillis - lastPulse) > 10100);
 
-  if (blanked) {
-    digitalWrite(HVEnable, false);
+  if (blanked != blankedLastState) {
+    if (blanked) {
+      digitalWrite(HVEnable, false);
+    } else {
+      digitalWrite(HVEnable, true);
+      findIndexMarks();
+    }
+  }
+
+  if (digitalRead(inputPin1) == LOW) {
+    if (inPulse == false){
+      inPulse = true;
+      lastPulse = nowMillis;
+    }
   } else {
-    digitalWrite(HVEnable, true);
-  }
-
-  // Spin the fast one
-  G2StepForwards();
-
-  if (g2Mark) {
-    G1StepForwards();
-  }
-
-  // Align the G1 TDC with the second
-  if (pulseLength > 100) {
-    while (!g1Mark)
-    {
-      G1StepForwards();
-      delay(1);
+    if (inPulse == true) {
+      inPulse = false;
+      unsigned long pulseLength = nowMillis - lastPulse;
+      if (pulseLength > 100) {
+        longs++;
+      } else {
+        shorts++;
+      }
     }
   }
 

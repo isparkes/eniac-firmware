@@ -73,7 +73,7 @@ void setup()
 
   // -------------------------------------------------------------------------
   // Startup test
-  ldrManager.setUpPWM();
+  outputManager.setUpDigitPWM();
   ldrManager.setLDRValueToMax();
   outputManager.setOutputMode(diagsMode);
 
@@ -177,9 +177,6 @@ void setup()
   } else {
     debugMsgMain("RTC NOT found");
   }
-
-  // Start showing the time now that we have something to say
-  outputManager.setOutputMode(timeMode);
 
   // -------------------------------------------------------------------------
   
@@ -289,13 +286,14 @@ void performOncePerLoop() {
 
   // -------------------------------------------------------------------------------
   
+  int ldrValue = ldrManager.getLDRValue();
+
   // Dim except when we are in ACP mode
   if (outputManager.getOutputMode() == acpMode) {
     ldrManager.setLDRValueToMax();
   } else {
     ldrManager.resetFixedLDRValue();
     ldrManager.getDimmingFromLDR();
-    ldrValue = ldrManager.getLDRValue();
     #ifdef FEATURE_BACKLIGHTS
     ledManager.setLDRValue(ldrValue);
     #endif
@@ -316,6 +314,7 @@ void performOncePerLoop() {
 
   // -------------------------------------------------------------------------------
   
+  outputManager.setDigitPWM(ldrValue);
   outputManager.outputDisplay();
 
   // -------------------------------------------------------------------------------

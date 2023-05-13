@@ -47,10 +47,7 @@ const uint32_t DECODE_BLINKENIGHTS[] = { 0x200000, 0x100000};
 
 void newTimeUpdateReceived();
 
-// Formatting routines
-String timeToReadableStringFromTm(tm timeToFormat);
 uint32_t decodeBCD(byte valueToDecode, bool bl1, bool bl2, bool led1, bool led2);
-
 
 // Web handlers
 void getCredentialsHandler(AsyncWebServerRequest *request);

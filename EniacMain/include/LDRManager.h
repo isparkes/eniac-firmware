@@ -44,7 +44,6 @@ class LDRManager_
 
   public:
     void setUp();
-    void setUpPWM();
 
     void  getDimmingFromLDR();
     int   getLDRValue();
@@ -60,8 +59,8 @@ class LDRManager_
     int    sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
     int   _ldrValue = 0;
     bool  _isMinDim;
+    bool  _isMaxDim;
     bool  _locked;
-    const int LDRPWMChannel = 0;
 };
 
 extern LDRManager_ &ldrManager;

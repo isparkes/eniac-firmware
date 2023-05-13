@@ -9,7 +9,10 @@
 #define  Index2     D7       // Index   - NDX input pin. High when glow at K0
 
 #define  HVEnable   D8
-#define  inputPin1  RX
+#define  inputPin1  RX       // 1PPS In
+
+#define INT_MUX_COUNTS_ON   1000
+#define INT_MUX_COUNTS_OFF  20000
 
 // -------------------------------------------------------------------------------
 // Software version shown in config menu

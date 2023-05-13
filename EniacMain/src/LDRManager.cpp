@@ -16,21 +16,6 @@ void LDRManager_::setUp() {
 }
 
 // ************************************************************
-// Start the PWM - broken out so that we can do the startup
-// Sequence
-// ************************************************************
-void LDRManager_::setUpPWM() {
-  debugMsgLdr("Start up dimming PWM");
-  const int PWMFreq = 500; /* Hz */
-  const int PWMResolution = 12;
-  const int MAX_DUTY_CYCLE = (int)(pow(2, PWMResolution) - 1);
-
-  ledcSetup(LDRPWMChannel, PWMFreq, PWMResolution);
-  ledcAttachPin(BLANKPin, LDRPWMChannel);
-  ledcWrite(LDRPWMChannel, MAX_DUTY_CYCLE);
-}
-
-// ************************************************************
 // Gets the smoothed LDR Reading and store it
 // ************************************************************
 void LDRManager_::getDimmingFromLDR() {
@@ -64,22 +49,26 @@ void LDRManager_::getDimmingFromLDR() {
   } else {
     _ldrValue = LDR_VALUE_MAX - (cc->setDim * LDR_VALUE_MAX / 100);
   }
-
-  ledcWrite(LDRPWMChannel, _ldrValue);
 }
 
 // ************************************************************
 // Return previously calculated value, range 0 - 4095
 // ************************************************************
 int LDRManager_::getLDRValue() {
-  return _ldrValue;
+  if (_isMinDim) {
+    return LDR_VALUE_MAX - (cc->minDim * LDR_VALUE_MAX / 100);
+  } else if (_isMaxDim) {
+    return 0;
+  } else {
+    return _ldrValue;
+  }
 }
 
 // ************************************************************
 // Return previously calculated value, range 0 - 100
 // ************************************************************
 float LDRManager_::getLDRValuePct() {
-  return (LDR_VALUE_MAX - ldrValue) / (float) LDR_VALUE_MAX * 100.0;
+  return (LDR_VALUE_MAX - _ldrValue) / (float) LDR_VALUE_MAX * 100.0;
 }
 
 // ************************************************************
@@ -87,7 +76,7 @@ float LDRManager_::getLDRValuePct() {
 // ************************************************************
 void LDRManager_::setLDRValueToMax() {
   _locked = true;
-  ledcWrite(LDRPWMChannel, 0);
+  _isMaxDim = true;
 }
 
 // ************************************************************
@@ -95,17 +84,16 @@ void LDRManager_::setLDRValueToMax() {
 // ************************************************************
 void LDRManager_::setLDRValueToMin() {
   _locked = true;
-  int effectiveMinDim = LDR_VALUE_MAX - (cc->minDim * LDR_VALUE_MAX / 100);
   _isMinDim = true;
-  ledcWrite(LDRPWMChannel, effectiveMinDim);
 }
 
 // ************************************************************
 // Reset an imposed LDR (max/min) value
 // ************************************************************
 void LDRManager_::resetFixedLDRValue() {
+  _isMinDim = false;
+  _isMaxDim = false;
   _locked = false;
-  ledcWrite(LDRPWMChannel, _ldrValue);
 }
 
 // ************************************************************

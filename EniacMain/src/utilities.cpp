@@ -5,21 +5,6 @@
 // --------------------------------------------------------------------------------------------------------
 
 // ************************************************************
-// Format a time into an output string
-// ************************************************************
-String timeToReadableStringFromTm(tm timeToFormat) {
-  char buf1[20];
-  sprintf(buf1, "%04d-%02d-%02d %02d:%02d:%02d",
-    timeToFormat.tm_year + 1900,
-    timeToFormat.tm_mon + 1,
-    timeToFormat.tm_mday,
-    timeToFormat.tm_hour,
-    timeToFormat.tm_min,
-    timeToFormat.tm_sec);
-  return String(buf1);
-}
-
-// ************************************************************
 // Format a duration into an output string
 // ************************************************************
 String secsToReadableString (long secsValue) {
@@ -197,6 +182,9 @@ void resetOptions() {
   cc->slaveMode = SLAVE_MODE_DEFAULT;
   #endif
 
+  cc->primaryDisplay = DISPLAY_TYPE_TIME;
+  cc->secondaryDisplay = DISPLAY_TYPE_DATE;
+
   #ifdef COUNTDOWN
   cc->countdownTarget = "";
   #endif
@@ -329,6 +317,7 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   }
 
   float ldrPerc = ldrManager.getLDRValuePct();
+  float ldrValue = ldrManager.getLDRValue();
   root["ldrvalue"] = String(ldrPerc, 2) + "% (" + String(ldrValue) + ")";
 
   bool pirInstalled = blankingManager.getCurrentPIRInstalled();

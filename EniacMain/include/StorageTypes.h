@@ -60,6 +60,8 @@ typedef struct {
   byte slaveMode;
   byte outputOnTime;
   int  backlightGradient;
+  byte primaryDisplay;
+  byte secondaryDisplay;
   #ifdef COUNTDOWN
   String countdownTarget;
   #endif

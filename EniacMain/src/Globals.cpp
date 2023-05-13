@@ -53,9 +53,6 @@ boolean triggeredThisSec = false;
 int secsDeltaAbs;
 bool upOrDown;  
 
-// Current normalised LDR value
-int ldrValue;
-
 // Menu  management - OLED timeouts
 unsigned int oledTimeout = OLED_ON_TIME;
 unsigned int configTimeout = 0;
