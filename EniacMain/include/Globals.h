@@ -66,8 +66,6 @@ extern byte displayType[DIGIT_COUNT];
 extern int fadeState;
 extern byte scrollCounter[DIGIT_COUNT];
 
-extern int ldrValue;
-
 extern unsigned int oledTimeout;
 extern unsigned int configTimeout;
 extern unsigned int flashTimeout;
