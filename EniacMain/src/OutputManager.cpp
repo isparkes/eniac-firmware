@@ -204,14 +204,28 @@ void OutputManager_::outputDisplay() {
   }
 
   uint32_t tmpnextVal1 = decodeFromNumberArray(
+                                #ifdef NORMAL_DIGIT_OUTPUT
                                 currNumberArray[H10], 
                                 currNumberArray[H1],
                                 digitBlanked[H10],
                                 digitBlanked[H1],
+                                #endif
+                                #ifdef REVERSE_DIGIT_OUTPUT
+                                currNumberArray[S1], 
+                                currNumberArray[S10],
+                                digitBlanked[S1],
+                                digitBlanked[S10],
+                                #endif
                                 blankSeparators,
                                 #ifdef FEATURE_BLINKENLIGHTS
+                                #ifdef NORMAL_DIGIT_OUTPUT
                                 bl->bl1,
                                 bl->bl2,
+                                #endif
+                                #ifdef REVERSE_DIGIT_OUTPUT
+                                bl->bl5,
+                                bl->bl6,
+                                #endif
                                 #else
                                 false,
                                 false,
@@ -219,14 +233,28 @@ void OutputManager_::outputDisplay() {
                                 _led1State,
                                 _led2State);
   uint32_t tmpnextVal2 = decodeFromNumberArray(
+                                #ifdef NORMAL_DIGIT_OUTPUT
                                 currNumberArray[M10], 
                                 currNumberArray[M1],
                                 digitBlanked[M10],
                                 digitBlanked[M1],
+                                #endif
+                                #ifdef REVERSE_DIGIT_OUTPUT
+                                currNumberArray[M1], 
+                                currNumberArray[M10],
+                                digitBlanked[M1],
+                                digitBlanked[M10],
+                                #endif
                                 blankSeparators,
                                 #ifdef FEATURE_BLINKENLIGHTS
+                                #ifdef NORMAL_DIGIT_OUTPUT
                                 bl->bl3,
                                 bl->bl4,
+                                #endif
+                                #ifdef REVERSE_DIGIT_OUTPUT
+                                bl->bl3,
+                                bl->bl4,
+                                #endif
                                 #else
                                 false,
                                 false,
@@ -234,14 +262,28 @@ void OutputManager_::outputDisplay() {
                                 _led3State,
                                 _led4State);
   uint32_t tmpnextVal3 = decodeFromNumberArray(
+                                #ifdef NORMAL_DIGIT_OUTPUT
                                 currNumberArray[S10], 
                                 currNumberArray[S1],
                                 digitBlanked[S10],
                                 digitBlanked[S1],
+                                #endif
+                                #ifdef REVERSE_DIGIT_OUTPUT
+                                currNumberArray[H1], 
+                                currNumberArray[H10],
+                                digitBlanked[H1],
+                                digitBlanked[H10],
+                                #endif
                                 blankSeparators,
                                 #ifdef FEATURE_BLINKENLIGHTS
+                                #ifdef NORMAL_DIGIT_OUTPUT
                                 bl->bl5,
                                 bl->bl6,
+                                #endif
+                                #ifdef REVERSE_DIGIT_OUTPUT
+                                bl->bl1,
+                                bl->bl2,
+                                #endif
                                 #else
                                 false,
                                 false,
@@ -262,8 +304,14 @@ void OutputManager_::outputDisplay() {
                                   digitBlanked[H1],
                                   blankSeparators,
                                   #ifdef FEATURE_BLINKENLIGHTS
+                                  #ifdef NORMAL_DIGIT_OUTPUT
                                   bl->bl1,
                                   bl->bl2,
+                                  #endif
+                                  #ifdef REVERSE_DIGIT_OUTPUT
+                                  bl->bl5,
+                                  bl->bl6,
+                                  #endif
                                   #else
                                   false,
                                   false,
@@ -277,8 +325,14 @@ void OutputManager_::outputDisplay() {
                                   digitBlanked[M1],
                                   blankSeparators,
                                   #ifdef FEATURE_BLINKENLIGHTS
+                                  #ifdef NORMAL_DIGIT_OUTPUT
                                   bl->bl3,
                                   bl->bl4,
+                                  #endif
+                                  #ifdef REVERSE_DIGIT_OUTPUT
+                                  bl->bl3,
+                                  bl->bl4,
+                                  #endif
                                   #else
                                   false,
                                   false,
@@ -292,8 +346,14 @@ void OutputManager_::outputDisplay() {
                                   digitBlanked[S1],
                                   blankSeparators,
                                   #ifdef FEATURE_BLINKENLIGHTS
+                                  #ifdef NORMAL_DIGIT_OUTPUT
                                   bl->bl5,
                                   bl->bl6,
+                                  #endif
+                                  #ifdef REVERSE_DIGIT_OUTPUT
+                                  bl->bl1,
+                                  bl->bl2,
+                                  #endif
                                   #else
                                   false,
                                   false,

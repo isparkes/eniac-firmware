@@ -50,6 +50,9 @@
 // If we output the underlight string reversed
 #define NORMAL_UL_OUTPUT            // REVERSE_UL_OUTPUT | NORMAL_UL_OUTPUT
 
+// If we output the digits reversed
+#define REVERSE_DIGIT_OUTPUT         // REVERSE_DIGIT_OUTPUT | NORMAL_DIGIT_OUTPUT
+
 // -------------------------------------------------------------------------------
 
 // If we want support for neon blinkenlights
@@ -63,7 +66,7 @@
 
 // -------------------------------------------------------------------------------
 
-#define SOFTWARE_VERSION "LTC-ESP32 0.6.0.0"
+#define SOFTWARE_VERSION "LTC-ESP32 0.5.5.7"
 #define CLOCK_MENU_TITLE "ENIAC" 
 
 // -------------------------------------------------------------------------------
