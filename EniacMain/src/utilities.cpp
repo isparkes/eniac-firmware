@@ -329,7 +329,7 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   }
 
   float ldrPerc = ldrManager.getLDRValuePct();
-  root["ldrvalue"] = String(ldrPerc, 2) + "% (" + String(ldrValue) + ")";
+  root["ldrvalue"] = String(ldrPerc, 2) + "% (" + String(ldrManager.getLDRValue()) + ")";
 
   bool pirInstalled = blankingManager.getCurrentPIRInstalled();
   root["mdInstalled"] = pirInstalled;

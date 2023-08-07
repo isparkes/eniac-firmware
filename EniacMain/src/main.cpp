@@ -295,9 +295,8 @@ void performOncePerLoop() {
   } else {
     ldrManager.resetFixedLDRValue();
     ldrManager.getDimmingFromLDR();
-    ldrValue = ldrManager.getLDRValue();
     #ifdef FEATURE_BACKLIGHTS
-    ledManager.setLDRValue(ldrValue);
+    ledManager.setLDRValue(ldrManager.getLDRValue());
     #endif
   }
 
