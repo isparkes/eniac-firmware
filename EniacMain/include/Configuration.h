@@ -22,7 +22,7 @@
 // -------------------------------------------------------------------------------
 
 // Countdown functionality
-#define COUNTDOWN_OFF                   // COUNTDOWN | COUNTDOWN_OFF
+#define COUNTDOWN                   // COUNTDOWN | COUNTDOWN_OFF
 
 // -------------------------------------------------------------------------------
 
@@ -49,6 +49,9 @@
 
 // If we output the underlight string reversed
 #define NORMAL_UL_OUTPUT            // REVERSE_UL_OUTPUT | NORMAL_UL_OUTPUT
+
+// If we output the display reversed
+#define NORMAL_DISPLAY_OUTPUT       // REVERSE_DISPLAY_OUTPUT | NORMAL_DISPLAY_OUTPUT
 
 // -------------------------------------------------------------------------------
 
