@@ -679,6 +679,7 @@ void OutputManager_::setOutputModeOncePerSecond() {
       _outputMode = timeMode;
     }
   }
+  #endif
 
   if (_outputMode == timeMode) {
     allNormal(APPLY_LEAD_0_BLANK);
@@ -689,7 +690,6 @@ void OutputManager_::setOutputModeOncePerSecond() {
     allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     loadNumberArrayValue(countdownManager.getRemaining());
   }
-  #endif
 
   #ifdef DIGIT_DIAGNOSTICS
   if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {

@@ -22,7 +22,7 @@
 // -------------------------------------------------------------------------------
 
 // Countdown functionality
-#define COUNTDOWN_OFF                   // COUNTDOWN | COUNTDOWN_OFF
+#define COUNTDOWN_OFF               // COUNTDOWN | COUNTDOWN_OFF
 
 // -------------------------------------------------------------------------------
 
@@ -58,7 +58,8 @@
 // -------------------------------------------------------------------------------
 
 // What type of slave we have: Either Nixie slave over I2C or the Decatron slave over the 1PPS GPIO
-#define NIXIE_SLAVE                 // SLAVE_OUTPUT_OFF | DECATRON_SLAVE | NIXIE_SLAVE
+// If you don't want a slave, set "DECATRON_SLAVE"
+#define DECATRON_SLAVE              // DECATRON_SLAVE | NIXIE_SLAVE
 
 // -------------------------------------------------------------------------------
 
