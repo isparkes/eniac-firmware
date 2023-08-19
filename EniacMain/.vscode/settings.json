@@ -2,5 +2,6 @@
     "files.associations": {
         "functional": "cpp",
         "type_traits": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "/home/ian/Documents/PlatformIO/Projects/esp32-development-base/EniacMain/.pio/libdeps/esp32-rz568/Adafruit BusIO"
 }
