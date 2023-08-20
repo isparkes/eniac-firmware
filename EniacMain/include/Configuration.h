@@ -51,7 +51,7 @@
 #define NORMAL_UL_OUTPUT            // REVERSE_UL_OUTPUT | NORMAL_UL_OUTPUT
 
 // If we output the digits reversed
-#define REVERSE_DIGIT_OUTPUT         // REVERSE_DIGIT_OUTPUT | NORMAL_DIGIT_OUTPUT
+#define NORMAL_DIGIT_OUTPUT         // REVERSE_DIGIT_OUTPUT | NORMAL_DIGIT_OUTPUT
 
 // -------------------------------------------------------------------------------
 
@@ -66,7 +66,7 @@
 
 // -------------------------------------------------------------------------------
 
-#define SOFTWARE_VERSION "LTC-ESP32 0.5.5.7"
+#define SOFTWARE_VERSION "LTC-ESP32 0.5.5.8"
 #define CLOCK_MENU_TITLE "ENIAC" 
 
 // -------------------------------------------------------------------------------
