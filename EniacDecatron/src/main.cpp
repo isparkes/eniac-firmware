@@ -35,14 +35,11 @@ int indexMark2 = -1;
 int tdc2 = 0;
 int expPos2 = 0;
 
-bool g1Mark;
-bool g2Mark;
-
-volatile int millisInSecond = 0;
+int millisInSecond = 0;
 
 // ------------- Time management variables -------------
 
-unsigned long nowMillis = 0;
+volatile unsigned long nowMillis = 0;
 unsigned long lastCheckMillis = 0;
 unsigned long lastSecMillis = nowMillis;
 unsigned long hundredthsMillis = 0;
@@ -50,33 +47,51 @@ int lastSecond = second();
 boolean secondsChanged = false;
 boolean triggeredThisSec = false;
 
-// --------------------- Blanking ----------------------
+ // --------------------- Blanking ----------------------
 
 boolean blanked = false;
 
 // --------------------- Protocol ----------------------
 
-unsigned long lastInterrupt = 0;
-unsigned long lastHigh = 0;
-unsigned long lastLow = 0;
-unsigned long pulseLength = 0;
+volatile unsigned long lastInterrupt = 0;
+volatile unsigned long lastHigh = 0;
+volatile unsigned long lastLow = 0;
+volatile unsigned long pulseLength = 0;
+volatile bool shortPulseWasTriggered = false;
+volatile bool longPulseWasTriggered = false;
 
 // --------------------- Misc ----------------------
 
 bool debugVal = DEBUG;
 
-const int interruptPin = 0; //GPIO 0 / D3 (Button)
+const int interruptPin = RX; // RX data 
 
 // -------------------------------------------------
 
-void enableHV() {
-  debugManager.debugMsg("HV ON");
-  digitalWrite(HVEnable, HIGH);
+// ************************************************************
+// Enable the HV generator, return true if we really turned it on
+// ************************************************************
+bool enableHV() {
+  if (digitalRead(HVEnable) == LOW) {
+    debugManager.debugMsg("HV ON");
+    digitalWrite(HVEnable, HIGH);
+    return true;
+  } else {
+    return false;
+  }
 }
 
-void disableHV() {
-  debugManager.debugMsg("HV OFF");
-  digitalWrite(HVEnable, LOW);
+// ************************************************************
+// Disable the HV generator, return true if we really turned it off
+// ************************************************************
+bool disableHV() {
+  if (digitalRead(HVEnable) == HIGH) {
+    debugManager.debugMsg("HV OFF");
+    digitalWrite(HVEnable, LOW);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 // ************************************************************
@@ -181,9 +196,6 @@ void G1StepForwards() {
   }
 
   currentPos1 = phaseStep1 + digitStep1 * 3;
-
-  g1Mark = (currentPos1 == indexMark1);
-
 //  debugManager.debugMsg("G1 at " + String(currentPos1));
 
   G_step1(phaseStep1);
@@ -204,8 +216,6 @@ void G2StepForwards() {
     }
   }
 
-  g2Mark =  (currentPos2 == indexMark2);
-
   currentPos2 = phaseStep2 + digitStep2 * 3;
 //  debugManager.debugMsg("G2 at " + String(currentPos2));
 
@@ -224,7 +234,7 @@ void findIndexMarks() {
       G1StepForwards();
       delay(10);
       if (digitalRead(Index1) == LOW) {
-        indexMark1 = currentPos1;
+        indexMark1 = 0;
       }
     }
 
@@ -232,35 +242,22 @@ void findIndexMarks() {
       G2StepForwards();
       delay(10);
       if (digitalRead(Index2) == LOW) {
-        indexMark2 = currentPos2;
+        indexMark2 = 0;
       }
     }
   }
 
   indexMark1 = -1;
-  G1StepBackwards();
-  delay(10);
-  G1StepBackwards();
-  delay(10);
-  G1StepBackwards();
-  delay(10);
-
   indexMark2 = -1;
-  G2StepBackwards();
-  delay(10);
-  G2StepBackwards();
-  delay(10);
-  G2StepBackwards();
-  delay(10);
-
-//  delay(1000);
 
   while ((indexMark1 < 0) | (indexMark2 < 0)) {
     if(indexMark1 < 0) {
       G1StepBackwards();
       delay(10);
       if (digitalRead(Index1) == LOW) {
-        indexMark1 = currentPos1;
+        digitStep1 = 0;
+        phaseStep1 = 0;
+        indexMark1 = 0;
       }
     }
 
@@ -268,37 +265,87 @@ void findIndexMarks() {
       G2StepBackwards();
       delay(10);
       if (digitalRead(Index2) == LOW) {
-        indexMark2 = currentPos2;
+        digitStep2 = 0;
+        phaseStep2 = 0;
+        indexMark2 = 0;
       }
     }
   }
 
-//  delay(1000);
-
-  // More steps to get to the top
   G1StepForwards();
   delay(10);
   G1StepForwards();
   delay(10);
-
-  G2StepForwards();
-  delay(10);
-  G2StepForwards();
-  delay(10);
-  G2StepForwards();
+  G1StepForwards();
   delay(10);
 
+  G2StepForwards();
+  delay(10);
+  G2StepForwards();
+  delay(10);
+  G2StepForwards();
+  delay(10);
+
+  // We are at TDC and we want to be, so set the variables
   tdc1 = currentPos1;
   tdc2 = currentPos2;
+  expPos1 = currentPos1;
+  expPos2 = currentPos2;
+}
 
-  delay(1000);
+// ************************************************************
+// Move the expected position of Dec 1 back
+// ************************************************************
+void decExpPos1() {
+  expPos1 = expPos1 + 1;
+  if (expPos1 > 29) expPos1 = 0;
+}
+
+// ************************************************************
+// Move the expected position of Dec 2 back
+// ************************************************************
+void decExpPos2() {
+  expPos2 = expPos2 + 1;
+  if (expPos2 > 29) expPos2 = 0;
+}
+
+
+// ************************************************************
+// Move the current position of Dec 1 to the expected position
+// ************************************************************
+void align1toExpPos() {
+  if (currentPos1 != expPos1) G1StepForwards();
+}
+
+// ************************************************************
+// Move the current position of Dec 1 to the expected position
+// ************************************************************
+void align2toExpPos() {
+  if (currentPos2 != expPos2) G2StepForwards();
+}
+
+// ************************************************************
+// Move the current position of Dec 1 to the expected position
+// ************************************************************
+void align1toTDC() {
+  expPos1 = tdc1;
+}
+
+// ************************************************************
+// Move the current position of Dec 1 to the expected position
+// ************************************************************
+void align2toTDC() {
+  expPos2 = tdc2;
 }
 
 // ************************************************************
 // Called once per second
 // ************************************************************
 void performOncePerSecondProcessing() {
-  // ------------------------------------
+//  debugManager.debugMsg("Last interrupt: " + String(lastInterrupt) + ", now: " + String(nowMillis));
+  debugManager.debugMsg("pos: " + String(currentPos1) + "/" + String(currentPos2) + " tdc: " + String(tdc1) + "/" + String(tdc2));
+//  debugManager.debugMsg("tdc1: " + String(tdc1) + ", tdc2: " + String(tdc2));
+//  debugManager.debugMsg("idx1: " + String(indexMark1) + ", idx2: " + String(indexMark2));
 }
 
 // ************************************************************
@@ -329,17 +376,21 @@ void debugMsgLocal(String message) {
   debugManager.debugMsg(message);
 }
 
-// ************************************************************
-// See if we have enough flash space for OTA
-// ************************************************************
-boolean getOTAvailable() {
-  return ESP.getSketchSize() * 2 < ESP.getFlashChipSize();
+// ----------------------------------------------------------------------------------------------------
+// --------------------------------------- Fast spinner animation -------------------------------------
+// ----------------------------------------------------------------------------------------------------
+void fastAnimationSpinner() {
+  // Spin the fast one
+  G2StepForwards();
 }
 
 // ************************************************************
-// Interrupt handler
+// Interrupt handler: Read both edges of the interrupt pulse
+// and measure the pulse length. Set the "long or short pulse
+// triggerd" flag (consumer resets) and note the leading edge
+// time for blanking purposes.
 // ************************************************************
-void handleInterrupt() {
+void IRAM_ATTR handleInterrupt() {
   lastInterrupt = nowMillis;
 
   bool pinState = digitalRead(interruptPin);
@@ -349,9 +400,12 @@ void handleInterrupt() {
   } else {
     lastLow = nowMillis;
     pulseLength = lastLow - lastHigh;
+    if (pulseLength < 90) {
+      shortPulseWasTriggered = true;  
+    } else {
+      longPulseWasTriggered = true;
+    }
   }
-
-
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -379,6 +433,11 @@ void setup() {
 
   debugManager.debugMsg("Find Index Mark");
   findIndexMarks();
+
+  // Show us the index marks!!
+  delay(1000);
+
+  debugManager.debugMsg("Start interrupt handler");
 
   pinMode(interruptPin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(interruptPin), handleInterrupt, CHANGE);  
@@ -418,33 +477,39 @@ void loop() {
     }
   }
 
+  // How far we are through the second - may be used in animations
+  // But maybe not...
   millisInSecond = nowMillis - lastSecMillis;
 
   // Manage the state based on the interrupt readings
   // If we last received a pulse more than a second ago, then blank
-  blanked = ((nowMillis - lastInterrupt) > 1100);
+  blanked = ((nowMillis - lastInterrupt) > 5000);
 
   if (blanked) {
-    digitalWrite(HVEnable, false);
+    disableHV();
   } else {
-    digitalWrite(HVEnable, true);
-  }
-
-  // Spin the fast one
-  G2StepForwards();
-
-  if (g2Mark) {
-    G1StepForwards();
-  }
-
-  // Align the G1 TDC with the second
-  if (pulseLength > 100) {
-    while (!g1Mark)
-    {
-      G1StepForwards();
-      delay(1);
+    if (enableHV()) {
+      findIndexMarks();
+      align1toTDC();
+      align2toTDC();
+      handleInterrupt();
     }
   }
 
-  delay(1);
+  if (shortPulseWasTriggered) {
+    decExpPos1();
+    shortPulseWasTriggered = false;
+  }
+
+  if (longPulseWasTriggered) {
+    align1toTDC();
+    decExpPos2();
+    longPulseWasTriggered = false;
+  }
+
+  align1toExpPos();
+  align2toExpPos();
+
+  // This is the speed of the animation
+  delay(3);
 }
