@@ -485,13 +485,6 @@ void performOncePerSecondProcessing() {
 
   outputManager.triggerStunts();
 
-  // If we are using the Decatron slave, let the manager control the 1PPS
-  #ifdef DECATRON_SLAVE
-  slaveManagerDecatron.updateOncePerSecond();
-  #else
-  triggerOnePulsePerSecShort();
-  #endif
-
   debugManager.debugAutoOffCheck();
 
   feedWatchdog();
