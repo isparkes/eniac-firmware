@@ -157,7 +157,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="slaveModeContainer" hidden>
                     <label class="control-label col-xs-3">Slave Mode:</label>
                     <div class="col-xs-4">
                         <select class="form-control" name="slaveMode" id="slaveMode">
@@ -530,7 +530,6 @@
         $("#acpMode").val(config.acpMode);
         setCurrentRadioValue("#suppressACP", "#suppressACPOff", config.suppressACP);
         $("#blinkenLightsMode").val(config.blinkenLightsMode);
-        $("#slaveMode").val(config.slaveMode);
         $("#sepMode").val(config.sepMode);
         $("#outputOnTime").val(config.outputOnTime);
 
@@ -575,6 +574,11 @@
         if (typeof config.countdownTarget !== 'undefined') {
             $("#countdownpanel").prop('hidden', false);
             $("#countdownTarget").val(config.countdownTarget);
+        }
+
+        if (typeof config.slaveMode !== 'undefined') {
+            $("#slaveModeContainer").prop('hidden', false);
+            $("#slaveMode").val(config.slaveMode);
         }
 
         // -- Triggers for dependent settings --
@@ -658,8 +662,7 @@
         if (localConfig.thresholdBright!=$("#thresholdBright").val()) {
             postBody["thresholdBright"] = $("#thresholdBright").val();
         }
-
-        // ------------ Blanking ------------
+       // ------------ Blanking ------------
         if (localConfig.mdTimeout!=$("#mdTimeout").val()) {
             postBody["mdTimeout"] = $("#mdTimeout").val();
         }

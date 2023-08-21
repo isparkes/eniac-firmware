@@ -399,6 +399,8 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   #endif
   root["sw1"] = switch1Meaning;
   root["sw2"] = switch2Meaning;
+  root["sw1val"] = (digitalRead(BTN1Pin) == LOW) ? "1" : "0";
+  root["sw2val"] = (digitalRead(BTN2Pin) == LOW) ? "1" : "0";
   
   #ifdef DIGIT_DIAGNOSTICS
   root["diagsMode"] = cc->diagsMode;
@@ -560,7 +562,9 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["towerHueOffset"] = cc->towerHueOffset;
   root["backlightGradient"] = cc->backlightGradient;
   root["blinkenLightsMode"] = cc->blinkenLightsMode;
+  #ifdef NIXIE_SLAVE
   root["slaveMode"] = cc->slaveMode;
+  #endif
   root["WifiOnAtStart"] = cc->WifiOnAtStart;
 
   #ifdef COG_CRANK_OUTPUT
