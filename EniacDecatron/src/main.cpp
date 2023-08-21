@@ -18,6 +18,7 @@
 #include "DebugManager.h"
 
 #define DEBUG     true
+#define DEBUG_OFF false
 
 // ------------------ Decatron Control ----------------
 
@@ -64,7 +65,7 @@ volatile bool longPulseWasTriggered = false;
 
 bool debugVal = DEBUG;
 
-const int interruptPin = RX; // RX data 
+const int interruptPin = RX; // GPIO3
 
 // -------------------------------------------------
 
