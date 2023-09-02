@@ -350,7 +350,7 @@ void performOncePerSecondProcessing() {
 
   // -------------------------------------------------------------------------------
   
-  outputManager.setOutputModeOncePerSecond();
+  outputManager.updateOncePerSecond();
 
   // -------------------------------------------------------------------------------
   
@@ -381,7 +381,8 @@ void performOncePerSecondProcessing() {
 
   // -------------------------------------------------------------------------------
   
-  // Feed the GPS parser
+  // Feed the GPS parser. Collect any data that has arrived in the UART buffer and 
+  // stream it into the GPS parser.
   while (Serial.available()) {
     char c = Serial.read();
     gpsManager.parseNMEAMsg(c);
@@ -397,7 +398,7 @@ void performOncePerSecondProcessing() {
   slaveManagerDecatron.updateOncePerSecond();
   #endif
 
-  // ------------------------------ switch handling -----------------------------------
+  // ---------------------------- switch handling SW1 ---------------------------------
   
   // Switch 1 has various meanings
 
@@ -473,20 +474,25 @@ void performOncePerSecondProcessing() {
     }
   }
 
-  // Switch 2 just blanks the LEDs
+  // ---------------------------- switch handling SW2 ---------------------------------
+
+  // Switch 2 just dims the LEDs
+
   blankingManager.setCurrentLEDBlankingOverride(digitalRead(BTN2Pin) == BTNOnstate);
   switch2Meaning = SW_DIM_LEDS;
 
   // -------------------------------------------------------------------------------
-  
+  // Check time / motion detector blaning status
   blankingManager.getBlankingStatus(weekday(), hour());
 
+  // -------------------------------------------------------------------------------
+  // Service the menu
   menuManager.menuOncePerSecond();
 
-  outputManager.triggerStunts();
-
+  // -------------------------------------------------------------------------------
   debugManager.debugAutoOffCheck();
 
+  // -------------------------------------------------------------------------------
   feedWatchdog();
 }
 

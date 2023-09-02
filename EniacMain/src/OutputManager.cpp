@@ -722,7 +722,10 @@ void OutputManager_::setOutputMode(outputModes newMode) {
 // ************************************************************
 // Set the mode we are in
 // ************************************************************
-void OutputManager_::setOutputModeOncePerSecond() {
+void OutputManager_::updateOncePerSecond() {
+  // Check Slots / ACP
+  triggerStunts();
+
   if (_outputMode == acpMode || _outputMode == slotsMode) {
     return;
   }

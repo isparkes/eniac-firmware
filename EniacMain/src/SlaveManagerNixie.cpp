@@ -13,10 +13,13 @@ void SlaveManagerNixie_::testSlave() {
   // we only want to try once on the startup test
   _slaveEnabled = true;
   sendUpdateToSlaveI2C();
+  
+  #ifdef DEBUG_ON
   if (_slaveModeFailCount == 0)
     debugMsgSlv("Slave detected")
   else
     debugMsgSlv("Slave NOT detected");
+  #endif
 }
 
 // ************************************************************

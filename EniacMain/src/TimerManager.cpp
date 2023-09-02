@@ -121,7 +121,23 @@ void IRAM_ATTR shiftOut24S(uint32_t _val1) {
 }
 
 // ************************************************************
-// ISR for display update
+// ISR for display update.
+// Each display impression is made up of 20 phase steps. When
+// cross-fading from one digit to another, we switch the display
+// one one of the 20 steps ("switch time"). The fade is done by
+// pregressively changing the switchTime value.
+//
+// Additionally we only outout to the shift register (3 8 bit
+// shift registers for each digit pair = 24 bits) if we detect
+// the value has changed.
+//
+// We also have an interlock between writing the data into the
+// registers (val1,2,3, nextVal1,2,3, switchTime) using the
+// timerMux1 mutex. If we don't have this, the display will
+// glitch due to the values changing while displaying).
+// This is double-buffering: The values are calculated into
+// temporary variables in OutputManager_::outputDisplay, then
+// loaded into the local volatile variables ONCE PER IMPRESSION.
 // ************************************************************
 void IRAM_ATTR onTimer1() {
   portENTER_CRITICAL_ISR(&timerMux1);
@@ -130,7 +146,7 @@ void IRAM_ATTR onTimer1() {
     _phase = 0;
     impressions++;
 
-    // Load the new values
+    // Load the new values from the output of the outputManager
     _switchTime = switchTime;
     _val1 = val1;
     _val2 = val2;

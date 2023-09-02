@@ -116,7 +116,7 @@ class OutputManager_ {
     outputModes getOutputMode();
     void setOutputMode(outputModes newMode);
 
-    void setOutputModeOncePerSecond();
+    void updateOncePerSecond();
 
     byte getNextACPMode();
     String getNextACPModeName();
