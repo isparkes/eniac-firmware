@@ -8,6 +8,17 @@
 #define BLNKN_MODE_MAX     1
 #define BLNKN_MODE_DEFAULT BLNKN_MODE_STATUS
 
+#define BLNKN_STATUS_MIN      0
+#define BLNKN_STATUS_BLANKING 0
+#define BLNKN_STATUS_PIR      1
+#define BLNKN_STATUS_GPS      2
+#define BLNKN_STATUS_NTP      3
+#define BLNKN_STATUS_WIFI     4
+#define BLNKN_STATUS_PIR_INST 5
+#define BLNKN_STATUS_UP_DOWN  6
+#define BLNKN_STATUS_1PPS     7
+#define BLNKN_STATUS_MAX      7
+
 typedef struct {
   bool bl1;
   bool bl2;
@@ -15,6 +26,8 @@ typedef struct {
   bool bl4;
   bool bl5;
   bool bl6;
+  bool in1;
+  bool in2;
 } blinkenlights_t;
 
 class BlinkenlightsManager_ {
@@ -30,7 +43,6 @@ class BlinkenlightsManager_ {
   public:
     void setBlinkenlightsMode(byte newMode);
     void setNextBlinkenlightsMode();
-    void setBlinkenlightsExtern(blinkenlights_t *blext);
     void updateBlinkenlights();
     byte getNextBlinkenlightsMode();
     String getNextBlinkenlightsModeName();
@@ -40,6 +52,7 @@ class BlinkenlightsManager_ {
     blinkenlights_t *bl = &blinkenLights;
     void setBlinkenlightsChase();
     void setBlinkenlightsStatus();
+    bool getBlinkenlightStatusValue(int blValue);
 };
 
 extern BlinkenlightsManager_ &blinkenlightsManager;

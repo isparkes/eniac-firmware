@@ -135,8 +135,6 @@ class OutputManager_ {
     bool _led2State;
     bool _led3State;
     bool _led4State;
-    bool _indLed1;
-    bool _indLed2;
 
     outputModes _outputMode;
 

@@ -288,8 +288,8 @@ void OutputManager_::outputDisplay() {
                                 false,
                                 false,
                                 #endif
-                                _indLed1,
-                                _indLed2);
+                                bl->in1,
+                                bl->in2);
 
   uint32_t tmpval1 = tmpnextVal1;
   uint32_t tmpval2 = tmpnextVal2;
@@ -358,8 +358,8 @@ void OutputManager_::outputDisplay() {
                                   false,
                                   false,
                                   #endif
-                                  _indLed1,
-                                  _indLed2);
+                                  bl->in1,
+                                  bl->in2);
   }
 
   // move the values over, respect the MUTEX on the interrupt
@@ -690,19 +690,6 @@ void OutputManager_::processSeparators() {
         break;
       }
   }
-
-  // will probably think of something better sooner or later
-  // Remember that the LEDs are inverted: The work as active low
-  #ifdef COG_CRANK_OUTPUT
-  _indLed1 = !(cogCrankSecsLeft > 0);
-  #else
-  #ifdef NIXE_SLAVE
-  _indLed1 = !slaveManagerNixie.getSlaveMode();
-  #else
-  _indLed1 = false;
-  #endif
-  #endif
-  _indLed2 = !upOrDown;
 }
 
 // ************************************************************

@@ -52,19 +52,44 @@ void BlinkenlightsManager_::setBlinkenlightsMode(byte newMode) {
 }
 
 void BlinkenlightsManager_::setBlinkenlightsStatus() {
-  bl->bl1 = blankingManager.getCurrentBlankingIndicator();
-  bl->bl2 = blankingManager.getCurrentPIRStatus();
-  
-  if (gpsManager.getGPSTimeValid()) {
-    bl->bl3 = true;
-  } else if (gpsManager.getGPSSyncStarted()) {
-    bl->bl3 = (second() % 2 == 0);
-  }
-  bl->bl4 = ntpManager.ntpTimeValid();
-  
-  bl->bl5 = WiFi.isConnected();
-  bl->bl6 = blankingManager.getCurrentPIRInstalled();
+  bl->bl1 = getBlinkenlightStatusValue(BLNKN_STATUS_BLANKING);
+  bl->bl2 = getBlinkenlightStatusValue(BLNKN_STATUS_PIR);
+  bl->bl3 = getBlinkenlightStatusValue(BLNKN_STATUS_GPS);
+  bl->bl4 = getBlinkenlightStatusValue(BLNKN_STATUS_NTP);
+  bl->bl5 = getBlinkenlightStatusValue(BLNKN_STATUS_WIFI);
+  bl->bl6 = getBlinkenlightStatusValue(BLNKN_STATUS_PIR_INST);
+  bl->in1 = getBlinkenlightStatusValue(BLNKN_STATUS_UP_DOWN);
+  bl->in2 = getBlinkenlightStatusValue(BLNKN_STATUS_1PPS);
+}
 
+bool BlinkenlightsManager_::getBlinkenlightStatusValue(int blValue) {
+  switch (blValue)
+  {
+    case BLNKN_STATUS_BLANKING:
+      return blankingManager.getCurrentBlankingIndicator();
+    case BLNKN_STATUS_PIR:
+      return blankingManager.getCurrentPIRStatus();
+    case BLNKN_STATUS_GPS:
+      {
+        if (gpsManager.getGPSTimeValid()) {
+          return true;
+        } else if (gpsManager.getGPSSyncStarted()) {
+          return (second() % 2 == 0);
+        }
+      }
+    case BLNKN_STATUS_NTP:
+      return ntpManager.ntpTimeValid();
+    case BLNKN_STATUS_WIFI:
+      return WiFi.isConnected();
+    case BLNKN_STATUS_PIR_INST:
+      return blankingManager.getCurrentPIRInstalled();
+    case BLNKN_STATUS_UP_DOWN:
+      return !upOrDown;
+    case BLNKN_STATUS_1PPS:
+      return digitalRead(PPSPin);
+    default:
+      return false;
+  }
 }
 
 void BlinkenlightsManager_::setBlinkenlightsChase() {
@@ -94,15 +119,6 @@ void BlinkenlightsManager_::setBlinkenlightsChase() {
       bl->bl5 = false;
       break;
   }
-}
-
-void BlinkenlightsManager_::setBlinkenlightsExtern(blinkenlights_t *blext) {
-  bl->bl1 = blext->bl1;
-  bl->bl2 = blext->bl2;
-  bl->bl3 = blext->bl3;
-  bl->bl4 = blext->bl4;
-  bl->bl5 = blext->bl5;
-  bl->bl6 = blext->bl6;
 }
 
 void BlinkenlightsManager_::updateBlinkenlights() {
