@@ -399,8 +399,8 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   #endif
   root["sw1"] = switch1Meaning;
   root["sw2"] = switch2Meaning;
-  root["sw1val"] = (digitalRead(BTN1Pin) == LOW) ? "1" : "0";
-  root["sw2val"] = (digitalRead(BTN2Pin) == LOW) ? "1" : "0";
+  root["sw1val"] = (digitalRead(Switch1Pin) == LOW) ? "1" : "0";
+  root["sw2val"] = (digitalRead(Switch2Pin) == LOW) ? "1" : "0";
   
   #ifdef DIGIT_DIAGNOSTICS
   root["diagsMode"] = cc->diagsMode;

@@ -56,8 +56,8 @@ void setup()
   pinMode(PPSPin, OUTPUT);
   digitalWrite(PPSPin, LOW);
   
-  pinMode(BTN1Pin, INPUT_PULLUP);
-  pinMode(BTN2Pin, INPUT_PULLUP);
+  pinMode(Switch1Pin, INPUT_PULLUP);
+  pinMode(Switch2Pin, INPUT_PULLUP);
   pinMode(BTN3Pin, INPUT_PULLUP);
 
   // -------------------------------------------------------------------------
@@ -275,6 +275,7 @@ void setLedsDiags()
 // ************************************************************
 // Called every 10mS or so
 // ************************************************************
+void handleSwitchChange();  // Forward declaration
 void performOncePerLoop() {
   // -------------------------------------------------------------------------------
 
@@ -327,6 +328,13 @@ void performOncePerLoop() {
   // -------------------------------------------------------------------------------
   
   menuManager.menuLoop();
+
+  // -------------------------------------------------------------------------------
+
+  if (switchEventWaiting) {
+    handleSwitchChange();
+    switchEventWaiting = false;
+  }
 
   // -------------------------------------------------------------------------------
 
@@ -399,8 +407,25 @@ void performOncePerSecondProcessing() {
   slaveManagerDecatron.updateOncePerSecond();
   #endif
 
-  // ---------------------------- switch handling SW1 ---------------------------------
-  
+  // -------------------------------------------------------------------------------
+  // Check time / motion detector blaning status
+  blankingManager.getBlankingStatus(weekday(), hour());
+
+  // -------------------------------------------------------------------------------
+  // Service the menu
+  menuManager.menuOncePerSecond();
+
+  // -------------------------------------------------------------------------------
+  debugManager.debugAutoOffCheck();
+
+  // -------------------------------------------------------------------------------
+  feedWatchdog();
+}
+
+// ************************************************************
+// called by interrupt - set the switch action
+// ************************************************************
+void handleSwitchChange() {
   // Switch 1 has various meanings
 
   // Countdown mode
@@ -440,7 +465,7 @@ void performOncePerSecondProcessing() {
       break;
     }
     case SW_COUNTDOWN_INHIBIT: {
-      if (digitalRead(BTN1Pin) == BTNOnstate) {
+      if (digitalRead(Switch1Pin) == BTNOnstate) {
         if (!countdownManager.getCountdownInhibit()) {
           countdownManager.setCountdownInhibit(true);
           debugMsgMain("Set inhibit countdown via switch");
@@ -455,47 +480,37 @@ void performOncePerSecondProcessing() {
     }
     case SW_SLAVE_INHIBIT: {
       #ifdef NIXE_SLAVE
-      slaveManagerNixie.setSlaveEnabled(digitalRead(BTN1Pin) == !BTNOnstate);
+      slaveManagerNixie.setSlaveEnabled(digitalRead(Swich1Pin) == !BTNOnstate);
       #endif
       #ifdef DECATRON_SLAVE
-      slaveManagerDecatron.setSlaveEnabled(digitalRead(BTN1Pin) == !BTNOnstate);
+      slaveManagerDecatron.setSlaveEnabled(digitalRead(Switch1Pin) == !BTNOnstate);
       #endif
       break;
     }
     case SW_MIN_DIM: {
       // The switch "on" imposes min dimming
-      if ((digitalRead(BTN1Pin) == BTNOnstate) && !ldrManager.getIsFixedLDRValue()) {
+      if ((digitalRead(Switch1Pin) == BTNOnstate) && !ldrManager.getIsFixedLDRValue()) {
         ldrManager.setLDRValueToMin();
       }
       // Switch off resets it
-      if ((digitalRead(BTN1Pin) == !BTNOnstate) && ldrManager.getIsFixedLDRValue()) {
+      if ((digitalRead(Switch1Pin) == !BTNOnstate) && ldrManager.getIsFixedLDRValue()) {
         ldrManager.resetFixedLDRValue();
       }
       break;
     }
   }
 
-  // ---------------------------- switch handling SW2 ---------------------------------
+  // -------------------------------------------------------------------------------
 
   // Switch 2 just dims the LEDs
 
-  blankingManager.setCurrentLEDBlankingOverride(digitalRead(BTN2Pin) == BTNOnstate);
+  blankingManager.setCurrentLEDBlankingOverride(digitalRead(Switch2Pin) == BTNOnstate);
+
+  // Make it take effect immediately - workaround in reality this should all be event driven :-/
+  ledManager.recalculateVariables();
   switch2Meaning = SW_DIM_LEDS;
-
-  // -------------------------------------------------------------------------------
-  // Check time / motion detector blaning status
-  blankingManager.getBlankingStatus(weekday(), hour());
-
-  // -------------------------------------------------------------------------------
-  // Service the menu
-  menuManager.menuOncePerSecond();
-
-  // -------------------------------------------------------------------------------
-  debugManager.debugAutoOffCheck();
-
-  // -------------------------------------------------------------------------------
-  feedWatchdog();
 }
+
 
 // ************************************************************
 // Called once per minute

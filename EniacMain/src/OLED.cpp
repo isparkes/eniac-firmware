@@ -155,7 +155,7 @@ void OLED_::drawAuxOutInd() {
     _display->print("-");
   }
   #else
-  if (digitalRead(BTN1Pin) == LOW) {
+  if (digitalRead(Switch1Pin) == LOW) {
     _display->print("1");
   } else {
     _display->print("-");
@@ -165,7 +165,7 @@ void OLED_::drawAuxOutInd() {
 
 void OLED_::drawBTN2Ind() {
   _display->setCursor(Z_IND_X,STATUS_LINE_Y);
-  if (digitalRead(BTN2Pin) == LOW) {
+  if (digitalRead(Switch2Pin) == LOW) {
     _display->print("2");
   } else {
     _display->print("-");

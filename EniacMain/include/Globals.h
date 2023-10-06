@@ -85,6 +85,8 @@ extern AsyncWebServer server;
 
 extern String lastWiFiScan;
 
+extern bool switchEventWaiting;
+
 #ifdef COG_CRANK_OUTPUT
 extern byte cogCrankSecsLeft;
 #endif

@@ -1,5 +1,4 @@
 #include "TimerManager.h"
-#include "Defs.h"
 
 hw_timer_t * timer0 = NULL;
 portMUX_TYPE timerMux0 = portMUX_INITIALIZER_UNLOCKED;
@@ -251,6 +250,17 @@ void startTimers() {
 
   // Set default LED flash type
   setLedFlashType(1);
+
+  // Hook up the switches to the trigger handler
+  attachInterrupt(Switch1Pin, switchISR, CHANGE);
+  attachInterrupt(Switch2Pin, switchISR, CHANGE);
+}
+
+// ************************************************************
+// Switch changed - mark that there is an event waiting
+// ************************************************************
+void IRAM_ATTR switchISR() {
+    switchEventWaiting = true;
 }
 
 // ************************************************************

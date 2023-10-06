@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Arduino.h>
+#include "Globals.h"
+#include "Defs.h"
 
 // count0 is used to flah the status led 
 #define COUNT0_MAX 1000
@@ -13,6 +15,7 @@ void startTimers();
 void setLedFlashType(byte flashType);
 void triggerOnePulsePerSecShort();
 void triggerOnePulsePerSecLong();
+void IRAM_ATTR switchISR();
 
 // Published so that we can access these during startup
 void IRAM_ATTR shiftOut24H(uint32_t _val1);

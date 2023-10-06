@@ -47,8 +47,8 @@
 #define TX0Pin    1
 
 // Touch capable buttons
-#define BTN1Pin   15
-#define BTN2Pin   4
+#define Switch1Pin 15
+#define Switch2Pin  4
 #ifdef PROTO2
     #define BTN3Pin   14
 #else
