@@ -7,7 +7,7 @@
 // -------------------------------------------------------------------------------
 
 // Add debug statments to code - needs extra space
-#define DEBUG_ON                    // DEBUG_ON | DEBUG_OFF
+#define DEBUG_OFF                    // DEBUG_ON | DEBUG_OFF
 
 // -------------------------------------------------------------------------------
 
@@ -66,7 +66,7 @@
 
 // -------------------------------------------------------------------------------
 
-#define SOFTWARE_VERSION "LTC-ESP32 0.5.5.9"
+#define SOFTWARE_VERSION "LTC-ESP32 0.5.5.a"
 #define CLOCK_MENU_TITLE "ENIAC" 
 
 // -------------------------------------------------------------------------------

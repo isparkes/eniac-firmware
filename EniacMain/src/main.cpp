@@ -166,6 +166,7 @@ void setup()
     // first time let's us figure out the UTC offset, it should be right within
     // the bounds of DST variation
     time_t rtctime = rtcManager.getRTCTimeAsTimeT();
+    tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_RTC, nowMillis, rtctime);
     tzManager.calculateCurrentOffsetFromTimeT(rtctime);
 
     debugMsgMain("Recalculate offset based on recovered datetime");
