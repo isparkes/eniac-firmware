@@ -455,7 +455,7 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   featureString += "BLNK ";
   #endif
 
-  #ifdef NIXE_SLAVE
+  #ifdef NIXIE_SLAVE
   featureString += "NSLV ";
   #endif
 

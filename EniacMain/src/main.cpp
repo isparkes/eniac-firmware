@@ -230,7 +230,7 @@ void setup()
   enableWatchdog();
   // -------------------------------------------------------------------------
   
-  #ifdef NIXE_SLAVE
+  #ifdef NIXIE_SLAVE
   debugMsgMain("Start up Nixie Slave");
   slaveManagerNixie.testSlave();
   #endif
@@ -399,7 +399,7 @@ void performOncePerSecondProcessing() {
 
   // -------------------------------------------------------------------------------
 
-  #if defined(NIXE_SLAVE) 
+  #if defined(NIXIE_SLAVE) 
   slaveManagerNixie.updateOncePerSecond();
   #endif
 
@@ -437,14 +437,14 @@ void handleSwitchChange() {
   if (countdownManager.getCountdownActiveInternal()) {
     switch1Meaning = SW_COUNTDOWN_INHIBIT;
   } else {
-    #if defined(NIXE_SLAVE) || defined(DECATRON_SLAVE)
+    #if defined(NIXIE_SLAVE) || defined(DECATRON_SLAVE)
     switch1Meaning = SW_SLAVE_INHIBIT;
     #else
     switch1Meaning = SW_MIN_DIM;
     #endif
   }
   #else
-    #if defined(NIXE_SLAVE) || defined(DECATRON_SLAVE)
+    #if defined(NIXIE_SLAVE) || defined(DECATRON_SLAVE)
     switch1Meaning = SW_SLAVE_INHIBIT;
     #else
     switch1Meaning = SW_MIN_DIM;
@@ -479,8 +479,8 @@ void handleSwitchChange() {
       break;
     }
     case SW_SLAVE_INHIBIT: {
-      #ifdef NIXE_SLAVE
-      slaveManagerNixie.setSlaveEnabled(digitalRead(Swich1Pin) == !BTNOnstate);
+      #ifdef NIXIE_SLAVE
+      slaveManagerNixie.setSlaveEnabled(digitalRead(Switch1Pin) == !BTNOnstate);
       #endif
       #ifdef DECATRON_SLAVE
       slaveManagerDecatron.setSlaveEnabled(digitalRead(Switch1Pin) == !BTNOnstate);

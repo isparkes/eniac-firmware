@@ -131,10 +131,10 @@ class OutputManager_ {
     int _acpTick = 0;
 
     // Separators and indicator LEDs
-    bool _led1State;
-    bool _led2State;
-    bool _led3State;
-    bool _led4State;
+    bool sep1State;
+    bool sep2State;
+    bool sep3State;
+    bool sep4State;
 
     outputModes _outputMode;
 

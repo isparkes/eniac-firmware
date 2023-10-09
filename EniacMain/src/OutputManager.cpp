@@ -230,8 +230,8 @@ void OutputManager_::outputDisplay() {
                                 false,
                                 false,
                                 #endif
-                                _led1State,
-                                _led2State);
+                                sep1State,
+                                sep2State);
   uint32_t tmpnextVal2 = decodeFromNumberArray(
                                 #ifdef NORMAL_DIGIT_OUTPUT
                                 currNumberArray[M10], 
@@ -259,8 +259,8 @@ void OutputManager_::outputDisplay() {
                                 false,
                                 false,
                                 #endif
-                                _led3State,
-                                _led4State);
+                                sep3State,
+                                sep4State);
   uint32_t tmpnextVal3 = decodeFromNumberArray(
                                 #ifdef NORMAL_DIGIT_OUTPUT
                                 currNumberArray[S10], 
@@ -316,8 +316,8 @@ void OutputManager_::outputDisplay() {
                                   false,
                                   false,
                                   #endif
-                                  _led1State,
-                                  _led2State);
+                                  sep1State,
+                                  sep2State);
     tmpval2 = decodeFromNumberArray(
                                   tmpNumberArray[M10], 
                                   tmpNumberArray[M1],
@@ -337,8 +337,8 @@ void OutputManager_::outputDisplay() {
                                   false,
                                   false,
                                   #endif
-                                  _led3State,
-                                  _led4State);
+                                  sep3State,
+                                  sep4State);
     tmpval3 = decodeFromNumberArray(
                                   tmpNumberArray[S10], 
                                   tmpNumberArray[S1],
@@ -633,60 +633,60 @@ void OutputManager_::processSeparators() {
   switch (cc->sepMode) {
     case SEP_RAILROAD:
       {
-        _led1State = _led3State = upOrDown;
-        _led2State = _led4State = !upOrDown;
+        sep1State = sep3State = upOrDown;
+        sep2State = sep4State = !upOrDown;
         break;
       }
     case SEP_RAILROAD_X:
       {
-        _led1State = _led4State = upOrDown;
-        _led2State = _led3State = !upOrDown;
+        sep1State = sep4State = upOrDown;
+        sep2State = sep3State = !upOrDown;
         break;
       }
     case SEP_BLINK_SLOW:
       {
-        _led1State = _led3State = upOrDown;
-        _led2State = _led4State = upOrDown;
+        sep1State = sep3State = upOrDown;
+        sep2State = sep4State = upOrDown;
         break;
       }
     case SEP_BLINK_FAST:
       {
         if (secsDeltaAbs < 500) {
-        _led1State = _led3State = true;
-        _led2State = _led4State = true;
+        sep1State = sep3State = true;
+        sep2State = sep4State = true;
         } else {
-        _led1State = _led3State = false;
-        _led2State = _led4State = false;
+        sep1State = sep3State = false;
+        sep2State = sep4State = false;
         }
         break;
       }
     case SEP_BLINK_DBL:
       {
         if ((secsDeltaAbs < 100) || ((secsDeltaAbs > 200) && (secsDeltaAbs < 300))) {
-        _led1State = _led3State = true;
-        _led2State = _led4State = true;
+        sep1State = sep3State = true;
+        sep2State = sep4State = true;
         } else {
-        _led1State = _led3State = false;
-        _led2State = _led4State = false;
+        sep1State = sep3State = false;
+        sep2State = sep4State = false;
         }
         break;
       }
     case SEP_ON:
       {
-        _led1State = _led3State = true;
-        _led2State = _led4State = true;
+        sep1State = sep3State = true;
+        sep2State = sep4State = true;
         break;
       }
     case SEP_OFF:
       {
-        _led1State = _led3State = false;
-        _led2State = _led4State = false;
+        sep1State = sep3State = false;
+        sep2State = sep4State = false;
         break;
       }
     case SEP_AM_PM:
       {
-        _led1State = _led3State = isAM();
-        _led2State = _led4State = isPM();
+        sep1State = sep3State = isAM();
+        sep2State = sep4State = isPM();
         break;
       }
   }
