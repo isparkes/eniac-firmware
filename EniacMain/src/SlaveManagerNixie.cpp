@@ -88,7 +88,7 @@ void SlaveManagerNixie_::sendUpdateToSlaveI2C() {
 
   if (getSlaveMode()) {
     byte dimmingPct = 0;
-    if (!blankingManager.getCurrentBlankTubes())
+    if (!_blanked)
       dimmingPct = (byte) ldrManager.getLDRValuePct();
 
     _slaveModeTryCount++;
@@ -178,6 +178,13 @@ byte SlaveManagerNixie_::getNextSlaveMode() {
     nextMode = SLAVE_MODE_MIN;
   }
   return nextMode;
+}
+
+// ************************************************************
+// Set the tube blanking status
+// ************************************************************
+void SlaveManagerNixie_::setBlankingStatus(bool newStatus) {
+  _blanked = newStatus;
 }
 
 // ************************************************************

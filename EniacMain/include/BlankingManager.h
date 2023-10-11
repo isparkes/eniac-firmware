@@ -4,6 +4,12 @@
 #include "Arduino.h"
 #include "Globals.h"
 #include "DebugManager.h"
+#include "TimeLib.h"
+
+// For access to blanking triggers
+#include "OutputManager.h"
+#include "SlaveManagerNixie.h"
+#include "LEDManager.h"
 
 // -------------------------------------------------------------------------------
 #define MD_TIMEOUT_MIN                 60    // 1 minute in seconds
@@ -61,10 +67,7 @@ class BlankingManager_ {
 
   public:
     void begin();
-    bool getBlankingStatus(byte currentWeekday, byte currentHour);
-    bool getCurrentBlankTubes();
-    bool getCurrentBlankLEDs();
-    bool getCurrentBlankTowers();
+    void updateBlankingStatus();
     bool getCurrentPIRStatus();
     bool getCurrentPIRInstalled();
     bool getCurrentBlankingStatus();
@@ -81,18 +84,30 @@ class BlankingManager_ {
     bool _pirInstalled = false;
     bool _pirvalue = false;
     bool _blanked;
-    bool _blankTubes = false;
-    bool _blankLEDs = false;
-    bool _blankLEDoverride = false;
-    bool _blankTowers = false;
     bool _pirBlanked;
     bool _timeBasedBlanked;
     unsigned int _pirBlankingPct;
+
+    bool _blankLEDoverride = false;
+
+    // Newly calculated
+    bool _blankTubes  = false;
+    bool _blankLEDs   = false;
+    bool _blankTowers = false;
+
+    // Previous - for detecting changes
+    bool _PrevBlankTubes  = false;
+    bool _PrevBlankLEDs   = false;
+    bool _PrevBlankTowers = false;
 
     bool checkPIR();
     bool checkTimeBasedBlanking(byte currentWeekday, byte currentHour);
     bool getHoursBlanked(byte currentHou);
 
+    // Cascade blanking changes to other components
+    void triggerTubeBlankChange(bool newStatus);
+    void triggerLEDBlankChange(bool newStatus);
+    void triggerTowerBlankChange(bool newStatus);
 };
 
 extern BlankingManager_ &blankingManager;

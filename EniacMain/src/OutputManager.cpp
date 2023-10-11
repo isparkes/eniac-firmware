@@ -144,9 +144,6 @@ void OutputManager_::outputDisplay() {
   bool digitBlanked[DIGIT_COUNT];
   byte tmpNumberArray[DIGIT_COUNT];
 
-  bool blankTubes = blankingManager.getCurrentBlankTubes();
-  bool blankSeparators = blankingManager.getCurrentBlankTowers();
-
   for ( int i = DIGIT_COUNT - 1 ; i >= 0  ; i -- ) {
     // Digit blanking
     digitBlanked[i] = (displayType[i] == BLANKED) ||
@@ -751,6 +748,20 @@ void OutputManager_::updateOncePerSecond() {
     while (rawEncPos < 0) rawEncPos+=60; 
   }
   #endif
+}
+
+// ************************************************************
+// Set the tube blanking status of the tubes
+// ************************************************************
+void OutputManager_::setBlankingStatusTubes(bool newStatus) {
+  blankTubes = newStatus;
+}
+
+// ************************************************************
+// Set the tube blanking status of the tubes
+// ************************************************************
+void OutputManager_::setBlankingStatusTowers(bool newStatus) {
+  blankTubes = newStatus;
 }
 
 // ************************************************************

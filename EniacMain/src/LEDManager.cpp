@@ -71,10 +71,6 @@ void LEDManager_::recalculateVariables() {
   // Invert the sense of the cycle speed
   _cycleSpeed = CYCLE_SPEED_MAP[cc->cycleSpeed];
 
-  // Set the blanking status
-  _blanked = blankingManager.getCurrentBlankLEDs();
-  _towersBlanked = blankingManager.getCurrentBlankTowers();
-
   // We don't need to set these each loop if we are blanked
   // so we set once here
   if (_blanked) {
@@ -442,6 +438,20 @@ void LEDManager_::setDiagnosticLED(byte stepNumber, byte state) {
     }
   }
   outputLEDBuffer();
+}
+
+// ************************************************************
+// External trigger for changing tube led blanking
+// ************************************************************
+void LEDManager_::setLEDBlanking(boolean newStatus) {
+  _blanked = newStatus;
+}
+
+// ************************************************************
+// External trigger for changing tube led blanking
+// ************************************************************
+void LEDManager_::setTowerBlanking(boolean newStatus) {
+  _towersBlanked = newStatus;
 }
 
 // ************************************************************

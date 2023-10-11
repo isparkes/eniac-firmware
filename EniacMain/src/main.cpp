@@ -408,8 +408,9 @@ void performOncePerSecondProcessing() {
   #endif
 
   // -------------------------------------------------------------------------------
-  // Check time / motion detector blaning status
-  blankingManager.getBlankingStatus(weekday(), hour());
+  // Check time / motion detector blanking status
+  // Blanking manager will push the blanking status to the other components
+  blankingManager.updateBlankingStatus();
 
   // -------------------------------------------------------------------------------
   // Service the menu

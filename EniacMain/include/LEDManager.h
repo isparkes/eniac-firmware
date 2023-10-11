@@ -145,15 +145,14 @@ class LEDManager_
     void setInvertLEDs(boolean value);
 
     // Set the blanking status
-    void setBlanking(boolean newBlanking);
+    void setLEDBlanking(boolean newStatus);
+    void setTowerBlanking(boolean newStatus);
   private:
     float _backlightDim = 1.0;
     float _underlightDim = 1.0;
     float _ldrDimFactor = 1.0;
     float _ldrRange = 100.0;
     float _pwmFactor = 1.0;
-    bool _blanked = false;
-    bool _towersBlanked = false;
     byte _ledMode = BACKLIGHT_DEFAULT;
     byte _cycleCount = 0;
     byte _cycleSpeed = CYCLE_SPEED_DEFAULT;
@@ -161,6 +160,9 @@ class LEDManager_
     byte _dow = 0;
     float _hueOffset = 0.0;
     float _towerHueOffset = 0.0;
+
+    bool _blanked = false;
+    bool _towersBlanked = false;
 
     // Strategy 3
     int _changeSteps = 0;

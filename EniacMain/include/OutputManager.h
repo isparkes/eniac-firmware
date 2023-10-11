@@ -126,6 +126,8 @@ class OutputManager_ {
     String getNextSlotsModeName();
     void setSlotsMode(byte newMode);
     void setNextSlotsMode();
+    void setBlankingStatusTubes(bool newStatus);
+    void setBlankingStatusTowers(bool newStatus);
   private:
     int _acpOffset = 0;
     int _acpTick = 0;
@@ -135,6 +137,9 @@ class OutputManager_ {
     bool sep2State;
     bool sep3State;
     bool sep4State;
+
+    bool blankTubes;
+    bool blankSeparators;
 
     outputModes _outputMode;
 

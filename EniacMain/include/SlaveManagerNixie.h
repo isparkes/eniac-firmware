@@ -51,8 +51,10 @@ class SlaveManagerNixie_ {
     void updateOncePerMinute();
     unsigned int getTryCount();
     unsigned int getFailCount();
+    void setBlankingStatus(bool newStatus);
   private:
     bool _slaveEnabled;
+    bool _blanked;
     unsigned int _slaveModeFailCount;
     unsigned int _slaveModeTryCount;
     byte previousMode = 255;

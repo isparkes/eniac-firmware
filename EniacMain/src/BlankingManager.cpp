@@ -94,9 +94,11 @@ bool BlankingManager_::checkTimeBasedBlanking(byte currentWeekday, byte currentH
 
 // ************************************************************
 // Set if we are overriding the LED blanking via switch
+// Only "true" has a meaning - this will blank the LEDs
 // ************************************************************
 void BlankingManager_::setCurrentLEDBlankingOverride(bool newLEDOverrideStatus) {
   _blankLEDoverride = newLEDOverrideStatus;
+  updateBlankingStatus();
 }
 
 // ************************************************************
@@ -117,9 +119,9 @@ bool BlankingManager_::getHoursBlanked(byte currentHour) {
 // ************************************************************
 // Get the overall blanking status
 // ************************************************************
-bool BlankingManager_::getBlankingStatus(byte currentWeekday, byte currentHour) {
+void BlankingManager_::updateBlankingStatus() {
   _pirBlanked = checkPIR();
-  _timeBasedBlanked = checkTimeBasedBlanking(currentWeekday, currentHour);
+  _timeBasedBlanked = checkTimeBasedBlanking(weekday(), hour());
 
   if (cc->mdBlankMode == MD_DISABLE) {
     // don't take the MD into account at all
@@ -170,7 +172,25 @@ bool BlankingManager_::getBlankingStatus(byte currentWeekday, byte currentHour) 
     _blankTowers = false;
   }
 
-  return _blanked;
+  if (_blankLEDoverride) {
+    _blankLEDs = true;
+  }
+
+  // Trigger events
+  if (_blankTubes != _PrevBlankTubes) {
+    triggerTubeBlankChange(_blankTubes);
+    _PrevBlankTubes = _blankTubes;
+  }
+
+  if (_blankLEDs != _PrevBlankLEDs) {
+    triggerLEDBlankChange(_blankLEDs);
+    _PrevBlankLEDs = _blankLEDs;
+  }
+
+  if (_blankTowers != _PrevBlankTowers) {
+    triggerTowerBlankChange(_blankTowers);
+    _PrevBlankTowers = _blankTowers;
+  }
 }
 
 // ************************************************************
@@ -205,27 +225,6 @@ bool BlankingManager_::getCurrentBlankingIndicator() {
 
   // We are waiting for PIR blanking to finish
   return _pirBlankingPct > secsDeltaAbs;
-}
-
-// ************************************************************
-// Get if the tubes are blanked
-// ************************************************************
-bool BlankingManager_::getCurrentBlankTubes() {
-  return _blankTubes;
-}
-
-// ************************************************************
-// Get if the LEDs are blanked
-// ************************************************************
-bool BlankingManager_::getCurrentBlankLEDs() {
-  return _blankLEDs || _blankLEDoverride;
-}
-
-// ************************************************************
-// Get if the towers are blanked
-// ************************************************************
-bool BlankingManager_::getCurrentBlankTowers() {
-  return _blankTowers;
 }
 
 // ************************************************************
@@ -304,6 +303,28 @@ int BlankingManager_::getBlankAge()
 {
     int lastMotionDetection = (nowMillis - _pirLastSeen) / 1000.0;
     return lastMotionDetection;
+}
+
+// ************************************************************
+// Send blanking triggers to affected components - tubes
+// ************************************************************
+void BlankingManager_::triggerTubeBlankChange(bool newStatus) {
+  outputManager.setBlankingStatusTubes(newStatus);
+  slaveManagerNixie.setBlankingStatus(newStatus);
+}
+
+// ************************************************************
+// Send blanking triggers to affected components - LEDs
+// ************************************************************
+void BlankingManager_::triggerLEDBlankChange(bool newStatus) {
+  ledManager.setLEDBlanking(newStatus);
+}
+
+// ************************************************************
+// Send blanking triggers to affected components - Towers
+// ************************************************************
+void BlankingManager_::triggerTowerBlankChange(bool newStatus) {
+  ledManager.setTowerBlanking(newStatus);
 }
 
 BlankingManager_ &BlankingManager_::getInstance() {
