@@ -8,7 +8,7 @@
 
 #include <NeoPixelBus.h>            // https://github.com/Makuna/NeoPixelBus (Makuna 2.6.6)
 
-#define NUM_BL_PIXELS DIGIT_COUNT*2
+#define NUM_BL_PIXELS DIGIT_COUNT*PIXELS_PER_TUBE
 
 #ifdef FEATURE_EXT_LEDS
   #define NUM_UL_PIXELS DIGIT_COUNT

@@ -38,6 +38,9 @@
 // If we want support for NeoPixel backlights 
 #define FEATURE_BACKLIGHTS          // FEATURE_BACKLIGHTS | FEATURE_BACKLIGHTS_OFF
 
+// The number of pixels per tube - if only 1, hue offsets will not be available
+#define PIXELS_PER_TUBE 2           // 1 or 2
+
 // include the NeoPixels in the separator towers
 #define FEATURE_SEP_LED             // FEATURE_SEP_LED | FEATURE_SEP_LED_OFF
 
@@ -59,8 +62,8 @@
 #define FEATURE_BLINKENLIGHTS       // FEATURE_BLINKENLIGHTS | FEATURE_BLINKENLIGHTS_OFF
 
 // -------------------------------------------------------------------------------
-// Note also controls the encoder!
 
+// Encoder / OLED support
 #define FEATURE_MENU                // FEATURE_MENU | FEATURE_MENU_OFF
 
 // -------------------------------------------------------------------------------
