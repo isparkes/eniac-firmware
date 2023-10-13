@@ -1,5 +1,8 @@
 #include "WiFiManager.h"
 
+// ************************************************************
+// Utility: Set up WPS
+// ************************************************************
 void wpsInitConfig()
 {
   wps_config.wps_type = ESP_WPS_MODE;
@@ -9,17 +12,18 @@ void wpsInitConfig()
   strcpy(wps_config.factory_info.device_name, ESP_DEVICE_NAME);
 }
 
-String wpspin2string(uint8_t a[])
-{
-  char wps_pin[9];
-  for (int i = 0; i < 8; i++)
-  {
-    wps_pin[i] = a[i];
-  }
-  wps_pin[8] = '\0';
-  return (String)wps_pin;
+// ************************************************************
+// Conditionally send a message to the OLED
+// ************************************************************
+void flashMenuEvent(String titleTest, String flashText) {
+    #ifdef FEATURE_MENU
+    menuManager.flashMenuMessage(titleTest, flashText);
+    #endif
 }
 
+// ************************************************************
+// WiFi event handler
+// ************************************************************
 void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info)
 {
   switch (event)
@@ -38,7 +42,7 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info)
     debugMsgWfm("Host name: " + String(WiFi.getHostname()));
     wifiManager.saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
     wifiManager.startWiFiServices();
-    menuManager.flashMenuMessage("WiFi Status", "WiFi connected to\n"+WiFi.SSID());
+    flashMenuEvent("WiFi Status", "WiFi connected to\n"+String(WiFi.SSID()));
     break;
   case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
     debugMsgWfm("Disconnected from station");
@@ -51,7 +55,7 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info)
     debugMsgWfm("WPS Successfull, saving credentials. SSID: |" + WiFi.SSID() + "| password: |" + WiFi.psk() + "|");
     wifiManager.saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
     esp_wifi_wps_disable();
-    menuManager.flashMenuMessage("WPS Status", "WPS was successful\nPassword:\n"+WiFi.psk());
+    flashMenuEvent("WPS Status", "WPS was successful\nPassword:\n"+WiFi.psk());
     break;
   case ARDUINO_EVENT_WPS_ER_FAILED:
     debugMsgWfm("WPS Failed, retrying");
@@ -75,6 +79,9 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info)
   }
 }
 
+// ************************************************************
+// Set up the WiFi for normal use
+// ************************************************************
 void WiFiManager_::setUpWiFi() {
   WiFi.onEvent(WiFiEvent);
 
@@ -104,11 +111,11 @@ void WiFiManager_::processScanResults() {
   int n = WiFi.scanComplete();
   if (n == 0) {
     debugMsgWfm("no networks found");
-    menuManager.flashMenuMessage("Scan Done", "No WiFi\nnetworks\nfound.");
+    flashMenuEvent("Scan Done", "No WiFi\nnetworks\nfound.");
   } else {
     debugMsgWfm("");
     debugMsgWfm(String(n) + " networks found");
-    menuManager.flashMenuMessage("Scan Done", "Found " + String(n) + " networks.");
+    flashMenuEvent("Scan Done", "Found " + String(n) + " networks.");
     String result = "";
     for (int i = 0; i < n; ++i) {
       if (_ssidList.containsIgnoreCase(WiFi.SSID(i))) {
@@ -158,7 +165,7 @@ String WiFiManager_::getLastScanResultSSID(int index) {
 // http://www.iotsharing.com/2017/05/how-to-use-smartconfig-on-esp32.html
 // ************************************************************
 void WiFiManager_::startSmartConfig() {
-  menuManager.flashMenuMessage("Smartconfig", "Open Smartconfig\napp and enter\nyour information.");
+  flashMenuEvent("Smartconfig", "Open Smartconfig\napp and enter\nyour information.");
   WiFi.disconnect();
   delay(500);
 
@@ -172,7 +179,7 @@ void WiFiManager_::startSmartConfig() {
 void WiFiManager_::connectToLastAP() {
   if(wifiCredentialsReceived()) {
     debugMsgWfm("Trying to reconnect to last known AP");
-    menuManager.flashMenuMessage("Reconnect","Reconnecting to:\n" + cc->WiFiSSID + "\n");
+    flashMenuEvent("Reconnect","Reconnecting to:\n" + cc->WiFiSSID + "\n");
     wifiBeginWithCredentials();
   }
 }
@@ -187,7 +194,7 @@ bool WiFiManager_::connectWithWPS() {
   if (WiFi.status() != WL_CONNECTED) {
     debugMsgWfm("Connect using WPS");
     // ToDo show this status better
-    menuManager.flashMenuMessage("WPS", "Press the WPS\nbutton on your\nrouter now.");
+    flashMenuEvent("WPS", "Press the WPS\nbutton on your\nrouter now.");
 
     WiFi.mode(WIFI_STA);
     delay(1000);
@@ -225,10 +232,10 @@ void WiFiManager_::openAccessPortal() {
     WiFi.softAP(uniqHostname.c_str());
     delay(100);
     debugMsgWfm("Soft-AP IP address: " + WiFi.softAPIP().toString());
-    menuManager.flashMenuMessage("Portal", "Opened access\nportal at IP: " + WiFi.softAPIP().toString());
+    flashMenuEvent("Portal", "Opened access\nportal at IP: " + WiFi.softAPIP().toString());
     _isOpenAP = true;
   } else {
-    menuManager.flashMenuMessage("Portal", "WiFi is already\nconnected to:\n" + WiFi.SSID());
+    flashMenuEvent("Portal", "WiFi is already\nconnected to:\n" + WiFi.SSID());
   }
 }
 

@@ -8,7 +8,9 @@
 #include "wps.h"
 #include <ESPmDNS.h>
 #include "WebManager.h"
+#ifdef FEATURE_MENU
 #include "MenuManager.h"
+#endif
 #include "StringArray.h"
 #include <DNSServer.h>
 

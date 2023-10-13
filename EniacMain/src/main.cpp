@@ -10,7 +10,9 @@
 #include "RTCManager.h"
 #include "NTPManager.h"
 #include "DebugManager.h"
+#ifdef FEATURE_MENU
 #include "MenuManager.h"
+#endif
 #include "WiFiManager.h"
 #include "OutputManager.h"
 #include "CountdownManager.h"
@@ -92,10 +94,12 @@ void setup()
 
   // -------------------------------------------------------------------------
   
+  #ifdef FEATURE_MENU
   debugMsgMain("Starting OLED");
   oled.setUp();
   oled.clearDisplay();
   menuManager.flashMenuMessage(CLOCK_MENU_TITLE, "Starting");
+  #endif
 
   // -------------------------------------------------------------------------
 
@@ -139,7 +143,9 @@ void setup()
 
   if (cc->WifiOnAtStart && wifiManager.wifiCredentialsReceived()) {
     debugMsgMain("Starting WiFi");
+    #ifdef FEATURE_MENU
     menuManager.flashMenuMessage("WiFi", "Starting WiFi");
+    #endif
 
     debugMsgMain("Connecting to previous AP");
     
@@ -195,11 +201,6 @@ void setup()
 
   // -------------------------------------------------------------------------
   
-  debugMsgMain("Start up Menu Manager...");
-  menuManager.setupMenuManager();
-
-  // -------------------------------------------------------------------------
-  
   debugMsgMain("Start up LDR...");
   // Not managing sensorSmoothCountLDR yet
   cc->sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
@@ -219,10 +220,14 @@ void setup()
 
   // -------------------------------------------------------------------------
 
+  #ifdef FEATURE_MENU
+  debugMsgMain("Start up Menu Manager...");
+  menuManager.setupMenuManager();
   oled.setUp();
   oled.clearDisplay();
   menuManager.flashMenuMessage(CLOCK_MENU_TITLE, "Welcome to the\nNixie Chronometer\n" + String(SOFTWARE_VERSION));
   delay(2000);
+  #endif
 
   // -------------------------------------------------------------------------
 
@@ -262,7 +267,7 @@ void setLeds()
   #endif
 }
 
-#if defined(DIGIT_DIAGNOSTICS) && defined(FEATURE_BACKLIGHTS)
+#if defined DIGIT_DIAGNOSTICS && defined FEATURE_BACKLIGHTS
 // ************************************************************
 // Set the seconds tick led(s) and the back lights for diags
 // ************************************************************
@@ -279,7 +284,7 @@ void handleSwitchChange();  // Forward declaration
 void performOncePerLoop() {
   // -------------------------------------------------------------------------------
 
-  #ifdef DIGIT_DIAGNOSTICS
+  #if defined DIGIT_DIAGNOSTICS && defined FEATURE_MENU
   if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
     ldrManager.setLDRValueToMax();
     int rawEncPos = menuManager.getCurrentEncoderPos()/2;
@@ -304,7 +309,7 @@ void performOncePerLoop() {
 
   // -------------------------------------------------------------------------------
   
-  #if defined(DIGIT_DIAGNOSTICS) && defined(FEATURE_BACKLIGHTS)
+  #if defined DIGIT_DIAGNOSTICS  && defined FEATURE_BACKLIGHTS
   // output the backlight/underlight LEDs
   if (cc->diagsMode > 0) {
     setLedsDiags();
@@ -327,7 +332,9 @@ void performOncePerLoop() {
 
   // -------------------------------------------------------------------------------
   
+  #ifdef FEATURE_MENU
   menuManager.menuLoop();
+  #endif
 
   // -------------------------------------------------------------------------------
 
@@ -414,7 +421,9 @@ void performOncePerSecondProcessing() {
 
   // -------------------------------------------------------------------------------
   // Service the menu
+  #ifdef FEATURE_MENU
   menuManager.menuOncePerSecond();
+  #endif
 
   // -------------------------------------------------------------------------------
   debugManager.debugAutoOffCheck();
@@ -551,7 +560,9 @@ void performOncePerMinuteProcessing() {
 void performOncePerHourProcessing() {
   debugMsgMain("---> OncePerHourProcessing");
 
+  #ifdef FEATURE_MENU
   menuManager.menuOncePerHour();
+  #endif
   
   tzManager.setUTCTimeFromTimeSourceHourly();
   tzManager.calculateCurrentOffsetFromTimeT(tzManager.getRawUTCTimeFromTimeSource(tzManager.getPrimaryTimeSource()));

@@ -59,6 +59,11 @@
 #define FEATURE_BLINKENLIGHTS       // FEATURE_BLINKENLIGHTS | FEATURE_BLINKENLIGHTS_OFF
 
 // -------------------------------------------------------------------------------
+// Note also controls the encoder!
+
+#define FEATURE_MENU                // FEATURE_MENU | FEATURE_MENU_OFF
+
+// -------------------------------------------------------------------------------
 
 // What type of slave we have: Either Nixie slave over I2C or the Decatron slave over the 1PPS GPIO
 // If you don't want a slave, set "DECATRON_SLAVE"

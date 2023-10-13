@@ -744,8 +744,10 @@ void OutputManager_::updateOncePerSecond() {
   } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
     loadNumberArraySameValue(minute());
   } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
+    #ifdef FEATURE_MENU
     int rawEncPos = menuManager.getCurrentEncoderPos()/2;
-    while (rawEncPos < 0) rawEncPos+=60; 
+    while (rawEncPos < 0) rawEncPos+=60;
+    #endif
   }
   #endif
 }
