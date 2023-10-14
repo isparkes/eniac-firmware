@@ -190,6 +190,7 @@ void OutputManager_::outputDisplay() {
   uint8_t tmpSwitchTime = 0;
   if (fadeState == 1) {
     fadeState = 0;
+    tmpSwitchTime = -1; // Make sure that we don't trigger the switch 
     for (byte j = 0 ; j < DIGIT_COUNT ; j++) {
       if (scrollCounter[j] == 0) {
         currNumberArray[j] = numberArray[j];
