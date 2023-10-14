@@ -201,6 +201,10 @@ void resetOptions() {
   cc->countdownTarget = "";
   #endif
 
+  // Defaults for the blinkenlights in status mode
+  cc->bl1 = BLNKN_STATUS_BLANKING;
+  cc->bl1 = BLNKN_STATUS_PIR;
+
   spiffsStorage.saveConfigToSpiffs();
   debugMsgUtl("Saved factory config");
 }
@@ -576,6 +580,16 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   #ifdef COUNTDOWN
   root["countdownTarget"] = cc->countdownTarget;
   #endif
+
+  blinkenlights_t *bl = blinkenlightsManager.getBlinkenlights();
+  root["bl1"] = bl->bl1;
+  root["bl2"] = bl->bl2;
+  root["bl3"] = bl->bl3;
+  root["bl4"] = bl->bl4;
+  root["bl5"] = bl->bl5;
+  root["bl6"] = bl->bl6;
+  root["in1"] = bl->in1;
+  root["in2"] = bl->in2;
 
   response->setLength();
   request->send(response);

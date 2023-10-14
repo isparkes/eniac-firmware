@@ -63,6 +63,8 @@ typedef struct {
   #ifdef COUNTDOWN
   String countdownTarget;
   #endif
+  byte bl1;
+  byte bl2;
 
   // not saved
   int diagsMode;
