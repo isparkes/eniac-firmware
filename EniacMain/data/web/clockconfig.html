@@ -148,6 +148,7 @@
                         </label>
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label class="control-label col-xs-3">Neon indicators:</label>
                     <div class="col-xs-4">
@@ -157,6 +158,37 @@
                         </select>
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3">Blinkenlight 1:</label>
+                    <div class="col-xs-4">
+                        <select class="form-control" name="bl1" id="bl1">
+                            <option value="1">Blanking Status</option>
+                            <option value="2">GPS Status</option>
+                            <option value="3">NTP Status</option>
+                            <option value="4">WIFI Status</option>
+                            <option value="5">PIR Installed</option>
+                            <option value="6">2 Second flash</option>
+                            <option value="7">PPS output</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3">Blinkenlight 2:</label>
+                    <div class="col-xs-4">
+                        <select class="form-control" name="bl2" id="bl2">
+                            <option value="1">Blanking Status</option>
+                            <option value="2">GPS Status</option>
+                            <option value="3">NTP Status</option>
+                            <option value="4">WIFI Status</option>
+                            <option value="5">PIR Installed</option>
+                            <option value="6">2 Second flash</option>
+                            <option value="7">PPS output</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="form-group" id="slaveModeContainer" hidden>
                     <label class="control-label col-xs-3">Slave Mode:</label>
                     <div class="col-xs-4">
@@ -532,6 +564,8 @@
         $("#blinkenLightsMode").val(config.blinkenLightsMode);
         $("#sepMode").val(config.sepMode);
         $("#outputOnTime").val(config.outputOnTime);
+        $("#bl1").val(config.bl1);
+        $("#bl2").val(config.bl2);
 
         // -------------- LDR --------------
         setCurrentRadioValue("#useLDR", "#useLDROff", config.useLDR);
@@ -579,6 +613,13 @@
         if (typeof config.slaveMode !== 'undefined') {
             $("#slaveModeContainer").prop('hidden', false);
             $("#slaveMode").val(config.slaveMode);
+        }
+
+        if (typeof config.blinkenLightsMode == 0) {
+            $("#bl1").prop('hidden', false);
+            $("#bl1").val(config.bl1);
+            $("#bl2").prop('hidden', false);
+            $("#bl2").val(config.bl2);
         }
 
         // -- Triggers for dependent settings --
