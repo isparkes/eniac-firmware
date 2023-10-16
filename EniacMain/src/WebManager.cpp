@@ -32,6 +32,7 @@ void WebManager_::begin() {
   // Utilities
   server.on("/utils/resetwifi", HTTP_GET, resetWifiHandler);
   server.on("/utils/scanI2C", HTTP_GET, getI2CScanHandler);
+  server.on("/utils/scanSPIFFS", HTTP_GET, getSPIFFSScanHandler);
   server.on("/utils/saveStats", HTTP_GET, saveStatsHandler);
   server.on("/utils/ntpupdate", HTTP_GET, [] (AsyncWebServerRequest *request) {
     ntpManager.resetNextUpdate();
@@ -95,6 +96,7 @@ void WebManager_::beginPortal() {
   // Utilities
   server.on("/utils/resetwifi", HTTP_GET, resetWifiHandler);
   server.on("/utils/scanI2C", HTTP_GET, getI2CScanHandler);
+  server.on("/utils/scanSPIFFS", HTTP_GET, getSPIFFSScanHandler);
   server.on("/utils/saveStats", HTTP_GET, saveStatsHandler);
 
   // All your DNS requests are belong to us

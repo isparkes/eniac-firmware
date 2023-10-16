@@ -89,6 +89,18 @@ void OutputManager_::loadNumberArrayDate() {
 // ************************************************************
 // Break the time into displayable digits
 // ************************************************************
+void OutputManager_::incrementNumberArray() {
+  numberArray[S1]  = (numberArray[S1]  +1)%10;
+  numberArray[S10] = ( numberArray[S10]+1)%10;
+  numberArray[M1]  = ( numberArray[M1] +1)%10;
+  numberArray[M10] = ( numberArray[M10]+1)%10;
+  numberArray[H1]  = ( numberArray[H1] +1)%10;
+  numberArray[H10] = ( numberArray[H10]+1)%10;
+}
+
+// ************************************************************
+// Break the time into displayable digits
+// ************************************************************
 void OutputManager_::loadNumberArraySameValue(byte value) {
   byte val = value % 10;
   numberArray[S1]  = val;
@@ -471,6 +483,10 @@ void OutputManager_::setCurrentTransition() {
           activeTransition = &transitionBang;
           break;
         }
+      case SLOTS_MODE_SCRAMBLE: {
+          activeTransition = &transitionScramble;
+          break;
+        }
       default: {
           activeTransition = &transitionDummy;
         }
@@ -606,6 +622,10 @@ String OutputManager_::getNextSlotsModeName() {
     }
     case SLOTS_MODE_BANG: {
       return "Bang";
+      break;
+    }
+    case SLOTS_MODE_SCRAMBLE: {
+      return "Scramble";
       break;
     }
   } 

@@ -278,7 +278,7 @@
             $("#utcintraw").text(diags.utcintraw + "@" + diags.utcintat);
             $("#slaveupdates").text(diags.slavetrycount + "/" + diags.slavefailcount);
             $("#features").text(diags.features);
-            $("#resetreason").text(diags.resetreason);
+            $("#resetreason").text(parseResetReasons(diags.resetreason));
             $("#sw1").text(decodeSwitchMeaning(diags.sw1, diags.sw1val));
             $("#sw2").text(decodeSwitchMeaning(diags.sw2, diags.sw2val));
 
@@ -291,6 +291,38 @@
             }
         })
         .then(() => removeLoader());
+    };
+
+    function decodeResetReason(reason) {
+        let reasonText;
+        switch(parseInt(reason)) {
+            case 1  : reasonText = "Vbat power on reset";break;
+            case 3  : reasonText = "Software reset digital core";break;
+            case 4  : reasonText = "Legacy watch dog reset digital core";break;
+            case 5  : reasonText = "Deep Sleep reset digital core";break;
+            case 6  : reasonText = "Reset by SLC module, reset digital core";break;
+            case 7  : reasonText = "Timer Group0 Watch dog reset digital core";break;
+            case 8  : reasonText = "Timer Group1 Watch dog reset digital core";break;
+            case 9  : reasonText = "RTC Watch dog Reset digital core";break;
+            case 10 : reasonText = "Instrusion tested to reset CPU";break;
+            case 11 : reasonText = "Time Group reset CPU";break;
+            case 12 : reasonText = "Software reset CPU";break;
+            case 13 : reasonText = "RTC Watch dog Reset CPU";break;
+            case 14 : reasonText = "for APP CPU, reset by PRO CPU";break;
+            case 15 : reasonText = "Reset when the vdd voltage is not stable";break;
+            case 16 : reasonText = "RTC Watch dog reset digital core and rtc module";break;
+            default : reasonText = "Unknown";
+        }
+        return reasonText;
+}    
+
+    function parseResetReasons(resetreason){
+        const resetReasonSplit = resetreason.split("/");
+        // problem, just pass it back
+        if (resetReasonSplit.length !== 2) return resetreason;
+        const resetReasonText0 = "Core0: " + decodeResetReason(resetReasonSplit[0]) + " (" + resetReasonSplit[0] + ")";
+        const resetReasonText1 = "Core1: " + decodeResetReason(resetReasonSplit[1]) + " (" + resetReasonSplit[1] + ")";
+        return resetReasonText0 + ", " + resetReasonText1;
     };
 
     function addLoader(){

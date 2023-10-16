@@ -921,6 +921,33 @@ void getI2CScanHandler(AsyncWebServerRequest *request) {
 }
 
 // ************************************************************
+// Utilities
+// ************************************************************
+void getSPIFFSScanHandler(AsyncWebServerRequest *request) {
+  debugMsgUtl("Got SPIFFS scan request");
+  
+  AsyncJsonResponse * response = new AsyncJsonResponse();
+  response->addHeader("Server", "ESP Async Web Server");
+  JsonObject& responseRoot = response->getRoot();
+
+  responseRoot["FILE Listing"] = "";
+  File root = SPIFFS.open("/");
+  File file = root.openNextFile();
+ 
+  int i = 1;
+  while(file){ 
+      responseRoot["FILE " + String(i) + ": "] = String(file.name());
+      file = root.openNextFile();
+      i++;
+  }
+
+  debugMsgUtl("done");
+
+  response->setLength();
+  request->send(response);
+}
+
+// ************************************************************
 // Turn on Watchdog
 // ************************************************************
 void enableWatchdog() {

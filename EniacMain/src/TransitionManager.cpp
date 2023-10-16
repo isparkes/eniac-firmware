@@ -6,9 +6,10 @@
 
 #include "TransitionManager.h"
 
-Transition transitionWipe(800, 700, 2800, SLOTS_MODE_WIPE, "Wipe");  // Wipe In / Wipe Out (DA2000-Transition.h)  
-Transition transitionBang(400, 400, 3200, SLOTS_MODE_BANG, "Bang");  // Bang In / Bang Out (DA2000-Transition.h)  
-Transition transitionDummy(0,    0,    0, SLOTS_MODE_NONE, "None");  // Dummy transition for null pointer prevention
+Transition transitionWipe(800, 700, 2800, SLOTS_MODE_WIPE,  "Wipe");  // Wipe In / Wipe Out
+Transition transitionBang(400, 400, 3200, SLOTS_MODE_BANG,  "Bang");  // Bang In / Bang Out
+Transition transitionScramble(400, 400, 3200, SLOTS_MODE_SCRAMBLE, "Scramble");  // Scramble In / Scamble Out
+Transition transitionDummy(0,    0,    0, SLOTS_MODE_NONE,  "None");  // Dummy transition for null pointer prevention
 Transition *activeTransition = &transitionDummy;                  // Pointer to selected transition object
 
 Transition::Transition(int effectInDuration, int effectOutDuration, int holdDuration, int selectedEffect, String name) {
@@ -48,6 +49,9 @@ boolean Transition::runEffect(unsigned long now, boolean blankLeading) {
       break;
     case SLOTS_MODE_BANG:
       return bangInBangOut(now);
+      break;
+    case SLOTS_MODE_SCRAMBLE:
+      return scrambleInScrambleOut(now);
       break;
     default:
       return false;
@@ -125,6 +129,45 @@ boolean Transition::bangInBangOut(unsigned long now)
     // Bang Out blanking
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration) {
       outputManager.allBlanked();
+    }
+    // Bang Out to time values
+    else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration * 2) {
+      outputManager.loadNumberArrayTime();
+      outputManager. allNormal(APPLY_LEAD_0_BLANK);
+    }
+    // We now return you to your regularly scheduled program
+    else {
+      outputManager.loadNumberArrayTime();
+      outputManager. allNormal(APPLY_LEAD_0_BLANK);
+      _end = 0;
+      return false;   // We're done running
+   }
+    return true;  // we are still running
+  }
+  return false;   // We aren't running
+}
+
+boolean Transition::scrambleInScrambleOut(unsigned long now)
+{
+  if (now < _end) {
+    int msCount = now - _started;
+    // Scramble in
+    if (msCount < _effectInDuration) {
+      outputManager.incrementNumberArray();
+    }
+    // Bang In date values
+    else if (msCount < _effectInDuration * 2) {
+      outputManager.loadNumberArrayDate();
+      outputManager. allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+    }
+    // Hold date display
+    else if (msCount < _effectInDuration * 2 + _holdDuration) {
+      outputManager.loadNumberArrayDate();
+      outputManager. allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+    }
+    // Scramble out
+    else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration) {
+      outputManager.incrementNumberArray();
     }
     // Bang Out to time values
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration * 2) {

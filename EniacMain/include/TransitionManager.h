@@ -30,11 +30,13 @@ class Transition
     
     boolean wipeInWipeOut(unsigned long, boolean blankLeading);
     boolean bangInBangOut(unsigned long);
+    boolean scrambleInScrambleOut(unsigned long);
     unsigned long getEnd();
 };
 
 extern Transition transitionWipe;
 extern Transition transitionBang;
+extern Transition transitionScramble;
 extern Transition transitionDummy;
 
 extern Transition *activeTransition;      // Pointer to selected transition object

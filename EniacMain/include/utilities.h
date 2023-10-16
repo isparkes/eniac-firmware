@@ -72,6 +72,7 @@ void postWiFiCredentialsHandler(AsyncWebServerRequest *request);
 void resetWifiHandler(AsyncWebServerRequest *request);
 
 void getI2CScanHandler(AsyncWebServerRequest *request);
+void getSPIFFSScanHandler(AsyncWebServerRequest *request);
 void saveStatsHandler(AsyncWebServerRequest *request);
 
 void restartHandler(AsyncWebServerRequest *request);

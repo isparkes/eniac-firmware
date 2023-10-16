@@ -26,7 +26,8 @@
 #define SLOTS_MODE_NONE                   0
 #define SLOTS_MODE_WIPE                   1
 #define SLOTS_MODE_BANG                   2
-#define SLOTS_MODE_MAX                    2
+#define SLOTS_MODE_SCRAMBLE               3
+#define SLOTS_MODE_MAX                    3
 #define SLOTS_MODE_DEFAULT                2
 
 #define SLOTS_TRIGGER_SECOND              50
@@ -105,6 +106,7 @@ class OutputManager_ {
     void loadNumberArraySameValue(byte value);
     void loadNumberArrayBurn(byte value);
     void loadNumberArrayValue(unsigned int value);
+    void incrementNumberArray();
 
     void allNormal(bool leadingBlank);
     void allBlanked();
