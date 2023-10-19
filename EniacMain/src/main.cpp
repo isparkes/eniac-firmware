@@ -250,7 +250,8 @@ void setup()
 // ************************************************************
 void setLeds()
 {
-  secsDeltaAbs = (nowMillis - lastMillis) % 1000;
+  secsDeltaAbs = (nowMillis - lastMillis);
+  if (secsDeltaAbs > 1000) {secsDeltaAbs = 1000;}
   upOrDown = (second() % 2) == 0;
   
   #ifdef FEATURE_BACKLIGHTS
@@ -262,7 +263,7 @@ void setLeds()
   }
 
   // output the backlight/underlight LEDs
-  ledManager.setPulseValue(secsDelta);  
+  ledManager.setPulseValue(secsDelta);
   ledManager.processLedStatus();
   #endif
 }
