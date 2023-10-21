@@ -99,7 +99,6 @@ boolean Transition::wipeInWipeOut(unsigned long now, boolean blankLeading)
     // We now return you to your regularly scheduled program
     else {
       outputManager.loadNumberArrayPrimary();
-      outputManager.allNormal(APPLY_LEAD_0_BLANK);
       _end = 0;
       return false;   // We're done running
    }
@@ -114,31 +113,27 @@ boolean Transition::bangInBangOut(unsigned long now)
     int msCount = now - _started;
     // Bang In blanking
     if (msCount < _effectInDuration) {
-      outputManager.allBlanked();
+      outputManager.forceBlanking();
     }
     // Bang In date values
     else if (msCount < _effectInDuration * 2) {
       outputManager.loadNumberArraySecondary();
-      outputManager. allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     }
     // Hold date display
     else if (msCount < _effectInDuration * 2 + _holdDuration) {
       outputManager.loadNumberArraySecondary();
-      outputManager. allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     }
     // Bang Out blanking
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration) {
-      outputManager.allBlanked();
+      outputManager.forceBlanking();
     }
     // Bang Out to time values
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration * 2) {
       outputManager.loadNumberArrayPrimary();
-      outputManager. allNormal(APPLY_LEAD_0_BLANK);
     }
     // We now return you to your regularly scheduled program
     else {
       outputManager.loadNumberArrayPrimary();
-      outputManager. allNormal(APPLY_LEAD_0_BLANK);
       _end = 0;
       return false;   // We're done running
    }
@@ -158,12 +153,10 @@ boolean Transition::scrambleInScrambleOut(unsigned long now)
     // Bang In date values
     else if (msCount < _effectInDuration * 2) {
       outputManager.loadNumberArraySecondary();
-      outputManager. allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     }
     // Hold date display
     else if (msCount < _effectInDuration * 2 + _holdDuration) {
       outputManager.loadNumberArraySecondary();
-      outputManager. allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     }
     // Scramble out
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration) {
@@ -172,12 +165,10 @@ boolean Transition::scrambleInScrambleOut(unsigned long now)
     // Bang Out to time values
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration * 2) {
       outputManager.loadNumberArrayPrimary();
-      outputManager. allNormal(APPLY_LEAD_0_BLANK);
     }
     // We now return you to your regularly scheduled program
     else {
       outputManager.loadNumberArrayPrimary();
-      outputManager. allNormal(APPLY_LEAD_0_BLANK);
       _end = 0;
       return false;   // We're done running
    }

@@ -11,17 +11,25 @@ void OutputManager_::setArbitraryValue(unsigned int newValue) {
 // Load the display according to the value we are told to use
 // ************************************************************
 void OutputManager_::loadNumberArrayPrimary() {
-  switch (cc->pMode)
-  {
+  byte tmpMode = cc->pMode;
+
+  if (_valueEndTime > nowMillis) {
+    tmpMode = DISPLAY_VALUE;
+  }
+
+  switch (cc->pMode) {
   default:
   case DISPLAY_TIME:
     loadNumberArrayTime();
+    allNormal(APPLY_LEAD_0_BLANK);
     break;
   case DISPLAY_DATE:
     loadNumberArrayDate();
+    allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     break;
   case DISPLAY_VALUE:
     loadNumberArrayValue();
+    allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     break;
   }
 }
@@ -171,6 +179,9 @@ void OutputManager_::allNormal(bool leadingBlank) {
   displayType[M1]  = NORMAL;
   displayType[S10] = NORMAL;
   displayType[S1]  = NORMAL;
+
+  // Reset the temp blanking
+  _blankTubesTemp = false;
 }
 
 // ************************************************************
@@ -207,7 +218,9 @@ void OutputManager_::outputDisplay() {
       // Digit blinking
       ((displayType[i] == BLINK) && !upOrDown) ||
       // display blanking
-      blankTubes;
+      _blankTubes ||
+      // forced blanking for transitions
+      _blankTubesTemp;
 
     switch(_outputMode) {
       case timeMode:
@@ -271,7 +284,7 @@ void OutputManager_::outputDisplay() {
                                 digitBlanked[S1],
                                 digitBlanked[S10],
                                 #endif
-                                blankSeparators,
+                                _blankSeparators,
                                 #ifdef FEATURE_BLINKENLIGHTS
                                 #ifdef NORMAL_DIGIT_OUTPUT
                                 bl->bl1,
@@ -285,8 +298,8 @@ void OutputManager_::outputDisplay() {
                                 false,
                                 false,
                                 #endif
-                                sep1State,
-                                sep2State);
+                                _sep1State,
+                                _sep2State);
   uint32_t tmpnextVal2 = decodeFromNumberArray(
                                 #ifdef NORMAL_DIGIT_OUTPUT
                                 currNumberArray[M10], 
@@ -300,7 +313,7 @@ void OutputManager_::outputDisplay() {
                                 digitBlanked[M1],
                                 digitBlanked[M10],
                                 #endif
-                                blankSeparators,
+                                _blankSeparators,
                                 #ifdef FEATURE_BLINKENLIGHTS
                                 #ifdef NORMAL_DIGIT_OUTPUT
                                 bl->bl3,
@@ -314,8 +327,8 @@ void OutputManager_::outputDisplay() {
                                 false,
                                 false,
                                 #endif
-                                sep3State,
-                                sep4State);
+                                _sep3State,
+                                _sep4State);
   uint32_t tmpnextVal3 = decodeFromNumberArray(
                                 #ifdef NORMAL_DIGIT_OUTPUT
                                 currNumberArray[S10], 
@@ -329,7 +342,7 @@ void OutputManager_::outputDisplay() {
                                 digitBlanked[H1],
                                 digitBlanked[H10],
                                 #endif
-                                blankSeparators,
+                                _blankSeparators,
                                 #ifdef FEATURE_BLINKENLIGHTS
                                 #ifdef NORMAL_DIGIT_OUTPUT
                                 bl->bl5,
@@ -357,7 +370,7 @@ void OutputManager_::outputDisplay() {
                                   tmpNumberArray[H1],
                                   digitBlanked[H10],
                                   digitBlanked[H1],
-                                  blankSeparators,
+                                  _blankSeparators,
                                   #ifdef FEATURE_BLINKENLIGHTS
                                   #ifdef NORMAL_DIGIT_OUTPUT
                                   bl->bl1,
@@ -371,14 +384,14 @@ void OutputManager_::outputDisplay() {
                                   false,
                                   false,
                                   #endif
-                                  sep1State,
-                                  sep2State);
+                                  _sep1State,
+                                  _sep2State);
     tmpval2 = decodeFromNumberArray(
                                   tmpNumberArray[M10], 
                                   tmpNumberArray[M1],
                                   digitBlanked[M10],
                                   digitBlanked[M1],
-                                  blankSeparators,
+                                  _blankSeparators,
                                   #ifdef FEATURE_BLINKENLIGHTS
                                   #ifdef NORMAL_DIGIT_OUTPUT
                                   bl->bl3,
@@ -392,14 +405,14 @@ void OutputManager_::outputDisplay() {
                                   false,
                                   false,
                                   #endif
-                                  sep3State,
-                                  sep4State);
+                                  _sep3State,
+                                  _sep4State);
     tmpval3 = decodeFromNumberArray(
                                   tmpNumberArray[S10], 
                                   tmpNumberArray[S1],
                                   digitBlanked[S10],
                                   digitBlanked[S1],
-                                  blankSeparators,
+                                  _blankSeparators,
                                   #ifdef FEATURE_BLINKENLIGHTS
                                   #ifdef NORMAL_DIGIT_OUTPUT
                                   bl->bl5,
@@ -697,60 +710,60 @@ void OutputManager_::processSeparators() {
   switch (cc->sepMode) {
     case SEP_RAILROAD:
       {
-        sep1State = sep3State = upOrDown;
-        sep2State = sep4State = !upOrDown;
+        _sep1State = _sep3State = upOrDown;
+        _sep2State = _sep4State = !upOrDown;
         break;
       }
     case SEP_RAILROAD_X:
       {
-        sep1State = sep4State = upOrDown;
-        sep2State = sep3State = !upOrDown;
+        _sep1State = _sep4State = upOrDown;
+        _sep2State = _sep3State = !upOrDown;
         break;
       }
     case SEP_BLINK_SLOW:
       {
-        sep1State = sep3State = upOrDown;
-        sep2State = sep4State = upOrDown;
+        _sep1State = _sep3State = upOrDown;
+        _sep2State = _sep4State = upOrDown;
         break;
       }
     case SEP_BLINK_FAST:
       {
         if (secsDeltaAbs < 500) {
-        sep1State = sep3State = true;
-        sep2State = sep4State = true;
+        _sep1State = _sep3State = true;
+        _sep2State = _sep4State = true;
         } else {
-        sep1State = sep3State = false;
-        sep2State = sep4State = false;
+        _sep1State = _sep3State = false;
+        _sep2State = _sep4State = false;
         }
         break;
       }
     case SEP_BLINK_DBL:
       {
         if ((secsDeltaAbs < 100) || ((secsDeltaAbs > 200) && (secsDeltaAbs < 300))) {
-        sep1State = sep3State = true;
-        sep2State = sep4State = true;
+        _sep1State = _sep3State = true;
+        _sep2State = _sep4State = true;
         } else {
-        sep1State = sep3State = false;
-        sep2State = sep4State = false;
+        _sep1State = _sep3State = false;
+        _sep2State = _sep4State = false;
         }
         break;
       }
     case SEP_ON:
       {
-        sep1State = sep3State = true;
-        sep2State = sep4State = true;
+        _sep1State = _sep3State = true;
+        _sep2State = _sep4State = true;
         break;
       }
     case SEP_OFF:
       {
-        sep1State = sep3State = false;
-        sep2State = sep4State = false;
+        _sep1State = _sep3State = false;
+        _sep2State = _sep4State = false;
         break;
       }
     case SEP_AM_PM:
       {
-        sep1State = sep3State = isAM();
-        sep2State = sep4State = isPM();
+        _sep1State = _sep3State = isAM();
+        _sep2State = _sep4State = isPM();
         break;
       }
   }
@@ -826,14 +839,22 @@ void OutputManager_::updateOncePerSecond() {
 // Set the tube blanking status of the tubes
 // ************************************************************
 void OutputManager_::setBlankingStatusTubes(bool newStatus) {
-  blankTubes = newStatus;
+  _blankTubes = newStatus;
+}
+
+// ************************************************************
+// Set the tube blanking status of the tubes until the next
+// display change. Used in transitions.
+// ************************************************************
+void OutputManager_::forceBlanking() {
+  _blankTubesTemp = true;
 }
 
 // ************************************************************
 // Set the tube blanking status of the tubes
 // ************************************************************
 void OutputManager_::setBlankingStatusTowers(bool newStatus) {
-  blankTubes = newStatus;
+  _blankTubes = newStatus;
 }
 
 // ************************************************************

@@ -81,7 +81,6 @@ void setup()
 
   for (int i = 0 ; i <= 20 ; i++) {
     outputManager.setArbitraryValue(i%10);
-    outputManager.allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     outputManager.loadNumberArraySameValue();
     outputManager.outputDisplay();
     delay(100);

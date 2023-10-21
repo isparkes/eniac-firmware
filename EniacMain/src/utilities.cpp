@@ -796,6 +796,27 @@ void getZonesListDataHandler(AsyncWebServerRequest *request) {
   request->send(response);        
 }
 
+// ************************************************************
+// Set a new arbitrary value
+// ************************************************************
+void postValueHandler(AsyncWebServerRequest *request) {
+  debugMsgUtl("Got api value POST request");
+  
+//  #ifdef DEBUG_ON
+//  dumpArgs(request);
+//  #endif
+
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& json = jsonBuffer.parse(String(request->arg("body")));
+
+  if (json.success()) {
+    int newValue = json["value"].as<int>();
+
+    outputManager.setArbitraryValue(newValue);
+  }
+   
+  request->send(200, "text/json", "{\"status\": \"Value set\"}");
+}
 
 // ************************************************************
 // WiFi
@@ -820,7 +841,7 @@ void getCredentialsHandler(AsyncWebServerRequest *request) {
 // WiFi Credentials
 // ************************************************************
 void postWiFiCredentialsHandler(AsyncWebServerRequest *request) {
-  debugMsgUtl("Got api wifi POST request");
+  debugMsgUtl("Got api wifi credentials POST request");
   
 //  #ifdef DEBUG_ON
 //  dumpArgs(request);

@@ -106,17 +106,14 @@ class OutputManager_ {
     OutputManager_ &operator=(const OutputManager_ &) = delete;
 
   public:
+    // Do a display impression
+    void outputDisplay();
+
     // Special display types
     void loadNumberArraySameValue();
     void loadNumberArrayBurn();
-    void incrementNumberArray();
+    void incrementNumberArray();      // Used in "scramble" stunt
 
-    void allNormal(bool leadingBlank);
-    void allBlanked();
-
-    void outputDisplay();
-
-    void applyBlanking();
     void triggerStunts();
     outputModes getOutputMode();
     void setOutputMode(outputModes newMode);
@@ -127,37 +124,51 @@ class OutputManager_ {
     String getNextACPModeName();
     void setACPMode(byte newMode);
     void setNextACPMode();
+
     byte getNextSlotsMode();
     String getNextSlotsModeName();
     void setSlotsMode(byte newMode);
     void setNextSlotsMode();
+
     void setBlankingStatusTubes(bool newStatus);
     void setBlankingStatusTowers(bool newStatus);
+
+    // Blank tubes until the next display change;
+    void forceBlanking();
 
     void loadNumberArrayPrimary();
     void loadNumberArraySecondary();
     void setArbitraryValue(unsigned int value);
   private:
+    // Anti Cathode Poisoning management
     int _acpOffset = 0;
     int _acpTick = 0;
 
     // Separators and indicator LEDs
-    bool sep1State;
-    bool sep2State;
-    bool sep3State;
-    bool sep4State;
+    bool _sep1State;
+    bool _sep2State;
+    bool _sep3State;
+    bool _sep4State;
 
-    bool blankTubes;
-    bool blankSeparators;
+    // Control blanking
+    bool _blankTubes;
+    bool _blankSeparators;
+    bool _blankTubesTemp;
 
     outputModes _outputMode;
 
+    // Value mode
     unsigned int _arbitraryValue;
+    unsigned long _valueEndTime;
 
     // Main display types - accesible via the setPrimary/Secondary methods
     void loadNumberArrayTime();
     void loadNumberArrayDate();
     void loadNumberArrayValue();
+
+    void allNormal(bool leadingBlank);
+    void allBlanked();
+    void applyBlanking();
 
     void processStunts();
     uint32_t decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, bool blankTens, bool bankUnits, bool blankSeparators, bool bl1, bool bl2, bool led1, bool led2);

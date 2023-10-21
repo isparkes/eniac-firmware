@@ -33,6 +33,9 @@ void WebManager_::begin() {
   server.on("/api/postWiFiCredentials", HTTP_POST, postWiFiCredentialsHandler);
   server.on("/api/credentials", HTTP_GET, getCredentialsHandler);
 
+  // Value
+  server.on("/api/setValue", HTTP_GET, postValueHandler);
+
   // Utilities
   server.on("/utils/resetwifi", HTTP_GET, resetWifiHandler);
   server.on("/utils/scanI2C", HTTP_GET, getI2CScanHandler);

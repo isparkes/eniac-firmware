@@ -77,6 +77,8 @@ void saveStatsHandler(AsyncWebServerRequest *request);
 
 void restartHandler(AsyncWebServerRequest *request);
 
+void postValueHandler(AsyncWebServerRequest *request);
+
 void wifiBeginWithCredentials();
 bool gotCredentials();
 
