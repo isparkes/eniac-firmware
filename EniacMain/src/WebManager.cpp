@@ -1,7 +1,11 @@
 #include "WebManager.h"
 
 // This include has to be here, anbd not in the header file
-#include <AsyncElegantOTA.h>
+#include <ElegantOTA.h>
+
+// I had to fiddle in the ElegantOTA sourcew to get this to work
+// Line 27: #define ELEGANTOTA_USE_ASYNC_WEBSERVER 1
+#define ELEGANTOTA_USE_ASYNC_WEBSERVER
 
 // ************************************************************
 // Open up the normal page handlers
@@ -111,7 +115,7 @@ void WebManager_::beginPortal() {
 // Start the OTA service
 // ************************************************************
 void WebManager_::startOTA() {
-  AsyncElegantOTA.begin(&server, "admin", "update");
+  ElegantOTA.begin(&server, "admin", "update");
 }
 
 // ************************************************************
