@@ -407,8 +407,13 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   #endif
   root["sw1Mode"] = cc->sw1Mode;
   root["sw2Mode"] = cc->sw2Mode;
+  #ifdef NORMAL_SWITCHES
   root["sw1val"] = (digitalRead(Switch1Pin) == LOW) ? "1" : "0";
   root["sw2val"] = (digitalRead(Switch2Pin) == LOW) ? "1" : "0";
+  #else
+  root["sw1val"] = (digitalRead(Switch1Pin) == HIGH) ? "1" : "0";
+  root["sw2val"] = (digitalRead(Switch2Pin) == HIGH) ? "1" : "0";
+  #endif
   
   #ifdef DIGIT_DIAGNOSTICS
   root["diagsMode"] = cc->diagsMode;
@@ -576,6 +581,8 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["WifiOnAtStart"] = cc->WifiOnAtStart;
   root["sw1Mode"] = cc->sw1Mode;
   root["sw2Mode"] = cc->sw2Mode;
+  root["pMode"] = cc->pMode;
+  root["sMode"] = cc->sMode;
 
   #ifdef COG_CRANK_OUTPUT
   root["outputOnTime"] = cc->outputOnTime;
@@ -661,6 +668,8 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateBool(json, "WifiOnAtStart",&cc->WifiOnAtStart);
     compareAndUpdateByte(json, "sw1Mode",      &cc->sw1Mode);
     compareAndUpdateByte(json, "sw2Mode",      &cc->sw2Mode);
+    compareAndUpdateByte(json, "pMode",        &cc->pMode);
+    compareAndUpdateByte(json, "sMode",        &cc->sMode);
 
     // ------------------------------------------------------------
 
