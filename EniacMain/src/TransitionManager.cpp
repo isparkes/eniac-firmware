@@ -25,13 +25,13 @@ Transition::Transition(int effectInDuration, int effectOutDuration, int holdDura
 void Transition::start(unsigned long now) {
   if (_end < now) {
     // save the target display
-    outputManager.loadNumberArrayDate();
+    outputManager.loadNumberArraySecondary();
     for (int idx = 0; idx < DIGIT_COUNT ; idx++) {
       _alternateDisplay[idx] = numberArray[idx];
     }
 
     // save the current version of the normal display
-    outputManager.loadNumberArrayTime();
+    outputManager.loadNumberArrayPrimary();
     for (int idx = 0; idx < DIGIT_COUNT ; idx++) {
       _regularDisplay[idx] = numberArray[idx];
       _savedDisplayType[idx] = displayType[idx];
@@ -82,7 +82,7 @@ boolean Transition::wipeInWipeOut(unsigned long now, boolean blankLeading)
     }
     // Hold date display
     else if (msCount < _effectInDuration * 2 + _holdDuration) {
-      outputManager.loadNumberArrayDate();
+      outputManager.loadNumberArraySecondary();
     }
     // Wipe Out blanking
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration) {
@@ -98,7 +98,7 @@ boolean Transition::wipeInWipeOut(unsigned long now, boolean blankLeading)
     }
     // We now return you to your regularly scheduled program
     else {
-      outputManager.loadNumberArrayTime();
+      outputManager.loadNumberArrayPrimary();
       outputManager.allNormal(APPLY_LEAD_0_BLANK);
       _end = 0;
       return false;   // We're done running
@@ -118,12 +118,12 @@ boolean Transition::bangInBangOut(unsigned long now)
     }
     // Bang In date values
     else if (msCount < _effectInDuration * 2) {
-      outputManager.loadNumberArrayDate();
+      outputManager.loadNumberArraySecondary();
       outputManager. allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     }
     // Hold date display
     else if (msCount < _effectInDuration * 2 + _holdDuration) {
-      outputManager.loadNumberArrayDate();
+      outputManager.loadNumberArraySecondary();
       outputManager. allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     }
     // Bang Out blanking
@@ -132,12 +132,12 @@ boolean Transition::bangInBangOut(unsigned long now)
     }
     // Bang Out to time values
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration * 2) {
-      outputManager.loadNumberArrayTime();
+      outputManager.loadNumberArrayPrimary();
       outputManager. allNormal(APPLY_LEAD_0_BLANK);
     }
     // We now return you to your regularly scheduled program
     else {
-      outputManager.loadNumberArrayTime();
+      outputManager.loadNumberArrayPrimary();
       outputManager. allNormal(APPLY_LEAD_0_BLANK);
       _end = 0;
       return false;   // We're done running
@@ -157,12 +157,12 @@ boolean Transition::scrambleInScrambleOut(unsigned long now)
     }
     // Bang In date values
     else if (msCount < _effectInDuration * 2) {
-      outputManager.loadNumberArrayDate();
+      outputManager.loadNumberArraySecondary();
       outputManager. allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     }
     // Hold date display
     else if (msCount < _effectInDuration * 2 + _holdDuration) {
-      outputManager.loadNumberArrayDate();
+      outputManager.loadNumberArraySecondary();
       outputManager. allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     }
     // Scramble out
@@ -171,12 +171,12 @@ boolean Transition::scrambleInScrambleOut(unsigned long now)
     }
     // Bang Out to time values
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration * 2) {
-      outputManager.loadNumberArrayTime();
+      outputManager.loadNumberArrayPrimary();
       outputManager. allNormal(APPLY_LEAD_0_BLANK);
     }
     // We now return you to your regularly scheduled program
     else {
-      outputManager.loadNumberArrayTime();
+      outputManager.loadNumberArrayPrimary();
       outputManager. allNormal(APPLY_LEAD_0_BLANK);
       _end = 0;
       return false;   // We're done running

@@ -20,10 +20,12 @@
 
 // Meanings of switches
 #define SW_NONE                 0
-#define SW_COUNTDOWN_INHIBIT    1
-#define SW_SLAVE_INHIBIT        2
-#define SW_MIN_DIM              3
-#define SW_DIM_LEDS             4
+#define SW_SLAVE_INHIBIT        1
+#define SW_MIN_DIM              2
+#define SW_DIM_LEDS             3
+#define SW_COUNTDOWN_INHIBIT    4
+#define SW1_DEFAULT             SW_DIM_LEDS
+#define SW2_DEFAULT             SW_SLAVE_INHIBIT
 
 // ************************************************************
 // Global shared components and objects
@@ -75,9 +77,6 @@ extern int digitValue;
 #endif
 
 extern bool doAutoReconnect;
-
-extern byte switch1Meaning;
-extern byte switch2Meaning;
 
 extern String uniqHostname;
 

@@ -1,6 +1,51 @@
 #include "OutputManager.h"
 
 // ************************************************************
+// Load the display according to the value we are told to use
+// ************************************************************
+void OutputManager_::setArbitraryValue(unsigned int newValue) {
+  _arbitraryValue = newValue;
+}
+
+// ************************************************************
+// Load the display according to the value we are told to use
+// ************************************************************
+void OutputManager_::loadNumberArrayPrimary() {
+  switch (cc->pMode)
+  {
+  default:
+  case DISPLAY_TIME:
+    loadNumberArrayTime();
+    break;
+  case DISPLAY_DATE:
+    loadNumberArrayDate();
+    break;
+  case DISPLAY_VALUE:
+    loadNumberArrayValue();
+    break;
+  }
+}
+
+// ************************************************************
+// Load the display according to the value we are told to use
+// ************************************************************
+void OutputManager_::loadNumberArraySecondary() {
+  switch (cc->sMode)
+  {
+  default:
+  case DISPLAY_TIME:
+    loadNumberArrayTime();
+    break;
+  case DISPLAY_DATE:
+    loadNumberArrayDate();
+    break;
+  case DISPLAY_VALUE:
+    loadNumberArrayValue();
+    break;
+  }
+}
+
+// ************************************************************
 // Break the time into displayable digits
 // ************************************************************
 void OutputManager_::loadNumberArrayTime() {
@@ -20,8 +65,8 @@ void OutputManager_::loadNumberArrayTime() {
 // ************************************************************
 // Break the time into displayable digits
 // ************************************************************
-void OutputManager_::loadNumberArrayValue(unsigned int value) {
-  unsigned int valueBound = value;
+void OutputManager_::loadNumberArrayValue() {
+  unsigned int valueBound = _arbitraryValue;
   if (valueBound > 999999)
     valueBound = 999999;
   
@@ -46,12 +91,12 @@ void OutputManager_::loadNumberArrayValue(unsigned int value) {
 }
 
 // ************************************************************
-// Break the time into displayable digits
+// Set all digits to the same value, but blank all except one
 // ************************************************************
-void OutputManager_::loadNumberArrayBurn(byte value) {
+void OutputManager_::loadNumberArrayBurn() {
   allBlanked();
-  loadNumberArraySameValue(value % 10);
-  displayType[value / 10] = NORMAL;
+  loadNumberArraySameValue();
+  displayType[_arbitraryValue / 10] = NORMAL;
 }
 
 // ************************************************************
@@ -101,8 +146,8 @@ void OutputManager_::incrementNumberArray() {
 // ************************************************************
 // Break the time into displayable digits
 // ************************************************************
-void OutputManager_::loadNumberArraySameValue(byte value) {
-  byte val = value % 10;
+void OutputManager_::loadNumberArraySameValue() {
+  byte val = _arbitraryValue % 10;
   numberArray[S1]  = val;
   numberArray[S10] = val;
   numberArray[M1]  = val;
@@ -509,7 +554,8 @@ void OutputManager_::processStunts() {
           #ifdef OTM_EXTENDED_DEBUG
           debugMsgOtm("ACP: " + String(_acpOffset-2));
           #endif
-          loadNumberArraySameValue(_acpOffset-2);
+          setArbitraryValue(_acpOffset-2);
+          loadNumberArraySameValue();
           if (_acpOffset == 12) {
             _acpOffset = 0;
             #ifdef OTM_EXTENDED_DEBUG
@@ -756,14 +802,17 @@ void OutputManager_::updateOncePerSecond() {
 
   if (_outputMode == valueMode) {
     allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
-    loadNumberArrayValue(countdownManager.getRemaining());
+    setArbitraryValue(countdownManager.getRemaining());
+    loadNumberArrayValue();
   }
 
   #ifdef DIGIT_DIAGNOSTICS
   if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
-    loadNumberArraySameValue(second());
+    setArbitraryValue(second());
+    loadNumberArraySameValue();
   } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
-    loadNumberArraySameValue(minute());
+    setArbitraryValue(minute());
+    loadNumberArraySameValue();
   } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
     #ifdef FEATURE_MENU
     int rawEncPos = menuManager.getCurrentEncoderPos()/2;

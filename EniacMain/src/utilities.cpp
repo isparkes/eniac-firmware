@@ -115,6 +115,9 @@ String getStatusString() {
   return connectionInfo;
 }
 
+// ************************************************************
+// Reset settings to factory defaults
+// ************************************************************
 void resetOptions() {
   cc->ntpPool = NTP_POOL_DEFAULT;
   cc->ntpUpdateInterval = NTP_UPDATE_INTERVAL_DEFAULT;
@@ -188,6 +191,11 @@ void resetOptions() {
   cc->WiFiSSID = "";
   cc->WiFiPassword = "";
   cc->WifiOnAtStart = false;
+  cc->sw1Mode = SW1_DEFAULT;
+  cc->sw2Mode = SW2_DEFAULT;
+  cc->pMode = DISPLAY_TIME;
+  cc->sMode = DISPLAY_DATE;
+  
   #ifdef FEATURE_BLINKENLIGHTS
   cc->blinkenLightsMode = BLNKN_MODE_DEFAULT;
   #else
@@ -397,8 +405,8 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["slavetrycount"] = "0";
   root["slavefailcount"] = "0";
   #endif
-  root["sw1"] = switch1Meaning;
-  root["sw2"] = switch2Meaning;
+  root["sw1Mode"] = cc->sw1Mode;
+  root["sw2Mode"] = cc->sw2Mode;
   root["sw1val"] = (digitalRead(Switch1Pin) == LOW) ? "1" : "0";
   root["sw2val"] = (digitalRead(Switch2Pin) == LOW) ? "1" : "0";
   
@@ -566,6 +574,8 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["slaveMode"] = cc->slaveMode;
   #endif
   root["WifiOnAtStart"] = cc->WifiOnAtStart;
+  root["sw1Mode"] = cc->sw1Mode;
+  root["sw2Mode"] = cc->sw2Mode;
 
   #ifdef COG_CRANK_OUTPUT
   root["outputOnTime"] = cc->outputOnTime;
@@ -649,6 +659,8 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateByte(json, "acpMode",      &cc->acpMode);
     compareAndUpdateBool(json, "suppressACP",  &cc->suppressACP);
     compareAndUpdateBool(json, "WifiOnAtStart",&cc->WifiOnAtStart);
+    compareAndUpdateByte(json, "sw1Mode",      &cc->sw1Mode);
+    compareAndUpdateByte(json, "sw2Mode",      &cc->sw2Mode);
 
     // ------------------------------------------------------------
 

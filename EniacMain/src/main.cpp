@@ -80,8 +80,9 @@ void setup()
   outputManager.setOutputMode(diagsMode);
 
   for (int i = 0 ; i <= 20 ; i++) {
-    outputManager.loadNumberArraySameValue(i%10);
+    outputManager.setArbitraryValue(i%10);
     outputManager.allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+    outputManager.loadNumberArraySameValue();
     outputManager.outputDisplay();
     delay(100);
   }
@@ -281,7 +282,7 @@ void setLedsDiags()
 // ************************************************************
 // Called every 10mS or so
 // ************************************************************
-void handleSwitchChange();  // Forward declaration
+void handleSwitchChanges();  // Forward declaration
 void performOncePerLoop() {
   // -------------------------------------------------------------------------------
 
@@ -291,7 +292,8 @@ void performOncePerLoop() {
     int rawEncPos = menuManager.getCurrentEncoderPos()/2;
     while (rawEncPos < 0) rawEncPos+=60; 
     int burnVal = rawEncPos % 60;
-    outputManager.loadNumberArrayBurn(burnVal);
+    outputManager.setArbitraryValue(burnVal);
+    outputManager.loadNumberArrayBurn();
   }
   #endif
 
@@ -340,7 +342,7 @@ void performOncePerLoop() {
   // -------------------------------------------------------------------------------
 
   if (switchEventWaiting) {
-    handleSwitchChange();
+    handleSwitchChanges();
     switchEventWaiting = false;
   }
 
@@ -434,49 +436,18 @@ void performOncePerSecondProcessing() {
 }
 
 // ************************************************************
-// called by interrupt - set the switch action
+// called to process switch changes. An interrupt sets a 
+// trigger and the mail loop calls this to process the 
+// waiting changes
 // ************************************************************
-void handleSwitchChange() {
-  // Switch 1 has various meanings
-
-  // Countdown mode
-  // If we are in Countdown mode, it switches the display back to "normal"
-  // when countdown is finished, it controls the slave output
-
-  #if defined(COUNTDOWN)
-  // If we are in countdown, the switch can turn it off
-  if (countdownManager.getCountdownActiveInternal()) {
-    switch1Meaning = SW_COUNTDOWN_INHIBIT;
-  } else {
-    #if defined(NIXIE_SLAVE) || defined(DECATRON_SLAVE)
-    switch1Meaning = SW_SLAVE_INHIBIT;
-    #else
-    switch1Meaning = SW_MIN_DIM;
-    #endif
-  }
-  #else
-    #if defined(NIXIE_SLAVE) || defined(DECATRON_SLAVE)
-    switch1Meaning = SW_SLAVE_INHIBIT;
-    #else
-    switch1Meaning = SW_MIN_DIM;
-    #endif
-  #endif
-
-  #ifdef NORMAL_SWITCHES
-  bool BTNOnstate = LOW;
-  #endif
-
-  #ifdef INVERT_SWITCHES
-  bool BTNOnstate = HIGH;
-  #endif
-
-  switch(switch1Meaning) {
+void handleSwitchChange(byte mode, bool state) {
+  switch(mode) {
     case SW_NONE: {
       // nothing
       break;
     }
     case SW_COUNTDOWN_INHIBIT: {
-      if (digitalRead(Switch1Pin) == BTNOnstate) {
+      if (state) {
         if (!countdownManager.getCountdownInhibit()) {
           countdownManager.setCountdownInhibit(true);
           debugMsgMain("Set inhibit countdown via switch");
@@ -491,37 +462,68 @@ void handleSwitchChange() {
     }
     case SW_SLAVE_INHIBIT: {
       #ifdef NIXIE_SLAVE
-      slaveManagerNixie.setSlaveEnabled(digitalRead(Switch1Pin) == !BTNOnstate);
+      slaveManagerNixie.setSlaveEnabled(!state);
       #endif
       #ifdef DECATRON_SLAVE
-      slaveManagerDecatron.setSlaveEnabled(digitalRead(Switch1Pin) == !BTNOnstate);
+      slaveManagerDecatron.setSlaveEnabled(!state);
       #endif
       break;
     }
     case SW_MIN_DIM: {
       // The switch "on" imposes min dimming
-      if ((digitalRead(Switch1Pin) == BTNOnstate) && !ldrManager.getIsFixedLDRValue()) {
+      if ((state) && !ldrManager.getIsFixedLDRValue()) {
         ldrManager.setLDRValueToMin();
       }
       // Switch off resets it
-      if ((digitalRead(Switch1Pin) == !BTNOnstate) && ldrManager.getIsFixedLDRValue()) {
+      if ((!state) && ldrManager.getIsFixedLDRValue()) {
         ldrManager.resetFixedLDRValue();
       }
       break;
     }
+    case SW_DIM_LEDS: {
+      blankingManager.setCurrentLEDBlankingOverride(state);
+
+      // Make it take effect immediately - workaround in reality this should all be event driven :-/
+      ledManager.recalculateVariables();
+      break;
+    }
   }
-
-  // -------------------------------------------------------------------------------
-
-  // Switch 2 just dims the LEDs
-
-  blankingManager.setCurrentLEDBlankingOverride(digitalRead(Switch2Pin) == BTNOnstate);
-
-  // Make it take effect immediately - workaround in reality this should all be event driven :-/
-  ledManager.recalculateVariables();
-  switch2Meaning = SW_DIM_LEDS;
 }
 
+// ************************************************************
+// Each of the switches can be configured to perform the same
+// tasks, therefore call the routine for each of the switch
+// contexts in turn
+// ************************************************************
+void handleSwitchChanges() {
+  #ifdef NORMAL_SWITCHES
+  bool BTNOnstate = LOW;
+  #endif
+
+  #ifdef INVERT_SWITCHES
+  bool BTNOnstate = HIGH;
+  #endif
+
+  #if defined(COUNTDOWN)
+  // Handle the case that we have finished the countdown and the mode needs to be reset
+  if ((cc->sw1Mode == SW_COUNTDOWN_INHIBIT) && (countdownManager.getCountdownActiveInternal() == false)) {
+      // We are not in a countdown, reset the switch
+      cc->sw1Mode = SW1_DEFAULT;
+  }
+  if ((cc->sw2Mode == SW_COUNTDOWN_INHIBIT) && (countdownManager.getCountdownActiveInternal() == false)) {
+      // We are not in a countdown, reset the switch
+      cc->sw2Mode = SW2_DEFAULT;
+  }
+  #endif
+
+  bool sw1State = (digitalRead(Switch1Pin) == BTNOnstate);
+
+  handleSwitchChange(cc->sw1Mode, sw1State);
+
+  bool sw2State = (digitalRead(Switch2Pin) == BTNOnstate);
+
+  handleSwitchChange(cc->sw2Mode, sw2State);
+}
 
 // ************************************************************
 // Called once per minute

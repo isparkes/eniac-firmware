@@ -79,6 +79,11 @@
 #define BLINK    2
 
 // -------------------------------------------------------------------------------
+#define DISPLAY_TIME        0
+#define DISPLAY_DATE        1
+#define DISPLAY_VALUE       2
+
+// -------------------------------------------------------------------------------
 
 typedef void (*DebugCallback) (String);
 
@@ -101,11 +106,9 @@ class OutputManager_ {
     OutputManager_ &operator=(const OutputManager_ &) = delete;
 
   public:
-    void loadNumberArrayTime();
-    void loadNumberArrayDate();
-    void loadNumberArraySameValue(byte value);
-    void loadNumberArrayBurn(byte value);
-    void loadNumberArrayValue(unsigned int value);
+    // Special display types
+    void loadNumberArraySameValue();
+    void loadNumberArrayBurn();
     void incrementNumberArray();
 
     void allNormal(bool leadingBlank);
@@ -130,6 +133,10 @@ class OutputManager_ {
     void setNextSlotsMode();
     void setBlankingStatusTubes(bool newStatus);
     void setBlankingStatusTowers(bool newStatus);
+
+    void loadNumberArrayPrimary();
+    void loadNumberArraySecondary();
+    void setArbitraryValue(unsigned int value);
   private:
     int _acpOffset = 0;
     int _acpTick = 0;
@@ -144,6 +151,13 @@ class OutputManager_ {
     bool blankSeparators;
 
     outputModes _outputMode;
+
+    unsigned int _arbitraryValue;
+
+    // Main display types - accesible via the setPrimary/Secondary methods
+    void loadNumberArrayTime();
+    void loadNumberArrayDate();
+    void loadNumberArrayValue();
 
     void processStunts();
     uint32_t decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, bool blankTens, bool bankUnits, bool blankSeparators, bool bl1, bool bl2, bool led1, bool led2);

@@ -75,9 +75,6 @@ AsyncWebServer server(80);
 
 String lastWiFiScan = "";
 
-byte switch1Meaning = SW_NONE;
-byte switch2Meaning = SW_NONE;
-
 // We don't want to handle switch processing in an interrupt,
 // so we set a flag to trigger processing
 // Set true to trigger initialisation
