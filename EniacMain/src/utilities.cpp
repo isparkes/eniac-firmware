@@ -642,6 +642,10 @@ void compareAndUpdateString(JsonObject& json, const char* key, String* variable)
   }
 }
 
+bool checkPresence(JsonObject& json, const char* key) {
+  return  json.containsKey(key);
+}
+
 void postConfigDataHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api config POST request");
 
@@ -810,6 +814,10 @@ void postValueHandler(AsyncWebServerRequest *request) {
   JsonObject& json = jsonBuffer.parse(String(request->arg("body")));
 
   if (json.success()) {
+    if (!checkPresence(json, "value")) {
+      request->send(400, "text/json", "{\"error\": \"value parameter not found\"}");
+      return;
+    }
     int newValue = json["value"].as<int>();
 
     outputManager.setArbitraryValue(newValue);
@@ -870,6 +878,9 @@ void postWiFiCredentialsHandler(AsyncWebServerRequest *request) {
   }
 }
 
+// ************************************************************
+// Return a list of WiFi Networks
+// ************************************************************
 void getWiFiNetworksHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api wifi networks request");
   

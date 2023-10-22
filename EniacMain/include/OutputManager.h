@@ -82,17 +82,29 @@
 #define DISPLAY_TIME        0
 #define DISPLAY_DATE        1
 #define DISPLAY_VALUE       2
+#define DISPLAY_COUNTDOWN   3
 
 // -------------------------------------------------------------------------------
 
-typedef void (*DebugCallback) (String);
+// The mode selection works on a priority scheme
+// The lower priority mode will be diplayed if enabled
+// ACP and Diags mode override all other modes
+// Slots mode means that the secondary display mode overrides the primary mode
+// However value mode, if set via an arbitrary value being set, also overrides the primary mode
+// Primary mode is shown when none of the other modes is set, i.e. normally
 
-enum outputModes {                          //                              ACP Allowed   Slots Allowed   Fade   Scroll
-  diagsMode,                                // Used during startup test           N             N          N       N
-  timeMode,                                 // normal time mode                   Y             Y          Y       Y
-  slotsMode,                                // dates slots                        N             -          Y       Y
-  valueMode,                                // we are displaying a value          N             N          Y       Y
-  acpMode                                   // acp                                -             N          N       N
+// These modes can be set as primary or secondary: Time / Date / Value / Countdown
+
+// Value mode when set by a REST push can override the primary mode
+
+typedef void (*DebugCallback) (String);
+//                                                                           Priority |   Stunts    | Blanking
+enum outputModes {                          //                                        | Fade Scroll |     
+  acpMode,                                  // acp                               1    |   N     N   |    N
+  diagsMode,                                // Used during startup test          2    |   N     N   |    N
+  secondaryMode,                            // Alternate display slots           3    |   Y     Y   |    Y
+  valueMode,                                // Displaying a value                4    |   Y     Y   |    Y
+  primaryMode,                              // Primary (normal time) mode        5    |   Y     Y   |    Y
 };
 
 class OutputManager_ {
@@ -159,7 +171,7 @@ class OutputManager_ {
 
     // Value mode
     unsigned int _arbitraryValue;
-    unsigned long _valueEndTime;
+    unsigned long _arbitraryValueEndTime;
 
     // Main display types - accesible via the setPrimary/Secondary methods
     void loadNumberArrayTime();

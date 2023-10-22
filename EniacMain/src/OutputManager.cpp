@@ -5,6 +5,7 @@
 // ************************************************************
 void OutputManager_::setArbitraryValue(unsigned int newValue) {
   _arbitraryValue = newValue;
+  _arbitraryValueEndTime = nowMillis + 10000;
 }
 
 // ************************************************************
@@ -13,11 +14,27 @@ void OutputManager_::setArbitraryValue(unsigned int newValue) {
 void OutputManager_::loadNumberArrayPrimary() {
   byte tmpMode = cc->pMode;
 
-  if (_valueEndTime > nowMillis) {
+  // Value mode, if set by REST Push
+  if (_arbitraryValueEndTime > nowMillis) {
     tmpMode = DISPLAY_VALUE;
   }
 
-  switch (cc->pMode) {
+  #ifdef DIGIT_DIAGNOSTICS
+  if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
+    setArbitraryValue(second());
+    tmpMode = DISPLAY_VALUE;
+  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
+    setArbitraryValue(minute());
+    tmpMode = DISPLAY_VALUE;
+  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
+    #ifdef FEATURE_MENU
+    // Encoder value injected by loop
+    tmpMode = DISPLAY_VALUE;
+    #endif
+  }
+  #endif
+
+  switch (tmpMode) {
   default:
   case DISPLAY_TIME:
     loadNumberArrayTime();
@@ -28,6 +45,11 @@ void OutputManager_::loadNumberArrayPrimary() {
     allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     break;
   case DISPLAY_VALUE:
+    loadNumberArrayValue();
+    allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+    break;
+  case DISPLAY_COUNTDOWN:
+    setArbitraryValue(countdownManager.getRemaining());
     loadNumberArrayValue();
     allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     break;
@@ -223,7 +245,7 @@ void OutputManager_::outputDisplay() {
       _blankTubesTemp;
 
     switch(_outputMode) {
-      case timeMode:
+      case primaryMode:
       case valueMode: {
         // Trigger scolling and fading - scolling takes precendence
         // _suppressEffects stops any effects for ACP
@@ -477,7 +499,7 @@ void OutputManager_::applyBlanking() {
 // ************************************************************
 void OutputManager_::triggerStunts() {
   // only trigger stunts in time mode
-  if (_outputMode != timeMode)
+  if (_outputMode != primaryMode)
     return;
 
   if (_acpOffset == 0) {
@@ -515,7 +537,7 @@ void OutputManager_::triggerStunts() {
       debugMsgOtm("Triggering Slots mode: " + String(cc->slotsMode));
       #endif
 
-      _outputMode = slotsMode;
+      _outputMode = secondaryMode;
       setCurrentTransition();
       activeTransition->start(nowMillis);
     }
@@ -574,7 +596,7 @@ void OutputManager_::processStunts() {
             #ifdef OTM_EXTENDED_DEBUG
             debugMsgOtm("ACP End");
             #endif
-            _outputMode = timeMode;
+            _outputMode = primaryMode;
           }
         } else {
           _acpTick++;
@@ -582,7 +604,7 @@ void OutputManager_::processStunts() {
       }
       break;
     }
-    case slotsMode: {
+    case secondaryMode: {
       if (activeTransition->isMessageOnDisplay(nowMillis)) {
         // Continue slots transition
         bool msgDisplaying = activeTransition->runEffect(nowMillis, cc->blankLeading);
@@ -594,7 +616,7 @@ void OutputManager_::processStunts() {
         #ifdef OTM_EXTENDED_DEBUG
         debugMsgOtm("Ending slots");
         #endif
-        _outputMode = timeMode;
+        _outputMode = primaryMode;
       }
       break;        
     }
@@ -602,6 +624,8 @@ void OutputManager_::processStunts() {
       break;
   }
 }
+
+// ----------------------------------- ACP Handling -----------------------------------
 
 // ************************************************************
 // The number of the next ACP mode
@@ -652,6 +676,8 @@ void OutputManager_::setNextACPMode() {
   cc->acpMode = getNextACPMode();
 }
 
+// ---------------------------------- Slots Handling ----------------------------------
+
 // ************************************************************
 // The number of the next Slots mode
 // ************************************************************
@@ -701,11 +727,12 @@ void OutputManager_::setNextSlotsMode() {
   cc->acpMode = getNextSlotsMode();
 }
 
+// --------------------------------------- separators --------------------------------------
+
 // ************************************************************
 // Set the sepator neons and indicator LEDs
 // ************************************************************
 void OutputManager_::processSeparators() {
-  // --------------------------------------- separators --------------------------------------
   
   switch (cc->sepMode) {
     case SEP_RAILROAD:
@@ -790,49 +817,12 @@ void OutputManager_::updateOncePerSecond() {
   // Check Slots / ACP
   triggerStunts();
 
-  if (_outputMode == acpMode || _outputMode == slotsMode) {
+  // If we are in slots or ACP we don't need to look at the rest
+  if (_outputMode == acpMode || _outputMode == secondaryMode) {
     return;
   }
 
-  #ifdef COUNTDOWN
-  // switch to countdown mode if we should be displaying it and we are not in a transition
-  if (countdownManager.getCountdownActive()) {
-    if (_outputMode == timeMode) {
-      _outputMode = valueMode;
-    }
-  } else {
-    // switch back to normal time
-    if (_outputMode == valueMode) {
-      _outputMode = timeMode;
-    }
-  }
-  #endif
-
-  if (_outputMode == timeMode) {
-    allNormal(APPLY_LEAD_0_BLANK);
-    loadNumberArrayTime();
-  }
-
-  if (_outputMode == valueMode) {
-    allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
-    setArbitraryValue(countdownManager.getRemaining());
-    loadNumberArrayValue();
-  }
-
-  #ifdef DIGIT_DIAGNOSTICS
-  if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
-    setArbitraryValue(second());
-    loadNumberArraySameValue();
-  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
-    setArbitraryValue(minute());
-    loadNumberArraySameValue();
-  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
-    #ifdef FEATURE_MENU
-    int rawEncPos = menuManager.getCurrentEncoderPos()/2;
-    while (rawEncPos < 0) rawEncPos+=60;
-    #endif
-  }
-  #endif
+  loadNumberArrayPrimary();
 }
 
 // ************************************************************

@@ -186,7 +186,7 @@ void setup()
   }
 
   // Start showing the time now that we have something to say
-  outputManager.setOutputMode(timeMode);
+  outputManager.setOutputMode(primaryMode);
 
   // -------------------------------------------------------------------------
   
@@ -285,14 +285,14 @@ void handleSwitchChanges();  // Forward declaration
 void performOncePerLoop() {
   // -------------------------------------------------------------------------------
 
+  // Diags mode on the encoder - we inject the encoder value into the output manager
   #if defined DIGIT_DIAGNOSTICS && defined FEATURE_MENU
   if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
     ldrManager.setLDRValueToMax();
     int rawEncPos = menuManager.getCurrentEncoderPos()/2;
-    while (rawEncPos < 0) rawEncPos+=60; 
+    while (rawEncPos < 0) rawEncPos+=60;
     int burnVal = rawEncPos % 60;
     outputManager.setArbitraryValue(burnVal);
-    outputManager.loadNumberArrayBurn();
   }
   #endif
 
