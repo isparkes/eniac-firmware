@@ -234,7 +234,7 @@
                 <div class="form-group" id="sw1ModeContainer">
                     <label class="control-label col-xs-3">Main display</label>
                     <div class="col-xs-4">
-                        <select class="form-control" name="main" id="main">
+                        <select class="form-control" name="pMode" id="pMode">
                             <option value="0">Time</option>
                             <option value="1">Date</option>
                             <option value="2">Value</option>
@@ -245,7 +245,7 @@
                 <div class="form-group" id="sw1ModeContainer">
                     <label class="control-label col-xs-3">Slots display</label>
                     <div class="col-xs-4">
-                        <select class="form-control" name="slots" id="slots">
+                        <select class="form-control" name="sMode" id="sMode">
                             <option value="0">Time</option>
                             <option value="1">Date</option>
                             <option value="2">Value</option>
@@ -580,9 +580,10 @@
         setCurrentRadioValue("#suppressACP", "#suppressACPOff", config.suppressACP);
         $("#blinkenLightsMode").val(config.blinkenLightsMode);
         $("#sepMode").val(config.sepMode);
-        $("#outputOnTime").val(config.outputOnTime);
         $("#sw1Mode").val(config.sw1Mode);
         $("#sw2Mode").val(config.sw2Mode);
+        $("#pMode").val(config.pMode);
+        $("#sMode").val(config.sMode);
 
         // -------------- LDR --------------
         setCurrentRadioValue("#useLDR", "#useLDROff", config.useLDR);
@@ -618,8 +619,9 @@
         $("#backlightGradient").val(config.backlightGradient);
         
         // -- Conditional elements --
-        if (config.outputOnTime < 255) {
+        if (typeof config.outputOnTime !== 'undefined') {
             $("#outputConfigContainer").prop('hidden', false);
+            $("#outputOnTime").val(config.outputOnTime);
         }
 
         if (typeof config.countdownTarget !== 'undefined') {
@@ -700,6 +702,14 @@
             postBody["sw2Mode"] = $("#sw2Mode").val();
         }
 
+        if (localConfig.pMode!=$("#pMode").val()) {
+            postBody["pMode"] = $("#pMode").val();
+        }
+
+        if (localConfig.sMode!=$("#sMode").val()) {
+            postBody["sMode"] = $("#sMode").val();
+        }
+
         // -------------- LDR --------------
 
         if (compareRadioChanged("#useLDR", localConfig.useLDR)) {
@@ -710,7 +720,7 @@
             postBody["minDim"] = $("#minDim").val();
         }
 
-        if (localConfig.minDim!=$("#setDim").val()) {
+        if (localConfig.setDim!=$("#setDim").val()) {
             postBody["setDim"] = $("#setDim").val();
         }
 
@@ -795,7 +805,7 @@
             postBody["blinkenLightsMode"] = $("#blinkenLightsMode").val();
         }
 
-        if (localConfig.slaveMode!=$("#slaveMode").val()) {
+        if ((typeof localConfig.slaveMode!=='undefined') && (localConfig.slaveMode!=$("#slaveMode").val())) {
             postBody["slaveMode"] = $("#slaveMode").val();
         }
 
@@ -803,11 +813,11 @@
             postBody["sepMode"] = $("#sepMode").val();
         }
 
-        if (localConfig.outputOnTime!=$("#outputOnTime").val()) {
+        if ((typeof localConfig.outputOnTime!=='undefined') && (localConfig.outputOnTime!=$("#outputOnTime").val())) {
             postBody["outputOnTime"] = $("#outputOnTime").val();
         }
 
-        if (localConfig.countdownTarget!=$("#countdownTarget").val()) {
+        if ((typeof localConfig.countdownTarget!=='undefined') && (localConfig.countdownTarget!=$("#countdownTarget").val())) {
             postBody["countdownTarget"] = $("#countdownTarget").val();
         }
 
