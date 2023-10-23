@@ -259,7 +259,6 @@
             const usedMemPC = (diags.sketchsize/diags.freesketch * 100).toFixed(2);
             const usedMsg = usedMemPC + '% (' + diags.sketchsize + '/' + diags.freesketch + ')';
             const heapMsg = 'current: ' + diags.heap + ',  min: ' + diags.minfreeheap;
-            $("#lastgpsraw").text(diags.lastgpsraw);
             $("#runtime").text(diags.runtime);
             $("#uptime").text(diags.uptime);
             $("#ontime").text(diags.ontime);
@@ -279,8 +278,8 @@
             $("#slaveupdates").text(diags.slavetrycount + "/" + diags.slavefailcount);
             $("#features").text(diags.features);
             $("#resetreason").text(parseResetReasons(diags.resetreason));
-            $("#sw1").text(decodeSwitchMeaning(diags.sw1, diags.sw1val));
-            $("#sw2").text(decodeSwitchMeaning(diags.sw2, diags.sw2val));
+            $("#sw1").text(decodeSwitchMeaning(diags.sw1Mode, diags.sw1val));
+            $("#sw2").text(decodeSwitchMeaning(diags.sw2Mode, diags.sw2val));
 
             if (diags.slavetrycount > 0) {
                 $("#slaveupdaterow").prop('hidden', false);
@@ -288,6 +287,10 @@
 
             if (diags.diagsMode != undefined) {
                 $("#digitDiagsContainer").prop('hidden', false);
+            }
+
+            if (diags.lastgpsraw !== '') {
+                $("#lastgpsraw").text(diags.lastgpsraw);
             }
         })
         .then(() => removeLoader());
