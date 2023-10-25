@@ -62,12 +62,6 @@ extern volatile uint8_t switchTime;
 extern volatile uint16_t impressions;
 extern portMUX_TYPE timerMux1;
 
-extern byte numberArray[DIGIT_COUNT];
-extern byte currNumberArray[DIGIT_COUNT];
-extern byte displayType[DIGIT_COUNT];
-extern int fadeState;
-extern byte scrollCounter[DIGIT_COUNT];
-
 extern unsigned int oledTimeout;
 extern unsigned int configTimeout;
 extern unsigned int flashTimeout;

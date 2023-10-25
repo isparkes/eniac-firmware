@@ -26,9 +26,8 @@ class Transition
     unsigned long _end;
     byte _regularDisplay[DIGIT_COUNT] = {0, 0, 0, 0, 0, 0};
     byte _alternateDisplay[DIGIT_COUNT] = {0, 0, 0, 0, 0, 0};
-    byte _savedDisplayType[DIGIT_COUNT] = {0, 0, 0, 0, 0, 0};
     
-    boolean wipeInWipeOut(unsigned long, boolean blankLeading);
+    boolean wipeInWipeOut(long, boolean blankLeading);
     boolean bangInBangOut(unsigned long);
     boolean scrambleInScrambleOut(unsigned long);
     unsigned long getEnd();

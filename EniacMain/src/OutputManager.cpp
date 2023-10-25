@@ -244,11 +244,11 @@ void OutputManager_::outputDisplay() {
       // forced blanking for transitions
       _blankTubesTemp;
 
+    // ------------------- Trigger scolling and fading - scolling takes precendence -------------------
     switch(_outputMode) {
       case primaryMode:
+      case secondaryMode:
       case valueMode: {
-        // Trigger scolling and fading - scolling takes precendence
-        // _suppressEffects stops any effects for ACP
         if (numberArray[i] != currNumberArray[i]) {
           // Do scrollback when we are going to 0
           if ((numberArray[i] == 0) && cc->scrollback && (scrollCounter[i] == 0)) {
@@ -281,6 +281,7 @@ void OutputManager_::outputDisplay() {
 
   uint8_t tmpSwitchTime = 0;
   if (fadeState == 1) {
+    // We're doing the last step - reset stuff and copy the digit over
     fadeState = 0;
     tmpSwitchTime = -1; // Make sure that we don't trigger the switch 
     for (byte j = 0 ; j < DIGIT_COUNT ; j++) {
@@ -452,7 +453,7 @@ void OutputManager_::outputDisplay() {
                                   bl->in2);
   }
 
-  // move the values over, respect the MUTEX on the interrupt
+  // move the values over, respect the MUTEX on the interrupt, otherwise we get visible glitches
   portENTER_CRITICAL_ISR(&timerMux1);
   val1 = tmpval1;
   val2 = tmpval2;
@@ -846,6 +847,18 @@ void OutputManager_::forceBlanking() {
 void OutputManager_::setBlankingStatusTowers(bool newStatus) {
   _blankTubes = newStatus;
 }
+
+// ************************************************************
+// Get the current display value of a given digit
+// ************************************************************
+byte OutputManager_::getCurrentDisplayDigitValue(byte digit) {
+  if (digit < DIGIT_COUNT) {
+    return numberArray[digit];
+  } else {
+    return 0;
+  }
+}
+
 
 // ************************************************************
 // Library internal singleton wiring

@@ -27,14 +27,13 @@ void Transition::start(unsigned long now) {
     // save the target display
     outputManager.loadNumberArraySecondary();
     for (int idx = 0; idx < DIGIT_COUNT ; idx++) {
-      _alternateDisplay[idx] = numberArray[idx];
+      _alternateDisplay[idx] = outputManager.numberArray[idx];
     }
 
     // save the current version of the normal display
     outputManager.loadNumberArrayPrimary();
     for (int idx = 0; idx < DIGIT_COUNT ; idx++) {
-      _regularDisplay[idx] = numberArray[idx];
-      _savedDisplayType[idx] = displayType[idx];
+      _regularDisplay[idx] = outputManager.numberArray[idx];
     }
     _started = now;
     _end = getEnd();
@@ -64,7 +63,7 @@ boolean Transition::isMessageOnDisplay(unsigned long now)
   return (now < _end);
 }
 
-boolean Transition::wipeInWipeOut(unsigned long now, boolean blankLeading)
+boolean Transition::wipeInWipeOut(long now, boolean blankLeading)
 {
   if (now < _end) {
     int msCount = now - _started;
@@ -72,13 +71,13 @@ boolean Transition::wipeInWipeOut(unsigned long now, boolean blankLeading)
     if (msCount < _effectInDuration) {
       _digit = msCount * (DIGIT_COUNT + 1) / _effectInDuration;
       if (_digit > 0)
-        displayType[_digit-1] = BLANKED;
+        outputManager.displayType[_digit-1] = BLANKED;
     }
     // Wipe In date values
     else if (msCount < _effectInDuration * 2) {
       _digit = (msCount - _effectInDuration) * DIGIT_COUNT / _effectInDuration;
-      numberArray[_digit] = _alternateDisplay[_digit];
-      displayType[_digit] =  NORMAL;
+      outputManager.numberArray[_digit] = _alternateDisplay[_digit];
+      outputManager.displayType[_digit] =  NORMAL;
     }
     // Hold date display
     else if (msCount < _effectInDuration * 2 + _holdDuration) {
@@ -87,14 +86,14 @@ boolean Transition::wipeInWipeOut(unsigned long now, boolean blankLeading)
     // Wipe Out blanking
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration) {
       _digit = (msCount - _holdDuration - _effectInDuration * 2) * DIGIT_COUNT / _effectOutDuration;
-      displayType[_digit] = BLANKED;
+      outputManager.displayType[_digit] = BLANKED;
     }
     // Wipe Out to time values
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration * 2) {
       _digit = (msCount - _holdDuration - _effectInDuration * 2 - _effectOutDuration) * DIGIT_COUNT / _effectOutDuration;
-      numberArray[_digit] = _regularDisplay[_digit];
+      outputManager.numberArray[_digit] = _regularDisplay[_digit];
       if (!blankLeading || _digit != 0 || _regularDisplay[_digit] != 0)
-        displayType[_digit] = NORMAL;
+        outputManager.displayType[_digit] = NORMAL;
     }
     // We now return you to your regularly scheduled program
     else {
@@ -150,7 +149,7 @@ boolean Transition::scrambleInScrambleOut(unsigned long now)
     if (msCount < _effectInDuration) {
       outputManager.incrementNumberArray();
     }
-    // Bang In date values
+    // Scramble In date values
     else if (msCount < _effectInDuration * 2) {
       outputManager.loadNumberArraySecondary();
     }
@@ -162,7 +161,7 @@ boolean Transition::scrambleInScrambleOut(unsigned long now)
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration) {
       outputManager.incrementNumberArray();
     }
-    // Bang Out to time values
+    // Scramble Out to time values
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration * 2) {
       outputManager.loadNumberArrayPrimary();
     }

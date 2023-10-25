@@ -108,6 +108,7 @@ enum outputModes {                          //                                  
 };
 
 class OutputManager_ {
+  friend class Transition;
   private:
     OutputManager_() = default; // Make constructor private
 
@@ -151,6 +152,8 @@ class OutputManager_ {
     void loadNumberArrayPrimary();
     void loadNumberArraySecondary();
     void setArbitraryValue(unsigned int value);
+
+    byte getCurrentDisplayDigitValue(byte digit);
   private:
     // Anti Cathode Poisoning management
     int _acpOffset = 0;
@@ -166,6 +169,15 @@ class OutputManager_ {
     bool _blankTubes;
     bool _blankSeparators;
     bool _blankTubesTemp;
+
+    byte numberArray[DIGIT_COUNT]     = {0, 0, 0, 0, 0, 0};
+    byte currNumberArray[DIGIT_COUNT] = {0, 0, 0, 0, 0, 0};
+    byte displayType[DIGIT_COUNT]     = {NORMAL, NORMAL, NORMAL, NORMAL, NORMAL, NORMAL};
+    int fadeState                     = 0;
+    byte scrollCounter[DIGIT_COUNT]   = {0, 0, 0, 0, 0, 0};
+    byte valueDisplayTime             = 0;
+    byte valueToShow[3]               = {0, 0, 0};
+    byte valueDisplayType[3]          = {0x33, 0x33, 0x33}; // All normal by default
 
     outputModes _outputMode;
 
