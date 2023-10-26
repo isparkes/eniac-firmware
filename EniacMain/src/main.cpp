@@ -522,6 +522,16 @@ void handleSwitchChanges() {
   bool sw2State = (digitalRead(Switch2Pin) == BTNOnstate);
 
   handleSwitchChange(cc->sw2Mode, sw2State);
+
+  // If neither of the switches is set to "inhibit" something undo the inhibits
+  // This is needed because we can change the meaning of the switches and
+  // end up leaving the old state unchanged.
+  if (!((cc->sw1Mode == SW_SLAVE_INHIBIT) || (cc->sw2Mode == SW_SLAVE_INHIBIT))) {
+    handleSwitchChange(SW_SLAVE_INHIBIT, false);
+  }
+  if (!((cc->sw1Mode == SW_COUNTDOWN_INHIBIT) || (cc->sw2Mode == SW_COUNTDOWN_INHIBIT))) {
+    handleSwitchChange(SW_COUNTDOWN_INHIBIT, false);
+  }
 }
 
 // ************************************************************
