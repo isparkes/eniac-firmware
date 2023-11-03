@@ -31,6 +31,9 @@
 #ifdef DECATRON_SLAVE
 #include "SlaveManagerDecatron.h"
 #endif
+#ifdef TICKERS
+#include <HTTPClient.h>
+#endif
 
 // -------------------------------------------------------------------------------
 
@@ -89,3 +92,7 @@ void resetAll();
 void enableWatchdog();
 void disableWatchdog();
 void feedWatchdog();
+
+#ifdef TICKERS
+int getBTCPrice();
+#endif

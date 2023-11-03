@@ -42,7 +42,7 @@
 #define ACP_MODE_MAX                    3
 #define ACP_MODE_DEFAULT                2
 
-#define ACP_TICKS_PER_DIGIT             25
+#define ACP_TICKS_PER_DIGIT             40
 #define ACP_TRIGGER_SECOND              15
 
 // -------------------------------------------------------------------------------
@@ -152,8 +152,13 @@ class OutputManager_ {
     void loadNumberArrayPrimary();
     void loadNumberArraySecondary();
     void setArbitraryValue(unsigned int value);
+    void setArbitraryValueDisplayTime(unsigned int value);
 
     byte getCurrentDisplayDigitValue(byte digit);
+
+    #ifdef OTM_EXTENDED_DEBUG
+    void dumpNumberArrayValues();
+    #endif
   private:
     // Anti Cathode Poisoning management
     int _acpOffset = 0;
@@ -189,6 +194,7 @@ class OutputManager_ {
     void loadNumberArrayTime();
     void loadNumberArrayDate();
     void loadNumberArrayValue();
+    void loadNumberArrayInternal(byte mode);
 
     void allNormal(bool leadingBlank);
     void allBlanked();

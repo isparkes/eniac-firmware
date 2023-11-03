@@ -81,6 +81,7 @@ void setup()
 
   for (int i = 0 ; i <= 20 ; i++) {
     outputManager.setArbitraryValue(i%10);
+    outputManager.setArbitraryValueDisplayTime(1);
     outputManager.loadNumberArraySameValue();
     outputManager.outputDisplay();
     delay(100);
@@ -293,6 +294,7 @@ void performOncePerLoop() {
     while (rawEncPos < 0) rawEncPos+=60;
     int burnVal = rawEncPos % 60;
     outputManager.setArbitraryValue(burnVal);
+    outputManager.setArbitraryValueDisplayTime(10);
   }
   #endif
 
@@ -427,10 +429,21 @@ void performOncePerSecondProcessing() {
   menuManager.menuOncePerSecond();
   #endif
 
+  #ifdef TICKERS
+  getBTCPrice();
+  #endif
+
   // -------------------------------------------------------------------------------
   debugManager.debugAutoOffCheck();
 
   // -------------------------------------------------------------------------------
+
+  #ifdef OTM_EXTENDED_DEBUG
+  outputManager.dumpNumberArrayValues();
+  #endif
+
+  // -------------------------------------------------------------------------------
+
   feedWatchdog();
 }
 

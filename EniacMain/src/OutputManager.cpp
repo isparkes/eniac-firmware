@@ -5,7 +5,13 @@
 // ************************************************************
 void OutputManager_::setArbitraryValue(unsigned int newValue) {
   _arbitraryValue = newValue;
-  _arbitraryValueEndTime = nowMillis + 10000;
+}
+
+// ************************************************************
+// Load the display according to the value we are told to use
+// ************************************************************
+void OutputManager_::setArbitraryValueDisplayTime(unsigned int newValue) {
+  _arbitraryValueEndTime = nowMillis + 1000 * newValue;
 }
 
 // ************************************************************
@@ -22,9 +28,11 @@ void OutputManager_::loadNumberArrayPrimary() {
   #ifdef DIGIT_DIAGNOSTICS
   if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
     setArbitraryValue(second());
+    setArbitraryValueDisplayTime(10);
     tmpMode = DISPLAY_VALUE;
   } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
     setArbitraryValue(minute());
+    setArbitraryValueDisplayTime(10);
     tmpMode = DISPLAY_VALUE;
   } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
     #ifdef FEATURE_MENU
@@ -34,6 +42,22 @@ void OutputManager_::loadNumberArrayPrimary() {
   }
   #endif
 
+  debugMsgOtm("Primary Mode: " + String(tmpMode));
+
+  loadNumberArrayInternal(tmpMode);
+}
+
+// ************************************************************
+// Load the display according to the value we are told to use
+// ************************************************************
+void OutputManager_::loadNumberArraySecondary() {
+  loadNumberArrayInternal(cc->sMode);
+}
+
+// ************************************************************
+// Load the display according to the value we are told to use
+// ************************************************************
+void OutputManager_::loadNumberArrayInternal(byte tmpMode) {
   switch (tmpMode) {
   default:
   case DISPLAY_TIME:
@@ -50,27 +74,9 @@ void OutputManager_::loadNumberArrayPrimary() {
     break;
   case DISPLAY_COUNTDOWN:
     setArbitraryValue(countdownManager.getRemaining());
+    setArbitraryValueDisplayTime(10);
     loadNumberArrayValue();
     allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
-    break;
-  }
-}
-
-// ************************************************************
-// Load the display according to the value we are told to use
-// ************************************************************
-void OutputManager_::loadNumberArraySecondary() {
-  switch (cc->sMode)
-  {
-  default:
-  case DISPLAY_TIME:
-    loadNumberArrayTime();
-    break;
-  case DISPLAY_DATE:
-    loadNumberArrayDate();
-    break;
-  case DISPLAY_VALUE:
-    loadNumberArrayValue();
     break;
   }
 }
@@ -162,15 +168,15 @@ void OutputManager_::loadNumberArrayDate() {
 }
 
 // ************************************************************
-// Break the time into displayable digits
+// Spin the digits, used for the "scramble" effect
 // ************************************************************
 void OutputManager_::incrementNumberArray() {
-  numberArray[S1]  = (numberArray[S1]  +1)%10;
-  numberArray[S10] = ( numberArray[S10]+1)%10;
-  numberArray[M1]  = ( numberArray[M1] +1)%10;
-  numberArray[M10] = ( numberArray[M10]+1)%10;
-  numberArray[H1]  = ( numberArray[H1] +1)%10;
-  numberArray[H10] = ( numberArray[H10]+1)%10;
+  numberArray[S1]  = (numberArray[S1] +1)%10;
+  numberArray[S10] = (numberArray[S10]+1)%10;
+  numberArray[M1]  = (numberArray[M1] +1)%10;
+  numberArray[M10] = (numberArray[M10]+1)%10;
+  numberArray[H1]  = (numberArray[H1] +1)%10;
+  numberArray[H10] = (numberArray[H10]+1)%10;
 }
 
 // ************************************************************
@@ -231,6 +237,7 @@ void OutputManager_::outputDisplay() {
   #ifdef FEATURE_BLINKENLIGHTS
   blinkenlights_t *bl = blinkenlightsManager.getBlinkenlights();
   #endif
+
   bool digitBlanked[DIGIT_COUNT];
   byte tmpNumberArray[DIGIT_COUNT];
 
@@ -247,7 +254,6 @@ void OutputManager_::outputDisplay() {
     // ------------------- Trigger scolling and fading - scolling takes precendence -------------------
     switch(_outputMode) {
       case primaryMode:
-      case secondaryMode:
       case valueMode: {
         if (numberArray[i] != currNumberArray[i]) {
           // Do scrollback when we are going to 0
@@ -585,20 +591,22 @@ void OutputManager_::processStunts() {
       if (_acpOffset > 0) {
         if (_acpTick >= ACP_TICKS_PER_DIGIT) {
           _acpTick = 0;
-          _acpOffset++;
 
           #ifdef OTM_EXTENDED_DEBUG
-          debugMsgOtm("ACP: " + String(_acpOffset-2));
+          debugMsgOtm("ACP: " + String(_acpOffset-1));
           #endif
-          setArbitraryValue(_acpOffset-2);
+          setArbitraryValue(_acpOffset-1);
+          setArbitraryValueDisplayTime(1);
           loadNumberArraySameValue();
-          if (_acpOffset == 12) {
+          if (_acpOffset == 11) {
             _acpOffset = 0;
             #ifdef OTM_EXTENDED_DEBUG
             debugMsgOtm("ACP End");
             #endif
             _outputMode = primaryMode;
+            setArbitraryValueDisplayTime(0);
           }
+          _acpOffset++;
         } else {
           _acpTick++;
         }
@@ -725,7 +733,7 @@ void OutputManager_::setSlotsMode(byte newMode) {
 }
 
 void OutputManager_::setNextSlotsMode() {
-  cc->acpMode = getNextSlotsMode();
+  cc->slotsMode = getNextSlotsMode();
 }
 
 // --------------------------------------- separators --------------------------------------
@@ -859,6 +867,16 @@ byte OutputManager_::getCurrentDisplayDigitValue(byte digit) {
   }
 }
 
+#ifdef OTM_EXTENDED_DEBUG
+void OutputManager_::dumpNumberArrayValues() {
+  String val = "Number Array: " + 
+    String(numberArray[0]) + String(numberArray[1]) + ":" + 
+    String(numberArray[2]) + String(numberArray[3]) + ":" +
+    String(numberArray[4]) + String(numberArray[5]);
+  debugMsgOtm(val);
+
+}
+#endif
 
 // ************************************************************
 // Library internal singleton wiring
