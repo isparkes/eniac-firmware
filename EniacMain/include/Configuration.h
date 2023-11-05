@@ -12,7 +12,7 @@
 // -------------------------------------------------------------------------------
 
 // Add the dignostic calls to the GUI
-#define DIGIT_DIAGNOSTICS           // DIGIT_DIAGNOSTICS | DIGIT_DIAGNOSTICS_OFF
+#define DIGIT_DIAGNOSTICS_OFF           // DIGIT_DIAGNOSTICS | DIGIT_DIAGNOSTICS_OFF
 
 // -------------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@
 // -------------------------------------------------------------------------------
 
 // Countdown functionality
-#define COUNTDOWN_OFF               // COUNTDOWN | COUNTDOWN_OFF
+#define COUNTDOWN               // COUNTDOWN | COUNTDOWN_OFF
 
 // -------------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@
 
 // What type of slave we have: Either Nixie slave over I2C or the Decatron slave over the 1PPS GPIO
 // If you don't want a slave, set "DECATRON_SLAVE"
-#define DECATRON_SLAVE              // DECATRON_SLAVE | NIXIE_SLAVE
+#define NIXIE_SLAVE              // DECATRON_SLAVE | NIXIE_SLAVE
 
 // -------------------------------------------------------------------------------
 

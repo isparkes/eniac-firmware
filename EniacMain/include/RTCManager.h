@@ -38,7 +38,7 @@ class RtcManager_ {
     time_t getRTCTimeAsTimeT();    
     bool getRTCValid();
 
-    bool setTimeFromUTCSource(time_t currentTime);
+    bool setRTCTimeFromUTCSource(time_t currentTime);
     unsigned long getLastRTCSetTime();
 private:
     RtcManager_() = default; // Make constructor private
