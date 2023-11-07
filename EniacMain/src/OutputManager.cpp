@@ -58,6 +58,13 @@ void OutputManager_::loadNumberArraySecondary() {
 // Load the display according to the value we are told to use
 // ************************************************************
 void OutputManager_::loadNumberArrayInternal(byte tmpMode) {
+  if (tmpMode == DISPLAY_COUNTDOWN) {
+    if (!countdownManager.getCountdownActive()) {
+      // We have finished countdown - show time instead 
+      tmpMode = DISPLAY_TIME;
+    }
+  }
+
   switch (tmpMode) {
   default:
   case DISPLAY_TIME:

@@ -7,7 +7,7 @@
 // -------------------------------------------------------------------------------
 
 // Add debug statments to code - needs extra space
-#define DEBUG_ON                   // DEBUG_ON | DEBUG_OFF
+#define DEBUG_OFF                   // DEBUG_ON | DEBUG_OFF
 
 // -------------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@
 
 // What type of slave we have: Either Nixie slave over I2C or the Decatron slave over the 1PPS GPIO
 // If you don't want a slave, set "DECATRON_SLAVE"
-#define NIXIE_SLAVE              // DECATRON_SLAVE | NIXIE_SLAVE
+#define DECATRON_SLAVE              // DECATRON_SLAVE | NIXIE_SLAVE
 
 // -------------------------------------------------------------------------------
 
