@@ -98,6 +98,8 @@
 // Value mode when set by a REST push can override the primary mode
 
 typedef void (*DebugCallback) (String);
+
+// We display the mode with the highest priority 
 //                                                                           Priority |   Stunts    | Blanking
 enum outputModes {                          //                                        | Fade Scroll |     
   acpMode,                                  // acp                               1    |   N     N   |    N

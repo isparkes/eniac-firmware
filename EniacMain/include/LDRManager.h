@@ -43,23 +43,38 @@ class LDRManager_
 
   public:
     void setUp();
-    void setUpPWM();
+
+    void recalculateVariables();
 
     void  getDimmingFromLDR();
     int   getLDRValue();
     float getLDRValuePct();
-    bool  isMinLDRValue();
-    void  setLDRValueToMax();
-    void  setLDRValueToMin();
-    void  resetFixedLDRValue();
+    bool  isMinDim();
+    bool  isMaxDim();
+    void  setLDRValueToMin(bool newState);
+    void  setLDRValueToMax(bool newState);
+    void  setLDRValueToMaxACP(bool newState);
     bool  getIsFixedLDRValue();
   private:
+    void setUpPWM();
+
     double sensorLDRSmoothed = 0;
     double sensorFactor = (double)SENSOR_SENSIT_DEFAULT / 100.0;
     int    sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
+
     int   _ldrValue = 0;
     bool  _isMinDim;
-    bool  _locked;
+    bool  _isMaxDim;
+    bool  _setMinDim;
+    bool  _setMaxDim;
+    bool  _setMaxDimACP;
+
+    int   _minDimLDR;
+    int   _maxDimLDR;
+    int   _setDimLDR;
+    double _offset;
+    double _factor;
+
     const int LDRPWMChannel = 0;
 };
 

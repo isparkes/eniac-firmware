@@ -231,25 +231,28 @@
                     </div>
                 </div>
 
-                <div class="form-group" id="sw1ModeContainer">
+                <div class="form-group" id="pModeContainer">
                     <label class="control-label col-xs-3">Main display</label>
                     <div class="col-xs-4">
                         <select class="form-control" name="pMode" id="pMode">
                             <option value="0">Time</option>
                             <option value="1">Date</option>
                             <option value="2">Value</option>
-                            <option value="3">Countdown</option>
+                            <option id="pModeCountdown" value="3">Countdown</option>
+                            <option id="pModeTicker" value="4" disabled>Ticker</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="form-group" id="sw1ModeContainer">
+                <div class="form-group" id="sModeContainer">
                     <label class="control-label col-xs-3">Slots display</label>
                     <div class="col-xs-4">
                         <select class="form-control" name="sMode" id="sMode">
                             <option value="0">Time</option>
                             <option value="1">Date</option>
                             <option value="2">Value</option>
+                            <option id="sModeCountdown" value="3">Countdown</option>
+                            <option id="sModeTicker" value="4" disabled>Ticker</option>
                         </select>
                     </div>
                 </div>
@@ -640,7 +643,8 @@
         handleFadeClick($("#fade"));
         handleLDRClick($("#useLDR"));
         handleDayBlankingChange();
-        handleDayBacklightModeChange()
+        handleDayBacklightModeChange();
+        handleCountdownDisplayOption();
     };
 
     postConfig = function postConfig() {
@@ -938,6 +942,19 @@
             $("#backlightGradient").prop('disabled', true);
         } else {
             $("#backlightGradient").prop('disabled', false);
+        }
+    }
+
+    function handleCountdownDisplayOption() {
+        // If the countdown date is in the past, disable the options in the display selector
+        if ((typeof localConfig.countdownTarget === 'undefined') || Date.parse($("#countdownTarget").val()) < Date.now()) {
+            console.log("Disabling countdown options");
+            $("#pModeCountdown").prop('disabled', true);
+            $("#sModeCountdown").prop('disabled', true);
+        } else {
+            console.log("Enabling countdown options");
+            $("#pModeCountdown").prop('disabled', false);
+            $("#sModeCountdown").prop('disabled', false);
         }
     }
 

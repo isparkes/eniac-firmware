@@ -75,9 +75,11 @@ void setup()
 
   // -------------------------------------------------------------------------
   // Startup test
-  ldrManager.setUpPWM();
-  ldrManager.setLDRValueToMax();
-  outputManager.setOutputMode(diagsMode);
+  ldrManager.setUp();
+  ldrManager.setLDRValueToMax(true);
+
+  // Needed to action the PWM
+  ldrManager.getDimmingFromLDR();
 
   for (int i = 0 ; i <= 20 ; i++) {
     outputManager.setArbitraryValue(i%10);
@@ -86,6 +88,7 @@ void setup()
     outputManager.outputDisplay();
     delay(100);
   }
+  ldrManager.setLDRValueToMax(false);
 
   // -------------------------------------------------------------------------
   
@@ -315,7 +318,7 @@ void performOncePerLoop() {
   // Diags mode on the encoder - we inject the encoder value into the output manager
   #if defined DIGIT_DIAGNOSTICS && defined FEATURE_MENU
   if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
-    ldrManager.setLDRValueToMax();
+    ldrManager.setLDRValueToMax(true);
     int rawEncPos = menuManager.getCurrentEncoderPos()/2;
     while (rawEncPos < 0) rawEncPos+=60;
     int burnVal = rawEncPos % 60;
@@ -326,16 +329,10 @@ void performOncePerLoop() {
 
   // -------------------------------------------------------------------------------
   
-  // Dim except when we are in ACP mode
-  if (outputManager.getOutputMode() == acpMode) {
-    ldrManager.setLDRValueToMax();
-  } else {
-    ldrManager.resetFixedLDRValue();
-    ldrManager.getDimmingFromLDR();
-    #ifdef FEATURE_BACKLIGHTS
-    ledManager.setLDRValue(ldrManager.getLDRValue());
-    #endif
-  }
+  ldrManager.getDimmingFromLDR();
+  #ifdef FEATURE_BACKLIGHTS
+  ledManager.setLDRValue(ldrManager.getLDRValue());
+  #endif
 
   // -------------------------------------------------------------------------------
   
@@ -419,6 +416,10 @@ void performOncePerSecondProcessing() {
   }
   #endif
 
+  // -------------------------------------------------------------------------------
+
+  ldrManager.recalculateVariables();
+    
   // -------------------------------------------------------------------------------
   
   #ifdef FEATURE_BACKLIGHTS
@@ -509,12 +510,12 @@ void handleSwitchChange(byte mode, bool state) {
     }
     case SW_MIN_DIM: {
       // The switch "on" imposes min dimming
-      if ((state) && !ldrManager.getIsFixedLDRValue()) {
-        ldrManager.setLDRValueToMin();
+      if ((state) && !ldrManager.isMinDim()) {
+        ldrManager.setLDRValueToMin(true);
       }
       // Switch off resets it
-      if ((!state) && ldrManager.getIsFixedLDRValue()) {
-        ldrManager.resetFixedLDRValue();
+      if ((!state) && ldrManager.isMinDim()) {
+        ldrManager.setLDRValueToMin(false);
       }
       break;
     }

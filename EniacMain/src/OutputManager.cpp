@@ -518,12 +518,15 @@ void OutputManager_::triggerStunts() {
 
   if (_acpOffset == 0) {
     if (second() == ACP_TRIGGER_SECOND) {
+      #ifdef OTM_EXTENDED_DEBUG
+      debugMsgOtm("Check ACP trigger");
+      #endif
       if ((cc->acpMode == ACP_MODE_1M) ||
           ((cc->acpMode == ACP_MODE_10M) && (minute() % 10 == 9)) || 
           ((cc->acpMode == ACP_MODE_1H) && (minute() == 9))) {
         if (cc->useLDR) {
           if (cc->suppressACP) {
-            if (!ldrManager.isMinLDRValue()) {
+            if (!ldrManager.isMinDim()) {
               // If we have suppress ACP set, only trigger when not at min brightness
               _acpOffset = 1;
             }
@@ -541,6 +544,7 @@ void OutputManager_::triggerStunts() {
       debugMsgOtm("Triggering ACP");
       #endif
       _outputMode = acpMode;
+      ldrManager.setLDRValueToMaxACP(true);
     }
   }
 
@@ -612,8 +616,11 @@ void OutputManager_::processStunts() {
             #endif
             _outputMode = primaryMode;
             setArbitraryValueDisplayTime(0);
+            setArbitraryValue(0);
+            ldrManager.setLDRValueToMaxACP(false);
+          } else {
+            _acpOffset++;
           }
-          _acpOffset++;
         } else {
           _acpTick++;
         }
