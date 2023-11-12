@@ -11,18 +11,26 @@
 // RTC and the internal variables.
 //
 // If an update comes from GPS and GPS is the primary time
-// source, we update the RTC once per hours as long as the GPS
+// source, we update the RTC once per hour as long as the GPS
 // signal is still considered valid (set by the variable
 //  GPS_READING_VALIDITY_SECS).
 // 
 // If we get an update from NTP and NTP is the primary time
 // source, we set the RTC every update, given that it is less
-// frequent.
+// frequent (currently 7261 seconds by default), set by GUI if
+// required, but defaulted from NTP_UPDATE_INTERVAL_DEFAULT.
 //
 // We read the RTC every minute, and set the internal time
 // (in local time - all other readings are kept in UTC).
 //
-// Clock display is taken from the internal time.
+// The clock display is taken from the internal time.
+//
+// UTC offset handling is performed twice at startup - the first 
+// call gets us tothe right day, month and year, and the second
+// call sets the offset precisely.
+//
+// After startup, we call the UTC offset calculation once per
+// Hour, using the current best primary time source.
 // ************************************************************
 
 #include "TZManager.h"
@@ -84,6 +92,16 @@ int TZManager_::getCurrentUTCIsDST() {
 }
 
 // ************************************************************
+// Perform regular slow update tasks:
+//  - Check TZ offset changes
+//  - If using GPS, push down the updated time to the RTC
+// ************************************************************
+void TZManager_::tzmOncePerHour() {
+  calculateCurrentOffsetFromTimeT(getRawUTCTimeFromTimeSource(getPrimaryTimeSource()));
+  setUTCTimeFromTimeSourceHourly();
+}
+
+// ************************************************************
 // Update the UTC value from this time source. If NTP, then
 // we update the RTC time and internal time to the value.
 // ************************************************************
@@ -110,6 +128,9 @@ void TZManager_::setUTCTimeFromTimeSource(byte timesource, unsigned long readTim
         
         // Set the internal time
         setInternalTimeFromRTC();
+        
+        // Make sure that the offset is right
+        calculateCurrentOffsetFromTimeT(getRawUTCTimeFromTimeSource(getPrimaryTimeSource()));
       }
   } else if (timesource == TIME_SOURCE_NTP) {
 
@@ -121,6 +142,9 @@ void TZManager_::setUTCTimeFromTimeSource(byte timesource, unsigned long readTim
 
     // Set the internal time
     setInternalTimeFromRTC();
+
+    // Make sure that the offset is right
+    calculateCurrentOffsetFromTimeT(getRawUTCTimeFromTimeSource(getPrimaryTimeSource()));
   } else if (timesource == TIME_SOURCE_RTC) {
     _utctime[timesource] = utcTime;
     _lastupdatetime[timesource] = readTime;
@@ -144,14 +168,14 @@ void TZManager_::setUTCTimeFromTimeSource(byte timesource, unsigned long readTim
 // ************************************************************
 void TZManager_::setRTCTimeFromTimeSource(unsigned long readTime, time_t utcTime) {
   debugMsgTzm("Set RTC time to time " + String(utcTime));
-  rtcManager.setTimeFromUTCSource(utcTime);
+  rtcManager.setRTCTimeFromUTCSource(utcTime);
   _utctime[TIME_SOURCE_RTC] = utcTime;
   _lastupdatetime[TIME_SOURCE_RTC] = readTime;
 }
 
 // ************************************************************
 // Update the UTC value from the GPS time source. We don't do 
-// this on event, because the events gome once per second, and
+// this on event, because the events come once per second, and
 // that is too often.
 // ************************************************************
 void TZManager_::setUTCTimeFromTimeSourceHourly() {
@@ -160,7 +184,7 @@ void TZManager_::setUTCTimeFromTimeSourceHourly() {
     if (offset < GPS_READING_VALIDITY_SECS) {
       time_t nowtime_t = _utctime[TIME_SOURCE_GPS] + offset;
 
-      rtcManager.setTimeFromUTCSource(nowtime_t);
+      rtcManager.setRTCTimeFromUTCSource(nowtime_t);
       _utctime[TIME_SOURCE_RTC] = nowtime_t;
       _lastupdatetime[TIME_SOURCE_RTC] = nowMillis;
       setInternalTimeFromRTC();

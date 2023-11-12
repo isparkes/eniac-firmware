@@ -185,6 +185,32 @@ void setup()
     debugMsgMain("RTC NOT found");
   }
 
+  // ----------- test routine for UTC offset bug ------------
+
+  // tzManager.setTZS("PDT8PST,M3.2.0,M11.1.0");
+
+  // unsigned long t1 = 1699167600UL;
+  // tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_NTP, t1, t1);
+  // tzManager.calculateCurrentOffsetFromTimeT(t1);
+  // debugMsgMain("!!! Offset: " + String(tzManager.getCurrentUTCOffset()));
+  // debugMsgMain("!!! LocalTime t1: " + tzManager.localtimeToReadableString(t1));
+
+  // unsigned long t2 = 1699167600UL + 3600UL;
+
+  // tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_NTP, t2, t2);
+  // tzManager.calculateCurrentOffsetFromTimeT(t2);
+  // debugMsgMain("!!! Offset: " + String(tzManager.getCurrentUTCOffset()));
+  // debugMsgMain("!!! LocalTime t2: " + tzManager.localtimeToReadableString(t2));
+
+  // unsigned long t3 = 1699167600UL + 3600UL + 3600UL;
+
+  // tzManager.setUTCTimeFromTimeSource(TIME_SOURCE_NTP, t3, t3);
+  // tzManager.calculateCurrentOffsetFromTimeT(t3);
+  // debugMsgMain("!!! Offset: " + String(tzManager.getCurrentUTCOffset()));
+  // debugMsgMain("!!! LocalTime t3: " + tzManager.localtimeToReadableString(t3));
+
+  // -------------------------------------------------------------------------
+  
   // Start showing the time now that we have something to say
   outputManager.setOutputMode(timeMode);
 
@@ -562,11 +588,12 @@ void performOncePerHourProcessing() {
   debugMsgMain("---> OncePerHourProcessing");
 
   #ifdef FEATURE_MENU
+  // Menu updates once per hour - currently not used
   menuManager.menuOncePerHour();
   #endif
   
-  tzManager.setUTCTimeFromTimeSourceHourly();
-  tzManager.calculateCurrentOffsetFromTimeT(tzManager.getRawUTCTimeFromTimeSource(tzManager.getPrimaryTimeSource()));
+  // Update UTC offset and sync RTC to GPS if used
+  tzManager.tzmOncePerHour();
 
   rtcManager.testRTCTimeProvider();
 

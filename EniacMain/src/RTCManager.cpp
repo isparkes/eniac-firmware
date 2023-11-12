@@ -181,7 +181,7 @@ time_t RtcManager_::getRTCTimeAsTimeT() {
 // ************************************************************
 // Set the time from the value we get back from a UTC time source
 // ************************************************************
-bool RtcManager_::setTimeFromUTCSource(time_t currentTime) {
+bool RtcManager_::setRTCTimeFromUTCSource(time_t currentTime) {
 
   struct tm info_gm;
   gmtime_r(&currentTime, &info_gm);

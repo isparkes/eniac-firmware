@@ -36,6 +36,8 @@ class TZManager_ {
     int    getCurrentUTCIsDST();
     void   calculateCurrentOffsetFromTimeT(time_t timeToCheck);
 
+    void tzmOncePerHour();
+
     String getLocalTimeFromTimeSource(byte timesource);
     unsigned long getTimeLastSetFromTimeSource(byte timesource);
     void   setUTCTimeFromTimeSourceHourly();
