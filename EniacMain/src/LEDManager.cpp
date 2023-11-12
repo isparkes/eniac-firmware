@@ -455,7 +455,7 @@ void LEDManager_::setTowerBlanking(boolean newStatus) {
 }
 
 // ************************************************************
-// Find the colour wheel inverse of the input RGB colour
+// Find the colour wheel offset of the input RGB colour
 // ************************************************************
 void LEDManager_::adjustRGB(uint8_t red, uint8_t green, uint8_t blue, uint8_t& inv_red, uint8_t& inv_green, uint8_t& inv_blue, double hueOffset) {
   double hue, saturation, value;

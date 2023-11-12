@@ -47,10 +47,11 @@ byte valueDisplayType[3]          = {0x33, 0x33, 0x33}; // All normal by default
 // ************************************************************
 unsigned long nowMillis = 0;
 unsigned long previousMillisWiFi = 0;
-unsigned long lastMillis = 0;
+unsigned long lastSecondStartMillis = 0;
 int lastSecond = 0;
 boolean triggeredThisSec = false;
-int secsDeltaAbs;
+int secsDeltaAbs;                   // Sawtooth 0..1000 every sec
+int secsDelta;                      // Triangle 0..1000..0 every 2 secs
 bool upOrDown;  
 
 // Current normalised LDR value
