@@ -53,7 +53,7 @@ class SlaveManagerNixie_ {
     unsigned int getFailCount();
     void setBlankingStatus(bool newStatus);
   private:
-    bool _slaveEnabled;
+    bool _slaveEnabled = true;
     bool _blanked;
     unsigned int _slaveModeFailCount;
     unsigned int _slaveModeTryCount;

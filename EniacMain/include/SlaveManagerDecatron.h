@@ -26,7 +26,7 @@ class SlaveManagerDecatron_ {
     void updateOncePerMinute();
     void setSlaveEnabled(bool newSlaveStatus);
   private:
-    bool _slaveEnabled;
+    bool _slaveEnabled = true;
 };
 
 extern SlaveManagerDecatron_ &slaveManagerDecatron;
