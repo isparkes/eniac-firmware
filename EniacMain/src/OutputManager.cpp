@@ -639,7 +639,7 @@ void OutputManager_::setSlotsMode(byte newMode) {
 }
 
 void OutputManager_::setNextSlotsMode() {
-  cc->acpMode = getNextSlotsMode();
+  cc->slotsMode = getNextSlotsMode();
 }
 
 // ************************************************************
