@@ -275,29 +275,6 @@ void setup()
 
 }
 
-// ************************************************************
-// Set the seconds tick led(s) and the back lights
-// ************************************************************
-void setLeds()
-{
-  secsDeltaAbs = (nowMillis - lastMillis);
-  if (secsDeltaAbs > 1000) {secsDeltaAbs = 1000;}
-  upOrDown = (second() % 2) == 0;
-  
-  #ifdef FEATURE_BACKLIGHTS
-  unsigned int secsDelta;
-  if (upOrDown) {
-    secsDelta = secsDeltaAbs;
-  } else {
-    secsDelta = 1000 - secsDeltaAbs;
-  }
-
-  // output the backlight/underlight LEDs
-  ledManager.setPulseValue(secsDelta);
-  ledManager.processLedStatus();
-  #endif
-}
-
 #if defined DIGIT_DIAGNOSTICS && defined FEATURE_BACKLIGHTS
 // ************************************************************
 // Set the seconds tick led(s) and the back lights for diags
@@ -343,8 +320,10 @@ void performOncePerLoop() {
   } else {
     setLeds();
   }
-  #else
-  setLeds();
+  #elif defined FEATURE_BACKLIGHTS
+  // output the backlight/underlight LEDs
+  ledManager.setPulseValue(secsDelta);
+  ledManager.processLedStatus();
   #endif
 
   // -------------------------------------------------------------------------------
@@ -380,7 +359,7 @@ void performOncePerLoop() {
 // Not need processing continuously multiple times per second
 // ************************************************************
 void performOncePerSecondProcessing() {
-  lastMillis = nowMillis;
+  lastSecondStartMillis = nowMillis;
 
   // See if it is time for a new NTP update
   if (ntpManager.getNextUpdate() < 0 && WiFi.isConnected()) {
@@ -653,9 +632,9 @@ void loop()
 {
   nowMillis = millis();
 
-  if (lastMillis > nowMillis) {
+  if (lastSecondStartMillis > nowMillis) {
     // rollover
-    lastMillis = 0;
+    lastSecondStartMillis = 0;
   }
 
   // -------------------------------------------------------------------------------
@@ -681,6 +660,18 @@ void loop()
     if ((second() > 0) && triggeredThisSec) {
       triggeredThisSec = false;
     }
+  }
+
+  // Calculate the intra second millis
+  secsDeltaAbs = (nowMillis - lastSecondStartMillis);
+  if (secsDeltaAbs > 1000) {secsDeltaAbs = 1000;}
+  if (secsDeltaAbs < 0) {secsDeltaAbs = 0;}
+  upOrDown = (second() % 2) == 0;
+  
+  if (upOrDown) {
+    secsDelta = secsDeltaAbs;
+  } else {
+    secsDelta = 1000 - secsDeltaAbs;
   }
 
   delay(10);

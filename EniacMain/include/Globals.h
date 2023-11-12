@@ -33,11 +33,12 @@
 extern esp_wps_config_t wps_config;
 
 extern unsigned long nowMillis;
-extern unsigned long lastMillis;
+extern unsigned long lastSecondStartMillis;
 extern unsigned long previousMillisWiFi;
 extern int lastSecond;
 extern boolean triggeredThisSec;
 extern int secsDeltaAbs;
+extern int secsDelta;
 extern bool upOrDown;  
 
 // ************************************************************
