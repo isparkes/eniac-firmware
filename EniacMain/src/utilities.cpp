@@ -575,8 +575,6 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
 
   #ifdef COG_CRANK_OUTPUT
   root["outputOnTime"] = cc->outputOnTime;
-  #else
-  root["outputOnTime"] = 255;
   #endif
 
   #ifdef COUNTDOWN
