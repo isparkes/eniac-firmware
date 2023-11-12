@@ -115,6 +115,9 @@ String getStatusString() {
   return connectionInfo;
 }
 
+// ************************************************************
+// Reset settings to factory defaults
+// ************************************************************
 void resetOptions() {
   cc->ntpPool = NTP_POOL_DEFAULT;
   cc->ntpUpdateInterval = NTP_UPDATE_INTERVAL_DEFAULT;
@@ -397,10 +400,13 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["slavetrycount"] = "0";
   root["slavefailcount"] = "0";
   #endif
-  root["sw1"] = switch1Meaning;
-  root["sw2"] = switch2Meaning;
+  #ifdef NORMAL_SWITCHES
   root["sw1val"] = (digitalRead(Switch1Pin) == LOW) ? "1" : "0";
   root["sw2val"] = (digitalRead(Switch2Pin) == LOW) ? "1" : "0";
+  #else
+  root["sw1val"] = (digitalRead(Switch1Pin) == HIGH) ? "1" : "0";
+  root["sw2val"] = (digitalRead(Switch2Pin) == HIGH) ? "1" : "0";
+  #endif
   
   #ifdef DIGIT_DIAGNOSTICS
   root["diagsMode"] = cc->diagsMode;
