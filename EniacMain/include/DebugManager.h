@@ -18,7 +18,7 @@ typedef void (*DebugCallback) (String);
 #define BLK_EXTENDED_DEBUG_OFF
 
 // Basic debug settings
-#ifdef DEBUG_ON
+#ifdef DEBUG
 #define debugMsgMain(message) debugManager.debugMsg("[LNC]", message);
 #define debugMsgBlm(message) debugManager.debugMsg("[BLM]", message);
 #define debugMsgGps(message) debugManager.debugMsg("[GPS]", message);

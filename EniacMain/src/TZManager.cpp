@@ -271,7 +271,7 @@ String TZManager_::getLocalTimeFromTimeSource(byte timesource) {
   }
 
   String formattedTime = localtimeToReadableString(nowtime_t);
-  #ifdef DEBUG_ON
+  #ifdef DEBUG
   String primary = "";
   if (timesource == _primarysource) {
     primary = " *";

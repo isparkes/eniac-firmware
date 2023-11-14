@@ -96,7 +96,7 @@ String getStatusString() {
     connectionInfo += "o";
   }
 
-#ifdef DEBUG_ON
+#ifdef DEBUG
   if (debugManager.isDebugOn()) { 
     connectionInfo += "D";
   } else {
@@ -232,7 +232,7 @@ void newTimeUpdateReceived() {
 // ************************************************************
 // Debug server args
 // ************************************************************
-#ifdef DEBUG_ON
+#ifdef DEBUG
 void dumpArgs(AsyncWebServerRequest *request) {
   int headers = request->headers();
   int i;
@@ -407,13 +407,39 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["sw1val"] = (digitalRead(Switch1Pin) == HIGH) ? "1" : "0";
   root["sw2val"] = (digitalRead(Switch2Pin) == HIGH) ? "1" : "0";
   #endif
+
+  debugMsgUtl("Start partition recovery");
+  String partitionStr = "Name,type,subtype,offset,length;";
+  esp_partition_iterator_t iter = esp_partition_find(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, NULL);
+  while (iter != nullptr)
+  {
+    const esp_partition_t *partition = esp_partition_get(iter);
+    char buffer[60];
+    sprintf(buffer, "%s,app,%d,0x%x,0x%x,(%d);", partition->label, partition->subtype, partition->address, partition->size, partition->size);
+    partitionStr = partitionStr + String(buffer);
+    iter = esp_partition_next(iter);
+  }
+  
+  esp_partition_iterator_release(iter);
+  iter = esp_partition_find(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_ANY, NULL);
+  while (iter != nullptr)
+  {
+    const esp_partition_t *partition = esp_partition_get(iter);
+    char buffer[60];
+    sprintf(buffer, "%s,data,%d,0x%x,0x%x,(%d);", partition->label, partition->subtype, partition->address, partition->size, partition->size);
+    partitionStr = partitionStr + String(buffer);
+    iter = esp_partition_next(iter);
+  }
+  
+  esp_partition_iterator_release(iter);
+  debugMsgUtl("End partition recovery");
   
   #ifdef DIGIT_DIAGNOSTICS
   root["diagsMode"] = cc->diagsMode;
   #endif
 
   String featureString = "";
-  #ifdef DEBUG_ON
+  #ifdef DEBUG
   featureString += "DEB ";
   #endif
 
@@ -478,6 +504,8 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   #endif
 
   root["features"] = featureString;
+
+  root["partitions"] = partitionStr;
 
   response->setLength();
   request->send(response);
@@ -786,7 +814,7 @@ void getZonesListDataHandler(AsyncWebServerRequest *request) {
 void getCredentialsHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api wifi credentials request");
   
-//  #ifdef DEBUG_ON
+//  #ifdef DEBUG
 //  dumpArgs(request);
 //  #endif
 
@@ -805,7 +833,7 @@ void getCredentialsHandler(AsyncWebServerRequest *request) {
 void postWiFiCredentialsHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api wifi POST request");
   
-//  #ifdef DEBUG_ON
+//  #ifdef DEBUG
 //  dumpArgs(request);
 //  #endif
 

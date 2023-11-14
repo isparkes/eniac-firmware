@@ -5,7 +5,7 @@
 // ************************************************************
 void LDRManager_::setUp() {
   pinMode(LDRPin, INPUT);
-  #ifdef LDR_EXTENDED_DEBUG_ON
+  #ifdef LDR_EXTENDED_DEBUG
   debugMsgLdr("Config useLDR: " + String(cc->useLDR));
   debugMsgLdr("Config sensitivityLDR: " + String(cc->sensitivityLDR));
   debugMsgLdr("Config thresholdBright: " + String(cc->thresholdBright));
