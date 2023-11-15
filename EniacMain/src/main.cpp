@@ -38,7 +38,7 @@ void setup()
 
   Serial.begin(SERIAL_BAUD_RATE);
 
-  #ifdef DEBUG_ON
+  #ifdef DEBUG
   // Debug for 10 minutes
   debugManager.setDebugAutoOff(600);
   #endif

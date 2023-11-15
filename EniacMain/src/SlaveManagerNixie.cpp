@@ -14,7 +14,7 @@ void SlaveManagerNixie_::testSlave() {
   _slaveEnabled = true;
   sendUpdateToSlaveI2C();
   
-  #ifdef DEBUG_ON
+  #ifdef DEBUG
   if (_slaveModeFailCount == 0)
     debugMsgSlv("Slave detected")
   else

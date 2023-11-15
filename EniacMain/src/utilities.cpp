@@ -96,7 +96,7 @@ String getStatusString() {
     connectionInfo += "o";
   }
 
-#ifdef DEBUG_ON
+#ifdef DEBUG
   if (debugManager.isDebugOn()) { 
     connectionInfo += "D";
   } else {
@@ -237,7 +237,7 @@ void newTimeUpdateReceived() {
 // ************************************************************
 // Debug server args
 // ************************************************************
-#ifdef DEBUG_ON
+#ifdef DEBUG
 void dumpArgs(AsyncWebServerRequest *request) {
   int headers = request->headers();
   int i;
@@ -420,7 +420,7 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   #endif
 
   String featureString = "";
-  #ifdef DEBUG_ON
+  #ifdef DEBUG
   featureString += "DEB ";
   #endif
 
@@ -804,7 +804,7 @@ void getZonesListDataHandler(AsyncWebServerRequest *request) {
 void postValueHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api value POST request");
   
-//  #ifdef DEBUG_ON
+//  #ifdef DEBUG
 //  dumpArgs(request);
 //  #endif
 
@@ -831,7 +831,7 @@ void postValueHandler(AsyncWebServerRequest *request) {
 void getCredentialsHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api wifi credentials request");
   
-//  #ifdef DEBUG_ON
+//  #ifdef DEBUG
 //  dumpArgs(request);
 //  #endif
 
@@ -850,7 +850,7 @@ void getCredentialsHandler(AsyncWebServerRequest *request) {
 void postWiFiCredentialsHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api wifi credentials POST request");
   
-//  #ifdef DEBUG_ON
+//  #ifdef DEBUG
 //  dumpArgs(request);
 //  #endif
 

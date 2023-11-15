@@ -7,7 +7,7 @@
 // -------------------------------------------------------------------------------
 
 // Add debug statments to code - needs extra space
-#define DEBUG_OFF                    // DEBUG_ON | DEBUG_OFF
+#define DEBUG_OFF                    // DEBUG | DEBUG_OFF
 
 // -------------------------------------------------------------------------------
 

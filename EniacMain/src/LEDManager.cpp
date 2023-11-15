@@ -24,7 +24,7 @@ void LEDManager_::recalculateVariables() {
 
   // Calculate the gradient per NP
   float _hueOffsetIncrement = ((cc->backlightGradient * 100) / (DIGIT_COUNT * 100.0));
-  #ifdef LED_EXTENDED_DEBUG_ON
+  #ifdef LED_EXTENDED_DEBUG
   debugMsgLed("Gradient: " + String(cc->backlightGradient) + "/" + String(NUM_BL_PIXELS) + " -> " + String(_hueOffsetIncrement));
   debugMsgLed("Offset:   " + String(cc->hueOffset));
   #endif
@@ -51,7 +51,7 @@ void LEDManager_::recalculateVariables() {
   _hueOffsetPerPixel[TOWER_2] = _hueOffsetPerPixel[TOWER_1];
   #endif
 
-  #ifdef LED_EXTENDED_DEBUG_ON
+  #ifdef LED_EXTENDED_DEBUG
   debugMsgLed("Hues: " +  String(_hueOffsetPerPixel[0]) + "," +
                           String(_hueOffsetPerPixel[1]) + "," +
                           String(_hueOffsetPerPixel[2]) + "," +

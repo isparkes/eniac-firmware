@@ -97,7 +97,7 @@ void NtpManager_::getTimeFromNTP() {
   
   IPAddress serverIP;
   WiFi.hostByName(_ntpPool.c_str(), serverIP);
-  #ifdef DEBUG_ON
+  #ifdef DEBUG
   String str = "NTP IPAddr: ";
   str += serverIP.toString();
   debugMsgNtp(str);
@@ -116,20 +116,20 @@ void NtpManager_::getTimeFromNTP() {
   buffer[15]  = 'C';
 
   _ntpStarted = nowMillis;
-  #ifdef NTP_EXTENDED_DEBUG_ON
+  #ifdef NTP_EXTENDED_DEBUG
   debugMsgNtp("Connect to NTP");
   #endif
   _udp.connect(serverIP, 123); //NTP requests are to port 123
-  #ifdef NTP_EXTENDED_DEBUG_ON
+  #ifdef NTP_EXTENDED_DEBUG
   debugMsgNtp("Write to NTP");
   #endif
   _udp.write(buffer, NTP_PACKET_SIZE);
-  #ifdef NTP_EXTENDED_DEBUG_ON
+  #ifdef NTP_EXTENDED_DEBUG
   debugMsgNtp("NTP Packet sent at " + String(_ntpStarted));
   #endif
 
   _udp.onPacket([&](AsyncUDPPacket packet) {
-    #ifdef NTP_EXTENDED_DEBUG_ON
+    #ifdef NTP_EXTENDED_DEBUG
     String message = "NTP response UDP Packet Type: " + packet.isBroadcast() ? "Broadcast" : packet.isMulticast() ? "Multicast" : "Unicast";
     message += " from " + packet.remoteIP().toString() + ":" + String(packet.remotePort());
     message += " to " + packet.localIP().toString() + ":" + String(packet.localPort());
@@ -157,7 +157,7 @@ void NtpManager_::getTimeFromNTP() {
 
       highWord = ( buffer[44] << 8 | buffer[45] ) & 0x0000FFFF;
       lowWord = ( buffer[46] << 8 | buffer[47] ) & 0x0000FFFF;
-      #ifdef NTP_EXTENDED_DEBUG_ON
+      #ifdef NTP_EXTENDED_DEBUG
       uint32_t fraction = highWord << 16 | lowWord;       // transmit timestamp fractions
       #endif
 
@@ -173,9 +173,9 @@ void NtpManager_::getTimeFromNTP() {
       // Set the t and measured_at variables that were passed by reference
       unsigned long done = millis();
       unsigned long t = secsSince1900 - 2208988800UL;                     // Subtract 70 years to get seconds since 1970
-      #ifdef NTP_EXTENDED_DEBUG_ON
+      #ifdef NTP_EXTENDED_DEBUG
       debugMsgNtp("Whole seconds " + String(t));
-      #ifdef DEBUG_ON
+      #ifdef DEBUG
       uint16_t ms = fraction / 4294967UL;
       debugMsgNtp("Fractional " + String(ms));
       #endif
@@ -184,7 +184,7 @@ void NtpManager_::getTimeFromNTP() {
 
       _lastUpdateFromServer = done;
 
-      #ifdef DEBUG_ON
+      #ifdef DEBUG
       unsigned long measured_at = (done - _ntpStarted) / 2;  // Assume symmetric network latency and return when we think the whole second was.
       debugMsgNtp("lastUpdateFromServer: " + String(_lastUpdateFromServer) + " - latency: " + String(measured_at));
       #endif

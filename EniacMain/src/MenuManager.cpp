@@ -106,7 +106,7 @@ void MenuManager_::systemMenu() {
   #endif
   String status = cc->WifiOnAtStart ? "off" : "on";
   oledMenu.menuItems[menuCount] = "WiFi at start: "+ status; oledMenu.menuActions[menuCount++] = toggleWiFiAtStart;
-  #ifdef DEBUG_ON
+  #ifdef DEBUG
   oledMenu.menuItems[menuCount] = "Debug on 10m";   oledMenu.menuActions[menuCount++] = debugOn10mins;
   #endif
   oledMenu.menuItems[menuCount] = "Set Location";   oledMenu.menuActions[menuCount++] = selectLocationArea;
@@ -399,7 +399,7 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       break;
     }
     #endif
-    #ifdef DEBUG_ON
+    #ifdef DEBUG
     case debugOn10mins: {
       debugManager.setDebugAutoOff(600);
       systemMenu();
