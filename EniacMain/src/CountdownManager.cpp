@@ -96,7 +96,9 @@ void CountdownManager_::calculateCountdown() {
 
     _remainingUntilTarget = diff;
 
+    #ifdef CDM_EXTENDED_DEBUG
     debugMsgCdm("Scoped diff --> " + String(_remainingUntilTarget) + ", scope: " + String(_units));
+    #endif
   }
 }
 

@@ -7,12 +7,12 @@
 // -------------------------------------------------------------------------------
 
 // Add debug statments to code - needs extra space
-#define DEBUG_OFF                    // DEBUG | DEBUG_OFF
+#define DEBUG_OFF                   // DEBUG | DEBUG_OFF
 
 // -------------------------------------------------------------------------------
 
 // Add the dignostic calls to the GUI
-#define DIGIT_DIAGNOSTICS_OFF           // DIGIT_DIAGNOSTICS | DIGIT_DIAGNOSTICS_OFF
+#define DIGIT_DIAGNOSTICS_OFF       // DIGIT_DIAGNOSTICS | DIGIT_DIAGNOSTICS_OFF
 
 // -------------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@
 // -------------------------------------------------------------------------------
 
 // Countdown functionality
-#define COUNTDOWN               // COUNTDOWN | COUNTDOWN_OFF
+#define COUNTDOWN                   // COUNTDOWN | COUNTDOWN_OFF
 
 // -------------------------------------------------------------------------------
 
