@@ -8,6 +8,7 @@
 #include "TransitionManager.h"
 #include "DebugManager.h"
 #include "CountdownManager.h"
+#include "QuoteManager.h"
 
 // -------------------------------------------------------------------------------
 
@@ -83,6 +84,7 @@
 #define DISPLAY_DATE        1
 #define DISPLAY_VALUE       2
 #define DISPLAY_COUNTDOWN   3
+#define DISPLAY_TICKER      4
 
 // -------------------------------------------------------------------------------
 
@@ -125,8 +127,8 @@ class OutputManager_ {
     void outputDisplay();
 
     // Special display types
-    void loadNumberArraySameValue();
-    void loadNumberArrayBurn();
+    void loadNumberArraySameValue(byte value);
+    void loadNumberArrayBurn(byte value);
     void incrementNumberArray();      // Used in "scramble" stunt
 
     void triggerStunts();
@@ -196,6 +198,9 @@ class OutputManager_ {
     void loadNumberArrayTime();
     void loadNumberArrayDate();
     void loadNumberArrayValue();
+    void loadNumberArrayTicker();
+
+    void loadNumberArrayIntegerValue(unsigned int value);
     void loadNumberArrayInternal(byte mode);
 
     void allNormal(bool leadingBlank);

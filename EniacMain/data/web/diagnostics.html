@@ -137,6 +137,10 @@
                             <td>Switch 2 meaning</td>
                             <td id="sw2"></td>
                         </tr>
+                        <tr>
+                            <td>Flash partioning</td>
+                            <td id="flashpartitions"></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -167,19 +171,25 @@
 
 <script>
     decodeSwitchMeaning = function(switchValue, currentValue) {
-        // Meanings of switches
         // #define SW_NONE                 0
-        // #define SW_COUNTDOWN_INHIBIT    1
-        // #define SW_SLAVE_INHIBIT        2
-        // #define SW_MIN_DIM              3
-        // #define SW_DIM_LEDS             4
+        // #define SW_SLAVE_INHIBIT        1
+        // #define SW_MIN_DIM              2
+        // #define SW_DIM_LEDS             3
+        // #define SW_COUNTDOWN_INHIBIT    4
+        // #define SW1_DEFAULT             SW_DIM_LEDS
+        // #define SW2_DEFAULT             SW_SLAVE_INHIBIT
         var valString = " (OFF)";
         if(currentValue == "1") valString = " (ON)";
         if(switchValue == 0) return "Off"
-        else if (switchValue == 1) return "Inhibit countdown" + valString;
-        else if (switchValue == 2) return "Inhibit slave" + valString;
-        else if (switchValue == 3) return "Set min dim" + valString;
-        else if (switchValue == 4) return "Dim backlights" + valString;
+        else if (switchValue == 1) return "Inhibit slave" + valString;
+        else if (switchValue == 2) return "Set min dim" + valString;
+        else if (switchValue == 3) return "Dim backlights" + valString;
+        else if (switchValue == 4) return "Inhibit countdown" + valString;
+    }
+
+    decodePartitions = function(partitionList) {
+        var paritionListSplit = partitionList.replaceAll(';','<br/>');
+        return paritionListSplit;
     }
 
     getClockDiags = function getClockDiags() {
@@ -280,6 +290,7 @@
             $("#resetreason").text(parseResetReasons(diags.resetreason));
             $("#sw1").text(decodeSwitchMeaning(diags.sw1Mode, diags.sw1val));
             $("#sw2").text(decodeSwitchMeaning(diags.sw2Mode, diags.sw2val));
+            $("#flashpartitions").html(decodePartitions(diags.partitions))
 
             if (diags.slavetrycount > 0) {
                 $("#slaveupdaterow").prop('hidden', false);

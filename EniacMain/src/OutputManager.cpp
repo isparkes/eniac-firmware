@@ -85,6 +85,10 @@ void OutputManager_::loadNumberArrayInternal(byte tmpMode) {
     loadNumberArrayValue();
     allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
     break;
+  case DISPLAY_TICKER:
+    loadNumberArrayTicker();
+    allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+    break;
   }
 }
 
@@ -106,10 +110,26 @@ void OutputManager_::loadNumberArrayTime() {
 }
 
 // ************************************************************
-// Break the time into displayable digits
+// Load the last acquired ticker value
+// ************************************************************
+void OutputManager_::loadNumberArrayTicker() {
+  if (quoteManager.getIsQuoteValid()) {
+    loadNumberArrayIntegerValue(quoteManager.getLastQuote());
+  }
+}
+
+// ************************************************************
+// Load the arbitrary value
 // ************************************************************
 void OutputManager_::loadNumberArrayValue() {
-  unsigned int valueBound = _arbitraryValue;
+  loadNumberArrayIntegerValue(_arbitraryValue);
+}
+
+// ************************************************************
+// Break the time into displayable digits
+// ************************************************************
+void OutputManager_::loadNumberArrayIntegerValue(unsigned int value) {
+  unsigned int valueBound = value;
   if (valueBound > 999999)
     valueBound = 999999;
   
@@ -136,9 +156,9 @@ void OutputManager_::loadNumberArrayValue() {
 // ************************************************************
 // Set all digits to the same value, but blank all except one
 // ************************************************************
-void OutputManager_::loadNumberArrayBurn() {
+void OutputManager_::loadNumberArrayBurn(byte value) {
   allBlanked();
-  loadNumberArraySameValue();
+  loadNumberArraySameValue(value);
   displayType[_arbitraryValue / 10] = NORMAL;
 }
 
@@ -189,8 +209,8 @@ void OutputManager_::incrementNumberArray() {
 // ************************************************************
 // Break the time into displayable digits
 // ************************************************************
-void OutputManager_::loadNumberArraySameValue() {
-  byte val = _arbitraryValue % 10;
+void OutputManager_::loadNumberArraySameValue(byte value) {
+  byte val = value % 10;
   numberArray[S1]  = val;
   numberArray[S10] = val;
   numberArray[M1]  = val;
@@ -606,17 +626,14 @@ void OutputManager_::processStunts() {
           #ifdef OTM_EXTENDED_DEBUG
           debugMsgOtm("ACP: " + String(_acpOffset-1));
           #endif
-          setArbitraryValue(_acpOffset-1);
-          setArbitraryValueDisplayTime(1);
-          loadNumberArraySameValue();
-          if (_acpOffset == 11) {
+          loadNumberArraySameValue(_acpOffset-1);
+          if (_acpOffset >= 11) {
             _acpOffset = 0;
             #ifdef OTM_EXTENDED_DEBUG
             debugMsgOtm("ACP End");
             #endif
             _outputMode = primaryMode;
-            setArbitraryValueDisplayTime(0);
-            setArbitraryValue(0);
+            loadNumberArrayPrimary();
             ldrManager.setLDRValueToMaxACP(false);
           } else {
             _acpOffset++;

@@ -1049,26 +1049,3 @@ void disableWatchdog() {
 void feedWatchdog() {
   esp_task_wdt_reset();
 }
-
-#ifdef TICKERS
-int getBTCPrice() {
-  int intBTCPrice = 0;
-  HTTPClient http;  
-  http.begin("https://api.binance.com/api/v3/avgPrice?symbol=BTCUSDT");
-
-  int httpResponseCode = http.GET();
-  if (httpResponseCode > 0) {
-    debugMsgUtl("HTTP reponse code: " + String(httpResponseCode));
-    String payload = http.getString();
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject& json = jsonBuffer.parse(payload);
-    intBTCPrice = json["price"];
-    debugMsgUtl("BTC: " + String(intBTCPrice));
-  }
-  else {
-    debugMsgUtl("HTTP failure code: " + String(httpResponseCode));
-  }
-
-  return intBTCPrice;
-}
-#endif

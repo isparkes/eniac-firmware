@@ -24,14 +24,14 @@ int NtpManager_::getUpdateInterval() {
 }
 
 // ************************************************************
-// set the update interval
+// set the NTP pool
 // ************************************************************
 void NtpManager_::setNtpPool(String ntpPool) {
   _ntpPool = ntpPool;
 }
 
 // ************************************************************
-// get the update interval
+// get the NTP pool
 // ************************************************************
 String NtpManager_::getNtpPool() {
   return _ntpPool;

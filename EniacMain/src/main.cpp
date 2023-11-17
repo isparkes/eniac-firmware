@@ -17,6 +17,8 @@
 #include "OutputManager.h"
 #include "CountdownManager.h"
 
+#include "QuoteManager.h"
+
 void setup()
 {
   // Show that we booted - useful for remote debugging
@@ -82,9 +84,7 @@ void setup()
   ldrManager.getDimmingFromLDR();
 
   for (int i = 0 ; i <= 20 ; i++) {
-    outputManager.setArbitraryValue(i%10);
-    outputManager.setArbitraryValueDisplayTime(1);
-    outputManager.loadNumberArraySameValue();
+    outputManager.loadNumberArraySameValue(i%10);
     outputManager.outputDisplay();
     delay(100);
   }
@@ -583,6 +583,8 @@ void performOncePerMinuteProcessing() {
   #ifdef DECATRON_SLAVE
   slaveManagerDecatron.updateOncePerMinute();
   #endif
+
+  quoteManager.getQuote();
 }
 
 // ************************************************************

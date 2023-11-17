@@ -31,9 +31,6 @@
 #ifdef DECATRON_SLAVE
 #include "SlaveManagerDecatron.h"
 #endif
-#ifdef TICKERS
-#include <HTTPClient.h>
-#endif
 
 // -------------------------------------------------------------------------------
 
