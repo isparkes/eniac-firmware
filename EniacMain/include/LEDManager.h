@@ -35,6 +35,8 @@
 #define BACKLIGHT_DAY_OF_WEEK           3  // use "ColourTime" - different colours for each digit value
 #define BACKLIGHT_MAX                   3
 #define BACKLIGHT_DEFAULT               1
+#define BACKLIGHT_UP                  254  // Used for ticker display
+#define BACKLIGHT_DOWN                253  //            "
 
 // -------------------------------------------------------------------------------
 #define CYCLE_SPEED_MIN                 1
@@ -117,26 +119,20 @@ class LEDManager_
   public:
     void setUp();
 
-    // reset internal values based on slow-moving values (e.g. backlight dim factor)
-    void recalculateVariables();
-
     // recalculate internal values based on the LDR reading
     void setLDRValue(unsigned int ldrValue);
 
     // recalculate internal values based on the LDR reading
     void setLDRRange(unsigned int ldrRange);
 
+    // Allow the ticker to control the colours
+    void setTickerOverrideValue(byte newValue);
+
     // recalculate internal values based on the pulsing factor
     void setPulseValue(unsigned int secsDelta);
 
     void setSyncColourTime(boolean value);
     void setDiagnosticLED(byte stepNumber, byte state);
-
-    // recalculate internal values based on the LDR reading
-    void setDayOfWeek(byte dow);
-
-    // This processes the values and outputs the buffer
-    void processLedStatus();
 
     // Set the LEDs to a test value
     void setTestValue(byte value);
@@ -147,19 +143,23 @@ class LEDManager_
     // Set the blanking status
     void setLEDBlanking(boolean newStatus);
     void setTowerBlanking(boolean newStatus);
+
+    void performOncePerLoopProcessing();
+    void performOncePerSecondProcessing();
   private:
     float _backlightDim = 1.0;
     float _underlightDim = 1.0;
     float _ldrDimFactor = 1.0;
     float _ldrRange = 100.0;
     float _pwmFactor = 1.0;
-    byte _ledMode = BACKLIGHT_DEFAULT;
-    byte _cycleCount = 0;
-    byte _cycleSpeed = CYCLE_SPEED_DEFAULT;
-    bool _syncColourTime = false;
-    byte _dow = 0;
+    byte  _ledMode = BACKLIGHT_DEFAULT;
+    byte  _cycleCount = 0;
+    byte  _cycleSpeed = CYCLE_SPEED_DEFAULT;
+    bool  _syncColourTime = false;
+    byte  _dow = 0;
     float _hueOffset = 0.0;
     float _towerHueOffset = 0.0;
+    byte  _tickerOverride = 0;
 
     bool _blanked = false;
     bool _towersBlanked = false;
@@ -184,15 +184,31 @@ class LEDManager_
     double _hueOffsetPerPixel[NUM_PIXELS_TOTAL];
 
     void setBacklightLEDs(byte red, byte green, byte blue);
+    void setBacklightLEDsUnadjusted(byte red, byte green, byte blue);
     void setUnderlightLEDs(byte red, byte green, byte blue);
     void setBacklightLED(byte index, byte red, byte green, byte blue);
+    void setBacklightLEDUnadjusted(byte index, byte red, byte green, byte blue);
     void setUnderlightLED(byte index, byte red, byte green, byte blue);
     void setTowerLEDs(byte red, byte green, byte blue);
     void outputLEDBuffer();
     byte getLEDAdjustedBL(byte rawValue);
     byte getLEDAdjustedUL(byte rawValue);
+    byte getLEDRawBL(byte rawValue);
+
+    // Calculate the colours when we are cycling
     void cycleColours3(int colors[3]);
+
+    // Apply "hue" and "rainbow" processing
     void adjustRGB(uint8_t red, uint8_t green, uint8_t blue, uint8_t& inv_red, uint8_t& inv_green, uint8_t& inv_blue, double hueOffset);
+
+    // reset internal values based on slow-moving values (e.g. backlight dim factor)
+    void recalculateVariables();
+
+    // This processes the values and outputs the buffer fr fast moving animations
+    void processLedStatusLoop();
+
+    // This processes the values and outputs the buffer for slow moving animations
+    void processLedStatusOncePerSecond();
 };
 
 // ************************************************************

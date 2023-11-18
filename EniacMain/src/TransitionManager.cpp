@@ -76,7 +76,7 @@ boolean Transition::wipeInWipeOut(long now, boolean blankLeading)
     // Wipe In date values
     else if (msCount < _effectInDuration * 2) {
       _digit = (msCount - _effectInDuration) * DIGIT_COUNT / _effectInDuration;
-      outputManager.numberArray[_digit] = _alternateDisplay[_digit];
+      outputManager.numberArray[_digit] = outputManager.convertToDigit(_alternateDisplay[_digit]);
       outputManager.displayType[_digit] =  NORMAL;
     }
     // Hold date display
@@ -91,7 +91,7 @@ boolean Transition::wipeInWipeOut(long now, boolean blankLeading)
     // Wipe Out to time values
     else if (msCount < _effectInDuration * 2 + _holdDuration + _effectOutDuration * 2) {
       _digit = (msCount - _holdDuration - _effectInDuration * 2 - _effectOutDuration) * DIGIT_COUNT / _effectOutDuration;
-      outputManager.numberArray[_digit] = _regularDisplay[_digit];
+      outputManager.numberArray[_digit] = outputManager.convertToDigit(_regularDisplay[_digit]);
       if (!blankLeading || _digit != 0 || _regularDisplay[_digit] != 0)
         outputManager.displayType[_digit] = NORMAL;
     }

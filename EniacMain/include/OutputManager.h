@@ -111,6 +111,19 @@ enum outputModes {                          //                                  
   primaryMode,                              // Primary (normal time) mode        5    |   Y     Y   |    Y
 };
 
+typedef enum {
+    digit0 = 0,
+    digit1 = 1,
+    digit2 = 2,
+    digit3 = 3,
+    digit4 = 4,
+    digit5 = 5,
+    digit6 = 6,
+    digit7 = 7,
+    digit8 = 8,
+    digit9 = 9
+} clock_digit;
+
 class OutputManager_ {
   friend class Transition;
   private:
@@ -131,7 +144,6 @@ class OutputManager_ {
     void loadNumberArrayBurn(byte value);
     void incrementNumberArray();      // Used in "scramble" stunt
 
-    void triggerStunts();
     outputModes getOutputMode();
     void setOutputMode(outputModes newMode);
 
@@ -165,8 +177,8 @@ class OutputManager_ {
     #endif
   private:
     // Anti Cathode Poisoning management
-    int _acpOffset = 0;
-    int _acpTick = 0;
+    byte _acpOffset = 0;
+    byte _acpTick = 0;
 
     // Separators and indicator LEDs
     bool _sep1State;
@@ -179,8 +191,8 @@ class OutputManager_ {
     bool _blankSeparators;
     bool _blankTubesTemp;
 
-    byte numberArray[DIGIT_COUNT]     = {0, 0, 0, 0, 0, 0};
-    byte currNumberArray[DIGIT_COUNT] = {0, 0, 0, 0, 0, 0};
+    clock_digit numberArray[DIGIT_COUNT]     = {digit0, digit0, digit0, digit0, digit0, digit0};
+    clock_digit currNumberArray[DIGIT_COUNT] = {digit0, digit0, digit0, digit0, digit0, digit0};
     byte displayType[DIGIT_COUNT]     = {NORMAL, NORMAL, NORMAL, NORMAL, NORMAL, NORMAL};
     int fadeState                     = 0;
     byte scrollCounter[DIGIT_COUNT]   = {0, 0, 0, 0, 0, 0};
@@ -203,10 +215,12 @@ class OutputManager_ {
     void loadNumberArrayIntegerValue(unsigned int value);
     void loadNumberArrayInternal(byte mode);
 
+    clock_digit convertToDigit(int value);
     void allNormal(bool leadingBlank);
     void allBlanked();
     void applyBlanking();
 
+    void triggerStunts();
     void processStunts();
     uint32_t decodeFromNumberArray(byte valueToDecodeTens, byte valueToDecodeUnits, bool blankTens, bool bankUnits, bool blankSeparators, bool bl1, bool bl2, bool led1, bool led2);
     void setCurrentTransition();

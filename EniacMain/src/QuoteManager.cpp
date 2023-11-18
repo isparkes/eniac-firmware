@@ -6,12 +6,12 @@
 void QuoteManager_::getQuote() {
   debugMsgQte("Async QTE in");
 
+  _quoteValid = false;
+
   if (WiFi.status() != WL_CONNECTED) {
     debugMsgQte("WiFi not connected. Abort.");
     return;
   }
-
-  _quoteValid = false;
 
   IPAddress serverIP;
   WiFi.hostByName(_serverAddr.c_str(), serverIP);
@@ -69,6 +69,11 @@ void QuoteManager_::getQuote() {
 
       debugMsgQte("Quote: " + quoteStr);
       _quoteValue = quoteStr.toInt();
+
+      #ifdef QTE_EXTENDED_DEBUG
+      unsigned long latency = _lastUpdateFromServer - _qteStarted;
+      debugMsgQte("Response latency: " + String(latency));
+      #endif
 
       // Reset when we last started.
       _qteStarted = 0;

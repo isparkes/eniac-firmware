@@ -20,7 +20,8 @@
 			"unordered_set": "cpp",
 			"vector": "cpp",
 			"initializer_list": "cpp",
-			"regex": "cpp"
+			"regex": "cpp",
+			"*.tcc": "cpp"
 		}
 	}
 }

@@ -44,8 +44,8 @@ class QuoteManager_
     int      _serverPort = QTE_PORT_DEFAULT;              // The UDP port on the quote server we are using
     unsigned long _qteStarted = 0;                        // the millis the request was sent at
     unsigned long _lastUpdateFromServer = 0;              // The last millis() we got an update at
-    bool _quoteValid;                                     // Tells us if the quote has been retrieved
-    int _quoteValue;                                      // The value of the last quote
+    bool _quoteValid = false;                             // Tells us if the quote has been retrieved
+    int _quoteValue = 0;                                  // The value of the last quote
 
     AsyncUDP _udp;
     NewQuoteCallback _nqcb;

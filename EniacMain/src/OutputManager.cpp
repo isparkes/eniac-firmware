@@ -42,7 +42,9 @@ void OutputManager_::loadNumberArrayPrimary() {
   }
   #endif
 
-  debugMsgOtm("Primary Mode: " + String(tmpMode));
+  #ifdef OTM_EXTENDED_DEBUG
+  debugMsgOtm("Modes T: " + String(tmpMode) + " P: " + String(cc->pMode) + " S: " + String(cc->sMode));
+  #endif
 
   loadNumberArrayInternal(tmpMode);
 }
@@ -96,16 +98,16 @@ void OutputManager_::loadNumberArrayInternal(byte tmpMode) {
 // Break the time into displayable digits
 // ************************************************************
 void OutputManager_::loadNumberArrayTime() {
-  numberArray[S1]  = second() % 10;
-  numberArray[S10] = second() / 10;
-  numberArray[M1]  = minute() % 10;
-  numberArray[M10] = minute() / 10;
+  numberArray[S1]  = convertToDigit(second() % 10);
+  numberArray[S10] = convertToDigit(second() / 10);
+  numberArray[M1]  = convertToDigit(minute() % 10);
+  numberArray[M10] = convertToDigit(minute() / 10);
   if (cc->hourMode) {
-    numberArray[H1]  = hourFormat12() % 10;
-    numberArray[H10] = hourFormat12() / 10;
+    numberArray[H1]  = convertToDigit(hourFormat12() % 10);
+    numberArray[H10] = convertToDigit(hourFormat12() / 10);
   } else {
-    numberArray[H1]  = hour() % 10;
-    numberArray[H10] = hour() / 10;
+    numberArray[H1]  = convertToDigit(hour() % 10);
+    numberArray[H10] = convertToDigit(hour() / 10);
   }
 }
 
@@ -145,12 +147,12 @@ void OutputManager_::loadNumberArrayIntegerValue(unsigned int value) {
   valueBound = valueBound / 10;
   byte h10 = valueBound % 10;
 
-  numberArray[S1]  = s1  % 10;
-  numberArray[S10] = s10 % 10;
-  numberArray[M1]  = m1  % 10;
-  numberArray[M10] = m10 % 10;
-  numberArray[H1]  = h1  % 10;
-  numberArray[H10] = h10 % 10;
+  numberArray[S1]  = convertToDigit(s1  % 10);
+  numberArray[S10] = convertToDigit(s10 % 10);
+  numberArray[M1]  = convertToDigit(m1  % 10);
+  numberArray[M10] = convertToDigit(m10 % 10);
+  numberArray[H1]  = convertToDigit(h1  % 10);
+  numberArray[H10] = convertToDigit(h10 % 10);
 }
 
 // ************************************************************
@@ -168,28 +170,28 @@ void OutputManager_::loadNumberArrayBurn(byte value) {
 void OutputManager_::loadNumberArrayDate() {
   switch (cc->dateFormat) {
     case DATE_FORMAT_YYMMDD:
-      numberArray[S1]  = day() % 10;
-      numberArray[S10] = day() / 10;
-      numberArray[M1]  = month() % 10;
-      numberArray[M10] = month() / 10;
-      numberArray[H1]  = (year() - 2000) % 10;
-      numberArray[H10] = (year() - 2000) / 10;
+      numberArray[S1]  = convertToDigit(day() % 10);
+      numberArray[S10] = convertToDigit(day() / 10);
+      numberArray[M1]  = convertToDigit(month() % 10);
+      numberArray[M10] = convertToDigit(month() / 10);
+      numberArray[H1]  = convertToDigit((year() - 2000) % 10);
+      numberArray[H10] = convertToDigit((year() - 2000) / 10);
       break;
     case DATE_FORMAT_MMDDYY:
-      numberArray[S1]  = (year() - 2000) % 10;
-      numberArray[S10] = (year() - 2000) / 10;
-      numberArray[M1]  = day() % 10;
-      numberArray[M10] = day() / 10;
-      numberArray[H1]  = month() % 10;
-      numberArray[H10] = month() / 10;
+      numberArray[S1]  = convertToDigit((year() - 2000) % 10);
+      numberArray[S10] = convertToDigit((year() - 2000) / 10);
+      numberArray[M1]  = convertToDigit(day() % 10);
+      numberArray[M10] = convertToDigit(day() / 10);
+      numberArray[H1]  = convertToDigit(month() % 10);
+      numberArray[H10] = convertToDigit(month() / 10);
       break;
     case DATE_FORMAT_DDMMYY:
-      numberArray[S1]  = (year() - 2000) % 10;
-      numberArray[S10] = (year() - 2000) / 10;
-      numberArray[M1]  = month() % 10;
-      numberArray[M10] = month() / 10;
-      numberArray[H1]  = day() % 10;
-      numberArray[H10] = day() / 10;
+      numberArray[S1]  = convertToDigit((year() - 2000) % 10);
+      numberArray[S10] = convertToDigit((year() - 2000) / 10);
+      numberArray[M1]  = convertToDigit(month() % 10);
+      numberArray[M10] = convertToDigit(month() / 10);
+      numberArray[H1]  = convertToDigit(day() % 10);
+      numberArray[H10] = convertToDigit(day() / 10);
       break;
   }
 }
@@ -198,12 +200,12 @@ void OutputManager_::loadNumberArrayDate() {
 // Spin the digits, used for the "scramble" effect
 // ************************************************************
 void OutputManager_::incrementNumberArray() {
-  numberArray[S1]  = (numberArray[S1] +1)%10;
-  numberArray[S10] = (numberArray[S10]+1)%10;
-  numberArray[M1]  = (numberArray[M1] +1)%10;
-  numberArray[M10] = (numberArray[M10]+1)%10;
-  numberArray[H1]  = (numberArray[H1] +1)%10;
-  numberArray[H10] = (numberArray[H10]+1)%10;
+  numberArray[S1]  = convertToDigit((numberArray[S1] +1)%10);
+  numberArray[S10] = convertToDigit((numberArray[S10]+1)%10);
+  numberArray[M1]  = convertToDigit((numberArray[M1] +1)%10);
+  numberArray[M10] = convertToDigit((numberArray[M10]+1)%10);
+  numberArray[H1]  = convertToDigit((numberArray[H1] +1)%10);
+  numberArray[H10] = convertToDigit((numberArray[H10]+1)%10);
 }
 
 // ************************************************************
@@ -211,12 +213,12 @@ void OutputManager_::incrementNumberArray() {
 // ************************************************************
 void OutputManager_::loadNumberArraySameValue(byte value) {
   byte val = value % 10;
-  numberArray[S1]  = val;
-  numberArray[S10] = val;
-  numberArray[M1]  = val;
-  numberArray[M10] = val;
-  numberArray[H1]  = val;
-  numberArray[H10] = val;
+  numberArray[S1]  = convertToDigit(val);
+  numberArray[S10] = convertToDigit(val);
+  numberArray[M1]  = convertToDigit(val);
+  numberArray[M10] = convertToDigit(val);
+  numberArray[H1]  = convertToDigit(val);
+  numberArray[H10] = convertToDigit(val);
 }
 
 // ************************************************************
@@ -296,7 +298,7 @@ void OutputManager_::outputDisplay() {
 
         if (scrollCounter[i] > 0) {
           scrollCounter[i] = scrollCounter[i] - 1;
-          currNumberArray[i] = scrollCounter[i]/cc->scrollSteps;
+          currNumberArray[i] = convertToDigit(scrollCounter[i]/cc->scrollSteps);
           tmpNumberArray[i] = currNumberArray[i];
         } else {
           tmpNumberArray[i] = numberArray[i];
@@ -559,7 +561,7 @@ void OutputManager_::triggerStunts() {
       }
     }
 
-    if (_acpOffset != 0) {
+    if (_acpOffset == 1) {
       #ifdef OTM_EXTENDED_DEBUG
       debugMsgOtm("Triggering ACP");
       #endif
@@ -574,6 +576,19 @@ void OutputManager_::triggerStunts() {
       #ifdef OTM_EXTENDED_DEBUG
       debugMsgOtm("Triggering Slots mode: " + String(cc->slotsMode));
       #endif
+
+      if (cc->sMode == DISPLAY_TICKER) {
+        if (quoteManager.getIsQuoteValid()) {
+          byte randomMode = BACKLIGHT_UP;
+          if (nowMillis % 2 == 0) {
+            randomMode = BACKLIGHT_DOWN;
+          }
+          ledManager.setTickerOverrideValue(randomMode);
+        } else {
+          debugMsgOtm("Skip displaying quote because no quote is valid");
+          return;
+        }
+      }
 
       _outputMode = secondaryMode;
       setCurrentTransition();
@@ -627,7 +642,7 @@ void OutputManager_::processStunts() {
           debugMsgOtm("ACP: " + String(_acpOffset-1));
           #endif
           loadNumberArraySameValue(_acpOffset-1);
-          if (_acpOffset >= 11) {
+          if (_acpOffset > 20) {
             _acpOffset = 0;
             #ifdef OTM_EXTENDED_DEBUG
             debugMsgOtm("ACP End");
@@ -656,6 +671,7 @@ void OutputManager_::processStunts() {
         #ifdef OTM_EXTENDED_DEBUG
         debugMsgOtm("Ending slots");
         #endif
+        ledManager.setTickerOverrideValue(0);
         _outputMode = primaryMode;
       }
       break;        
@@ -896,6 +912,20 @@ byte OutputManager_::getCurrentDisplayDigitValue(byte digit) {
   } else {
     return 0;
   }
+}
+
+clock_digit OutputManager_::convertToDigit(int value) {
+  if (value < 0) {
+    debugMsgOtm("Underrange error converting digit");
+    debugMsgOtm("Got: " + String(value));
+    return digit0;
+  }
+  if (value > 9) {
+    debugMsgOtm("Overrange error converting digit");
+    debugMsgOtm("Got: " + String(value));
+    return digit9;
+  }
+  return (clock_digit) value;
 }
 
 #ifdef OTM_EXTENDED_DEBUG

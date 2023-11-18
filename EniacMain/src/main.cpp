@@ -69,6 +69,33 @@ void setup()
   nowMillis = millis();
 
   // -------------------------------------------------------------------------
+  
+  debugMsgMain("Start up SPIFFS");
+
+  // Initialize SPIFFS
+  if(!SPIFFS.begin(true)){
+    debugMsgMain("An Error has occurred while mounting SPIFFS");
+    return;
+  }
+
+  bool statsLoaded = spiffsStorage.getStatsFromSpiffs();
+
+  if (!statsLoaded) {
+    debugMsgMain("SPIFFS storage: read stats failed");
+    spiffsStorage.saveStatsToSpiffs();
+  }
+
+  bool configloaded = spiffsStorage.getConfigFromSpiffs();
+
+  if (configloaded) {
+    ntpManager.setNtpPool(cc->ntpPool);
+    ntpManager.setUpdateInterval(cc->ntpUpdateInterval);
+  } else {
+    debugMsgMain("SPIFFS storage: read config failed - do factory reset");
+    resetOptions();
+  }
+
+  // -------------------------------------------------------------------------
 
   debugMsgMain("Start up Timers");
 
@@ -112,33 +139,6 @@ void setup()
   ledManager.setUp();
   ledManager.setLDRRange(LDR_VALUE_MAX);
   #endif
-
-  // -------------------------------------------------------------------------
-  
-  debugMsgMain("Start up SPIFFS");
-
-  // Initialize SPIFFS
-  if(!SPIFFS.begin(true)){
-    debugMsgMain("An Error has occurred while mounting SPIFFS");
-    return;
-  }
-
-  bool statsLoaded = spiffsStorage.getStatsFromSpiffs();
-
-  if (!statsLoaded) {
-    debugMsgMain("SPIFFS storage: read stats failed");
-    spiffsStorage.saveStatsToSpiffs();
-  }
-
-  bool configloaded = spiffsStorage.getConfigFromSpiffs();
-
-  if (configloaded) {
-    ntpManager.setNtpPool(cc->ntpPool);
-    ntpManager.setUpdateInterval(cc->ntpUpdateInterval);
-  } else {
-    debugMsgMain("SPIFFS storage: read config failed - do factory reset");
-    resetOptions();
-  }
 
   // -------------------------------------------------------------------------
 
@@ -313,17 +313,18 @@ void performOncePerLoop() {
 
   // -------------------------------------------------------------------------------
   
-  #if defined DIGIT_DIAGNOSTICS  && defined FEATURE_BACKLIGHTS
+  #if defined DIGIT_DIAGNOSTICS && defined FEATURE_BACKLIGHTS
   // output the backlight/underlight LEDs
   if (cc->diagsMode > 0) {
     setLedsDiags();
   } else {
     setLeds();
   }
+
   #elif defined FEATURE_BACKLIGHTS
   // output the backlight/underlight LEDs
   ledManager.setPulseValue(secsDelta);
-  ledManager.processLedStatus();
+  ledManager.performOncePerLoopProcessing();
   #endif
 
   // -------------------------------------------------------------------------------
@@ -402,7 +403,7 @@ void performOncePerSecondProcessing() {
   // -------------------------------------------------------------------------------
   
   #ifdef FEATURE_BACKLIGHTS
-  ledManager.recalculateVariables();
+  ledManager.performOncePerSecondProcessing();
   #endif
 
   // -------------------------------------------------------------------------------
@@ -500,9 +501,6 @@ void handleSwitchChange(byte mode, bool state) {
     }
     case SW_DIM_LEDS: {
       blankingManager.setCurrentLEDBlankingOverride(state);
-
-      // Make it take effect immediately - workaround in reality this should all be event driven :-/
-      ledManager.recalculateVariables();
       break;
     }
   }
@@ -619,10 +617,6 @@ void performOncePerHourProcessing() {
 // ************************************************************
 void performOncePerDayProcessing() {
   debugMsgMain("---> OncePerDayProcessing");
-
-  #ifdef FEATURE_BACKLIGHTS
-  ledManager.setDayOfWeek(weekday() - 1);
-  #endif
 
   spiffsStorage.saveStatsToSpiffs();
 }
