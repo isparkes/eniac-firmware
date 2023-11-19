@@ -7,6 +7,8 @@
 #include <Adafruit_SH110X.h>
 #include "TimeLib.h"
 #include "Globals.h"
+#include "NTPManager.h"
+#include "BlankingManager.h"
 
 // ----------------------- Defines -----------------------
 

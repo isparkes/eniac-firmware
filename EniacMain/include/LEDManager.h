@@ -6,6 +6,8 @@
 #include "DebugManager.h"
 #include "OutputManager.h"
 
+#include "QuoteManager.h"
+
 #include <NeoPixelBus.h>            // https://github.com/Makuna/NeoPixelBus (Makuna 2.6.6)
 
 #define NUM_BL_PIXELS DIGIT_COUNT*PIXELS_PER_TUBE
@@ -35,8 +37,11 @@
 #define BACKLIGHT_DAY_OF_WEEK           3  // use "ColourTime" - different colours for each digit value
 #define BACKLIGHT_MAX                   3
 #define BACKLIGHT_DEFAULT               1
+#ifdef FEATURE_TICKER
 #define BACKLIGHT_UP                  254  // Used for ticker display
 #define BACKLIGHT_DOWN                253  //            "
+#define BACKLIGHT_UNCHANGED           252  //            "
+#endif
 
 // -------------------------------------------------------------------------------
 #define CYCLE_SPEED_MIN                 1
@@ -125,8 +130,10 @@ class LEDManager_
     // recalculate internal values based on the LDR reading
     void setLDRRange(unsigned int ldrRange);
 
+    #ifdef FEATURE_TICKER
     // Allow the ticker to control the colours
-    void setTickerOverrideValue(byte newValue);
+    void setTickerOverrideValue(quote_direction newValue);
+    #endif
 
     void setSyncColourTime(boolean value);
     void setDiagnosticLED(byte stepNumber, byte state);
@@ -156,7 +163,9 @@ class LEDManager_
     byte  _dow = 0;
     float _hueOffset = 0.0;
     float _towerHueOffset = 0.0;
-    byte  _tickerOverride = 0;
+    #ifdef FEATURE_TICKER
+    quote_direction  _tickerOverride = unchanged;
+    #endif
 
     bool _blanked = false;
     bool _towersBlanked = false;

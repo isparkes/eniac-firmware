@@ -577,18 +577,22 @@ void OutputManager_::triggerStunts() {
       debugMsgOtm("Triggering Slots mode: " + String(cc->slotsMode));
       #endif
 
+      #ifdef FEATURE_TICKER
       if (cc->sMode == DISPLAY_TICKER) {
         if (quoteManager.getIsQuoteValid()) {
+
           byte randomMode = BACKLIGHT_UP;
           if (nowMillis % 2 == 0) {
-            randomMode = BACKLIGHT_DOWN;
+            ledManager.setTickerOverrideValue(down);
+          } else {
+            ledManager.setTickerOverrideValue(up);
           }
-          ledManager.setTickerOverrideValue(randomMode);
         } else {
           debugMsgOtm("Skip displaying quote because no quote is valid");
           return;
         }
       }
+      #endif
 
       _outputMode = secondaryMode;
       setCurrentTransition();
@@ -671,7 +675,11 @@ void OutputManager_::processStunts() {
         #ifdef OTM_EXTENDED_DEBUG
         debugMsgOtm("Ending slots");
         #endif
-        ledManager.setTickerOverrideValue(0);
+
+        #ifdef FEATURE_TICKER
+        ledManager.setTickerOverrideValue(none);
+        #endif
+
         _outputMode = primaryMode;
       }
       break;        

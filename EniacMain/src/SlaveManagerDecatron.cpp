@@ -21,7 +21,9 @@ void SlaveManagerDecatron_::setSlaveEnabled(bool newSlaveStatus) {
 void SlaveManagerDecatron_::updateOncePerSecond() {
   if (!blankingManager.getCurrentBlankingStatus() && _slaveEnabled) {
     triggerOnePulsePerSecShort();
+    #ifdef SLV_EXTENDED_DEBUG
     debugMsgSlv("Short");
+    #endif
   }
 }
 
@@ -31,7 +33,9 @@ void SlaveManagerDecatron_::updateOncePerSecond() {
 void SlaveManagerDecatron_::updateOncePerMinute() {
   if (!blankingManager.getCurrentBlankingStatus() && _slaveEnabled) {
     triggerOnePulsePerSecLong();
+    #ifdef SLV_EXTENDED_DEBUG
     debugMsgSlv("Long");
+    #endif
   }
 }
 

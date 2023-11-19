@@ -5,9 +5,9 @@
 #include <AsyncUDP.h>
 #include <WiFi.h>
 #include <DNSServer.h>          //https://github.com/esp8266/Arduino/tree/master/libraries/DNSServer
+#include "Globals.h"
 #include "Defs.h"               // for DEBUG setting
 #include "DebugManager.h"
-#include "Globals.h"
 
 // ------------------------ Types ------------------------
 
@@ -19,6 +19,13 @@ typedef void (*NewQuoteCallback) ();
 #define QTE_PORT_DEFAULT 2222
 #define QTE_REQUEST_PACKET_SIZE 8
 #define QTE_RESPONSE_PACKET_SIZE 16
+
+typedef enum {
+  none = 'X',
+  up = 'U',
+  down = 'D',
+  unchanged = '-'
+} quote_direction;
 
 class QuoteManager_
 {
@@ -36,6 +43,7 @@ class QuoteManager_
     void getQuote();
     bool getIsQuoteValid();
     int  getLastQuote();
+    quote_direction getLastQuoteDirection();
     
     // callbacks
     void setNewQuoteCallback(NewQuoteCallback nqcb);
@@ -46,6 +54,7 @@ class QuoteManager_
     unsigned long _lastUpdateFromServer = 0;              // The last millis() we got an update at
     bool _quoteValid = false;                             // Tells us if the quote has been retrieved
     int _quoteValue = 0;                                  // The value of the last quote
+    quote_direction _quoteDirection = unchanged;          // The value of the last quote is below MA
 
     AsyncUDP _udp;
     NewQuoteCallback _nqcb;

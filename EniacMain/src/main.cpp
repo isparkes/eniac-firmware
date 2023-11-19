@@ -438,7 +438,7 @@ void performOncePerSecondProcessing() {
   menuManager.menuOncePerSecond();
   #endif
 
-  #ifdef TICKERS
+  #ifdef FEATURE_TICKERS
   getBTCPrice();
   #endif
 

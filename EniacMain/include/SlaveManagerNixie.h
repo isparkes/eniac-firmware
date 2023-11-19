@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 #include "Globals.h"
+#include "LDRManager.h"
+#include "BlankingManager.h"
 
 // --------------------------------- Protocol ------------------------------------
 // Digits Update: Same data packet regardless of mode!

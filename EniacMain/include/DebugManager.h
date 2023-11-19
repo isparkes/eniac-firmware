@@ -17,6 +17,7 @@ typedef void (*DebugCallback) (String);
 #define CDM_EXTENDED_DEBUG_OFF
 #define BLK_EXTENDED_DEBUG_OFF
 #define QTE_EXTENDED_DEBUG_OFF
+#define SLV_EXTENDED_DEBUG_OFF
 
 // Basic debug settings
 #ifdef DEBUG

@@ -252,10 +252,18 @@ void LEDManager_::processLedStatusLoop() {
   if (!_blanked) {
     byte tmpMode = cc->backlightMode;
 
-    if (_tickerOverride > 0) {
-      tmpMode = _tickerOverride;
-      debugMsgLed("Using override LED mode: " + String(_tickerOverride));
+    #ifdef FEATURE_TICKER
+    if (_tickerOverride == 'U') {
+      tmpMode = BACKLIGHT_UP;
+//      debugMsgLed("Using override LED mode: " + String(_tickerOverride));
+    } else if (_tickerOverride == 'D') {
+      tmpMode = BACKLIGHT_DOWN;
+//      debugMsgLed("Using override LED mode: " + String(_tickerOverride));
+    } else if (_tickerOverride == '-') {
+      tmpMode = BACKLIGHT_UNCHANGED;
+//      debugMsgLed("Using override LED mode: " + String(_tickerOverride));
     }
+    #endif
 
     switch (tmpMode) {
       case BACKLIGHT_FIXED: {
@@ -302,24 +310,20 @@ void LEDManager_::processLedStatusLoop() {
                             getLEDAdjustedUL(dayOfWeekB[_dow]));
           break;
         }
+      #ifdef FEATURE_TICKER
       case BACKLIGHT_UP: {
-          setBacklightLEDs( getLEDRawBL(0),
-                            getLEDRawBL(255),
-                            getLEDRawBL(0));
-          setUnderlightLEDs(getLEDAdjustedUL(0),
-                            getLEDAdjustedUL(255),
-                            getLEDAdjustedUL(0));
+          setTestValue(1);
           break;
         }
       case BACKLIGHT_DOWN: {
-          setBacklightLEDsUnadjusted( getLEDRawBL(255),
-                                      getLEDRawBL(0),
-                                      getLEDRawBL(0));
-          setUnderlightLEDs(          getLEDAdjustedUL(255),
-                                      getLEDAdjustedUL(0),
-                                      getLEDAdjustedUL(0));
+          setTestValue(3);
           break;
         }
+      case BACKLIGHT_UNCHANGED: {
+          setTestValue(9);
+          break;
+        }
+      #endif
     }
   }
 
@@ -523,12 +527,14 @@ void LEDManager_::setTowerBlanking(boolean newStatus) {
   _towersBlanked = newStatus;
 }
 
+#ifdef FEATURE_TICKER
 // ************************************************************
 // Allow temporary override of the normal program
 // ************************************************************
-void LEDManager_::setTickerOverrideValue(byte newValue) {
+void LEDManager_::setTickerOverrideValue(quote_direction newValue) {
   _tickerOverride = newValue;
 }
+#endif
 
 // ************************************************************
 // Find the colour wheel offset of the input RGB colour

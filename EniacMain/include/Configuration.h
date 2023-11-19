@@ -85,6 +85,6 @@
 // -------------------------------------------------------------------------------
 
 // Access to Crypto/FX tickers
-#define TICKERS_OFF                    // TICKERS | TICKERS_OFF
+#define FEATURE_TICKER             // FEATURE_TICKER | FEATURE_TICKER_OFF
 
 // -------------------------------------------------------------------------------

@@ -67,8 +67,19 @@ void QuoteManager_::getQuote() {
 
       String quoteStr = String((char *)buffer);
 
-      debugMsgQte("Quote: " + quoteStr);
-      _quoteValue = quoteStr.toInt();
+      debugMsgQte("QuoteStr: " + quoteStr);
+
+      // The format of the quote should be:
+      // dddddd;i
+      // dddddd = 6 digit quote value
+      // i = direction indicator: "U" Up, "D" Down, "-" Unchanged
+      if (quoteStr.length() == 8) {
+        _quoteValue = quoteStr.substring(1,6).toInt();
+        debugMsgQte("Quote: " + String(_quoteValue));  
+        _quoteDirection = (quote_direction) quoteStr.charAt(7);
+        debugMsgQte("Quote dir: " + String(_quoteDirection));  
+        _quoteValid = true;
+      }
 
       #ifdef QTE_EXTENDED_DEBUG
       unsigned long latency = _lastUpdateFromServer - _qteStarted;
@@ -77,7 +88,6 @@ void QuoteManager_::getQuote() {
 
       // Reset when we last started.
       _qteStarted = 0;
-      _quoteValid = true;
 
       // Notify the outside world that we have updated
       if (_nqcb != NULL) {
@@ -104,9 +114,16 @@ int QuoteManager_::getLastQuote() {
 }
 
 // ************************************************************
+// see if the NTP we got is still to be condsidered valid
+// ************************************************************
+quote_direction QuoteManager_::getLastQuoteDirection() {
+  return _quoteDirection;
+}
+
+// ************************************************************
 // Set the callback for informing that a new time update is there
 // ************************************************************
-void QuoteManager_::setNewQuoteCallback(NewTimeCallback nqcb) {
+void QuoteManager_::setNewQuoteCallback(NewQuoteCallback nqcb) {
   _nqcb = nqcb;
   debugMsgQte("Quote update callback set");
 }

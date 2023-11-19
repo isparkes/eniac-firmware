@@ -90,6 +90,6 @@ void enableWatchdog();
 void disableWatchdog();
 void feedWatchdog();
 
-#ifdef TICKERS
+#ifdef FEATURE_TICKERS
 int getBTCPrice();
 #endif
