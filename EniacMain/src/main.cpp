@@ -108,7 +108,7 @@ void setup()
   ldrManager.setLDRValueToMax(true);
 
   // Needed to action the PWM
-  ldrManager.getDimmingFromLDR();
+  ldrManager.updateOncePerLoop();
 
   for (int i = 0 ; i <= 20 ; i++) {
     outputManager.loadNumberArraySameValue(i%10);
@@ -306,7 +306,10 @@ void performOncePerLoop() {
 
   // -------------------------------------------------------------------------------
   
-  ldrManager.getDimmingFromLDR();
+  ldrManager.updateOncePerLoop();
+
+  // -------------------------------------------------------------------------------
+  
   #ifdef FEATURE_BACKLIGHTS
   ledManager.setLDRValue(ldrManager.getLDRValue());
   #endif
@@ -323,8 +326,7 @@ void performOncePerLoop() {
 
   #elif defined FEATURE_BACKLIGHTS
   // output the backlight/underlight LEDs
-  ledManager.setPulseValue(secsDelta);
-  ledManager.performOncePerLoopProcessing();
+  ledManager.updateOncePerLoop();
   #endif
 
   // -------------------------------------------------------------------------------
@@ -398,12 +400,12 @@ void performOncePerSecondProcessing() {
 
   // -------------------------------------------------------------------------------
 
-  ldrManager.recalculateVariables();
+  ldrManager.updateOncePerSecond();
     
   // -------------------------------------------------------------------------------
   
   #ifdef FEATURE_BACKLIGHTS
-  ledManager.performOncePerSecondProcessing();
+  ledManager.updateOncePerSecond();
   #endif
 
   // -------------------------------------------------------------------------------

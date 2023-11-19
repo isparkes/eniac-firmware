@@ -128,9 +128,6 @@ class LEDManager_
     // Allow the ticker to control the colours
     void setTickerOverrideValue(byte newValue);
 
-    // recalculate internal values based on the pulsing factor
-    void setPulseValue(unsigned int secsDelta);
-
     void setSyncColourTime(boolean value);
     void setDiagnosticLED(byte stepNumber, byte state);
 
@@ -144,14 +141,14 @@ class LEDManager_
     void setLEDBlanking(boolean newStatus);
     void setTowerBlanking(boolean newStatus);
 
-    void performOncePerLoopProcessing();
-    void performOncePerSecondProcessing();
+    void updateOncePerLoop();
+    void updateOncePerSecond();
   private:
     float _backlightDim = 1.0;
     float _underlightDim = 1.0;
     float _ldrDimFactor = 1.0;
     float _ldrRange = 100.0;
-    float _pwmFactor = 1.0;
+    float _pulseFactor = 1.0;
     byte  _ledMode = BACKLIGHT_DEFAULT;
     byte  _cycleCount = 0;
     byte  _cycleSpeed = CYCLE_SPEED_DEFAULT;
@@ -209,6 +206,9 @@ class LEDManager_
 
     // This processes the values and outputs the buffer for slow moving animations
     void processLedStatusOncePerSecond();
+
+    // recalculate internal values based on the pulsing factor
+    void setPulseValue();
 };
 
 // ************************************************************

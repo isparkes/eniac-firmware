@@ -15,15 +15,15 @@ void LEDManager_::setUp()
 // ************************************************************
 // called once per second
 // ************************************************************
-void LEDManager_::performOncePerSecondProcessing() {
+void LEDManager_::updateOncePerSecond() {
   recalculateVariables();
-  processLedStatusOncePerSecond();
 }
 
 // ************************************************************
 // called once very loop (10mS or so)
 // ************************************************************
-void LEDManager_::performOncePerLoopProcessing() {
+void LEDManager_::updateOncePerLoop() {
+  setPulseValue();
   processLedStatusLoop();
 }
 
@@ -128,11 +128,11 @@ void LEDManager_::setLDRRange(unsigned int ldrRange)
 // ************************************************************
 // Set the pulse current value
 // ************************************************************
-void LEDManager_::setPulseValue(unsigned int secsDelta)
+void LEDManager_::setPulseValue()
 {
   if (cc->useBLPulse) {
     // Calculate the brightness factor based on the "pulse"
-    _pwmFactor = (float) secsDelta / (float) 1000.0;
+    _pulseFactor = (float) secsDelta / (float) 1000.0;
   }
 }
 
@@ -252,31 +252,6 @@ void LEDManager_::processLedStatusLoop() {
   if (!_blanked) {
     byte tmpMode = cc->backlightMode;
 
-    if (_tickerOverride > 0) tmpMode = _tickerOverride;
-
-    if (tmpMode == BACKLIGHT_CYCLE) {
-      cycleColours3(_colors);
-      setBacklightLEDs( getLEDAdjustedBL(_colors[0]),
-                        getLEDAdjustedBL(_colors[1]),
-                        getLEDAdjustedBL(_colors[2]));
-      setUnderlightLEDs(getLEDAdjustedUL(_colors[0]),
-                        getLEDAdjustedUL(_colors[1]),
-                        getLEDAdjustedUL(_colors[2]));
-      outputLEDBuffer();
-    }
-  }
-}
-
-// ************************************************************
-// Process the options each loop
-// ************************************************************
-void LEDManager_::processLedStatusOncePerSecond() {
-
-  // -------------------------------- Backlights / Underlights -------------------------------
-
-  if (!_blanked) {
-    byte tmpMode = cc->backlightMode;
-
     if (_tickerOverride > 0) {
       tmpMode = _tickerOverride;
       debugMsgLed("Using override LED mode: " + String(_tickerOverride));
@@ -293,7 +268,13 @@ void LEDManager_::processLedStatusOncePerSecond() {
           break;
         }
       case BACKLIGHT_CYCLE: {
-          // no processing needed
+          cycleColours3(_colors);
+          setBacklightLEDs( getLEDAdjustedBL(_colors[0]),
+                            getLEDAdjustedBL(_colors[1]),
+                            getLEDAdjustedBL(_colors[2]));
+          setUnderlightLEDs(getLEDAdjustedUL(_colors[0]),
+                            getLEDAdjustedUL(_colors[1]),
+                            getLEDAdjustedUL(_colors[2]));
           break;
         }
       case BACKLIGHT_COLOUR_TIME: {
@@ -390,13 +371,13 @@ byte LEDManager_::getLEDAdjustedBL(byte rawValue) {
   byte dimmedPWMVal;
   if (cc->useBLDim) {
     if (cc->useBLPulse) {
-      dimmedPWMVal = (byte)(rawValue * _pwmFactor * _backlightDim * _ldrDimFactor);
+      dimmedPWMVal = (byte)(rawValue * _pulseFactor * _backlightDim * _ldrDimFactor);
     } else {
       dimmedPWMVal = (byte)(rawValue * _backlightDim * _ldrDimFactor);
     }
   } else {
     if (cc->useBLPulse) {
-      dimmedPWMVal = (byte)(rawValue * _pwmFactor * _backlightDim);
+      dimmedPWMVal = (byte)(rawValue * _pulseFactor * _backlightDim);
     } else {
       dimmedPWMVal = (byte)(rawValue * _backlightDim);
     }
@@ -412,13 +393,13 @@ byte LEDManager_::getLEDAdjustedUL(byte rawValue) {
   byte dimmedPWMVal;
   if (cc->useBLDim) {
     if (cc->useBLPulse) {
-      dimmedPWMVal = (byte)(rawValue * _pwmFactor * _underlightDim * _ldrDimFactor);
+      dimmedPWMVal = (byte)(rawValue * _pulseFactor * _underlightDim * _ldrDimFactor);
     } else {
       dimmedPWMVal = (byte)(rawValue * _underlightDim * _ldrDimFactor);
     }
   } else {
     if (cc->useBLPulse) {
-      dimmedPWMVal = (byte)(rawValue * _pwmFactor * _underlightDim);
+      dimmedPWMVal = (byte)(rawValue * _pulseFactor * _underlightDim);
     } else {
       dimmedPWMVal = (byte)(rawValue * _underlightDim);
     }

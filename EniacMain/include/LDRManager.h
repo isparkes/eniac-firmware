@@ -9,6 +9,7 @@
 // LDR Manager deals with the light sensor. Has the following functions:
 // 1) Set the blanking pin PWM value
 // 2) read and smooth the raw LDR readings
+// 3) Manages the PWM setting of the tube output
 // -------------------------------------------------------------------------------
 #define USE_LDR_DEFAULT       true
 
@@ -44,25 +45,37 @@ class LDRManager_
   public:
     void setUp();
 
-    void recalculateVariables();
-
     void  getDimmingFromLDR();
+
+    // Get the smoothed value *without* the ACP (used for LEDs)
     int   getLDRValue();
     float getLDRValuePct();
+
+    // Get the smoothed value *including* ACP (used for tubes)
+    int   getLDRValueACP();
+
     bool  isMinDim();
     bool  isMaxDim();
+
     void  setLDRValueToMin(bool newState);
     void  setLDRValueToMax(bool newState);
     void  setLDRValueToMaxACP(bool newState);
+    
     bool  getIsFixedLDRValue();
+
+    void updateOncePerLoop();
+    void updateOncePerSecond();
   private:
-    void setUpPWM();
+    double _sensorFactor = (double)SENSOR_SENSIT_DEFAULT / 100.0;
 
-    double sensorLDRSmoothed = 0;
-    double sensorFactor = (double)SENSOR_SENSIT_DEFAULT / 100.0;
-    int    sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
-
+    // Native values
+    double _sensorLDRSmoothed = 0;
     int   _ldrValue = 0;
+
+    // ACP Versions
+    double _sensorLDRSmoothedACP = 0;
+    int   _ldrValueACP = 0;
+
     bool  _isMinDim;
     bool  _isMaxDim;
     bool  _setMinDim;
@@ -76,6 +89,9 @@ class LDRManager_
     double _factor;
 
     const int LDRPWMChannel = 0;
+
+    void setUpPWM();
+    void recalculateVariables();
 };
 
 extern LDRManager_ &ldrManager;

@@ -34,6 +34,20 @@ void LDRManager_::setUpPWM() {
 }
 
 // ************************************************************
+// Do the work for the fast moving variables
+// ************************************************************
+void LDRManager_::updateOncePerLoop() {
+  getDimmingFromLDR();
+}
+
+// ************************************************************
+// Do the work for the slow moving variables
+// ************************************************************
+void LDRManager_::updateOncePerSecond() {
+  recalculateVariables();
+}
+
+// ************************************************************
 // Recalculate the per-config or slow moving variables
 // ************************************************************
 void LDRManager_::recalculateVariables() {
@@ -51,24 +65,36 @@ void LDRManager_::recalculateVariables() {
 // Gets the smoothed LDR Reading and store it
 // ************************************************************
 void LDRManager_::getDimmingFromLDR() {
-  // Test the max case first to allow ACP
-  if (_setMaxDimACP) {
-    _ldrValue = _maxDimLDR;
-  } else if (_setMinDim) {
-    _ldrValue = _minDimLDR;
+  int calculatedLDRVal = 0; 
+  if (_setMinDim) {
+    calculatedLDRVal = _minDimLDR;
   } else if (_setMaxDim) {
-    _ldrValue = _maxDimLDR;
+    calculatedLDRVal = _maxDimLDR;
   } else if (cc->useLDR) {
     int rawLDR = analogRead(LDRPin);
-    _ldrValue = ((double)rawLDR - _offset) * _factor;
+    calculatedLDRVal = ((double)rawLDR - _offset) * _factor;
     #ifdef LDR_EXTENDED_DEBUG
     debugMsgLdr("Using raw LDR reading: " + String(rawLDR));
     debugMsgLdr("Adjusted LDR reading: " + String(_ldrValue));
     #endif
   } else {
-    _ldrValue = _setDimLDR;
+    calculatedLDRVal = _setDimLDR;
   }
 
+  // Non-ACP calculation
+  double sensorDiff = (double)calculatedLDRVal - _sensorLDRSmoothed;
+  _sensorLDRSmoothed += (sensorDiff / (double) cc->sensorSmoothCountLDR);
+  _ldrValue = (int) _sensorLDRSmoothed;
+
+  // ACP calculation
+  if (_setMaxDimACP) {
+    calculatedLDRVal = _maxDimLDR;
+  }
+  double sensorDiffACP = (double)calculatedLDRVal - _sensorLDRSmoothedACP;
+  _sensorLDRSmoothedACP += (sensorDiffACP / (double) cc->sensorSmoothCountLDR);
+  _ldrValueACP = (int) _sensorLDRSmoothedACP;
+
+  // calculate the min/max values based on the tube (non-ACP) value  
   if (_ldrValue >= _minDimLDR) {
     _ldrValue = _minDimLDR;
     _isMinDim = true;
@@ -82,10 +108,6 @@ void LDRManager_::getDimmingFromLDR() {
     _isMaxDim = false;
   }
 
-  double sensorDiff = (double)_ldrValue - sensorLDRSmoothed;
-  sensorLDRSmoothed += (sensorDiff / (double) cc->sensorSmoothCountLDR);
-  int localLDRValue = (int) sensorLDRSmoothed;
-
   #ifdef LDR_EXTENDED_DEBUG
   if (_isMinDim) debugMsgLdr("MIN LDR");
   if (_isMaxDim) debugMsgLdr("MAX LDR");
@@ -94,7 +116,7 @@ void LDRManager_::getDimmingFromLDR() {
   debugMsgLdr("Smoothed LDR reading: " + String(localLDRValue));
   #endif
 
-  ledcWrite(LDRPWMChannel, localLDRValue);
+  ledcWrite(LDRPWMChannel, _ldrValueACP);
 }
 
 // ************************************************************
@@ -109,6 +131,13 @@ int LDRManager_::getLDRValue() {
 // ************************************************************
 float LDRManager_::getLDRValuePct() {
   return (LDR_VALUE_MAX - _ldrValue) / (float) LDR_VALUE_MAX * 100.0;
+}
+
+// ************************************************************
+// Return previously calculated value, range 0 - 4095
+// ************************************************************
+int LDRManager_::getLDRValueACP() {
+  return _ldrValueACP;
 }
 
 // ************************************************************

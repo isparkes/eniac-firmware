@@ -642,7 +642,7 @@ void OutputManager_::processStunts() {
           debugMsgOtm("ACP: " + String(_acpOffset-1));
           #endif
           loadNumberArraySameValue(_acpOffset-1);
-          if (_acpOffset > 20) {
+          if (_acpOffset > 10) {
             _acpOffset = 0;
             #ifdef OTM_EXTENDED_DEBUG
             debugMsgOtm("ACP End");
