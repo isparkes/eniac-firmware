@@ -108,12 +108,14 @@ void LEDManager_::recalculateVariables() {
 }
 
 // ************************************************************
-// Set the LDR dimming value
+// Set the LDR dimming value : between 0.0 and 1.0
 // ************************************************************
 void LEDManager_::setLDRValue(unsigned int ldrValue)
 {
   if (cc->useBLDim) {
     _ldrDimFactor = (float) (_ldrRange - ldrValue) / _ldrRange;
+  } else {
+    _ldrDimFactor = 1.0;
   }
 }
 
@@ -133,6 +135,8 @@ void LEDManager_::setPulseValue()
   if (cc->useBLPulse) {
     // Calculate the brightness factor based on the "pulse"
     _pulseFactor = (float) secsDelta / (float) 1000.0;
+  } else {
+    _pulseFactor = 1.0;
   }
 }
 
@@ -247,19 +251,23 @@ void LEDManager_::outputLEDBuffer() {
 // ************************************************************
 void LEDManager_::processLedStatusLoop() {
 
+  // Recalculate the LED factors
+  _overallBLDimFactor = _pulseFactor * _backlightDim * _ldrDimFactor;
+  _overallULDimFactor = _pulseFactor * _underlightDim;
+
   // -------------------------------- Backlights / Underlights -------------------------------
 
   if (!_blanked) {
     byte tmpMode = cc->backlightMode;
 
     #ifdef FEATURE_TICKER
-    if (_tickerOverride == 'U') {
+    if (_tickerOverride == up) {
       tmpMode = BACKLIGHT_UP;
 //      debugMsgLed("Using override LED mode: " + String(_tickerOverride));
-    } else if (_tickerOverride == 'D') {
+    } else if (_tickerOverride == down) {
       tmpMode = BACKLIGHT_DOWN;
 //      debugMsgLed("Using override LED mode: " + String(_tickerOverride));
-    } else if (_tickerOverride == '-') {
+    } else if (_tickerOverride == unchanged) {
       tmpMode = BACKLIGHT_UNCHANGED;
 //      debugMsgLed("Using override LED mode: " + String(_tickerOverride));
     }
@@ -348,14 +356,14 @@ void LEDManager_::setTestValue(byte value) {
 
   byte numVal = value%10;
   for (byte i = 0 ; i < NUM_BL_PIXELS ; i++) {
-    setBacklightLED(i, 
-                    testColoursR[numVal],
-                    testColoursG[numVal],
-                    testColoursB[numVal]);
-    setUnderlightLED(i, 
-                    testColoursR[numVal],
-                    testColoursG[numVal],
-                    testColoursB[numVal]);
+    setBacklightLEDUnadjusted(i, 
+                              testColoursR[numVal],
+                              testColoursG[numVal],
+                              testColoursB[numVal]);
+    setBacklightLEDUnadjusted(i, 
+                              testColoursR[numVal],
+                              testColoursG[numVal],
+                              testColoursB[numVal]);
   }
 
   // ----------------------------------------- Towers ----------------------------------------
@@ -373,19 +381,7 @@ void LEDManager_::setTestValue(byte value) {
 // ************************************************************
 byte LEDManager_::getLEDAdjustedBL(byte rawValue) {
   byte dimmedPWMVal;
-  if (cc->useBLDim) {
-    if (cc->useBLPulse) {
-      dimmedPWMVal = (byte)(rawValue * _pulseFactor * _backlightDim * _ldrDimFactor);
-    } else {
-      dimmedPWMVal = (byte)(rawValue * _backlightDim * _ldrDimFactor);
-    }
-  } else {
-    if (cc->useBLPulse) {
-      dimmedPWMVal = (byte)(rawValue * _pulseFactor * _backlightDim);
-    } else {
-      dimmedPWMVal = (byte)(rawValue * _backlightDim);
-    }
-  }
+  dimmedPWMVal = (byte)(rawValue * _overallBLDimFactor);
   return dim_curve[dimmedPWMVal];
 }
 
@@ -395,19 +391,7 @@ byte LEDManager_::getLEDAdjustedBL(byte rawValue) {
 // ************************************************************
 byte LEDManager_::getLEDAdjustedUL(byte rawValue) {
   byte dimmedPWMVal;
-  if (cc->useBLDim) {
-    if (cc->useBLPulse) {
-      dimmedPWMVal = (byte)(rawValue * _pulseFactor * _underlightDim * _ldrDimFactor);
-    } else {
-      dimmedPWMVal = (byte)(rawValue * _underlightDim * _ldrDimFactor);
-    }
-  } else {
-    if (cc->useBLPulse) {
-      dimmedPWMVal = (byte)(rawValue * _pulseFactor * _underlightDim);
-    } else {
-      dimmedPWMVal = (byte)(rawValue * _underlightDim);
-    }
-  }
+  dimmedPWMVal = (byte)(rawValue * _overallULDimFactor);
   return dim_curve[dimmedPWMVal];
 }
 

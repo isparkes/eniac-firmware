@@ -163,6 +163,11 @@ class LEDManager_
     byte  _dow = 0;
     float _hueOffset = 0.0;
     float _towerHueOffset = 0.0;
+
+    // Processing optimisation - reduce the number of multiplications per loop
+    // We cache these values each time one of them changes
+    float _overallBLDimFactor;
+    float _overallULDimFactor;
     #ifdef FEATURE_TICKER
     quote_direction  _tickerOverride = unchanged;
     #endif
