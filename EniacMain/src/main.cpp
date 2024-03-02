@@ -29,15 +29,16 @@ void setup()
   }
 
   // -------------------------------------------------------------------------
-
-  // for reliable startup with GPS connected, change line 200 of esp32-hal-uart.c from
+  // for reliable startup with GPS connected on older versions of the SDK, you
+  // might need to change the uart initialisation. Older versions you have to 
+  // change line 200 of esp32-hal-uart.c from
   //
   //      uartFlush(uart);
   //  to
   //      uartFlushTxOnly(uart, false);
   //
-  // Which causes the receive buffer to be flushed 
-
+  // Which causes the receive buffer NOT to be flushed
+  // This has been fixed in 6.5.0 
   Serial.begin(SERIAL_BAUD_RATE);
 
   #ifdef DEBUG

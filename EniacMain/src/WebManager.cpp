@@ -3,7 +3,7 @@
 // This include has to be here, anbd not in the header file
 #include <ElegantOTA.h>
 
-// I had to fiddle in the ElegantOTA sourcew to get this to work
+// I had to fiddle in the ElegantOTA source to get this to work
 // Line 27: #define ELEGANTOTA_USE_ASYNC_WEBSERVER 1
 #define ELEGANTOTA_USE_ASYNC_WEBSERVER
 
