@@ -13,6 +13,21 @@ void LEDManager_::setUp()
 }
 
 // ************************************************************
+// called once per second
+// ************************************************************
+void LEDManager_::updateOncePerSecond() {
+  recalculateVariables();
+}
+
+// ************************************************************
+// called once very loop (10mS or so)
+// ************************************************************
+void LEDManager_::updateOncePerLoop() {
+  setPulseValue();
+  processLedStatusLoop();
+}
+
+// ************************************************************
 // recalculate "slow moving" parameters
 // ************************************************************
 void LEDManager_::recalculateVariables() {
@@ -21,6 +36,9 @@ void LEDManager_::recalculateVariables() {
   #ifdef FEATURE_EXT_LEDS
   _underlightDim = (float) cc->extDimFactor / 100.0;
   #endif
+
+  // cache the weekday - native range is 1..7, we need 0..6
+  _dow = weekday() - 1;
 
   // Calculate the gradient per NP
   float _hueOffsetIncrement = ((cc->backlightGradient * 100) / (DIGIT_COUNT * 100.0));
@@ -90,12 +108,14 @@ void LEDManager_::recalculateVariables() {
 }
 
 // ************************************************************
-// Set the LDR dimming value
+// Set the LDR dimming value : between 0.0 and 1.0
 // ************************************************************
 void LEDManager_::setLDRValue(unsigned int ldrValue)
 {
   if (cc->useBLDim) {
     _ldrDimFactor = (float) (_ldrRange - ldrValue) / _ldrRange;
+  } else {
+    _ldrDimFactor = 1.0;
   }
 }
 
@@ -110,11 +130,13 @@ void LEDManager_::setLDRRange(unsigned int ldrRange)
 // ************************************************************
 // Set the pulse current value
 // ************************************************************
-void LEDManager_::setPulseValue(unsigned int secsDelta)
+void LEDManager_::setPulseValue()
 {
   if (cc->useBLPulse) {
     // Calculate the brightness factor based on the "pulse"
-    _pwmFactor = (float) secsDelta / (float) 1000.0;
+    _pulseFactor = (float) secsDelta / (float) 1000.0;
+  } else {
+    _pulseFactor = 1.0;
   }
 }
 
@@ -125,6 +147,24 @@ void LEDManager_::setBacklightLEDs(byte red, byte green, byte blue) {
   for (int i = 0 ; i < NUM_BL_PIXELS ; i++) {
     setBacklightLED(i, red, green, blue);
   }
+}
+
+// ************************************************************
+// Set back light LEDs to the same colour
+// ************************************************************
+void LEDManager_::setBacklightLEDsUnadjusted(byte red, byte green, byte blue) {
+  for (int i = 0 ; i < NUM_BL_PIXELS ; i++) {
+    setBacklightLED(i, red, green, blue);
+  }
+}
+
+// ************************************************************
+// Set a single back light LEDs to a colour
+// ************************************************************
+void LEDManager_::setBacklightLEDUnadjusted(byte index, byte red, byte green, byte blue) {
+  _ledRb[LED_ADDR[index]] = red;
+  _ledGb[LED_ADDR[index]] = green;
+  _ledBb[LED_ADDR[index]] = blue;
 }
 
 // ************************************************************
@@ -183,13 +223,6 @@ void LEDManager_::setUnderlightLED(byte index, byte red, byte green, byte blue) 
 }
 
 // ************************************************************
-// Set day of week for the 'day of week' backlight mode
-// ************************************************************
-void LEDManager_::setDayOfWeek(byte dow) {
-  _dow = dow-1;
-}
-
-// ************************************************************
 // Put the led buffers out
 // ************************************************************
 void LEDManager_::outputLEDBuffer() {
@@ -214,13 +247,33 @@ void LEDManager_::outputLEDBuffer() {
 }
 
 // ************************************************************
-// Process the options and create a new buffer
+// Process the options each loop
 // ************************************************************
-void LEDManager_::processLedStatus() {
+void LEDManager_::processLedStatusLoop() {
+
+  // Recalculate the LED factors
+  _overallBLDimFactor = _pulseFactor * _backlightDim * _ldrDimFactor;
+  _overallULDimFactor = _pulseFactor * _underlightDim;
+
   // -------------------------------- Backlights / Underlights -------------------------------
 
   if (!_blanked) {
-    switch (cc->backlightMode) {
+    byte tmpMode = cc->backlightMode;
+
+    #ifdef FEATURE_TICKER
+    if (_tickerOverride == up) {
+      tmpMode = BACKLIGHT_UP;
+//      debugMsgLed("Using override LED mode: " + String(_tickerOverride));
+    } else if (_tickerOverride == down) {
+      tmpMode = BACKLIGHT_DOWN;
+//      debugMsgLed("Using override LED mode: " + String(_tickerOverride));
+    } else if (_tickerOverride == unchanged) {
+      tmpMode = BACKLIGHT_UNCHANGED;
+//      debugMsgLed("Using override LED mode: " + String(_tickerOverride));
+    }
+    #endif
+
+    switch (tmpMode) {
       case BACKLIGHT_FIXED: {
           setBacklightLEDs( getLEDAdjustedBL(rgb_backlight_curve[cc->redCnl]),
                             getLEDAdjustedBL(rgb_backlight_curve[cc->grnCnl]),
@@ -243,7 +296,7 @@ void LEDManager_::processLedStatus() {
       case BACKLIGHT_COLOUR_TIME: {
           if (!_syncColourTime) {
             for (byte i = 0 ; i < NUM_BL_PIXELS ; i++) {
-              byte numVal = numberArray[i/2];
+              byte numVal = outputManager.getCurrentDisplayDigitValue(i/2);
               setBacklightLED(i,
                               getLEDAdjustedBL(colourTimeR[numVal]),
                               getLEDAdjustedBL(colourTimeG[numVal]),
@@ -265,8 +318,25 @@ void LEDManager_::processLedStatus() {
                             getLEDAdjustedUL(dayOfWeekB[_dow]));
           break;
         }
+      #ifdef FEATURE_TICKER
+      case BACKLIGHT_UP: {
+          setTestValue(1);
+          break;
+        }
+      case BACKLIGHT_DOWN: {
+          setTestValue(3);
+          break;
+        }
+      case BACKLIGHT_UNCHANGED: {
+          setTestValue(9);
+          break;
+        }
+      #endif
     }
   }
+
+  // ----------------------------------------- Towers ----------------------------------------
+
 
   if (!_towersBlanked) {
     setTowerLEDs(   getLEDAdjustedUL(255),
@@ -278,22 +348,25 @@ void LEDManager_::processLedStatus() {
 }
 
 // ************************************************************
-// Process the options and create a new buffer
+// Set a predefined test colour
 // ************************************************************
 void LEDManager_::setTestValue(byte value) {
+
   // -------------------------------- Backlights / Underlights -------------------------------
 
   byte numVal = value%10;
   for (byte i = 0 ; i < NUM_BL_PIXELS ; i++) {
-    setBacklightLED(i, 
-                    testColoursR[numVal],
-                    testColoursG[numVal],
-                    testColoursB[numVal]);
-    setUnderlightLED(i, 
-                    testColoursR[numVal],
-                    testColoursG[numVal],
-                    testColoursB[numVal]);
+    setBacklightLEDUnadjusted(i, 
+                              testColoursR[numVal],
+                              testColoursG[numVal],
+                              testColoursB[numVal]);
+    setBacklightLEDUnadjusted(i, 
+                              testColoursR[numVal],
+                              testColoursG[numVal],
+                              testColoursB[numVal]);
   }
+
+  // ----------------------------------------- Towers ----------------------------------------
 
   setTowerLEDs(   getLEDAdjustedUL(255),
                   getLEDAdjustedUL(0),
@@ -303,47 +376,31 @@ void LEDManager_::setTestValue(byte value) {
 }
 
 // ************************************************************
-// output a PWM LED channel, adjusting for dimming, PWM
+// Get a PWM LED channel, adjusting for dimming, PWM
 // and user back light brightness
 // ************************************************************
 byte LEDManager_::getLEDAdjustedBL(byte rawValue) {
   byte dimmedPWMVal;
-  if (cc->useBLDim) {
-    if (cc->useBLPulse) {
-      dimmedPWMVal = (byte)(rawValue * _pwmFactor * _backlightDim * _ldrDimFactor);
-    } else {
-      dimmedPWMVal = (byte)(rawValue * _backlightDim * _ldrDimFactor);
-    }
-  } else {
-    if (cc->useBLPulse) {
-      dimmedPWMVal = (byte)(rawValue * _pwmFactor * _backlightDim);
-    } else {
-      dimmedPWMVal = (byte)(rawValue * _backlightDim);
-    }
-  }
+  dimmedPWMVal = (byte)(rawValue * _overallBLDimFactor);
   return dim_curve[dimmedPWMVal];
 }
 
 // ************************************************************
-// output a PWM LED channel, adjusting for dimming, PWM
+// Get a PWM LED channel, adjusting for dimming, PWM
 // and user under light brightness
 // ************************************************************
 byte LEDManager_::getLEDAdjustedUL(byte rawValue) {
   byte dimmedPWMVal;
-  if (cc->useBLDim) {
-    if (cc->useBLPulse) {
-      dimmedPWMVal = (byte)(rawValue * _pwmFactor * _underlightDim * _ldrDimFactor);
-    } else {
-      dimmedPWMVal = (byte)(rawValue * _underlightDim * _ldrDimFactor);
-    }
-  } else {
-    if (cc->useBLPulse) {
-      dimmedPWMVal = (byte)(rawValue * _pwmFactor * _underlightDim);
-    } else {
-      dimmedPWMVal = (byte)(rawValue * _underlightDim);
-    }
-  }
+  dimmedPWMVal = (byte)(rawValue * _overallULDimFactor);
   return dim_curve[dimmedPWMVal];
+}
+
+// ************************************************************
+// Get a PWM LED channel, without adjusting for amything - 
+// Used in ticker display
+// ************************************************************
+byte LEDManager_::getLEDRawBL(byte rawValue) {
+  return rawValue;
 }
 
 // ************************************************************
@@ -453,6 +510,15 @@ void LEDManager_::setLEDBlanking(boolean newStatus) {
 void LEDManager_::setTowerBlanking(boolean newStatus) {
   _towersBlanked = newStatus;
 }
+
+#ifdef FEATURE_TICKER
+// ************************************************************
+// Allow temporary override of the normal program
+// ************************************************************
+void LEDManager_::setTickerOverrideValue(quote_direction newValue) {
+  _tickerOverride = newValue;
+}
+#endif
 
 // ************************************************************
 // Find the colour wheel offset of the input RGB colour

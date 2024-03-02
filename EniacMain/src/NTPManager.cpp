@@ -24,14 +24,14 @@ int NtpManager_::getUpdateInterval() {
 }
 
 // ************************************************************
-// set the update interval
+// set the NTP pool
 // ************************************************************
 void NtpManager_::setNtpPool(String ntpPool) {
   _ntpPool = ntpPool;
 }
 
 // ************************************************************
-// get the update interval
+// get the NTP pool
 // ************************************************************
 String NtpManager_::getNtpPool() {
   return _ntpPool;
@@ -186,7 +186,7 @@ void NtpManager_::getTimeFromNTP() {
 
       #ifdef DEBUG
       unsigned long measured_at = (done - _ntpStarted) / 2;  // Assume symmetric network latency and return when we think the whole second was.
-      debugMsgNtp("lastUpdateFromServer: " + String(_lastUpdateFromServer) + " - latency: " + String(measured_at));
+      debugMsgNtp("lastUpdateFromServer: @" + String(_lastUpdateFromServer) + " - latency: " + String(measured_at));
       #endif
       
       // Get the current time in mS, assuming symmtric latency

@@ -17,6 +17,8 @@
 #include "OutputManager.h"
 #include "CountdownManager.h"
 
+#include "QuoteManager.h"
+
 void setup()
 {
   // Show that we booted - useful for remote debugging
@@ -27,15 +29,16 @@ void setup()
   }
 
   // -------------------------------------------------------------------------
-
-  // for reliable startup with GPS connected, change line 200 of esp32-hal-uart.c from
+  // for reliable startup with GPS connected on older versions of the SDK, you
+  // might need to change the uart initialisation. Older versions you have to 
+  // change line 200 of esp32-hal-uart.c from
   //
   //      uartFlush(uart);
   //  to
   //      uartFlushTxOnly(uart, false);
   //
-  // Which causes the receive buffer to be flushed 
-
+  // Which causes the receive buffer NOT to be flushed
+  // This has been fixed in 6.5.0 
   Serial.begin(SERIAL_BAUD_RATE);
 
   #ifdef DEBUG
@@ -67,49 +70,6 @@ void setup()
   nowMillis = millis();
 
   // -------------------------------------------------------------------------
-
-  debugMsgMain("Start up Timers");
-
-  // Starts the display and the status LED flashing
-  startTimers();
-
-  // -------------------------------------------------------------------------
-  // Startup test
-  ldrManager.setUpPWM();
-  ldrManager.setLDRValueToMax();
-  outputManager.setOutputMode(diagsMode);
-
-  for (int i = 0 ; i <= 20 ; i++) {
-    outputManager.loadNumberArraySameValue(i%10);
-    outputManager.allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
-    outputManager.outputDisplay();
-    delay(100);
-  }
-
-  // -------------------------------------------------------------------------
-  
-  // Default pins SDA 21, SCL 22 Frequency 400kHz 
-  debugMsgMain("Start up I2C...");
-  Wire.begin(SDAint, SCLint, 400000L);
-
-  // -------------------------------------------------------------------------
-  
-  #ifdef FEATURE_MENU
-  debugMsgMain("Starting OLED");
-  oled.setUp();
-  oled.clearDisplay();
-  menuManager.flashMenuMessage(CLOCK_MENU_TITLE, "Starting");
-  #endif
-
-  // -------------------------------------------------------------------------
-
-  #ifdef FEATURE_BACKLIGHTS
-  debugMsgMain("Start up neopixels");
-  ledManager.setUp();
-  ledManager.setLDRRange(LDR_VALUE_MAX);
-  #endif
-
-  // -------------------------------------------------------------------------
   
   debugMsgMain("Start up SPIFFS");
 
@@ -135,6 +95,51 @@ void setup()
     debugMsgMain("SPIFFS storage: read config failed - do factory reset");
     resetOptions();
   }
+
+  // -------------------------------------------------------------------------
+
+  debugMsgMain("Start up Timers");
+
+  // Starts the display and the status LED flashing
+  startTimers();
+
+  // -------------------------------------------------------------------------
+  // Startup test
+  ldrManager.setUp();
+  ldrManager.setLDRValueToMax(true);
+
+  // Needed to action the PWM
+  ldrManager.updateOncePerLoop();
+
+  for (int i = 0 ; i <= 20 ; i++) {
+    outputManager.loadNumberArraySameValue(i%10);
+    outputManager.outputDisplay();
+    delay(100);
+  }
+  ldrManager.setLDRValueToMax(false);
+
+  // -------------------------------------------------------------------------
+  
+  // Default pins SDA 21, SCL 22 Frequency 400kHz 
+  debugMsgMain("Start up I2C...");
+  Wire.begin(SDAint, SCLint, 400000L);
+
+  // -------------------------------------------------------------------------
+  
+  #ifdef FEATURE_MENU
+  debugMsgMain("Starting OLED");
+  oled.setUp();
+  oled.clearDisplay();
+  menuManager.flashMenuMessage(CLOCK_MENU_TITLE, "Starting");
+  #endif
+
+  // -------------------------------------------------------------------------
+
+  #ifdef FEATURE_BACKLIGHTS
+  debugMsgMain("Start up neopixels");
+  ledManager.setUp();
+  ledManager.setLDRRange(LDR_VALUE_MAX);
+  #endif
 
   // -------------------------------------------------------------------------
 
@@ -212,7 +217,7 @@ void setup()
   // -------------------------------------------------------------------------
   
   // Start showing the time now that we have something to say
-  outputManager.setOutputMode(timeMode);
+  outputManager.setOutputMode(primaryMode);
 
   // -------------------------------------------------------------------------
   
@@ -284,46 +289,45 @@ void setLedsDiags()
 // ************************************************************
 // Called every 10mS or so
 // ************************************************************
-void handleSwitchChange();  // Forward declaration
+void handleSwitchChanges();  // Forward declaration
 void performOncePerLoop() {
   // -------------------------------------------------------------------------------
 
+  // Diags mode on the encoder - we inject the encoder value into the output manager
   #if defined DIGIT_DIAGNOSTICS && defined FEATURE_MENU
   if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
-    ldrManager.setLDRValueToMax();
+    ldrManager.setLDRValueToMax(true);
     int rawEncPos = menuManager.getCurrentEncoderPos()/2;
-    while (rawEncPos < 0) rawEncPos+=60; 
+    while (rawEncPos < 0) rawEncPos+=60;
     int burnVal = rawEncPos % 60;
-    outputManager.loadNumberArrayBurn(burnVal);
+    outputManager.setArbitraryValue(burnVal);
+    outputManager.setArbitraryValueDisplayTime(10);
   }
   #endif
 
   // -------------------------------------------------------------------------------
   
-  // Dim except when we are in ACP mode
-  if (outputManager.getOutputMode() == acpMode) {
-    ldrManager.setLDRValueToMax();
-  } else {
-    ldrManager.resetFixedLDRValue();
-    ldrManager.getDimmingFromLDR();
-    #ifdef FEATURE_BACKLIGHTS
-    ledManager.setLDRValue(ldrManager.getLDRValue());
-    #endif
-  }
+  ldrManager.updateOncePerLoop();
 
   // -------------------------------------------------------------------------------
   
-  #if defined DIGIT_DIAGNOSTICS  && defined FEATURE_BACKLIGHTS
+  #ifdef FEATURE_BACKLIGHTS
+  ledManager.setLDRValue(ldrManager.getLDRValue());
+  #endif
+
+  // -------------------------------------------------------------------------------
+  
+  #if defined DIGIT_DIAGNOSTICS && defined FEATURE_BACKLIGHTS
   // output the backlight/underlight LEDs
   if (cc->diagsMode > 0) {
     setLedsDiags();
   } else {
     setLeds();
   }
+
   #elif defined FEATURE_BACKLIGHTS
   // output the backlight/underlight LEDs
-  ledManager.setPulseValue(secsDelta);
-  ledManager.processLedStatus();
+  ledManager.updateOncePerLoop();
   #endif
 
   // -------------------------------------------------------------------------------
@@ -345,7 +349,7 @@ void performOncePerLoop() {
   // -------------------------------------------------------------------------------
 
   if (switchEventWaiting) {
-    handleSwitchChange();
+    handleSwitchChanges();
     switchEventWaiting = false;
   }
 
@@ -396,9 +400,13 @@ void performOncePerSecondProcessing() {
   #endif
 
   // -------------------------------------------------------------------------------
+
+  ldrManager.updateOncePerSecond();
+    
+  // -------------------------------------------------------------------------------
   
   #ifdef FEATURE_BACKLIGHTS
-  ledManager.recalculateVariables();
+  ledManager.updateOncePerSecond();
   #endif
 
   // -------------------------------------------------------------------------------
@@ -431,57 +439,37 @@ void performOncePerSecondProcessing() {
   menuManager.menuOncePerSecond();
   #endif
 
+  #ifdef FEATURE_TICKERS
+  getBTCPrice();
+  #endif
+
   // -------------------------------------------------------------------------------
   debugManager.debugAutoOffCheck();
 
   // -------------------------------------------------------------------------------
+
+  #ifdef OTM_EXTENDED_DEBUG
+  outputManager.dumpNumberArrayValues();
+  #endif
+
+  // -------------------------------------------------------------------------------
+
   feedWatchdog();
 }
 
 // ************************************************************
-// called by interrupt - set the switch action
+// called to process switch changes. An interrupt sets a 
+// trigger and the mail loop calls this to process the 
+// waiting changes
 // ************************************************************
-void handleSwitchChange() {
-  // Switch 1 has various meanings
-
-  // Countdown mode
-  // If we are in Countdown mode, it switches the display back to "normal"
-  // when countdown is finished, it controls the slave output
-
-  #if defined(COUNTDOWN)
-  // If we are in countdown, the switch can turn it off
-  if (countdownManager.getCountdownActiveInternal()) {
-    switch1Meaning = SW_COUNTDOWN_INHIBIT;
-  } else {
-    #if defined(NIXIE_SLAVE) || defined(DECATRON_SLAVE)
-    switch1Meaning = SW_SLAVE_INHIBIT;
-    #else
-    switch1Meaning = SW_MIN_DIM;
-    #endif
-  }
-  #else
-    #if defined(NIXIE_SLAVE) || defined(DECATRON_SLAVE)
-    switch1Meaning = SW_SLAVE_INHIBIT;
-    #else
-    switch1Meaning = SW_MIN_DIM;
-    #endif
-  #endif
-
-  #ifdef NORMAL_SWITCHES
-  bool BTNOnstate = LOW;
-  #endif
-
-  #ifdef INVERT_SWITCHES
-  bool BTNOnstate = HIGH;
-  #endif
-
-  switch(switch1Meaning) {
+void handleSwitchChange(byte mode, bool state) {
+  switch(mode) {
     case SW_NONE: {
       // nothing
       break;
     }
     case SW_COUNTDOWN_INHIBIT: {
-      if (digitalRead(Switch1Pin) == BTNOnstate) {
+      if (state) {
         if (!countdownManager.getCountdownInhibit()) {
           countdownManager.setCountdownInhibit(true);
           debugMsgMain("Set inhibit countdown via switch");
@@ -496,37 +484,75 @@ void handleSwitchChange() {
     }
     case SW_SLAVE_INHIBIT: {
       #ifdef NIXIE_SLAVE
-      slaveManagerNixie.setSlaveEnabled(digitalRead(Switch1Pin) == !BTNOnstate);
+      slaveManagerNixie.setSlaveEnabled(!state);
       #endif
       #ifdef DECATRON_SLAVE
-      slaveManagerDecatron.setSlaveEnabled(digitalRead(Switch1Pin) == !BTNOnstate);
+      slaveManagerDecatron.setSlaveEnabled(!state);
       #endif
       break;
     }
     case SW_MIN_DIM: {
       // The switch "on" imposes min dimming
-      if ((digitalRead(Switch1Pin) == BTNOnstate) && !ldrManager.getIsFixedLDRValue()) {
-        ldrManager.setLDRValueToMin();
+      if ((state) && !ldrManager.isMinDim()) {
+        ldrManager.setLDRValueToMin(true);
       }
       // Switch off resets it
-      if ((digitalRead(Switch1Pin) == !BTNOnstate) && ldrManager.getIsFixedLDRValue()) {
-        ldrManager.resetFixedLDRValue();
+      if ((!state) && ldrManager.isMinDim()) {
+        ldrManager.setLDRValueToMin(false);
       }
       break;
     }
+    case SW_DIM_LEDS: {
+      blankingManager.setCurrentLEDBlankingOverride(state);
+      break;
+    }
   }
-
-  // -------------------------------------------------------------------------------
-
-  // Switch 2 just dims the LEDs
-
-  blankingManager.setCurrentLEDBlankingOverride(digitalRead(Switch2Pin) == BTNOnstate);
-
-  // Make it take effect immediately - workaround in reality this should all be event driven :-/
-  ledManager.recalculateVariables();
-  switch2Meaning = SW_DIM_LEDS;
 }
 
+// ************************************************************
+// Each of the switches can be configured to perform the same
+// tasks, therefore call the routine for each of the switch
+// contexts in turn
+// ************************************************************
+void handleSwitchChanges() {
+  #ifdef NORMAL_SWITCHES
+  bool BTNOnstate = LOW;
+  #endif
+
+  #ifdef INVERT_SWITCHES
+  bool BTNOnstate = HIGH;
+  #endif
+
+  #if defined(COUNTDOWN)
+  // Handle the case that we have finished the countdown and the mode needs to be reset
+  if ((cc->sw1Mode == SW_COUNTDOWN_INHIBIT) && (countdownManager.getCountdownActiveInternal() == false)) {
+      // We are not in a countdown, reset the switch
+      cc->sw1Mode = SW1_DEFAULT;
+  }
+  if ((cc->sw2Mode == SW_COUNTDOWN_INHIBIT) && (countdownManager.getCountdownActiveInternal() == false)) {
+      // We are not in a countdown, reset the switch
+      cc->sw2Mode = SW2_DEFAULT;
+  }
+  #endif
+
+  bool sw1State = (digitalRead(Switch1Pin) == BTNOnstate);
+
+  handleSwitchChange(cc->sw1Mode, sw1State);
+
+  bool sw2State = (digitalRead(Switch2Pin) == BTNOnstate);
+
+  handleSwitchChange(cc->sw2Mode, sw2State);
+
+  // If neither of the switches is set to "inhibit" something undo the inhibits
+  // This is needed because we can change the meaning of the switches and
+  // end up leaving the old state unchanged.
+  if (!((cc->sw1Mode == SW_SLAVE_INHIBIT) || (cc->sw2Mode == SW_SLAVE_INHIBIT))) {
+    handleSwitchChange(SW_SLAVE_INHIBIT, false);
+  }
+  if (!((cc->sw1Mode == SW_COUNTDOWN_INHIBIT) || (cc->sw2Mode == SW_COUNTDOWN_INHIBIT))) {
+    handleSwitchChange(SW_COUNTDOWN_INHIBIT, false);
+  }
+}
 
 // ************************************************************
 // Called once per minute
@@ -558,6 +584,8 @@ void performOncePerMinuteProcessing() {
   #ifdef DECATRON_SLAVE
   slaveManagerDecatron.updateOncePerMinute();
   #endif
+
+  quoteManager.getQuote();
 }
 
 // ************************************************************
@@ -592,10 +620,6 @@ void performOncePerHourProcessing() {
 // ************************************************************
 void performOncePerDayProcessing() {
   debugMsgMain("---> OncePerDayProcessing");
-
-  #ifdef FEATURE_BACKLIGHTS
-  ledManager.setDayOfWeek(weekday() - 1);
-  #endif
 
   spiffsStorage.saveStatsToSpiffs();
 }

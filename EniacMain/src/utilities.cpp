@@ -191,6 +191,11 @@ void resetOptions() {
   cc->WiFiSSID = "";
   cc->WiFiPassword = "";
   cc->WifiOnAtStart = false;
+  cc->sw1Mode = SW1_DEFAULT;
+  cc->sw2Mode = SW2_DEFAULT;
+  cc->pMode = DISPLAY_TIME;
+  cc->sMode = DISPLAY_DATE;
+  
   #ifdef FEATURE_BLINKENLIGHTS
   cc->blinkenLightsMode = BLNKN_MODE_DEFAULT;
   #else
@@ -400,6 +405,8 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   root["slavetrycount"] = "0";
   root["slavefailcount"] = "0";
   #endif
+  root["sw1Mode"] = cc->sw1Mode;
+  root["sw2Mode"] = cc->sw2Mode;
   #ifdef NORMAL_SWITCHES
   root["sw1val"] = (digitalRead(Switch1Pin) == LOW) ? "1" : "0";
   root["sw2val"] = (digitalRead(Switch2Pin) == LOW) ? "1" : "0";
@@ -600,6 +607,10 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["slaveMode"] = cc->slaveMode;
   #endif
   root["WifiOnAtStart"] = cc->WifiOnAtStart;
+  root["sw1Mode"] = cc->sw1Mode;
+  root["sw2Mode"] = cc->sw2Mode;
+  root["pMode"] = cc->pMode;
+  root["sMode"] = cc->sMode;
 
   #ifdef COG_CRANK_OUTPUT
   root["outputOnTime"] = cc->outputOnTime;
@@ -657,6 +668,10 @@ void compareAndUpdateString(JsonObject& json, const char* key, String* variable)
   }
 }
 
+bool checkPresence(JsonObject& json, const char* key) {
+  return  json.containsKey(key);
+}
+
 void postConfigDataHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api config POST request");
 
@@ -681,6 +696,10 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateByte(json, "acpMode",      &cc->acpMode);
     compareAndUpdateBool(json, "suppressACP",  &cc->suppressACP);
     compareAndUpdateBool(json, "WifiOnAtStart",&cc->WifiOnAtStart);
+    compareAndUpdateByte(json, "sw1Mode",      &cc->sw1Mode);
+    compareAndUpdateByte(json, "sw2Mode",      &cc->sw2Mode);
+    compareAndUpdateByte(json, "pMode",        &cc->pMode);
+    compareAndUpdateByte(json, "sMode",        &cc->sMode);
 
     // ------------------------------------------------------------
 
@@ -807,6 +826,32 @@ void getZonesListDataHandler(AsyncWebServerRequest *request) {
   request->send(response);        
 }
 
+// ************************************************************
+// Set a new arbitrary value
+// ************************************************************
+void postValueHandler(AsyncWebServerRequest *request) {
+  debugMsgUtl("Got api value POST request");
+  
+//  #ifdef DEBUG
+//  dumpArgs(request);
+//  #endif
+
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& json = jsonBuffer.parse(String(request->arg("body")));
+
+  if (json.success()) {
+    if (!checkPresence(json, "value")) {
+      request->send(400, "text/json", "{\"error\": \"value parameter not found\"}");
+      return;
+    }
+    int newValue = json["value"].as<int>();
+
+    outputManager.setArbitraryValue(newValue);
+    outputManager.setArbitraryValueDisplayTime(10);
+  }
+   
+  request->send(200, "text/json", "{\"status\": \"Value set\"}");
+}
 
 // ************************************************************
 // WiFi
@@ -831,7 +876,7 @@ void getCredentialsHandler(AsyncWebServerRequest *request) {
 // WiFi Credentials
 // ************************************************************
 void postWiFiCredentialsHandler(AsyncWebServerRequest *request) {
-  debugMsgUtl("Got api wifi POST request");
+  debugMsgUtl("Got api wifi credentials POST request");
   
 //  #ifdef DEBUG
 //  dumpArgs(request);
@@ -860,6 +905,9 @@ void postWiFiCredentialsHandler(AsyncWebServerRequest *request) {
   }
 }
 
+// ************************************************************
+// Return a list of WiFi Networks
+// ************************************************************
 void getWiFiNetworksHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api wifi networks request");
   

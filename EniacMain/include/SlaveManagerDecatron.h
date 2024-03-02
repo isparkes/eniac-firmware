@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "Globals.h"
+#include "BlankingManager.h"
 
 // --------------------------------- Protocol ------------------------------------
 // 1 10mS pulse per second

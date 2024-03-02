@@ -1,26 +1,136 @@
 #include "OutputManager.h"
 
 // ************************************************************
-// Break the time into displayable digits
+// Load the display according to the value we are told to use
 // ************************************************************
-void OutputManager_::loadNumberArrayTime() {
-  numberArray[S1]  = second() % 10;
-  numberArray[S10] = second() / 10;
-  numberArray[M1]  = minute() % 10;
-  numberArray[M10] = minute() / 10;
-  if (cc->hourMode) {
-    numberArray[H1]  = hourFormat12() % 10;
-    numberArray[H10] = hourFormat12() / 10;
-  } else {
-    numberArray[H1]  = hour() % 10;
-    numberArray[H10] = hour() / 10;
+void OutputManager_::setArbitraryValue(unsigned int newValue) {
+  _arbitraryValue = newValue;
+}
+
+// ************************************************************
+// Load the display according to the value we are told to use
+// ************************************************************
+void OutputManager_::setArbitraryValueDisplayTime(unsigned int newValue) {
+  _arbitraryValueEndTime = nowMillis + 1000 * newValue;
+}
+
+// ************************************************************
+// Load the display according to the value we are told to use
+// ************************************************************
+void OutputManager_::loadNumberArrayPrimary() {
+  byte tmpMode = cc->pMode;
+
+  // Value mode, if set by REST Push
+  if (_arbitraryValueEndTime > nowMillis) {
+    tmpMode = DISPLAY_VALUE;
+  }
+
+  #ifdef DIGIT_DIAGNOSTICS
+  if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
+    setArbitraryValue(second());
+    setArbitraryValueDisplayTime(10);
+    tmpMode = DISPLAY_VALUE;
+  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
+    setArbitraryValue(minute());
+    setArbitraryValueDisplayTime(10);
+    tmpMode = DISPLAY_VALUE;
+  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
+    #ifdef FEATURE_MENU
+    // Encoder value injected by loop
+    tmpMode = DISPLAY_VALUE;
+    #endif
+  }
+  #endif
+
+  #ifdef OTM_EXTENDED_DEBUG
+  debugMsgOtm("Modes T: " + String(tmpMode) + " P: " + String(cc->pMode) + " S: " + String(cc->sMode));
+  #endif
+
+  loadNumberArrayInternal(tmpMode);
+}
+
+// ************************************************************
+// Load the display according to the value we are told to use
+// ************************************************************
+void OutputManager_::loadNumberArraySecondary() {
+  loadNumberArrayInternal(cc->sMode);
+}
+
+// ************************************************************
+// Load the display according to the value we are told to use
+// ************************************************************
+void OutputManager_::loadNumberArrayInternal(byte tmpMode) {
+  if (tmpMode == DISPLAY_COUNTDOWN) {
+    if (!countdownManager.getCountdownActive()) {
+      // We have finished countdown - show time instead 
+      tmpMode = DISPLAY_TIME;
+    }
+  }
+
+  switch (tmpMode) {
+  default:
+  case DISPLAY_TIME:
+    loadNumberArrayTime();
+    allNormal(APPLY_LEAD_0_BLANK);
+    break;
+  case DISPLAY_DATE:
+    loadNumberArrayDate();
+    allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+    break;
+  case DISPLAY_VALUE:
+    loadNumberArrayValue();
+    allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+    break;
+  case DISPLAY_COUNTDOWN:
+    setArbitraryValue(countdownManager.getRemaining());
+    setArbitraryValueDisplayTime(10);
+    loadNumberArrayValue();
+    allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+    break;
+  case DISPLAY_TICKER:
+    loadNumberArrayTicker();
+    allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
+    break;
   }
 }
 
 // ************************************************************
 // Break the time into displayable digits
 // ************************************************************
-void OutputManager_::loadNumberArrayValue(unsigned int value) {
+void OutputManager_::loadNumberArrayTime() {
+  numberArray[S1]  = convertToDigit(second() % 10);
+  numberArray[S10] = convertToDigit(second() / 10);
+  numberArray[M1]  = convertToDigit(minute() % 10);
+  numberArray[M10] = convertToDigit(minute() / 10);
+  if (cc->hourMode) {
+    numberArray[H1]  = convertToDigit(hourFormat12() % 10);
+    numberArray[H10] = convertToDigit(hourFormat12() / 10);
+  } else {
+    numberArray[H1]  = convertToDigit(hour() % 10);
+    numberArray[H10] = convertToDigit(hour() / 10);
+  }
+}
+
+// ************************************************************
+// Load the last acquired ticker value
+// ************************************************************
+void OutputManager_::loadNumberArrayTicker() {
+  if (quoteManager.getIsQuoteValid()) {
+    loadNumberArrayIntegerValue(quoteManager.getLastQuote());
+  }
+}
+
+// ************************************************************
+// Load the arbitrary value
+// ************************************************************
+void OutputManager_::loadNumberArrayValue() {
+  loadNumberArrayIntegerValue(_arbitraryValue);
+}
+
+// ************************************************************
+// Break the time into displayable digits
+// ************************************************************
+void OutputManager_::loadNumberArrayIntegerValue(unsigned int value) {
   unsigned int valueBound = value;
   if (valueBound > 999999)
     valueBound = 999999;
@@ -37,21 +147,21 @@ void OutputManager_::loadNumberArrayValue(unsigned int value) {
   valueBound = valueBound / 10;
   byte h10 = valueBound % 10;
 
-  numberArray[S1]  = s1  % 10;
-  numberArray[S10] = s10 % 10;
-  numberArray[M1]  = m1  % 10;
-  numberArray[M10] = m10 % 10;
-  numberArray[H1]  = h1  % 10;
-  numberArray[H10] = h10 % 10;
+  numberArray[S1]  = convertToDigit(s1  % 10);
+  numberArray[S10] = convertToDigit(s10 % 10);
+  numberArray[M1]  = convertToDigit(m1  % 10);
+  numberArray[M10] = convertToDigit(m10 % 10);
+  numberArray[H1]  = convertToDigit(h1  % 10);
+  numberArray[H10] = convertToDigit(h10 % 10);
 }
 
 // ************************************************************
-// Break the time into displayable digits
+// Set all digits to the same value, but blank all except one
 // ************************************************************
 void OutputManager_::loadNumberArrayBurn(byte value) {
   allBlanked();
-  loadNumberArraySameValue(value % 10);
-  displayType[value / 10] = NORMAL;
+  loadNumberArraySameValue(value);
+  displayType[_arbitraryValue / 10] = NORMAL;
 }
 
 // ************************************************************
@@ -60,42 +170,42 @@ void OutputManager_::loadNumberArrayBurn(byte value) {
 void OutputManager_::loadNumberArrayDate() {
   switch (cc->dateFormat) {
     case DATE_FORMAT_YYMMDD:
-      numberArray[S1]  = day() % 10;
-      numberArray[S10] = day() / 10;
-      numberArray[M1]  = month() % 10;
-      numberArray[M10] = month() / 10;
-      numberArray[H1]  = (year() - 2000) % 10;
-      numberArray[H10] = (year() - 2000) / 10;
+      numberArray[S1]  = convertToDigit(day() % 10);
+      numberArray[S10] = convertToDigit(day() / 10);
+      numberArray[M1]  = convertToDigit(month() % 10);
+      numberArray[M10] = convertToDigit(month() / 10);
+      numberArray[H1]  = convertToDigit((year() - 2000) % 10);
+      numberArray[H10] = convertToDigit((year() - 2000) / 10);
       break;
     case DATE_FORMAT_MMDDYY:
-      numberArray[S1]  = (year() - 2000) % 10;
-      numberArray[S10] = (year() - 2000) / 10;
-      numberArray[M1]  = day() % 10;
-      numberArray[M10] = day() / 10;
-      numberArray[H1]  = month() % 10;
-      numberArray[H10] = month() / 10;
+      numberArray[S1]  = convertToDigit((year() - 2000) % 10);
+      numberArray[S10] = convertToDigit((year() - 2000) / 10);
+      numberArray[M1]  = convertToDigit(day() % 10);
+      numberArray[M10] = convertToDigit(day() / 10);
+      numberArray[H1]  = convertToDigit(month() % 10);
+      numberArray[H10] = convertToDigit(month() / 10);
       break;
     case DATE_FORMAT_DDMMYY:
-      numberArray[S1]  = (year() - 2000) % 10;
-      numberArray[S10] = (year() - 2000) / 10;
-      numberArray[M1]  = month() % 10;
-      numberArray[M10] = month() / 10;
-      numberArray[H1]  = day() % 10;
-      numberArray[H10] = day() / 10;
+      numberArray[S1]  = convertToDigit((year() - 2000) % 10);
+      numberArray[S10] = convertToDigit((year() - 2000) / 10);
+      numberArray[M1]  = convertToDigit(month() % 10);
+      numberArray[M10] = convertToDigit(month() / 10);
+      numberArray[H1]  = convertToDigit(day() % 10);
+      numberArray[H10] = convertToDigit(day() / 10);
       break;
   }
 }
 
 // ************************************************************
-// Break the time into displayable digits
+// Spin the digits, used for the "scramble" effect
 // ************************************************************
 void OutputManager_::incrementNumberArray() {
-  numberArray[S1]  = (numberArray[S1]  +1)%10;
-  numberArray[S10] = ( numberArray[S10]+1)%10;
-  numberArray[M1]  = ( numberArray[M1] +1)%10;
-  numberArray[M10] = ( numberArray[M10]+1)%10;
-  numberArray[H1]  = ( numberArray[H1] +1)%10;
-  numberArray[H10] = ( numberArray[H10]+1)%10;
+  numberArray[S1]  = convertToDigit((numberArray[S1] +1)%10);
+  numberArray[S10] = convertToDigit((numberArray[S10]+1)%10);
+  numberArray[M1]  = convertToDigit((numberArray[M1] +1)%10);
+  numberArray[M10] = convertToDigit((numberArray[M10]+1)%10);
+  numberArray[H1]  = convertToDigit((numberArray[H1] +1)%10);
+  numberArray[H10] = convertToDigit((numberArray[H10]+1)%10);
 }
 
 // ************************************************************
@@ -103,12 +213,12 @@ void OutputManager_::incrementNumberArray() {
 // ************************************************************
 void OutputManager_::loadNumberArraySameValue(byte value) {
   byte val = value % 10;
-  numberArray[S1]  = val;
-  numberArray[S10] = val;
-  numberArray[M1]  = val;
-  numberArray[M10] = val;
-  numberArray[H1]  = val;
-  numberArray[H10] = val;
+  numberArray[S1]  = convertToDigit(val);
+  numberArray[S10] = convertToDigit(val);
+  numberArray[M1]  = convertToDigit(val);
+  numberArray[M10] = convertToDigit(val);
+  numberArray[H1]  = convertToDigit(val);
+  numberArray[H10] = convertToDigit(val);
 }
 
 // ************************************************************
@@ -126,6 +236,9 @@ void OutputManager_::allNormal(bool leadingBlank) {
   displayType[M1]  = NORMAL;
   displayType[S10] = NORMAL;
   displayType[S1]  = NORMAL;
+
+  // Reset the temp blanking
+  _blankTubesTemp = false;
 }
 
 // ************************************************************
@@ -153,6 +266,7 @@ void OutputManager_::outputDisplay() {
   #ifdef FEATURE_BLINKENLIGHTS
   blinkenlights_t *bl = blinkenlightsManager.getBlinkenlights();
   #endif
+
   bool digitBlanked[DIGIT_COUNT];
   byte tmpNumberArray[DIGIT_COUNT];
 
@@ -162,13 +276,14 @@ void OutputManager_::outputDisplay() {
       // Digit blinking
       ((displayType[i] == BLINK) && !upOrDown) ||
       // display blanking
-      blankTubes;
+      _blankTubes ||
+      // forced blanking for transitions
+      _blankTubesTemp;
 
+    // ------------------- Trigger scolling and fading - scolling takes precendence -------------------
     switch(_outputMode) {
-      case timeMode:
+      case primaryMode:
       case valueMode: {
-        // Trigger scolling and fading - scolling takes precendence
-        // _suppressEffects stops any effects for ACP
         if (numberArray[i] != currNumberArray[i]) {
           // Do scrollback when we are going to 0
           if ((numberArray[i] == 0) && cc->scrollback && (scrollCounter[i] == 0)) {
@@ -183,7 +298,7 @@ void OutputManager_::outputDisplay() {
 
         if (scrollCounter[i] > 0) {
           scrollCounter[i] = scrollCounter[i] - 1;
-          currNumberArray[i] = scrollCounter[i]/cc->scrollSteps;
+          currNumberArray[i] = convertToDigit(scrollCounter[i]/cc->scrollSteps);
           tmpNumberArray[i] = currNumberArray[i];
         } else {
           tmpNumberArray[i] = numberArray[i];
@@ -201,6 +316,7 @@ void OutputManager_::outputDisplay() {
 
   uint8_t tmpSwitchTime = 0;
   if (fadeState == 1) {
+    // We're doing the last step - reset stuff and copy the digit over
     fadeState = 0;
     tmpSwitchTime = -1; // Make sure that we don't trigger the switch 
     for (byte j = 0 ; j < DIGIT_COUNT ; j++) {
@@ -226,7 +342,7 @@ void OutputManager_::outputDisplay() {
                                 digitBlanked[S1],
                                 digitBlanked[S10],
                                 #endif
-                                blankSeparators,
+                                _blankSeparators,
                                 #ifdef FEATURE_BLINKENLIGHTS
                                 #ifdef NORMAL_DIGIT_OUTPUT
                                 bl->bl1,
@@ -240,8 +356,8 @@ void OutputManager_::outputDisplay() {
                                 false,
                                 false,
                                 #endif
-                                sep1State,
-                                sep2State);
+                                _sep1State,
+                                _sep2State);
   uint32_t tmpnextVal2 = decodeFromNumberArray(
                                 #ifdef NORMAL_DIGIT_OUTPUT
                                 currNumberArray[M10], 
@@ -255,7 +371,7 @@ void OutputManager_::outputDisplay() {
                                 digitBlanked[M1],
                                 digitBlanked[M10],
                                 #endif
-                                blankSeparators,
+                                _blankSeparators,
                                 #ifdef FEATURE_BLINKENLIGHTS
                                 #ifdef NORMAL_DIGIT_OUTPUT
                                 bl->bl3,
@@ -269,8 +385,8 @@ void OutputManager_::outputDisplay() {
                                 false,
                                 false,
                                 #endif
-                                sep3State,
-                                sep4State);
+                                _sep3State,
+                                _sep4State);
   uint32_t tmpnextVal3 = decodeFromNumberArray(
                                 #ifdef NORMAL_DIGIT_OUTPUT
                                 currNumberArray[S10], 
@@ -284,7 +400,7 @@ void OutputManager_::outputDisplay() {
                                 digitBlanked[H1],
                                 digitBlanked[H10],
                                 #endif
-                                blankSeparators,
+                                _blankSeparators,
                                 #ifdef FEATURE_BLINKENLIGHTS
                                 #ifdef NORMAL_DIGIT_OUTPUT
                                 bl->bl5,
@@ -312,7 +428,7 @@ void OutputManager_::outputDisplay() {
                                   tmpNumberArray[H1],
                                   digitBlanked[H10],
                                   digitBlanked[H1],
-                                  blankSeparators,
+                                  _blankSeparators,
                                   #ifdef FEATURE_BLINKENLIGHTS
                                   #ifdef NORMAL_DIGIT_OUTPUT
                                   bl->bl1,
@@ -326,14 +442,14 @@ void OutputManager_::outputDisplay() {
                                   false,
                                   false,
                                   #endif
-                                  sep1State,
-                                  sep2State);
+                                  _sep1State,
+                                  _sep2State);
     tmpval2 = decodeFromNumberArray(
                                   tmpNumberArray[M10], 
                                   tmpNumberArray[M1],
                                   digitBlanked[M10],
                                   digitBlanked[M1],
-                                  blankSeparators,
+                                  _blankSeparators,
                                   #ifdef FEATURE_BLINKENLIGHTS
                                   #ifdef NORMAL_DIGIT_OUTPUT
                                   bl->bl3,
@@ -347,14 +463,14 @@ void OutputManager_::outputDisplay() {
                                   false,
                                   false,
                                   #endif
-                                  sep3State,
-                                  sep4State);
+                                  _sep3State,
+                                  _sep4State);
     tmpval3 = decodeFromNumberArray(
                                   tmpNumberArray[S10], 
                                   tmpNumberArray[S1],
                                   digitBlanked[S10],
                                   digitBlanked[S1],
-                                  blankSeparators,
+                                  _blankSeparators,
                                   #ifdef FEATURE_BLINKENLIGHTS
                                   #ifdef NORMAL_DIGIT_OUTPUT
                                   bl->bl5,
@@ -372,7 +488,7 @@ void OutputManager_::outputDisplay() {
                                   bl->in2);
   }
 
-  // move the values over, respect the MUTEX on the interrupt
+  // move the values over, respect the MUTEX on the interrupt, otherwise we get visible glitches
   portENTER_CRITICAL_ISR(&timerMux1);
   val1 = tmpval1;
   val2 = tmpval2;
@@ -419,17 +535,20 @@ void OutputManager_::applyBlanking() {
 // ************************************************************
 void OutputManager_::triggerStunts() {
   // only trigger stunts in time mode
-  if (_outputMode != timeMode)
+  if (_outputMode != primaryMode)
     return;
 
   if (_acpOffset == 0) {
     if (second() == ACP_TRIGGER_SECOND) {
+      #ifdef OTM_EXTENDED_DEBUG
+      debugMsgOtm("Check ACP trigger");
+      #endif
       if ((cc->acpMode == ACP_MODE_1M) ||
           ((cc->acpMode == ACP_MODE_10M) && (minute() % 10 == 9)) || 
           ((cc->acpMode == ACP_MODE_1H) && (minute() == 9))) {
         if (cc->useLDR) {
           if (cc->suppressACP) {
-            if (!ldrManager.isMinLDRValue()) {
+            if (!ldrManager.isMinDim()) {
               // If we have suppress ACP set, only trigger when not at min brightness
               _acpOffset = 1;
             }
@@ -442,11 +561,12 @@ void OutputManager_::triggerStunts() {
       }
     }
 
-    if (_acpOffset != 0) {
+    if (_acpOffset == 1) {
       #ifdef OTM_EXTENDED_DEBUG
       debugMsgOtm("Triggering ACP");
       #endif
       _outputMode = acpMode;
+      ldrManager.setLDRValueToMaxACP(true);
     }
   }
 
@@ -457,7 +577,24 @@ void OutputManager_::triggerStunts() {
       debugMsgOtm("Triggering Slots mode: " + String(cc->slotsMode));
       #endif
 
-      _outputMode = slotsMode;
+      #ifdef FEATURE_TICKER
+      if (cc->sMode == DISPLAY_TICKER) {
+        if (quoteManager.getIsQuoteValid()) {
+
+          byte randomMode = BACKLIGHT_UP;
+          if (nowMillis % 2 == 0) {
+            ledManager.setTickerOverrideValue(down);
+          } else {
+            ledManager.setTickerOverrideValue(up);
+          }
+        } else {
+          debugMsgOtm("Skip displaying quote because no quote is valid");
+          return;
+        }
+      }
+      #endif
+
+      _outputMode = secondaryMode;
       setCurrentTransition();
       activeTransition->start(nowMillis);
     }
@@ -504,18 +641,21 @@ void OutputManager_::processStunts() {
       if (_acpOffset > 0) {
         if (_acpTick >= ACP_TICKS_PER_DIGIT) {
           _acpTick = 0;
-          _acpOffset++;
 
           #ifdef OTM_EXTENDED_DEBUG
-          debugMsgOtm("ACP: " + String(_acpOffset-2));
+          debugMsgOtm("ACP: " + String(_acpOffset-1));
           #endif
-          loadNumberArraySameValue(_acpOffset-2);
-          if (_acpOffset == 12) {
+          loadNumberArraySameValue(_acpOffset-1);
+          if (_acpOffset > 10) {
             _acpOffset = 0;
             #ifdef OTM_EXTENDED_DEBUG
             debugMsgOtm("ACP End");
             #endif
-            _outputMode = timeMode;
+            _outputMode = primaryMode;
+            loadNumberArrayPrimary();
+            ldrManager.setLDRValueToMaxACP(false);
+          } else {
+            _acpOffset++;
           }
         } else {
           _acpTick++;
@@ -523,7 +663,7 @@ void OutputManager_::processStunts() {
       }
       break;
     }
-    case slotsMode: {
+    case secondaryMode: {
       if (activeTransition->isMessageOnDisplay(nowMillis)) {
         // Continue slots transition
         bool msgDisplaying = activeTransition->runEffect(nowMillis, cc->blankLeading);
@@ -535,7 +675,12 @@ void OutputManager_::processStunts() {
         #ifdef OTM_EXTENDED_DEBUG
         debugMsgOtm("Ending slots");
         #endif
-        _outputMode = timeMode;
+
+        #ifdef FEATURE_TICKER
+        ledManager.setTickerOverrideValue(none);
+        #endif
+
+        _outputMode = primaryMode;
       }
       break;        
     }
@@ -543,6 +688,8 @@ void OutputManager_::processStunts() {
       break;
   }
 }
+
+// ----------------------------------- ACP Handling -----------------------------------
 
 // ************************************************************
 // The number of the next ACP mode
@@ -593,6 +740,8 @@ void OutputManager_::setNextACPMode() {
   cc->acpMode = getNextACPMode();
 }
 
+// ---------------------------------- Slots Handling ----------------------------------
+
 // ************************************************************
 // The number of the next Slots mode
 // ************************************************************
@@ -642,69 +791,70 @@ void OutputManager_::setNextSlotsMode() {
   cc->slotsMode = getNextSlotsMode();
 }
 
+// --------------------------------------- separators --------------------------------------
+
 // ************************************************************
 // Set the sepator neons and indicator LEDs
 // ************************************************************
 void OutputManager_::processSeparators() {
-  // --------------------------------------- separators --------------------------------------
   
   switch (cc->sepMode) {
     case SEP_RAILROAD:
       {
-        sep1State = sep3State = upOrDown;
-        sep2State = sep4State = !upOrDown;
+        _sep1State = _sep3State = upOrDown;
+        _sep2State = _sep4State = !upOrDown;
         break;
       }
     case SEP_RAILROAD_X:
       {
-        sep1State = sep4State = upOrDown;
-        sep2State = sep3State = !upOrDown;
+        _sep1State = _sep4State = upOrDown;
+        _sep2State = _sep3State = !upOrDown;
         break;
       }
     case SEP_BLINK_SLOW:
       {
-        sep1State = sep3State = upOrDown;
-        sep2State = sep4State = upOrDown;
+        _sep1State = _sep3State = upOrDown;
+        _sep2State = _sep4State = upOrDown;
         break;
       }
     case SEP_BLINK_FAST:
       {
         if (secsDeltaAbs < 500) {
-        sep1State = sep3State = true;
-        sep2State = sep4State = true;
+        _sep1State = _sep3State = true;
+        _sep2State = _sep4State = true;
         } else {
-        sep1State = sep3State = false;
-        sep2State = sep4State = false;
+        _sep1State = _sep3State = false;
+        _sep2State = _sep4State = false;
         }
         break;
       }
     case SEP_BLINK_DBL:
       {
         if ((secsDeltaAbs < 100) || ((secsDeltaAbs > 200) && (secsDeltaAbs < 300))) {
-        sep1State = sep3State = true;
-        sep2State = sep4State = true;
+        _sep1State = _sep3State = true;
+        _sep2State = _sep4State = true;
         } else {
-        sep1State = sep3State = false;
-        sep2State = sep4State = false;
+        _sep1State = _sep3State = false;
+        _sep2State = _sep4State = false;
         }
         break;
       }
     case SEP_ON:
       {
-        sep1State = sep3State = true;
-        sep2State = sep4State = true;
+        _sep1State = _sep3State = true;
+        _sep2State = _sep4State = true;
         break;
       }
     case SEP_OFF:
       {
-        sep1State = sep3State = false;
-        sep2State = sep4State = false;
+        _sep1State = _sep3State = false;
+        _sep2State = _sep4State = false;
         break;
       }
     case SEP_AM_PM:
       {
-        sep1State = sep3State = isAM();
-        sep2State = sep4State = isPM();
+        _sep1State = _sep3State = isAM();
+        _sep2State = _sep4State = isPM();
         break;
       }
   }
@@ -731,61 +881,71 @@ void OutputManager_::updateOncePerSecond() {
   // Check Slots / ACP
   triggerStunts();
 
-  if (_outputMode == acpMode || _outputMode == slotsMode) {
+  // If we are in slots or ACP we don't need to look at the rest
+  if (_outputMode == acpMode || _outputMode == secondaryMode) {
     return;
   }
 
-  #ifdef COUNTDOWN
-  // switch to countdown mode if we should be displaying it and we are not in a transition
-  if (countdownManager.getCountdownActive()) {
-    if (_outputMode == timeMode) {
-      _outputMode = valueMode;
-    }
-  } else {
-    // switch back to normal time
-    if (_outputMode == valueMode) {
-      _outputMode = timeMode;
-    }
-  }
-  #endif
-
-  if (_outputMode == timeMode) {
-    allNormal(APPLY_LEAD_0_BLANK);
-    loadNumberArrayTime();
-  }
-
-  if (_outputMode == valueMode) {
-    allNormal(DO_NOT_APPLY_LEAD_0_BLANK);
-    loadNumberArrayValue(countdownManager.getRemaining());
-  }
-
-  #ifdef DIGIT_DIAGNOSTICS
-  if (cc->diagsMode == DIGIT_DIAGS_MODE_FAST) {
-    loadNumberArraySameValue(second());
-  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_SLOW) {
-    loadNumberArraySameValue(minute());
-  } else if (cc->diagsMode == DIGIT_DIAGS_MODE_ENCODER) {
-    #ifdef FEATURE_MENU
-    int rawEncPos = menuManager.getCurrentEncoderPos()/2;
-    while (rawEncPos < 0) rawEncPos+=60;
-    #endif
-  }
-  #endif
+  loadNumberArrayPrimary();
 }
 
 // ************************************************************
 // Set the tube blanking status of the tubes
 // ************************************************************
 void OutputManager_::setBlankingStatusTubes(bool newStatus) {
-  blankTubes = newStatus;
+  _blankTubes = newStatus;
+}
+
+// ************************************************************
+// Set the tube blanking status of the tubes until the next
+// display change. Used in transitions.
+// ************************************************************
+void OutputManager_::forceBlanking() {
+  _blankTubesTemp = true;
 }
 
 // ************************************************************
 // Set the tube blanking status of the tubes
 // ************************************************************
 void OutputManager_::setBlankingStatusTowers(bool newStatus) {
-  blankTubes = newStatus;
+  _blankTubes = newStatus;
 }
+
+// ************************************************************
+// Get the current display value of a given digit
+// ************************************************************
+byte OutputManager_::getCurrentDisplayDigitValue(byte digit) {
+  if (digit < DIGIT_COUNT) {
+    return numberArray[digit];
+  } else {
+    return 0;
+  }
+}
+
+clock_digit OutputManager_::convertToDigit(int value) {
+  if (value < 0) {
+    debugMsgOtm("Underrange error converting digit");
+    debugMsgOtm("Got: " + String(value));
+    return digit0;
+  }
+  if (value > 9) {
+    debugMsgOtm("Overrange error converting digit");
+    debugMsgOtm("Got: " + String(value));
+    return digit9;
+  }
+  return (clock_digit) value;
+}
+
+#ifdef OTM_EXTENDED_DEBUG
+void OutputManager_::dumpNumberArrayValues() {
+  String val = "Number Array: " + 
+    String(numberArray[0]) + String(numberArray[1]) + ":" + 
+    String(numberArray[2]) + String(numberArray[3]) + ":" +
+    String(numberArray[4]) + String(numberArray[5]);
+  debugMsgOtm(val);
+
+}
+#endif
 
 // ************************************************************
 // Library internal singleton wiring

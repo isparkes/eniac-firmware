@@ -13,6 +13,9 @@ void LDRManager_::setUp() {
   debugMsgLdr("Config minDim%: " + String(cc->minDim));
   debugMsgLdr("Config setDim%: " + String(cc->setDim));
   #endif
+
+  recalculateVariables();
+  setUpPWM();
 }
 
 // ************************************************************
@@ -27,45 +30,93 @@ void LDRManager_::setUpPWM() {
 
   ledcSetup(LDRPWMChannel, PWMFreq, PWMResolution);
   ledcAttachPin(BLANKPin, LDRPWMChannel);
-  ledcWrite(LDRPWMChannel, MAX_DUTY_CYCLE);
+  ledcWrite(LDRPWMChannel, _ldrValue);
+}
+
+// ************************************************************
+// Do the work for the fast moving variables
+// ************************************************************
+void LDRManager_::updateOncePerLoop() {
+  getDimmingFromLDR();
+}
+
+// ************************************************************
+// Do the work for the slow moving variables
+// ************************************************************
+void LDRManager_::updateOncePerSecond() {
+  recalculateVariables();
+}
+
+// ************************************************************
+// Recalculate the per-config or slow moving variables
+// ************************************************************
+void LDRManager_::recalculateVariables() {
+  _minDimLDR = LDR_VALUE_MAX - (cc->minDim * LDR_VALUE_MAX / 100);
+  _maxDimLDR = 0;
+  _setDimLDR = LDR_VALUE_MAX - (cc->setDim * LDR_VALUE_MAX / 100);
+
+  // Scaling offset increases the base brightness
+  // factor increases the sensitivity
+  _offset = cc->thresholdBright;
+  _factor = cc->sensitivityLDR / 200.0;
 }
 
 // ************************************************************
 // Gets the smoothed LDR Reading and store it
 // ************************************************************
 void LDRManager_::getDimmingFromLDR() {
-  if (_locked) return;
-  
-  if (cc->useLDR) {
+  int calculatedLDRVal = 0; 
+  if (_setMinDim) {
+    calculatedLDRVal = _minDimLDR;
+  } else if (_setMaxDim) {
+    calculatedLDRVal = _maxDimLDR;
+  } else if (cc->useLDR) {
     int rawLDR = analogRead(LDRPin);
-    int rawSensorVal = rawLDR;
-
-    double sensorDiff = rawSensorVal - sensorLDRSmoothed;
-    sensorLDRSmoothed += (sensorDiff / (double) cc->sensorSmoothCountLDR);
-
-    // Scaling offset increases the base brightness
-    // factor increases the sensitivity
-    double offset = cc->thresholdBright;
-    double factor = cc->sensitivityLDR / 200.0;
-
-    int returnValue = (sensorLDRSmoothed - offset) * factor;
-    int effectiveMinDim = LDR_VALUE_MAX - (cc->minDim * LDR_VALUE_MAX / 100);
-
-    if (returnValue >= effectiveMinDim) {
-      returnValue = effectiveMinDim;
-      _isMinDim = true;
-    } else {
-      _isMinDim = false;
-    }
-    if (returnValue < 0) {
-      returnValue = 0;
-    }
-    _ldrValue = returnValue;
+    calculatedLDRVal = ((double)rawLDR - _offset) * _factor;
+    #ifdef LDR_EXTENDED_DEBUG
+    debugMsgLdr("Using raw LDR reading: " + String(rawLDR));
+    debugMsgLdr("Adjusted LDR reading: " + String(_ldrValue));
+    #endif
   } else {
-    _ldrValue = LDR_VALUE_MAX - (cc->setDim * LDR_VALUE_MAX / 100);
+    calculatedLDRVal = _setDimLDR;
   }
 
-  ledcWrite(LDRPWMChannel, _ldrValue);
+  // Non-ACP calculation
+  double sensorDiff = (double)calculatedLDRVal - _sensorLDRSmoothed;
+  _sensorLDRSmoothed += (sensorDiff / (double) cc->sensorSmoothCountLDR);
+  _ldrValue = (int) _sensorLDRSmoothed;
+
+  // ACP calculation
+  if (_setMaxDimACP) {
+    calculatedLDRVal = _maxDimLDR;
+  }
+  double sensorDiffACP = (double)calculatedLDRVal - _sensorLDRSmoothedACP;
+  _sensorLDRSmoothedACP += (sensorDiffACP / (double) cc->sensorSmoothCountLDR);
+  _ldrValueACP = (int) _sensorLDRSmoothedACP;
+
+  // calculate the min/max values based on the tube (non-ACP) value  
+  if (_ldrValue >= _minDimLDR) {
+    _ldrValue = _minDimLDR;
+    _isMinDim = true;
+    _isMaxDim = false;
+  } else if (_ldrValue <= _maxDimLDR) {
+    _ldrValue = _maxDimLDR;
+    _isMinDim = false;
+    _isMaxDim = true;
+  } else {
+    _isMinDim = false;
+    _isMaxDim = false;
+  }
+
+  #ifdef LDR_EXTENDED_DEBUG
+  if (_isMinDim) debugMsgLdr("MIN LDR");
+  if (_isMaxDim) debugMsgLdr("MAX LDR");
+  debugMsgLdr("Sensordiff: " + String(sensorDiff));
+  debugMsgLdr("sensorLDRSmoothed: " + String(sensorLDRSmoothed));
+  debugMsgLdr("Smoothed LDR reading: " + String(localLDRValue));
+  #endif
+
+  ledcWrite(LDRPWMChannel, _ldrValueACP);
 }
 
 // ************************************************************
@@ -83,43 +134,57 @@ float LDRManager_::getLDRValuePct() {
 }
 
 // ************************************************************
-// Set the brightest LDR value
+// Return previously calculated value, range 0 - 4095
 // ************************************************************
-void LDRManager_::setLDRValueToMax() {
-  _locked = true;
-  ledcWrite(LDRPWMChannel, 0);
+int LDRManager_::getLDRValueACP() {
+  return _ldrValueACP;
 }
 
 // ************************************************************
-// Set the dimmest LDR value
+// Set the brightest LDR value. Next regular update will
+// reset any previous min dim state. 
 // ************************************************************
-void LDRManager_::setLDRValueToMin() {
-  _locked = true;
-  int effectiveMinDim = LDR_VALUE_MAX - (cc->minDim * LDR_VALUE_MAX / 100);
-  _isMinDim = true;
-  ledcWrite(LDRPWMChannel, effectiveMinDim);
+void LDRManager_::setLDRValueToMax(bool newState) {
+  _setMaxDim = newState;
 }
 
 // ************************************************************
-// Reset an imposed LDR (max/min) value
+// Set the brightest LDR value - does not reset anything - used
+// for ACP
 // ************************************************************
-void LDRManager_::resetFixedLDRValue() {
-  _locked = false;
-  ledcWrite(LDRPWMChannel, _ldrValue);
+void LDRManager_::setLDRValueToMaxACP(bool newState) {
+  _setMaxDimACP = newState;
 }
 
 // ************************************************************
-// Return brightest LDR value
+// Set the dimmest LDR value.. Next regular update will
+// reset any previous max dim state.
+// ************************************************************
+void LDRManager_::setLDRValueToMin(bool newState) {
+  _setMinDim = newState;
+}
+
+// ************************************************************
+// Return if we are in an imposed dimming value - either min,
+// max or set value
 // ************************************************************
 bool LDRManager_::getIsFixedLDRValue() {
-  return _locked;
+  return _setMinDim || _setMaxDim || !cc->useLDR;
 }
 
 // ************************************************************
-// Return brightest LDR value
+// Return if the LDR has been set to min or if it is naturally
+// set min dim
 // ************************************************************
-bool LDRManager_::isMinLDRValue() {
+bool LDRManager_::isMinDim() {
   return _isMinDim;
+}
+
+// ************************************************************
+// Return if the LDR has been set to max
+// ************************************************************
+bool LDRManager_::isMaxDim() {
+  return _isMaxDim;
 }
 
 LDRManager_ &LDRManager_::getInstance() {

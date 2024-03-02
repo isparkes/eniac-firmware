@@ -199,6 +199,18 @@ bool SpiffsStorage_::getConfigFromSpiffs()
         cc->backlightGradient = json["backlightGradient"];
         debugMsgSpfX("Loaded backlightGradient: " + String(cc->backlightGradient));
 
+        cc->sw1Mode = json["sw1Mode"];
+        debugMsgSpfX("Loaded sw1Mode: " + String(cc->sw1Mode));
+
+        cc->sw2Mode = json["sw2Mode"];
+        debugMsgSpfX("Loaded sw2Mode: " + String(cc->sw2Mode));
+
+        cc->pMode = json["pMode"];
+        debugMsgSpfX("Loaded pmode: " + String(cc->pMode));
+
+        cc->sMode = json["sMode"];
+        debugMsgSpfX("Loaded smode: " + String(cc->sMode));
+
         #ifdef COUNTDOWN
         cc->countdownTarget = json["countdownTarget"].as<String>();
         debugMsgSpfX("Loaded countdownTarget: " + String(cc->countdownTarget));
@@ -278,6 +290,10 @@ void SpiffsStorage_::saveConfigToSpiffs()
   json["slaveMode"] = cc->slaveMode;
   json["outputOnTime"] = cc->outputOnTime;
   json["backlightGradient"] = cc->backlightGradient;
+  json["sw1Mode"] = cc->sw1Mode;
+  json["sw2Mode"] = cc->sw2Mode;
+  json["pMode"] = cc->pMode;
+  json["sMode"] = cc->sMode;
   #ifdef COUNTDOWN
   json["countdownTarget"] = cc->countdownTarget;
   #endif

@@ -77,6 +77,8 @@ void saveStatsHandler(AsyncWebServerRequest *request);
 
 void restartHandler(AsyncWebServerRequest *request);
 
+void postValueHandler(AsyncWebServerRequest *request);
+
 void wifiBeginWithCredentials();
 bool gotCredentials();
 
@@ -87,3 +89,7 @@ void resetAll();
 void enableWatchdog();
 void disableWatchdog();
 void feedWatchdog();
+
+#ifdef FEATURE_TICKERS
+int getBTCPrice();
+#endif

@@ -3,7 +3,7 @@
 // This include has to be here, anbd not in the header file
 #include <ElegantOTA.h>
 
-// I had to fiddle in the ElegantOTA sourcew to get this to work
+// I had to fiddle in the ElegantOTA source to get this to work
 // Line 27: #define ELEGANTOTA_USE_ASYNC_WEBSERVER 1
 #define ELEGANTOTA_USE_ASYNC_WEBSERVER
 
@@ -32,6 +32,9 @@ void WebManager_::begin() {
   // wifi credentials
   server.on("/api/postWiFiCredentials", HTTP_POST, postWiFiCredentialsHandler);
   server.on("/api/credentials", HTTP_GET, getCredentialsHandler);
+
+  // Value
+  server.on("/api/setValue", HTTP_GET, postValueHandler);
 
   // Utilities
   server.on("/utils/resetwifi", HTTP_GET, resetWifiHandler);

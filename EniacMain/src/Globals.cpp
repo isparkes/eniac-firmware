@@ -33,15 +33,6 @@ volatile uint16_t impressions;
 // when the interrupt is reading it
 portMUX_TYPE timerMux1 = portMUX_INITIALIZER_UNLOCKED;
 
-byte numberArray[DIGIT_COUNT]     = {0, 0, 0, 0, 0, 0};
-byte currNumberArray[DIGIT_COUNT] = {0, 0, 0, 0, 0, 0};
-byte displayType[DIGIT_COUNT]     = {NORMAL, NORMAL, NORMAL, NORMAL, NORMAL, NORMAL};
-int fadeState                     = 0;
-byte scrollCounter[DIGIT_COUNT]   = {0, 0, 0, 0, 0, 0};
-byte valueDisplayTime             = 0;
-byte valueToShow[3]               = {0, 0, 0};
-byte valueDisplayType[3]          = {0x33, 0x33, 0x33}; // All normal by default
-
 // ************************************************************
 // Variables for clock management
 // ************************************************************
@@ -75,9 +66,6 @@ String uniqHostname;
 AsyncWebServer server(80);
 
 String lastWiFiScan = "";
-
-byte switch1Meaning = SW_NONE;
-byte switch2Meaning = SW_NONE;
 
 // We don't want to handle switch processing in an interrupt,
 // so we set a flag to trigger processing

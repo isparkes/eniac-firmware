@@ -14,9 +14,9 @@
 
 class GPSManager_ {
   private:
-    // Singleton constructor, no copying
-    GPSManager_() = default;
-    GPSManager_(const GPSManager_ &) = delete; 
+    GPSManager_() = default; // Make constructor private
+
+    GPSManager_(const GPSManager_ &) = delete; // no copying
     GPSManager_ &operator=(const GPSManager_ &) = delete;
 
   public:

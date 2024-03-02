@@ -5,25 +5,22 @@
 #include "Defs.h"
 #include "esp_wps.h"
 
-#ifdef FEATURE_BACKLIGHTS
-#include "LEDManager.h"
-#endif
-
 #include "SpiffsStorage.h"          // Access to config objects
 
 #ifdef FEATURE_BLINKENLIGHTS
 #include "BlinkenlightsManager.h"   // Access to blinkenlights
 #endif
 
-#include "OutputManager.h"          // Defintions for number arrays
 #include "StorageTypes.h"           // Config and Stats objects
 
 // Meanings of switches
 #define SW_NONE                 0
-#define SW_COUNTDOWN_INHIBIT    1
-#define SW_SLAVE_INHIBIT        2
-#define SW_MIN_DIM              3
-#define SW_DIM_LEDS             4
+#define SW_SLAVE_INHIBIT        1
+#define SW_MIN_DIM              2
+#define SW_DIM_LEDS             3
+#define SW_COUNTDOWN_INHIBIT    4
+#define SW1_DEFAULT             SW_DIM_LEDS
+#define SW2_DEFAULT             SW_SLAVE_INHIBIT
 
 // ************************************************************
 // Global shared components and objects
@@ -61,12 +58,6 @@ extern volatile uint8_t switchTime;
 extern volatile uint16_t impressions;
 extern portMUX_TYPE timerMux1;
 
-extern byte numberArray[DIGIT_COUNT];
-extern byte currNumberArray[DIGIT_COUNT];
-extern byte displayType[DIGIT_COUNT];
-extern int fadeState;
-extern byte scrollCounter[DIGIT_COUNT];
-
 extern unsigned int oledTimeout;
 extern unsigned int configTimeout;
 extern unsigned int flashTimeout;
@@ -76,9 +67,6 @@ extern int digitValue;
 #endif
 
 extern bool doAutoReconnect;
-
-extern byte switch1Meaning;
-extern byte switch2Meaning;
 
 extern String uniqHostname;
 
