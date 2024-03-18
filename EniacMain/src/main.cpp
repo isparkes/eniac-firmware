@@ -136,16 +136,6 @@ void setup()
   #endif
 
   // -------------------------------------------------------------------------
-  // // Emergency WiFi start
-  // if (digitalRead(ENC_BTN) == LOW) {
-  //     debugMsgMain("Start open AP");
-  //     #ifdef FEATURE_MENU
-  //     menuManager.flashMenuMessage("WiFi Start", "Start open access point");
-  //     #endif
-  //     // wifiManager.openAccessPortal();
-  // }
-
-  // -------------------------------------------------------------------------
 
   #ifdef FEATURE_BACKLIGHTS
   debugMsgMain("Start up neopixels");
@@ -158,7 +148,15 @@ void setup()
   debugMsgMain("Initialising WiFi");
   wifiManager.setUpWiFi();
 
-  if (cc->WifiOnAtStart && wifiManager.wifiCredentialsReceived()) {
+  bool emergencyAP = false;
+  // Emergency WiFi start
+  if (digitalRead(ENC_BTN) == LOW) {
+      debugMsgMain("Start emergency open AP");
+      #ifdef FEATURE_MENU
+      menuManager.flashMenuMessage("WiFi Start", "Start open access point");
+      #endif
+      wifiManager.openAccessPortal();
+  } else if (cc->WifiOnAtStart && wifiManager.wifiCredentialsReceived()) {
     debugMsgMain("Starting WiFi");
     #ifdef FEATURE_MENU
     menuManager.flashMenuMessage("WiFi", "Starting WiFi");

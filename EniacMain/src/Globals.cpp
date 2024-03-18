@@ -33,6 +33,9 @@ volatile uint16_t impressions;
 // when the interrupt is reading it
 portMUX_TYPE timerMux1 = portMUX_INITIALIZER_UNLOCKED;
 
+// Used for clean handling of the encoder 
+portMUX_TYPE encoderMux = portMUX_INITIALIZER_UNLOCKED;
+
 // ************************************************************
 // Variables for clock management
 // ************************************************************
@@ -47,11 +50,6 @@ bool upOrDown;
 
 // Current normalised LDR value
 int ldrValue;
-
-// Menu  management - OLED timeouts
-int oledTimeout = OLED_ON_TIME;
-int configTimeout = 0;
-int flashTimeout = 0;
 
 #ifdef DIGIT_DIAGNOSTICS
 int digitValue = 0;

@@ -58,9 +58,7 @@ extern volatile uint8_t switchTime;
 extern volatile uint16_t impressions;
 extern portMUX_TYPE timerMux1;
 
-extern int oledTimeout;
-extern int configTimeout;
-extern int flashTimeout;
+extern portMUX_TYPE encoderMux;
 
 #ifdef DIGIT_DIAGNOSTICS
 extern int digitValue;

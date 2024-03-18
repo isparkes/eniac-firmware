@@ -538,41 +538,39 @@ void OutputManager_::triggerStunts() {
   if (_outputMode != primaryMode)
     return;
 
-  if (_acpOffset == 0) {
-    if (second() == ACP_TRIGGER_SECOND) {
-      #ifdef OTM_EXTENDED_DEBUG
-      debugMsgOtm("Check ACP trigger");
-      #endif
-      if ((cc->acpMode == ACP_MODE_1M) ||
-          ((cc->acpMode == ACP_MODE_10M) && (minute() % 10 == 9)) || 
-          ((cc->acpMode == ACP_MODE_1H) && (minute() == 9))) {
-        if (cc->useLDRTube) {
-          if (cc->suppressACP) {
-            if (!ldrManager.isMinDim()) {
-              // If we have suppress ACP set, only trigger when not at min brightness
-              _acpOffset = 1;
-            }
-          } else {
+  if (second() == ACP_TRIGGER_SECOND) {
+    #ifdef OTM_EXTENDED_DEBUG
+    debugMsgOtm("Check ACP trigger");
+    #endif
+    if ((cc->acpMode == ACP_MODE_1M) ||
+        ((cc->acpMode == ACP_MODE_10M) && (minute() % 10 == 9)) || 
+        ((cc->acpMode == ACP_MODE_1H) && (minute() == 9))) {
+      if (cc->useLDRTube) {
+        if (cc->suppressACP) {
+          if (!ldrManager.isMinDim()) {
+            // If we have suppress ACP set, only trigger when not at min brightness
             _acpOffset = 1;
           }
         } else {
           _acpOffset = 1;
         }
+      } else {
+        _acpOffset = 1;
       }
-    }
-
-    if (_acpOffset == 1) {
-      #ifdef OTM_EXTENDED_DEBUG
-      debugMsgOtm("Triggering ACP");
-      #endif
-      _outputMode = acpMode;
-      ldrManager.setLDRValueToMaxACP(true);
     }
   }
 
-  if (cc->slotsMode > SLOTS_MODE_NONE) {
-    // Initialise the slots transition values and start it
-    if (second() == SLOTS_TRIGGER_SECOND) {
+  if (_acpOffset == 1) {
+    #ifdef OTM_EXTENDED_DEBUG
+    debugMsgOtm("Triggering ACP");
+    #endif
+    _outputMode = acpMode;
+    ldrManager.setLDRValueToMaxACP(true);
+  }
+
+  if (second() == SLOTS_TRIGGER_SECOND) {
+    // If we have a mode configured and the main mode is different from the slots mode
+    if ((cc->slotsMode > SLOTS_MODE_NONE) and (cc->pMode != cc->sMode)) {
       #ifdef OTM_EXTENDED_DEBUG
       debugMsgOtm("Triggering Slots mode: " + String(cc->slotsMode));
       #endif

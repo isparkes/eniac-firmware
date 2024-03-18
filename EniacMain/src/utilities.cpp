@@ -90,7 +90,7 @@ String getStatusString() {
     connectionInfo += "b";
   }
 
-  if (oledTimeout > 0) {
+  if (menuManager.getOledTimeout() > 0) {
     connectionInfo += "O";
   } else {
     connectionInfo += "o";
@@ -716,10 +716,11 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
 
     // ------------------------------------------------------------
 
-    compareAndUpdateBool(json, "useLDR",          &cc->useLDRTube);
+    compareAndUpdateBool(json, "useLDRTube",      &cc->useLDRTube);
     compareAndUpdateInt (json, "minTubeDim",      &cc->minTubeDim);
     compareAndUpdateInt (json, "maxTubeDim",      &cc->minTubeDim);
     compareAndUpdateInt (json, "setTubeDim",      &cc->setTubeDim);
+    compareAndUpdateBool(json, "useLDRBL",        &cc->useLDRBL);
     compareAndUpdateInt (json, "minBLDim",        &cc->minBLDim);
     compareAndUpdateInt (json, "maxBLDim",        &cc->minBLDim);
     compareAndUpdateInt (json, "setBLDim",        &cc->setBLDim);
@@ -920,6 +921,11 @@ void postWiFiCredentialsHandler(AsyncWebServerRequest *request) {
     AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"No changes saved\"}");
     request->send(response);
   }
+
+  // Autorestart
+  delay(1000);
+
+  ESP.restart();
 }
 
 // ************************************************************

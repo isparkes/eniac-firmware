@@ -1080,13 +1080,20 @@ void MenuManager_::menuOncePerHour() {
   // nothing at present
 }
 
+// ************************************************************
+// Get the current timout value
+// ************************************************************
+int MenuManager_::getOledTimeout() {
+  return oledTimeout;
+}
+
 // ----------------------------------------------------------------
 //                        -internal plumbing
 // ----------------------------------------------------------------
-
-// call the instance variable doEncoder()
-void doEncoderWrapper() {
+void IRAM_ATTR doEncoderWrapper() {
+  portENTER_CRITICAL_ISR(&encoderMux);
   menuManager.doEncoder();
+  portEXIT_CRITICAL_ISR(&encoderMux);
 }
 
 void MenuManager_::setupMenuManager() {
@@ -1097,6 +1104,7 @@ void MenuManager_::setupMenuManager() {
   // Interrupt for reading the rotary encoder position
   rotaryEncoder.encoder0Pos = 0;
   attachInterrupt(digitalPinToInterrupt(ENC_APin), doEncoderWrapper, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ENC_BPin), doEncoderWrapper, CHANGE);
 }
 
 // ************************************************************

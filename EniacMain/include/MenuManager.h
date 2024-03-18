@@ -6,6 +6,7 @@
 #include "DebugManager.h"
 #include "utilities.h"
 #include "WiFiManager.h"
+#include "Globals.h"
 
 #define BUTTONPRESSEDSTATE 0              // rotary encoder gpio pin logic level when the button is pressed (usually 0)
 #define DEBOUNCEDELAY 100                 // debounce delay for button inputs
@@ -68,7 +69,7 @@ enum menuTargets {
   debugOn10mins,
   selectLocationArea,
   selectLocation,
-  setLocation
+  setLocation  
 };
 
 // modes that the menu system can be in
@@ -80,7 +81,6 @@ enum menuModes {
   message,                              // displaying a message
   blocking                              // a blocking procedure is in progress (see enter value)
 };
-
 
 struct oledMenus {
   // menu
@@ -146,11 +146,17 @@ class MenuManager_ {
     void menuOncePerSecond();
     void menuOncePerHour();
     void menuLoop();
+    int getOledTimeout();
   private:
     menuModes menuMode = off;                 // default mode at startup is off
     oledMenus oledMenu;
     rotaryEncoders rotaryEncoder;
     String _chosenArea;
+
+    // Menu  management - OLED timeouts
+    int oledTimeout = OLED_ON_TIME;
+    int configTimeout = 0;
+    int flashTimeout = 0;
 
     // trigger for Oled reset
     bool resetDisplay;
