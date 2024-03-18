@@ -102,12 +102,6 @@
 #define DATE_FORMAT_DEFAULT             2
 
 // -------------------------------------------------------------------------------
-
-#define OLED_ON_TIME                    20 // Time in seconds the OLED stays on for
-#define CONFIG_TIME                     10 // Time in seconds we stay in config mode
-#define FLASH_TIME                       6 // Time in seconds we show an OLED flash message for
-
-// -------------------------------------------------------------------------------
 #define SUPPRESS_ACP_DEFAULT            false
 
 // -------------------------------------------------------------------------------

@@ -269,33 +269,67 @@
             <h3 class="sub-header">Ambient Light Sensor</h3>
             <div class="form-horizontal">
 
+                <!-- tube LDR --> 
+
                 <div class="form-group">
-                    <label class="control-label col-xs-3">Use Sensor:</label>
+                    <label class="control-label col-xs-3">Sensor Dims Tubes:</label>
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input type="radio" name="useLDR" id="useLDR" value="on" onclick="handleLDRClick(this);">On
+                            <input type="radio" name="useLDRTube" id="useLDRTube" value="on" onclick="handleLDRTubeClick(this);">On
                         </label>
                     </div>                    
                     <div class="col-xs-1">
                         <label class="radio-inline">
-                            <input type="radio" name="useLDR" id="useLDROff" value="off" onclick="handleLDRClick(this);">Off
+                            <input type="radio" name="useLDRTube" id="useLDRTubeOff" value="off" onclick="handleLDRTubeClick(this);">Off
                         </label>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="control-label col-xs-3" for="minDim">Min Dim %:</label>
+                    <label class="control-label col-xs-3" for="minTubeDim">Tube Min Dim %:</label>
                     <div class="col-xs-2">
-                        <input type="number" class="form-control" name="minDim" id="minDim" min="1" max="100" value="10">
+                        <input type="number" class="form-control" name="minTubeDim" id="minTubeDim" min="1" max="100" value="10">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="control-label col-xs-3" for="setDim">Fixed Dim %:</label>
+                    <label class="control-label col-xs-3" for="setTubeDim">Tube Fixed Dim %:</label>
                     <div class="col-xs-2">
-                        <input type="number" class="form-control" name="setDim" id="setDim" min="1" max="100" value="10">
+                        <input type="number" class="form-control" name="setTubeDim" id="setTubeDim" min="1" max="100" value="10">
                     </div>
                 </div>
+
+                <!-- Backlight LDR --> 
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3">Sensor Dims Backlights:</label>
+                    <div class="col-xs-1">
+                        <label class="radio-inline">
+                            <input type="radio" name="useBLTube" id="useBLTube" value="on" onclick="handleLDRBLClick(this);">On
+                        </label>
+                    </div>                    
+                    <div class="col-xs-1">
+                        <label class="radio-inline">
+                            <input type="radio" name="useBLTube" id="useBLTubeOff" value="off" onclick="handleLDRBLClick(this);">Off
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="minBLDim">Backlight Min Dim %:</label>
+                    <div class="col-xs-2">
+                        <input type="number" class="form-control" name="minBLDim" id="minBLDim" min="1" max="100" value="10">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="setBLDim">Backlight Fixed Dim %:</label>
+                    <div class="col-xs-2">
+                        <input type="number" class="form-control" name="setBLDim" id="setBLDim" min="1" max="100" value="10">
+                    </div>
+                </div>
+
+                <!-- LDR Sensitivity --> 
 
                 <div class="form-group">
                     <label class="control-label col-xs-3" for="sensitivityLDR">Sensitivity:</label>
@@ -589,10 +623,16 @@
         $("#pMode").val(config.pMode);
         $("#sMode").val(config.sMode);
 
-        // -------------- LDR --------------
-        setCurrentRadioValue("#useLDR", "#useLDROff", config.useLDR);
-        $("#minDim").val(config.minDim);
-        $("#setDim").val(config.setDim);
+        // ------------ Tube Dim ------------
+        setCurrentRadioValue("#useLDRTube", "#useLDRTubeOff", config.useLDRTube);
+        $("#minTubeDim").val(config.minTubeDim);
+        $("#setTubeDim").val(config.setTubeDim);
+
+        // ------------ LED Dim ------------
+        setCurrentRadioValue("#useLDRBL", "#useLDRBLOff", config.useLDRBL);
+        $("#minBLDim").val(config.minBLDim);
+        $("#setBLDim").val(config.setBLDim);
+        
         $("#sensitivityLDR").val(config.sensitivityLDR);
         $("#thresholdBright").val(config.thresholdBright);
 
@@ -641,7 +681,8 @@
         // -- Triggers for dependent settings --
         handleScrollbackClick($("#scrollback"));
         handleFadeClick($("#fade"));
-        handleLDRClick($("#useLDR"));
+        handleLDRTubeClick($("#useLDRTube"));
+        handleLDRBLClick($("#useLDRBL"));
         handleDayBlankingChange();
         handleDayBacklightModeChange();
         handleCountdownDisplayOption();
@@ -717,16 +758,28 @@
 
         // -------------- LDR --------------
 
-        if (compareRadioChanged("#useLDR", localConfig.useLDR)) {
-            postBody["useLDR"] = getCurrentRadioValue("#useLDR");
+        if (compareRadioChanged("#useLDRTube", localConfig.useLDRTube)) {
+            postBody["useLDRTube"] = getCurrentRadioValue("#useLDRTube");
         }
 
-        if (localConfig.minDim!=$("#minDim").val()) {
-            postBody["minDim"] = $("#minDim").val();
+        if (localConfig.minTubeDim!=$("#minTubeDim").val()) {
+            postBody["minTubeDim"] = $("#minTubeDim").val();
         }
 
-        if (localConfig.setDim!=$("#setDim").val()) {
-            postBody["setDim"] = $("#setDim").val();
+        if (localConfig.setTubeDim!=$("#setTubeDim").val()) {
+            postBody["setTubeDim"] = $("#setTubeDim").val();
+        }
+
+        if (compareRadioChanged("#useLDRBL", localConfig.useLDRBL)) {
+            postBody["useLDRBL"] = getCurrentRadioValue("#useLDRBL");
+        }
+
+        if (localConfig.minBLDim!=$("#minBLDim").val()) {
+            postBody["minBLDim"] = $("#minBLDim").val();
+        }
+
+        if (localConfig.setTubeDim!=$("#setBLDim").val()) {
+            postBody["setBLDim"] = $("#setBLDim").val();
         }
 
         if (localConfig.sensitivityLDR!=$("#sensitivityLDR").val()) {
@@ -895,17 +948,23 @@
         }
     }
 
-    function handleLDRClick(radioID) {
+    function handleLDRTubeClick(radioID) {
         if($(radioID).prop('checked') && $(radioID).val() == 'on') {
-            $("#sensitivityLDR").prop('disabled', false);
-            $("#thresholdBright").prop('disabled', false);
-            $("#minDim").prop('disabled', false);
-            $("#setDim").prop('disabled', true);
+            $("#minTubeDim").prop('disabled', false);
+            $("#setTubeDim").prop('disabled', true);
         } else {
-            $("#sensitivityLDR").prop('disabled', true);
-            $("#thresholdBright").prop('disabled', true);
-            $("#minDim").prop('disabled', true);
-            $("#setDim").prop('disabled', false);
+            $("#minTubeDim").prop('disabled', true);
+            $("#setTubeDim").prop('disabled', false);
+        }
+    }
+
+    function handleLDRBLClick(radioID) {
+        if($(radioID).prop('checked') && $(radioID).val() == 'on') {
+            $("#minBLDim").prop('disabled', false);
+            $("#setBLDim").prop('disabled', true);
+        } else {
+            $("#minBLDim").prop('disabled', true);
+            $("#setBLDim").prop('disabled', false);
         }
     }
 

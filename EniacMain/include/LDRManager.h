@@ -15,9 +15,9 @@
 
 #define LDR_VALUE_MAX         4095 // The maximum LDR value - based on 12-bit ADC
 
-#define MIN_DIM_DEFAULT       20   // The default minimum dim %
-#define MIN_DIM_MIN           1    // The minimum dim %
-#define MIN_DIM_MAX           100  // The maximum dim %
+#define DIM_DEFAULT           20   // The default minimum dim %
+#define DIM_MIN               1    // The minimum dim %
+#define DIM_MAX               100  // The maximum dim %
 
 #define SENSOR_SENSIT_MIN     100  // Sensor Sensitivity
 #define SENSOR_SENSIT_MAX     400
@@ -45,7 +45,7 @@ class LDRManager_
   public:
     void setUp();
 
-    void  getDimmingFromLDR();
+    void  getTubeDimmingFromLDR();
 
     // Get the smoothed value *without* the ACP (used for LEDs)
     int   getLDRValue();

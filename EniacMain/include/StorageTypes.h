@@ -14,8 +14,12 @@ typedef struct {
   int ntpUpdateInterval;
   String tzs;
   bool hourMode;
-  int minDim;
-  int setDim;
+  int minTubeDim;
+  int maxTubeDim;
+  int setTubeDim;
+  int minBLDim;
+  int maxBLDim;
+  int setBLDim;
   byte dayBlanking;
   bool scrollback;
   bool fade;
@@ -28,7 +32,8 @@ typedef struct {
   byte blankHourStart;
   byte blankHourEnd;
   byte blankMode;
-  bool useLDR;
+  bool useLDRTube;
+  bool useLDRBL;
   int mdTimeout;
   byte ledMode;
   byte backlightMode;

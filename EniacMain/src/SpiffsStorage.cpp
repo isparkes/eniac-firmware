@@ -17,6 +17,7 @@ bool SpiffsStorage_::testMountSpiffs()
   }
   return mounted;
 }
+
 // ************************************************************
 // Retrieve the config from the SPIFFS
 // ************************************************************
@@ -85,11 +86,23 @@ bool SpiffsStorage_::getConfigFromSpiffs()
         cc->sensitivityLDR = json["sensitivityLDR"];
         debugMsgSpfX("Loaded sensitivityLDR: " + String(cc->sensitivityLDR));
 
-        cc->minDim = json["minDim"];
-        debugMsgSpfX("Loaded minDim: " + String(cc->minDim));
+        cc->minTubeDim = json["minTubeDim"];
+        debugMsgSpfX("Loaded minTubeDim: " + String(cc->minTubeDim));
 
-        cc->setDim = json["setDim"];
-        debugMsgSpfX("Loaded setDim: " + String(cc->setDim));
+        cc->maxTubeDim = json["maxTubeDim"];
+        debugMsgSpfX("Loaded maxTubeDim: " + String(cc->maxTubeDim));
+
+        cc->setTubeDim = json["setTubeDim"];
+        debugMsgSpfX("Loaded setTubeDim: " + String(cc->setTubeDim));
+
+        cc->minBLDim = json["minBLDim"];
+        debugMsgSpfX("Loaded minBLDim: " + String(cc->minBLDim));
+
+        cc->maxBLDim = json["maxBLDim"];
+        debugMsgSpfX("Loaded maxBLDim: " + String(cc->maxBLDim));
+
+        cc->setBLDim = json["setBLDim"];
+        debugMsgSpfX("Loaded setBLDim: " + String(cc->setBLDim));
 
         cc->sensorSmoothCountLDR = json["sensorSmoothCountLDR"];
         debugMsgSpfX("Loaded sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
@@ -127,8 +140,11 @@ bool SpiffsStorage_::getConfigFromSpiffs()
         cc->mdTimeout = json["mdTimeout"];
         debugMsgSpfX("Loaded mdTimeout: " + String(cc->mdTimeout));
 
-        cc->useLDR = json["useLDR"];
-        debugMsgSpfX("Loaded useLDR: " + String(cc->useLDR));
+        cc->useLDRTube = json["useLDRTube"];
+        debugMsgSpfX("Loaded useLDRTube: " + String(cc->useLDRTube));
+
+        cc->useLDRBL = json["useLDRBL"];
+        debugMsgSpfX("Loaded useLDRBL: " + String(cc->useLDRBL));
 
         cc->thresholdBright = json["thresholdBright"];
         debugMsgSpfX("Loaded thresholdBright: " + String(cc->thresholdBright));
@@ -251,8 +267,12 @@ void SpiffsStorage_::saveConfigToSpiffs()
   json["fadeSteps"] = cc->fadeSteps;
   json["scrollSteps"] = cc->scrollSteps;
   json["suppressACP"] = cc->suppressACP;
-  json["minDim"] = cc->minDim;
-  json["setDim"] = cc->setDim;
+  json["minTubeDim"] = cc->minTubeDim;
+  json["maxTubeDim"] = cc->maxTubeDim;
+  json["setTubeDim"] = cc->setTubeDim;
+  json["minBLDim"] = cc->minBLDim;
+  json["maxBLDim"] = cc->maxBLDim;
+  json["setBLDim"] = cc->setBLDim;
   json["backlightMode"] = cc->backlightMode;
   json["useBLDim"] = cc->useBLDim;
   json["useBLPulse"] = cc->useBLPulse;
@@ -264,7 +284,8 @@ void SpiffsStorage_::saveConfigToSpiffs()
   json["blankHourEnd"] = cc->blankHourEnd;
   json["cycleSpeed"] = cc->cycleSpeed;
   json["mdTimeout"] = cc->mdTimeout;
-  json["useLDR"] = cc->useLDR;
+  json["useLDRTube"] = cc->useLDRTube;
+  json["useLDRBL"] = cc->useLDRBL;
   json["thresholdBright"] = cc->thresholdBright;
   json["sensitivityLDR"] = cc->sensitivityLDR;
   json["sensorSmoothCountLDR"] = cc->sensorSmoothCountLDR;

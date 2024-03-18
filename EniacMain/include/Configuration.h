@@ -29,9 +29,9 @@
 // Define the type of OLED
 #define OLED_SSD1306                // OLED_SH1106 (1.3") |  OLED_SSD1306 (0.96" and 2.4")
 
-#define OLED_ON_TIME  20            // Time in seconds the OLED stays on for
+#define OLED_ON_TIME  -1            // Time in seconds the OLED stays on for, -1 = don't turn off
 #define CONFIG_TIME   10            // Time in seconds we stay in config mode
-#define FLASH_TIME     6            // Time in seconds we show an OLED flash message for
+#define FLASH_TIME     2            // Time in seconds we show an OLED flash message for
 
 // -------------------------------------------------------------------------------
 
@@ -70,11 +70,11 @@
 
 // What type of slave we have: Either Nixie slave over I2C or the Decatron slave over the 1PPS GPIO
 // If you don't want a slave, set "DECATRON_SLAVE"
-#define NIXIE_SLAVE              // DECATRON_SLAVE | NIXIE_SLAVE
+#define DECATRON_SLAVE              // DECATRON_SLAVE | NIXIE_SLAVE
 
 // -------------------------------------------------------------------------------
 
-#define SOFTWARE_VERSION "LTC-ESP32 0.6.0.0"
+#define SOFTWARE_VERSION "LTC-ESP32 0.6.0.1"
 #define CLOCK_MENU_TITLE "ENIAC" 
 
 // -------------------------------------------------------------------------------

@@ -37,7 +37,7 @@ void LDRManager_::setUpPWM() {
 // Do the work for the fast moving variables
 // ************************************************************
 void LDRManager_::updateOncePerLoop() {
-  getDimmingFromLDR();
+  getTubeDimmingFromLDR();
 }
 
 // ************************************************************
@@ -51,9 +51,9 @@ void LDRManager_::updateOncePerSecond() {
 // Recalculate the per-config or slow moving variables
 // ************************************************************
 void LDRManager_::recalculateVariables() {
-  _minDimLDR = LDR_VALUE_MAX - (cc->minDim * LDR_VALUE_MAX / 100);
+  _minDimLDR = LDR_VALUE_MAX - (cc->minTubeDim * LDR_VALUE_MAX / 100);
   _maxDimLDR = 0;
-  _setDimLDR = LDR_VALUE_MAX - (cc->setDim * LDR_VALUE_MAX / 100);
+  _setDimLDR = LDR_VALUE_MAX - (cc->setTubeDim * LDR_VALUE_MAX / 100);
 
   // Scaling offset increases the base brightness
   // factor increases the sensitivity
@@ -62,15 +62,15 @@ void LDRManager_::recalculateVariables() {
 }
 
 // ************************************************************
-// Gets the smoothed LDR Reading and store it
+// Gets the smoothed LDR Reading for the tubes
 // ************************************************************
-void LDRManager_::getDimmingFromLDR() {
+void LDRManager_::getTubeDimmingFromLDR() {
   int calculatedLDRVal = 0; 
   if (_setMinDim) {
     calculatedLDRVal = _minDimLDR;
   } else if (_setMaxDim) {
     calculatedLDRVal = _maxDimLDR;
-  } else if (cc->useLDR) {
+  } else if (cc->useLDRTube) {
     int rawLDR = analogRead(LDRPin);
     calculatedLDRVal = ((double)rawLDR - _offset) * _factor;
     #ifdef LDR_EXTENDED_DEBUG
@@ -169,7 +169,7 @@ void LDRManager_::setLDRValueToMin(bool newState) {
 // max or set value
 // ************************************************************
 bool LDRManager_::getIsFixedLDRValue() {
-  return _setMinDim || _setMaxDim || !cc->useLDR;
+  return _setMinDim || _setMaxDim || !cc->useLDRTube;
 }
 
 // ************************************************************

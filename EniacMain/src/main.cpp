@@ -10,6 +10,7 @@
 #include "RTCManager.h"
 #include "NTPManager.h"
 #include "DebugManager.h"
+#include "MenuManager.h"
 #ifdef FEATURE_MENU
 #include "MenuManager.h"
 #endif
@@ -111,6 +112,7 @@ void setup()
   // Needed to action the PWM
   ldrManager.updateOncePerLoop();
 
+  // First start digit test
   for (int i = 0 ; i <= 20 ; i++) {
     outputManager.loadNumberArraySameValue(i%10);
     outputManager.outputDisplay();
@@ -132,6 +134,16 @@ void setup()
   oled.clearDisplay();
   menuManager.flashMenuMessage(CLOCK_MENU_TITLE, "Starting");
   #endif
+
+  // -------------------------------------------------------------------------
+  // // Emergency WiFi start
+  // if (digitalRead(ENC_BTN) == LOW) {
+  //     debugMsgMain("Start open AP");
+  //     #ifdef FEATURE_MENU
+  //     menuManager.flashMenuMessage("WiFi Start", "Start open access point");
+  //     #endif
+  //     // wifiManager.openAccessPortal();
+  // }
 
   // -------------------------------------------------------------------------
 

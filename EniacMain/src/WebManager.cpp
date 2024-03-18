@@ -5,7 +5,7 @@
 
 // I had to fiddle in the ElegantOTA source to get this to work
 // Line 27: #define ELEGANTOTA_USE_ASYNC_WEBSERVER 1
-#define ELEGANTOTA_USE_ASYNC_WEBSERVER
+// #define ELEGANTOTA_USE_ASYNC_WEBSERVER
 
 // ************************************************************
 // Open up the normal page handlers

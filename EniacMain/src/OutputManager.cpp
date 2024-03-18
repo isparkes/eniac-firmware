@@ -546,7 +546,7 @@ void OutputManager_::triggerStunts() {
       if ((cc->acpMode == ACP_MODE_1M) ||
           ((cc->acpMode == ACP_MODE_10M) && (minute() % 10 == 9)) || 
           ((cc->acpMode == ACP_MODE_1H) && (minute() == 9))) {
-        if (cc->useLDR) {
+        if (cc->useLDRTube) {
           if (cc->suppressACP) {
             if (!ldrManager.isMinDim()) {
               // If we have suppress ACP set, only trigger when not at min brightness

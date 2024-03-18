@@ -128,12 +128,16 @@ void resetOptions() {
   cc->dateFormat = DATE_FORMAT_DEFAULT;
   cc->dayBlanking = DAY_BLANKING_DEFAULT;
   
-  cc->useLDR = USE_LDR_DEFAULT;
+  cc->useLDRTube = USE_LDR_DEFAULT;
   cc->thresholdBright = SENSOR_THRSH_DEFAULT;
   cc->sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
   cc->sensitivityLDR = SENSOR_SENSIT_DEFAULT;
-  cc->minDim = MIN_DIM_DEFAULT;
-  cc->setDim = MIN_DIM_DEFAULT;
+  cc->minTubeDim = DIM_DEFAULT;
+  cc->maxTubeDim = DIM_MAX;
+  cc->setTubeDim = DIM_DEFAULT;
+  cc->minBLDim = DIM_DEFAULT;
+  cc->maxBLDim = DIM_MAX;
+  cc->setBLDim = DIM_DEFAULT;
   
   cc->fade = FADE_DEFAULT;
   cc->fadeSteps = FADE_STEPS_DEFAULT;
@@ -502,6 +506,10 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   featureString += "DSLV ";
   #endif
 
+  #ifdef FEATURE_MENU
+  featureString += "MENU ";
+  #endif
+
   #ifdef COG_CRANK_OUTPUT
   featureString += "COG ";
   #endif
@@ -576,9 +584,14 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["acpMode"] = cc->acpMode;
   root["suppressACP"] = cc->suppressACP;
 
-  root["useLDR"] = cc->useLDR;
-  root["minDim"] = cc->minDim;
-  root["setDim"] = cc->setDim;
+  root["useLDRTube"] = cc->useLDRTube;
+  root["minTubeDim"] = cc->minTubeDim;
+  root["maxTubeDim"] = cc->minTubeDim;
+  root["setTubeDim"] = cc->setTubeDim;
+  root["useLDRBL"] = cc->useLDRBL;
+  root["minBLDim"] = cc->minTubeDim;
+  root["maxBLDim"] = cc->minTubeDim;
+  root["setBLDim"] = cc->setTubeDim;
   root["thresholdBright"] = cc->thresholdBright;
   root["sensitivityLDR"] = cc->sensitivityLDR;
 
@@ -703,9 +716,13 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
 
     // ------------------------------------------------------------
 
-    compareAndUpdateBool(json, "useLDR",          &cc->useLDR);
-    compareAndUpdateInt (json, "minDim",          &cc->minDim);
-    compareAndUpdateInt (json, "setDim",          &cc->setDim);
+    compareAndUpdateBool(json, "useLDR",          &cc->useLDRTube);
+    compareAndUpdateInt (json, "minTubeDim",      &cc->minTubeDim);
+    compareAndUpdateInt (json, "maxTubeDim",      &cc->minTubeDim);
+    compareAndUpdateInt (json, "setTubeDim",      &cc->setTubeDim);
+    compareAndUpdateInt (json, "minBLDim",        &cc->minBLDim);
+    compareAndUpdateInt (json, "maxBLDim",        &cc->minBLDim);
+    compareAndUpdateInt (json, "setBLDim",        &cc->setBLDim);
     compareAndUpdateInt (json, "thresholdBright", &cc->thresholdBright);
     compareAndUpdateInt (json, "sensitivityLDR",  &cc->sensitivityLDR);
 
@@ -933,6 +950,9 @@ void restartHandler(AsyncWebServerRequest *request) {
   
   AsyncWebServerResponse* response = request->beginResponse(200, "text/json", "{\"status\": \"Restart in 1s\"}");
   request->send(response);
+
+  // preserve the uptime over restarts, especially after OTA
+  spiffsStorage.saveStatsToSpiffs();
 
   delay(1000);
   ESP.restart();

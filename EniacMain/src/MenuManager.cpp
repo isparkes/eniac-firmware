@@ -52,7 +52,7 @@ void MenuManager_::nixieClockMenu() {
   menuMode = menu;
   byte menuCount = 1;
   oledMenu.menuTitle = "Nixie Clock";
-  String status = cc->useLDR ? "off" : "on";
+  String status = cc->useLDRTube ? "off" : "on";
   oledMenu.menuItems[menuCount] = "Tube Dimming " + status;     oledMenu.menuActions[menuCount++] = toggleTubeDimming;
   status =  cc->useBLDim ? "off" : "on";
   oledMenu.menuItems[menuCount] = "BL Dimming " + status;       oledMenu.menuActions[menuCount++] = toggleBLDimming;
@@ -276,7 +276,7 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
     // --------------------------------------------------
     // "Nixie Clock Menu Items"
     case toggleTubeDimming: {
-      cc->useLDR = ! cc->useLDR;
+      cc->useLDRTube = ! cc->useLDRTube;
       nixieClockMenu();
       break;
     }
@@ -305,13 +305,13 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
       break;
     }
     case saveDimming: {
-      if (cc->useLDR) {
-        if (cc->minDim != oledMenu.mValueEntered) {
-          cc->minDim = oledMenu.mValueEntered;
+      if (cc->useLDRTube) {
+        if (cc->minTubeDim != oledMenu.mValueEntered) {
+          cc->minTubeDim = oledMenu.mValueEntered;
         }
       } else {
-        if (cc->setDim != oledMenu.mValueEntered) {
-          cc->setDim = oledMenu.mValueEntered;
+        if (cc->setTubeDim != oledMenu.mValueEntered) {
+          cc->setTubeDim = oledMenu.mValueEntered;
         }
       }
       nixieClockMenu();
@@ -503,18 +503,18 @@ void MenuManager_::menuActions(menuTargets selectedAction) {
 //                -----------------------------------------------
 
 void MenuManager_::setDimmingValue(menuTargets target) {
-  resetMenu();                           // clear any previous menu
-  menuMode = value;                      // enable value entry
-  oledMenu.menuTitle = "Dim value";      // title (used to identify which number was entered)
-  oledMenu.mValueLow = MIN_DIM_MIN;      // minimum value allowed
-  oledMenu.mValueHigh = MIN_DIM_MAX;     // maximum value allowed
-  oledMenu.mValueStep = 1;               // step size
-  if (cc->useLDR) {
-    oledMenu.mValueEntered = cc->minDim; // starting value - when using LDR
+  resetMenu();                               // clear any previous menu
+  menuMode = value;                          // enable value entry
+  oledMenu.menuTitle = "Dim value";          // title (used to identify which number was entered)
+  oledMenu.mValueLow = DIM_MIN;              // minimum value allowed
+  oledMenu.mValueHigh = DIM_MAX;             // maximum value allowed
+  oledMenu.mValueStep = 1;                   // step size
+  if (cc->useLDRTube) {
+    oledMenu.mValueEntered = cc->minTubeDim; // starting value - when using LDR
   } else {
-    oledMenu.mValueEntered = cc->setDim; // starting value - fixed
+    oledMenu.mValueEntered = cc->setTubeDim; // starting value - fixed
   }
-  oledMenu.nextTarget = target;          // action to call when button pressed
+  oledMenu.nextTarget = target;              // action to call when button pressed
 }
 
 void MenuManager_::setHourValue(String title, byte startValue, menuTargets target) {
@@ -955,6 +955,8 @@ void ICACHE_RAM_ATTR MenuManager_::doEncoder() {
   // update previous readings
   rotaryEncoder.encoderPrevA = pinA;
   rotaryEncoder.encoderPrevB = pinB;
+
+  // Reset the display timeouts if we have movement
   resetTimeouts();
 
   if (menuMode == off) {
@@ -1053,7 +1055,7 @@ void MenuManager_::menuOncePerSecond() {
   // Manage timeouts
   countdownMenuTimeouts();
 
-  if (oledTimeout > 0 && configTimeout == 0 && flashTimeout == 0) {
+  if (oledTimeout != 0 && configTimeout == 0 && flashTimeout == 0) {
     oled.showStatusLine();
     // Show the info menu
     char time_c[11];
@@ -1088,7 +1090,6 @@ void doEncoderWrapper() {
 }
 
 void MenuManager_::setupMenuManager() {
-  // configure gpio pins for rotary encoder
   pinMode(ENC_BTN, INPUT_PULLUP);
   pinMode(ENC_APin, INPUT);
   pinMode(ENC_BPin, INPUT);
