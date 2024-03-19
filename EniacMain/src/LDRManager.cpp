@@ -30,14 +30,17 @@ void LDRManager_::setUpPWM() {
 
   ledcSetup(LDRPWMChannel, PWMFreq, PWMResolution);
   ledcAttachPin(BLANKPin, LDRPWMChannel);
-  ledcWrite(LDRPWMChannel, _ldrValue);
+  ledcWrite(LDRPWMChannel, _ldrValueTube);
 }
 
 // ************************************************************
 // Do the work for the fast moving variables
 // ************************************************************
 void LDRManager_::updateOncePerLoop() {
-  getTubeDimmingFromLDR();
+  processLDRValue();
+
+  // Set the PWM value based on the new values
+  ledcWrite(LDRPWMChannel, _ldrValueTube);
 }
 
 // ************************************************************
@@ -51,9 +54,13 @@ void LDRManager_::updateOncePerSecond() {
 // Recalculate the per-config or slow moving variables
 // ************************************************************
 void LDRManager_::recalculateVariables() {
-  _minDimLDR = LDR_VALUE_MAX - (cc->minTubeDim * LDR_VALUE_MAX / 100);
-  _maxDimLDR = 0;
-  _setDimLDR = LDR_VALUE_MAX - (cc->setTubeDim * LDR_VALUE_MAX / 100);
+  _minDimTube = LDR_VALUE_MAX - (cc->minTubeDim * LDR_VALUE_MAX / 100);
+  _maxDimTube = 0;
+  _setDimTube = LDR_VALUE_MAX - (cc->setTubeDim * LDR_VALUE_MAX / 100);
+
+  _minDimBL = LDR_VALUE_MAX - (cc->minBLDim * LDR_VALUE_MAX / 100);
+  _maxDimBL = 0;
+  _setDimBL = LDR_VALUE_MAX - (cc->setBLDim * LDR_VALUE_MAX / 100);
 
   // Scaling offset increases the base brightness
   // factor increases the sensitivity
@@ -62,50 +69,69 @@ void LDRManager_::recalculateVariables() {
 }
 
 // ************************************************************
-// Gets the smoothed LDR Reading for the tubes
+// Calculates the smoothed LDR Reading for the tubes and backlights
 // ************************************************************
-void LDRManager_::getTubeDimmingFromLDR() {
-  int calculatedLDRVal = 0; 
+void LDRManager_::processLDRValue() {
+  int calculatedLDRValTube = 0;
+  int calculatedLDRValBL = 0;
+  _rawLDRValue = analogRead(LDRPin);
+
+  #ifdef LDR_EXTENDED_DEBUG
+  debugMsgLdr("Using raw LDR reading: " + String(rawLDR));
+  #endif
+
   if (_setMinDim) {
-    calculatedLDRVal = _minDimLDR;
+    calculatedLDRValTube = _minDimTube;
+    calculatedLDRValBL   = _minDimBL;
   } else if (_setMaxDim) {
-    calculatedLDRVal = _maxDimLDR;
-  } else if (cc->useLDRTube) {
-    int rawLDR = analogRead(LDRPin);
-    calculatedLDRVal = ((double)rawLDR - _offset) * _factor;
-    #ifdef LDR_EXTENDED_DEBUG
-    debugMsgLdr("Using raw LDR reading: " + String(rawLDR));
-    debugMsgLdr("Adjusted LDR reading: " + String(_ldrValue));
-    #endif
+    calculatedLDRValTube = _maxDimTube;
+    calculatedLDRValBL   = _maxDimBL;
   } else {
-    calculatedLDRVal = _setDimLDR;
+    calculatedLDRValTube = _setDimTube;
+    calculatedLDRValBL   = _setDimBL;
   }
 
-  // Non-ACP calculation
-  double sensorDiff = (double)calculatedLDRVal - _sensorLDRSmoothed;
-  _sensorLDRSmoothed += (sensorDiff / (double) cc->sensorSmoothCountLDR);
-  _ldrValue = (int) _sensorLDRSmoothed;
+  if (cc->useLDRTube) {
+    calculatedLDRValTube = ((double)_rawLDRValue - _offset) * _factor;
+  }
 
-  // ACP calculation
+  if (cc->useLDRBL) {
+    calculatedLDRValBL = ((double)_rawLDRValue - _offset) * _factor;
+  }
+
+  // Tube calculation with ACP
   if (_setMaxDimACP) {
-    calculatedLDRVal = _maxDimLDR;
+    calculatedLDRValTube = _maxDimTube;
   }
-  double sensorDiffACP = (double)calculatedLDRVal - _sensorLDRSmoothedACP;
-  _sensorLDRSmoothedACP += (sensorDiffACP / (double) cc->sensorSmoothCountLDR);
-  _ldrValueACP = (int) _sensorLDRSmoothedACP;
 
-  // calculate the min/max values based on the tube (non-ACP) value  
-  if (_ldrValue >= _minDimLDR) {
-    _ldrValue = _minDimLDR;
+  double sensorDiff = (double)calculatedLDRValTube - _sensorLDRSmoothedTube;
+  _sensorLDRSmoothedTube += (sensorDiff / (double) cc->sensorSmoothCountLDR);
+  _ldrValueTube = (int) _sensorLDRSmoothedTube;
+
+  sensorDiff = (double)calculatedLDRValBL - _sensorLDRSmoothedBL;
+  _sensorLDRSmoothedBL += (sensorDiff / (double) cc->sensorSmoothCountLDR);
+  _ldrValueBL = (int) _sensorLDRSmoothedBL;
+
+  // calculate the bound tube value and set the
+  // min/max values based on the tube (non-ACP) value  
+  if (_ldrValueTube >= _minDimTube) {
+    _ldrValueTube = _minDimTube;
     _isMinDim = true;
     _isMaxDim = false;
-  } else if (_ldrValue <= _maxDimLDR) {
-    _ldrValue = _maxDimLDR;
+  } else if (_ldrValueTube <= _maxDimTube) {
+    _ldrValueTube = _maxDimTube;
     _isMinDim = false;
     _isMaxDim = true;
   } else {
     _isMinDim = false;
     _isMaxDim = false;
+  }
+
+  // calculate the bound BL value and set the
+  if (_ldrValueBL >= _minDimBL) {
+    _ldrValueBL = _minDimBL;
+  } else if (_ldrValueBL <= _maxDimBL) {
+    _ldrValueBL = _maxDimBL;
   }
 
   #ifdef LDR_EXTENDED_DEBUG
@@ -115,29 +141,41 @@ void LDRManager_::getTubeDimmingFromLDR() {
   debugMsgLdr("sensorLDRSmoothed: " + String(sensorLDRSmoothed));
   debugMsgLdr("Smoothed LDR reading: " + String(localLDRValue));
   #endif
-
-  ledcWrite(LDRPWMChannel, _ldrValueACP);
 }
 
 // ************************************************************
-// Return previously calculated value, range 0 - 4095
+// Return previously calculated RAW value, range 0 - 4095
 // ************************************************************
-int LDRManager_::getLDRValue() {
-  return _ldrValue;
+int LDRManager_::getRawLDRValue() {
+  return _rawLDRValue;
+}
+
+// ************************************************************
+// Return previously calculated RAW value, range 0 - 4095
+// ************************************************************
+int LDRManager_::getLDRValueTube() {
+  return _ldrValueTube;
 }
 
 // ************************************************************
 // Return previously calculated value, range 0 - 100
 // ************************************************************
-float LDRManager_::getLDRValuePct() {
-  return (LDR_VALUE_MAX - _ldrValue) / (float) LDR_VALUE_MAX * 100.0;
+float LDRManager_::getLDRValueTubePct() {
+  return (LDR_VALUE_MAX - _ldrValueTube) / (float) LDR_VALUE_MAX * 100.0;
 }
 
 // ************************************************************
-// Return previously calculated value, range 0 - 4095
+// Return previously calculated RAW value, range 0 - 4095
 // ************************************************************
-int LDRManager_::getLDRValueACP() {
-  return _ldrValueACP;
+int LDRManager_::getLDRValueBL() {
+  return _ldrValueBL;
+}
+
+// ************************************************************
+// Return previously calculated value, range 0 - 100
+// ************************************************************
+float LDRManager_::getLDRValueBLPct() {
+  return (LDR_VALUE_MAX - _ldrValueBL) / (float) LDR_VALUE_MAX * 100.0;
 }
 
 // ************************************************************

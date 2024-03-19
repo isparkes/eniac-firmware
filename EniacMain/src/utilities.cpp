@@ -340,8 +340,9 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
     root["rtcvalid"] = 0;
   }
 
-  float ldrPerc = ldrManager.getLDRValuePct();
-  root["ldrvalue"] = String(ldrPerc, 2) + "% (" + String(ldrManager.getLDRValue()) + ")";
+  float ldrPercTube = ldrManager.getLDRValueTubePct();
+  float ldrPercBL   = ldrManager.getLDRValueBLPct();
+  root["ldrvalue"] = String(ldrPercTube, 2) + "% / " + String(ldrPercBL, 2) + "% (" + String(ldrManager.getRawLDRValue()) + ")";
 
   bool pirInstalled = blankingManager.getCurrentPIRInstalled();
   root["mdInstalled"] = pirInstalled;

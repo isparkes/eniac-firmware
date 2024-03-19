@@ -89,7 +89,7 @@ void SlaveManagerNixie_::sendUpdateToSlaveI2C() {
   if (getSlaveMode()) {
     byte dimmingPct = 0;
     if (!_blanked)
-      dimmingPct = (byte) ldrManager.getLDRValuePct();
+      dimmingPct = (byte) ldrManager.getLDRValueTubePct();
 
     _slaveModeTryCount++;
 

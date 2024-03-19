@@ -23,6 +23,7 @@ void LEDManager_::updateOncePerSecond() {
 // called once very loop (10mS or so)
 // ************************************************************
 void LEDManager_::updateOncePerLoop() {
+  setLDRValue(ldrManager.getLDRValueBL());
   setPulseValue();
   processLedStatusLoop();
 }

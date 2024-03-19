@@ -321,12 +321,6 @@ void performOncePerLoop() {
 
   // -------------------------------------------------------------------------------
   
-  #ifdef FEATURE_BACKLIGHTS
-  ledManager.setLDRValue(ldrManager.getLDRValue());
-  #endif
-
-  // -------------------------------------------------------------------------------
-  
   #if defined DIGIT_DIAGNOSTICS && defined FEATURE_BACKLIGHTS
   // output the backlight/underlight LEDs
   if (cc->diagsMode > 0) {

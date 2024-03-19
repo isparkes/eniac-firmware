@@ -45,14 +45,17 @@ class LDRManager_
   public:
     void setUp();
 
-    void  getTubeDimmingFromLDR();
+    // Read the LDR and set the internal varaibles from it
+    void  processLDRValue();
 
-    // Get the smoothed value *without* the ACP (used for LEDs)
-    int   getLDRValue();
-    float getLDRValuePct();
+    // Get the smoothed values. The BL values are bound to different max and min
+    // and do not have ACP
+    int   getLDRValueTube();
+    float getLDRValueTubePct();
+    int   getLDRValueBL();
+    float getLDRValueBLPct();
 
-    // Get the smoothed value *including* ACP (used for tubes)
-    int   getLDRValueACP();
+    int   getRawLDRValue();
 
     bool  isMinDim();
     bool  isMaxDim();
@@ -68,13 +71,16 @@ class LDRManager_
   private:
     double _sensorFactor = (double)SENSOR_SENSIT_DEFAULT / 100.0;
 
-    // Native values
-    double _sensorLDRSmoothed = 0;
-    int   _ldrValue = 0;
+    int _rawLDRValue = 0;
 
-    // ACP Versions
-    double _sensorLDRSmoothedACP = 0;
-    int   _ldrValueACP = 0;
+    // Tube Values
+    double _sensorLDRSmoothedTube = 0;
+    double _sensorLDRSmoothedTubeACP = 0;
+    int   _ldrValueTube = 0;
+
+    // Backlight Values
+    double _sensorLDRSmoothedBL = 0;
+    int   _ldrValueBL = 0;
 
     bool  _isMinDim;
     bool  _isMaxDim;
@@ -82,9 +88,14 @@ class LDRManager_
     bool  _setMaxDim;
     bool  _setMaxDimACP;
 
-    int   _minDimLDR;
-    int   _maxDimLDR;
-    int   _setDimLDR;
+    int   _minDimTube;
+    int   _maxDimTube;
+    int   _setDimTube;
+
+    int   _minDimBL;
+    int   _maxDimBL;
+    int   _setDimBL;
+
     double _offset;
     double _factor;
 
