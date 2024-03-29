@@ -90,7 +90,7 @@ String getStatusString() {
     connectionInfo += "b";
   }
 
-  if (menuManager.getOledTimeout() > 0) {
+  if (!menuManager.getOledIsBlanked()) {
     connectionInfo += "O";
   } else {
     connectionInfo += "o";
@@ -625,6 +625,7 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["sw2Mode"] = cc->sw2Mode;
   root["pMode"] = cc->pMode;
   root["sMode"] = cc->sMode;
+  root["oledOnTime"] = cc->oledOnTime;
 
   #ifdef COG_CRANK_OUTPUT
   root["outputOnTime"] = cc->outputOnTime;
@@ -737,6 +738,8 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateByte(json, "blankHourStart", &cc->blankHourStart);
     compareAndUpdateByte(json, "blankHourEnd",   &cc->blankHourEnd);
     compareAndUpdateByte(json, "sepMode",        &cc->sepMode);
+
+    compareAndUpdateByte(json, "oledOnTime",         &cc->oledOnTime);
 
     // ------------------------------------------------------------
 

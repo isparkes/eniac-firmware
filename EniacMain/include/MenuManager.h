@@ -12,6 +12,18 @@
 #define DEBOUNCEDELAY 100                 // debounce delay for button inputs
 #define maxmenuItems 15                   // max number of items used in any of the menus (keep as low as possible to save memory)
 
+#define OLED_ON_ALWAYS       0            // 
+#define OLED_ON_SHORT        1            // 
+#define OLED_ON_LONG         2            // 
+#define OLED_ON_DEF          1            // Default value
+
+#define OLED_ON_TIME_ON     -1            // Time in seconds the OLED stays on for, -1 = don't turn off
+#define OLED_ON_TIME_SHORT  60            //
+#define OLED_ON_TIME_LONG 3600            //
+
+#define CONFIG_TIME         10            // Time in seconds we stay in config mode
+#define FLASH_TIME           2            // Time in seconds we show an OLED flash message for
+
 enum menuTargets {
   noTarget,
   unmappedOption,
@@ -146,7 +158,7 @@ class MenuManager_ {
     void menuOncePerSecond();
     void menuOncePerHour();
     void menuLoop();
-    int getOledTimeout();
+    bool getOledIsBlanked();
   private:
     menuModes menuMode = off;                 // default mode at startup is off
     oledMenus oledMenu;
@@ -154,7 +166,7 @@ class MenuManager_ {
     String _chosenArea;
 
     // Menu  management - OLED timeouts
-    int oledTimeout = OLED_ON_TIME;
+    int oledTimeout = OLED_ON_TIME_SHORT;
     int configTimeout = 0;
     int flashTimeout = 0;
 
@@ -191,6 +203,8 @@ class MenuManager_ {
     void calculateAndSaveHourValue();
     void calculateAndSaveMinuteValue();
     void setWiFiSSIDFromSelection();
+
+    int  getOledTimeoutSecs(byte oledTimeoutSetting);
 };
 
 extern MenuManager_ &menuManager;

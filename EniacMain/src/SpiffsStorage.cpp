@@ -227,6 +227,9 @@ bool SpiffsStorage_::getConfigFromSpiffs()
         cc->sMode = json["sMode"];
         debugMsgSpfX("Loaded smode: " + String(cc->sMode));
 
+        cc->oledOnTime = json["oledOnTime"];
+        debugMsgSpfX("Loaded oledOnTime: " + String(cc->oledOnTime));
+
         #ifdef COUNTDOWN
         cc->countdownTarget = json["countdownTarget"].as<String>();
         debugMsgSpfX("Loaded countdownTarget: " + String(cc->countdownTarget));
@@ -315,6 +318,7 @@ void SpiffsStorage_::saveConfigToSpiffs()
   json["sw2Mode"] = cc->sw2Mode;
   json["pMode"] = cc->pMode;
   json["sMode"] = cc->sMode;
+  json["oledOnTime"] = cc->oledOnTime;
   #ifdef COUNTDOWN
   json["countdownTarget"] = cc->countdownTarget;
   #endif

@@ -148,15 +148,7 @@ void setup()
   debugMsgMain("Initialising WiFi");
   wifiManager.setUpWiFi();
 
-  bool emergencyAP = false;
-  // Emergency WiFi start
-  if (digitalRead(ENC_BTN) == LOW) {
-      debugMsgMain("Start emergency open AP");
-      #ifdef FEATURE_MENU
-      menuManager.flashMenuMessage("WiFi Start", "Start open access point");
-      #endif
-      wifiManager.openAccessPortal();
-  } else if (cc->WifiOnAtStart && wifiManager.wifiCredentialsReceived()) {
+  if (cc->WifiOnAtStart && wifiManager.wifiCredentialsReceived()) {
     debugMsgMain("Starting WiFi");
     #ifdef FEATURE_MENU
     menuManager.flashMenuMessage("WiFi", "Starting WiFi");
@@ -272,8 +264,20 @@ void setup()
 
   // -------------------------------------------------------------------------
 
+  // Emergency WiFi start
+  if ((WiFi.isConnected() == false) && (ENC_BTN) == LOW) {
+      debugMsgMain("Start emergency open AP");
+      #ifdef FEATURE_MENU
+      menuManager.flashMenuMessage("WiFi Start", "Start open access point");
+      #endif
+      wifiManager.openAccessPortal();
+  }
+  
+  // -------------------------------------------------------------------------
+
   debugMsgMain("Start up WDT...");
   enableWatchdog();
+
   // -------------------------------------------------------------------------
   
   #ifdef NIXIE_SLAVE

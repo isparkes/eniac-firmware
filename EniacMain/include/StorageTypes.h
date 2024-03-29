@@ -69,6 +69,7 @@ typedef struct {
   byte sw2Mode;
   byte pMode;
   byte sMode;
+  byte oledOnTime;
   #ifdef COUNTDOWN
   String countdownTarget;
   #endif

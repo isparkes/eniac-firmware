@@ -985,7 +985,7 @@ void MenuManager_::resetTimeouts() {
     configTimeout = CONFIG_TIME;
     oledMenu.needUpdate = true;
   }
-  oledTimeout = OLED_ON_TIME;
+  oledTimeout = getOledTimeoutSecs(cc->oledOnTime);
 }
 
 void MenuManager_::countdownMenuTimeouts() {
@@ -1011,6 +1011,10 @@ void MenuManager_::countdownMenuTimeouts() {
       oled.blankDisplay();
       debugMsgMnm("OLED: OFF");
     }
+  }
+
+  if ((oledTimeout == -1) && (cc->oledOnTime > 0)) {
+    oledTimeout = getOledTimeoutSecs(cc->oledOnTime);
   }
 }
 
@@ -1081,10 +1085,30 @@ void MenuManager_::menuOncePerHour() {
 }
 
 // ************************************************************
-// Get the current timout value
+// Get the current blanking status of the OLED
 // ************************************************************
-int MenuManager_::getOledTimeout() {
-  return oledTimeout;
+bool MenuManager_::getOledIsBlanked() {
+  return oledTimeout == 0;
+}
+
+// ************************************************************
+// Get the current timout value based on the menu setting
+// ************************************************************
+int MenuManager_::getOledTimeoutSecs(byte oledTimeoutSetting) {
+  switch (oledTimeoutSetting) {
+    case OLED_ON_ALWAYS:
+      return OLED_ON_TIME_ON;
+      break;
+    case OLED_ON_SHORT:
+      return OLED_ON_TIME_SHORT;
+      break;
+    case OLED_ON_LONG:
+      return OLED_ON_TIME_LONG;
+      break;
+    default:
+      return OLED_ON_TIME_SHORT;
+      break;
+  }
 }
 
 // ----------------------------------------------------------------

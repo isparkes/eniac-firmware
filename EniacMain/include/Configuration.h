@@ -7,7 +7,7 @@
 // -------------------------------------------------------------------------------
 
 // Add debug statments to code - needs extra space
-#define DEBUG_OFF                   // DEBUG | DEBUG_OFF
+#define DEBUG                   // DEBUG | DEBUG_OFF
 
 // -------------------------------------------------------------------------------
 
@@ -28,10 +28,6 @@
 
 // Define the type of OLED
 #define OLED_SSD1306                // OLED_SH1106 (1.3") |  OLED_SSD1306 (0.96" and 2.4")
-
-#define OLED_ON_TIME  -1            // Time in seconds the OLED stays on for, -1 = don't turn off
-#define CONFIG_TIME   10            // Time in seconds we stay in config mode
-#define FLASH_TIME     2            // Time in seconds we show an OLED flash message for
 
 // -------------------------------------------------------------------------------
 
@@ -74,7 +70,7 @@
 
 // -------------------------------------------------------------------------------
 
-#define SOFTWARE_VERSION "LTC-ESP32 0.6.0.1"
+#define SOFTWARE_VERSION "LTC-ESP32 0.6.0.2"
 #define CLOCK_MENU_TITLE "ENIAC" 
 
 // -------------------------------------------------------------------------------

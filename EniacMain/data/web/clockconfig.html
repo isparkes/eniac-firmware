@@ -353,7 +353,7 @@
             </div>
         </div>
         <div class="container" role="main">
-            <h3 class="sub-header">Digit blanking</h3>
+            <h3 class="sub-header">Blanking control</h3>
             <h5 class="sub-header" hidden="" id="mdnotinstalled">Motion detector is not installed!</h5>
             <div class="form-horizontal">
                 <div class="form-group">
@@ -409,6 +409,16 @@
                     <label class="control-label col-xs-3" for="blankHourEnd">Blank to:</label>
                     <div class="col-xs-2">
                         <input type="number" class="form-control" name="blankHourEnd" id="blankHourEnd" min="0" max="23" value="7" disabled>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-xs-3">OLED Timeout:</label>
+                    <div class="col-xs-4">
+                        <select class="form-control" name="oledOnTime" id="oledOnTime">
+                            <option value="0">Always On</option>
+                            <option selected value="1">Blank after 1 minute</option>
+                            <option value="2">Blank after 1 hour</option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-group">
@@ -648,6 +658,7 @@
         $("#blankMode").val(config.blankMode);
         $("#blankHourStart").val(config.blankHourStart);
         $("#blankHourEnd").val(config.blankHourEnd);
+        $("#oledOnTime").val(config.oledOnTime);
 
         // -------------- LEDs --------------
         $("#backlightMode").val(config.backlightMode);
@@ -812,6 +823,10 @@
 
         if (localConfig.blankHourEnd!=$("#blankHourEnd").val()) {
             postBody["blankHourEnd"] = $("#blankHourEnd").val();
+        }
+
+        if (localConfig.oledOnTime!=$("#oledOnTime").val()) {
+            postBody["oledOnTime"] = $("#oledOnTime").val();
         }
 
         // -------------- LEDs --------------
