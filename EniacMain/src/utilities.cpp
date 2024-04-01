@@ -129,6 +129,8 @@ void resetOptions() {
   cc->dayBlanking = DAY_BLANKING_DEFAULT;
   
   cc->useLDRTube = USE_LDR_DEFAULT;
+  cc->useLDRBL = USE_LDR_DEFAULT;
+  cc->useLDRSep = USE_LDR_DEFAULT;
   cc->thresholdBright = SENSOR_THRSH_DEFAULT;
   cc->sensorSmoothCountLDR = SENSOR_SMOOTH_READINGS_DEFAULT;
   cc->sensitivityLDR = SENSOR_SENSIT_DEFAULT;
@@ -587,14 +589,18 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
 
   root["useLDRTube"] = cc->useLDRTube;
   root["minTubeDim"] = cc->minTubeDim;
-  root["maxTubeDim"] = cc->minTubeDim;
+  root["maxTubeDim"] = cc->maxTubeDim;
   root["setTubeDim"] = cc->setTubeDim;
+
   root["useLDRBL"] = cc->useLDRBL;
-  root["minBLDim"] = cc->minTubeDim;
-  root["maxBLDim"] = cc->minTubeDim;
-  root["setBLDim"] = cc->setTubeDim;
+  root["minBLDim"] = cc->minBLDim;
+  root["maxBLDim"] = cc->maxBLDim;
+  root["setBLDim"] = cc->setBLDim;
+
   root["thresholdBright"] = cc->thresholdBright;
   root["sensitivityLDR"] = cc->sensitivityLDR;
+  
+  root["useLDRSep"] = cc->useLDRSep;
 
   root["mdinstalled"] = blankingManager.getCurrentPIRInstalled();
   root["mdTimeout"] = cc->mdTimeout;
@@ -728,6 +734,7 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateInt (json, "setBLDim",        &cc->setBLDim);
     compareAndUpdateInt (json, "thresholdBright", &cc->thresholdBright);
     compareAndUpdateInt (json, "sensitivityLDR",  &cc->sensitivityLDR);
+    compareAndUpdateBool(json, "useLDRSep",       &cc->useLDRSep);
 
     // ------------------------------------------------------------
 

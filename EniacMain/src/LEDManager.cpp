@@ -96,15 +96,17 @@ void LEDManager_::recalculateVariables() {
     setBacklightLEDs( getLEDAdjustedBL(0),
                       getLEDAdjustedBL(0),
                       getLEDAdjustedBL(0));
+#ifdef FEATURE_EXT_LEDS                      
     setUnderlightLEDs(getLEDAdjustedUL(0),
                       getLEDAdjustedUL(0),
                       getLEDAdjustedUL(0));
+#endif
   }
 
   if (_towersBlanked) {
-    setTowerLEDs(   getLEDAdjustedUL(0),
-                    getLEDAdjustedUL(0),
-                    getLEDAdjustedUL(0));
+    setTowerLEDs(   getLEDAdjustedBL(0),
+                    getLEDAdjustedBL(0),
+                    getLEDAdjustedBL(0));
   }
 }
 
@@ -201,27 +203,27 @@ void LEDManager_::setTowerLEDs(byte red, byte green, byte blue) {
   #endif
 }
 
+#ifdef FEATURE_EXT_LEDS
 // ************************************************************
 // Set under light LEDs to the same colour
 // ************************************************************
 void LEDManager_::setUnderlightLEDs(byte red, byte green, byte blue) {
-  #ifdef FEATURE_EXT_LEDS
   for (int i = 0 ; i < DIGIT_COUNT ; i++) {
     setUnderlightLED(i, red, green, blue);
   }
-  #endif
 }
+#endif
 
+#ifdef FEATURE_EXT_LEDS
 // ************************************************************
 // Set under light LEDs to the same colour
 // ************************************************************
 void LEDManager_::setUnderlightLED(byte index, byte red, byte green, byte blue) {
-  #ifdef FEATURE_EXT_LEDS
-  ledRu[index] = red;
-  ledGu[index] = green;
-  ledBu[index] = blue;
-  #endif
+  _ledRu[index] = red;
+  _ledGu[index] = green;
+  _ledBu[index] = blue;
 }
+#endif
 
 // ************************************************************
 // Put the led buffers out
@@ -235,7 +237,8 @@ void LEDManager_::outputLEDBuffer() {
 #endif
     leds.SetPixelColor(i, color);
   }
-  
+
+#ifdef FEATURE_EXT_LEDS                      
   for (int i = 0 ; i < NUM_UL_PIXELS ; i++) {
 #ifdef REVERSE_UL_OUTPUT
     RgbColor color(ledRu[DIGIT_COUNT - i - 1], ledGu[DIGIT_COUNT - i - 1], ledBu[DIGIT_COUNT - i - 1]);
@@ -244,6 +247,8 @@ void LEDManager_::outputLEDBuffer() {
 #endif
     leds.SetPixelColor(i + NUM_BL_PIXELS, color);
   }
+#endif
+
   leds.Show();
 }
 
@@ -252,9 +257,15 @@ void LEDManager_::outputLEDBuffer() {
 // ************************************************************
 void LEDManager_::processLedStatusLoop() {
 
-  // Recalculate the LED factors
-  _overallBLDimFactor = _pulseFactor * _backlightDim * _ldrDimFactor;
+  // Recalculate the LED factors including pulse, fixed dim
+  _overallBLDimFactorPB = _pulseFactor * _backlightDim;
+
+  // Recalculate the LED factors including pulse, fixed dim and LDR
+  _overallBLDimFactorPBL = _overallBLDimFactorPB * _ldrDimFactor;
+
+#ifdef FEATURE_EXT_LEDS
   _overallULDimFactor = _pulseFactor * _underlightDim;
+#endif
 
   // -------------------------------- Backlights / Underlights -------------------------------
 
@@ -279,9 +290,11 @@ void LEDManager_::processLedStatusLoop() {
           setBacklightLEDs( getLEDAdjustedBL(rgb_backlight_curve[cc->redCnl]),
                             getLEDAdjustedBL(rgb_backlight_curve[cc->grnCnl]),
                             getLEDAdjustedBL(rgb_backlight_curve[cc->bluCnl]));
+#ifdef FEATURE_EXT_LEDS                      
           setUnderlightLEDs(getLEDAdjustedUL(rgb_backlight_curve[cc->redCnl]),
                             getLEDAdjustedUL(rgb_backlight_curve[cc->grnCnl]),
                             getLEDAdjustedUL(rgb_backlight_curve[cc->bluCnl]));
+#endif
           break;
         }
       case BACKLIGHT_CYCLE: {
@@ -289,9 +302,11 @@ void LEDManager_::processLedStatusLoop() {
           setBacklightLEDs( getLEDAdjustedBL(_colors[0]),
                             getLEDAdjustedBL(_colors[1]),
                             getLEDAdjustedBL(_colors[2]));
+#ifdef FEATURE_EXT_LEDS                      
           setUnderlightLEDs(getLEDAdjustedUL(_colors[0]),
                             getLEDAdjustedUL(_colors[1]),
                             getLEDAdjustedUL(_colors[2]));
+#endif
           break;
         }
       case BACKLIGHT_COLOUR_TIME: {
@@ -302,10 +317,12 @@ void LEDManager_::processLedStatusLoop() {
                               getLEDAdjustedBL(colourTimeR[numVal]),
                               getLEDAdjustedBL(colourTimeG[numVal]),
                               getLEDAdjustedBL(colourTimeB[numVal]));
-              setUnderlightLED(i, 
+#ifdef FEATURE_EXT_LEDS                      
+              setUnderlightLED(numVal, 
                               getLEDAdjustedUL(colourTimeR[numVal]),
                               getLEDAdjustedUL(colourTimeG[numVal]),
                               getLEDAdjustedUL(colourTimeB[numVal]));
+#endif
             }
           }
           break;
@@ -314,9 +331,11 @@ void LEDManager_::processLedStatusLoop() {
           setBacklightLEDs( getLEDAdjustedBL(dayOfWeekR[_dow]),
                             getLEDAdjustedBL(dayOfWeekG[_dow]),
                             getLEDAdjustedBL(dayOfWeekB[_dow]));
+#ifdef FEATURE_EXT_LEDS                      
           setUnderlightLEDs(getLEDAdjustedUL(dayOfWeekR[_dow]),
                             getLEDAdjustedUL(dayOfWeekG[_dow]),
                             getLEDAdjustedUL(dayOfWeekB[_dow]));
+#endif
           break;
         }
       #ifdef FEATURE_TICKER
@@ -340,9 +359,15 @@ void LEDManager_::processLedStatusLoop() {
 
 
   if (!_towersBlanked) {
-    setTowerLEDs(   getLEDAdjustedUL(255),
-                    getLEDAdjustedUL(0),
-                    getLEDAdjustedUL(0));
+    if(cc->useLDRSep) {
+      setTowerLEDs(   getLEDAdjustedBL(255),
+                      getLEDAdjustedBL(0),
+                      getLEDAdjustedBL(0));
+    } else {
+      setTowerLEDs(   getLEDAdjustedBL(255),
+                      getLEDAdjustedBL(0),
+                      getLEDAdjustedBL(0));
+    }
   }
 
   outputLEDBuffer();
@@ -369,23 +394,31 @@ void LEDManager_::setTestValue(byte value) {
 
   // ----------------------------------------- Towers ----------------------------------------
 
-  setTowerLEDs(   getLEDAdjustedUL(255),
-                  getLEDAdjustedUL(0),
-                  getLEDAdjustedUL(0));
+  setTowerLEDs(   getLEDAdjustedBL(255),
+                  getLEDAdjustedBL(0),
+                  getLEDAdjustedBL(0));
 
   outputLEDBuffer();
 }
 
 // ************************************************************
-// Get a PWM LED channel, adjusting for dimming, PWM
-// and user back light brightness
+// Get a PWM LED channel, adjusting for pulse and user back light brightness
 // ************************************************************
-byte LEDManager_::getLEDAdjustedBL(byte rawValue) {
-  byte dimmedPWMVal;
-  dimmedPWMVal = (byte)(rawValue * _overallBLDimFactor);
+byte LEDManager_::getLEDAdjustedBLNoLDR(byte rawValue) {
+  byte dimmedPWMVal = (byte)(rawValue * _overallBLDimFactorPB);
   return dim_curve[dimmedPWMVal];
 }
 
+// ************************************************************
+// Get a PWM LED channel, adjusting for dimming, Pulse
+// and user back light brightness
+// ************************************************************
+byte LEDManager_::getLEDAdjustedBL(byte rawValue) {
+  byte dimmedPWMVal = (byte)(rawValue * _overallBLDimFactorPBL);
+  return dim_curve[dimmedPWMVal];
+}
+
+#ifdef FEATURE_EXT_LEDS
 // ************************************************************
 // Get a PWM LED channel, adjusting for dimming, PWM
 // and user under light brightness
@@ -395,6 +428,7 @@ byte LEDManager_::getLEDAdjustedUL(byte rawValue) {
   dimmedPWMVal = (byte)(rawValue * _overallULDimFactor);
   return dim_curve[dimmedPWMVal];
 }
+#endif
 
 // ************************************************************
 // Get a PWM LED channel, without adjusting for amything - 
@@ -478,20 +512,30 @@ void LEDManager_::setDiagnosticLED(byte stepNumber, byte state) {
   for (int i = 0 ; i < DIGIT_COUNT ; i++) {
     if (i > stepNumber) {
       setBacklightLED(i, 0x1f, 0x1f, 0x1f);
+#ifdef FEATURE_EXT_LEDS
       setUnderlightLED(i, 0x1f, 0x1f, 0x1f);
+#endif
     } else if (i == stepNumber) {
       if (state == STATUS_RED) {
       setBacklightLED(i, 0xff, 0, 0);
+#ifdef FEATURE_EXT_LEDS
       setUnderlightLED(i, 0xff, 0, 0);
+#endif
       } else if (state == STATUS_YELLOW) {
       setBacklightLED(i, 0xff, 0x7f, 0x0f);
+#ifdef FEATURE_EXT_LEDS
       setUnderlightLED(i, 0xff, 0x7f, 0x0f);
+#endif
       } else if (state == STATUS_GREEN) {
       setBacklightLED(i, 0, 0xff, 0);
+#ifdef FEATURE_EXT_LEDS
       setUnderlightLED(i, 0, 0xff, 0);
+#endif
       } else if (state == STATUS_BLUE) {
       setBacklightLED(i, 0, 0, 0xff);
+#ifdef FEATURE_EXT_LEDS
       setUnderlightLED(i, 0, 0, 0xff);
+#endif
       }
     }
   }

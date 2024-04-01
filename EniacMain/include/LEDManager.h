@@ -152,7 +152,6 @@ class LEDManager_
     void updateOncePerSecond();
   private:
     float _backlightDim = 1.0;
-    float _underlightDim = 1.0;
     float _ldrDimFactor = 1.0;
     float _ldrRange = 100.0;
     float _pulseFactor = 1.0;
@@ -164,10 +163,13 @@ class LEDManager_
     float _hueOffset = 0.0;
     float _towerHueOffset = 0.0;
 
-    // Processing optimisation - reduce the number of multiplications per loop
-    // We cache these values each time one of them changes
-    float _overallBLDimFactor;
-    float _overallULDimFactor;
+    // Cached final float dim value including LDR
+    float _overallBLDimFactorPBL;
+
+    // Cached final float dim value excluding LDR
+    float _overallBLDimFactorPB;
+
+
     #ifdef FEATURE_TICKER
     quote_direction  _tickerOverride = unchanged;
     #endif
@@ -186,24 +188,33 @@ class LEDManager_
     byte _ledGb[NUM_PIXELS_TOTAL];
     byte _ledBb[NUM_PIXELS_TOTAL];
 
+#ifdef FEATURE_EXT_LEDS                      
     // Under lights
     byte _ledRu[DIGIT_COUNT];
     byte _ledGu[DIGIT_COUNT];
     byte _ledBu[DIGIT_COUNT];
+
+    float _underlightDim = 1.0;
+    float _overallULDimFactor;
+#endif
 
     // hue offsets
     double _hueOffsetPerPixel[NUM_PIXELS_TOTAL];
 
     void setBacklightLEDs(byte red, byte green, byte blue);
     void setBacklightLEDsUnadjusted(byte red, byte green, byte blue);
-    void setUnderlightLEDs(byte red, byte green, byte blue);
     void setBacklightLED(byte index, byte red, byte green, byte blue);
     void setBacklightLEDUnadjusted(byte index, byte red, byte green, byte blue);
+#ifdef FEATURE_EXT_LEDS                      
+    void setUnderlightLEDs(byte red, byte green, byte blue);
     void setUnderlightLED(byte index, byte red, byte green, byte blue);
+    byte getLEDAdjustedUL(byte rawValue);
+#endif
     void setTowerLEDs(byte red, byte green, byte blue);
+
     void outputLEDBuffer();
     byte getLEDAdjustedBL(byte rawValue);
-    byte getLEDAdjustedUL(byte rawValue);
+    byte getLEDAdjustedBLNoLDR(byte rawValue);
     byte getLEDRawBL(byte rawValue);
 
     // Calculate the colours when we are cycling

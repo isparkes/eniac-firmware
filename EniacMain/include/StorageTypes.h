@@ -34,6 +34,7 @@ typedef struct {
   byte blankMode;
   bool useLDRTube;
   bool useLDRBL;
+  bool useLDRSep;
   int mdTimeout;
   byte ledMode;
   byte backlightMode;
@@ -56,6 +57,7 @@ typedef struct {
   byte alarmMinute;
   byte sepMode;
   byte backlightDimFactor;
+  byte extDimFactor;
   int  hueOffset;
   int  towerHueOffset;
   String WiFiSSID;

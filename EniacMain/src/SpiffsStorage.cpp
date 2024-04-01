@@ -146,6 +146,9 @@ bool SpiffsStorage_::getConfigFromSpiffs()
         cc->useLDRBL = json["useLDRBL"];
         debugMsgSpfX("Loaded useLDRBL: " + String(cc->useLDRBL));
 
+        cc->useLDRSep = json["useLDRSep"];
+        debugMsgSpfX("Loaded useLDRSep: " + String(cc->useLDRSep));
+
         cc->thresholdBright = json["thresholdBright"];
         debugMsgSpfX("Loaded thresholdBright: " + String(cc->thresholdBright));
 
@@ -289,6 +292,7 @@ void SpiffsStorage_::saveConfigToSpiffs()
   json["mdTimeout"] = cc->mdTimeout;
   json["useLDRTube"] = cc->useLDRTube;
   json["useLDRBL"] = cc->useLDRBL;
+  json["useLDRSep"] = cc->useLDRSep;
   json["thresholdBright"] = cc->thresholdBright;
   json["sensitivityLDR"] = cc->sensitivityLDR;
   json["sensorSmoothCountLDR"] = cc->sensorSmoothCountLDR;

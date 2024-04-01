@@ -345,6 +345,24 @@
                     </div>
                 </div>
 
+                <!-- Tower separator dimming --> 
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3">Sensor Dims Separators:</label>
+                    <div class="col-xs-1">
+                        <label class="radio-inline">
+                            <input type="radio" name="useLDRSep" id="useLDRSep" value="on" onclick="handleLDRSepClick(this);">On
+                        </label>
+                    </div>                    
+                    <div class="col-xs-1">
+                        <label class="radio-inline">
+                            <input type="radio" name="useLDRSep" id="useLDRSepOff" value="off" onclick="handleLDRSepClick(this);">Off
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Set --> 
+
                 <div class="form-group">
                     <div class="col-xs-offset-3 col-xs-9">
                         <input type="submit" class="btn btn-primary" value="Set"  onclick="saveConfig()">
@@ -514,7 +532,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="control-label col-xs-3" for="cycleSpeed">Backlight Dim Factor:</label>
+                    <label class="control-label col-xs-3" for="cycleSpeed">Backlight Brightness %:</label>
                     <div class="col-xs-2">
                         <input type="number" class="form-control" name="backlightDimFactor" id="backlightDimFactor" min="10" max="100" value="100">
                     </div>
@@ -643,6 +661,11 @@
         $("#minBLDim").val(config.minBLDim);
         $("#setBLDim").val(config.setBLDim);
         
+        // ------------ Separator Dim ------------
+        setCurrentRadioValue("#useLDRSep", "#useLDRSepOff", config.useLDRSep);
+
+        // ------------ LDR Config ------------
+
         $("#sensitivityLDR").val(config.sensitivityLDR);
         $("#thresholdBright").val(config.thresholdBright);
 
@@ -800,6 +823,11 @@
         if (localConfig.thresholdBright!=$("#thresholdBright").val()) {
             postBody["thresholdBright"] = $("#thresholdBright").val();
         }
+
+        if (compareRadioChanged("#useLDRSep", localConfig.useLDRSep)) {
+            postBody["useLDRSep"] = getCurrentRadioValue("#useLDRSep");
+        }
+
        // ------------ Blanking ------------
         if (localConfig.mdTimeout!=$("#mdTimeout").val()) {
             postBody["mdTimeout"] = $("#mdTimeout").val();
@@ -981,6 +1009,9 @@
             $("#minBLDim").prop('disabled', true);
             $("#setBLDim").prop('disabled', false);
         }
+    }
+
+    function handleLDRSepClick(radioID) {
     }
 
     function handleDayBlankingChange() {
