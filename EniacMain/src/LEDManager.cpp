@@ -364,9 +364,9 @@ void LEDManager_::processLedStatusLoop() {
                       getLEDAdjustedBL(0),
                       getLEDAdjustedBL(0));
     } else {
-      setTowerLEDs(   getLEDAdjustedBL(255),
-                      getLEDAdjustedBL(0),
-                      getLEDAdjustedBL(0));
+      setTowerLEDs(   getLEDAdjustedBLNoLDR(255),
+                      getLEDAdjustedBLNoLDR(0),
+                      getLEDAdjustedBLNoLDR(0));
     }
   }
 
