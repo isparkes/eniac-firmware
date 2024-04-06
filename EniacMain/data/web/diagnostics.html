@@ -171,19 +171,20 @@
 
 <script>
     decodeSwitchMeaning = function(switchValue, currentValue) {
+        // // Meanings of switches
         // #define SW_NONE                 0
         // #define SW_SLAVE_INHIBIT        1
         // #define SW_MIN_DIM              2
-        // #define SW_DIM_LEDS             3
+        // #define SW_BLANK_LEDS           3
         // #define SW_COUNTDOWN_INHIBIT    4
-        // #define SW1_DEFAULT             SW_DIM_LEDS
+        // #define SW1_DEFAULT             SW_MIN_DIM
         // #define SW2_DEFAULT             SW_SLAVE_INHIBIT
         var valString = " (OFF)";
         if(currentValue == "1") valString = " (ON)";
         if(switchValue == 0) return "Off"
         else if (switchValue == 1) return "Inhibit slave" + valString;
-        else if (switchValue == 2) return "Set min dim" + valString;
-        else if (switchValue == 3) return "Dim backlights" + valString;
+        else if (switchValue == 2) return "Dim clock" + valString;
+        else if (switchValue == 3) return "Disable backlights" + valString;
         else if (switchValue == 4) return "Inhibit countdown" + valString;
     }
 

@@ -7,7 +7,7 @@
 // -------------------------------------------------------------------------------
 
 // Add debug statments to code - needs extra space
-#define DEBUG                   // DEBUG | DEBUG_OFF
+#define DEBUG_OFF                   // DEBUG | DEBUG_OFF
 
 // -------------------------------------------------------------------------------
 
@@ -17,7 +17,7 @@
 // -------------------------------------------------------------------------------
 
 // invert the sense of the front panel switches
-#define INVERT_SWITCHES             // INVERT_SWITCHES | NORMAL_SWITCHES
+#define NORMAL_SWITCHES             // INVERT_SWITCHES | NORMAL_SWITCHES
 
 // -------------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@
 #define FEATURE_BACKLIGHTS          // FEATURE_BACKLIGHTS | FEATURE_BACKLIGHTS_OFF
 
 // If we want support for additional NeoPixels on the end of the main chain
-#define FEATURE_EXT_LEDS_OFF        // FEATURE_EXT_LEDS | FEATURE_EXT_LEDS_OFF
+#define FEATURE_EXT_LEDS        // FEATURE_EXT_LEDS | FEATURE_EXT_LEDS_OFF
 
 // The number of pixels per tube - if only 1, hue offsets will not be available
 #define PIXELS_PER_TUBE 2           // 1 or 2
@@ -84,6 +84,6 @@
 // -------------------------------------------------------------------------------
 
 // Access to Crypto/FX tickers
-#define FEATURE_TICKER             // FEATURE_TICKER | FEATURE_TICKER_OFF
+#define FEATURE_TICKER_OFF             // FEATURE_TICKER | FEATURE_TICKER_OFF
 
 // -------------------------------------------------------------------------------

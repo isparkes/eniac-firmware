@@ -920,6 +920,9 @@ byte OutputManager_::getCurrentDisplayDigitValue(byte digit) {
   }
 }
 
+// ************************************************************
+// Safety function: Convert given value to a valid digit value
+// ************************************************************
 clock_digit OutputManager_::convertToDigit(int value) {
   if (value < 0) {
     debugMsgOtm("Underrange error converting digit");

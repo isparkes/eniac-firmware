@@ -6,12 +6,13 @@
 void LDRManager_::setUp() {
   pinMode(LDRPin, INPUT);
   #ifdef LDR_EXTENDED_DEBUG
-  debugMsgLdr("Config useLDR: " + String(cc->useLDR));
+  debugMsgLdr("Config useLDRTube: " + String(cc->useLDRTube));
+  debugMsgLdr("Config useLDRBL: " + String(cc->useLDRBL));
   debugMsgLdr("Config sensitivityLDR: " + String(cc->sensitivityLDR));
   debugMsgLdr("Config thresholdBright: " + String(cc->thresholdBright));
   debugMsgLdr("Config sensorSmoothCountLDR: " + String(cc->sensorSmoothCountLDR));
-  debugMsgLdr("Config minDim%: " + String(cc->minDim));
-  debugMsgLdr("Config setDim%: " + String(cc->setDim));
+  debugMsgLdr("Config minDimTube%: " + String(cc->minTubeDim));
+  debugMsgLdr("Config setDimTube%: " + String(cc->setTubeDim));
   #endif
 
   recalculateVariables();
@@ -48,6 +49,11 @@ void LDRManager_::updateOncePerLoop() {
 // ************************************************************
 void LDRManager_::updateOncePerSecond() {
   recalculateVariables();
+  #ifdef LDR_EXTENDED_DEBUG
+  debugMsgLed("_ldrValueTube: " + String(_ldrValueTube));
+  debugMsgLed("_minDimTube: " + String(_minDimTube));
+  debugMsgLed("mindim: " + String(_isMinDim));
+  #endif
 }
 
 // ************************************************************
@@ -74,10 +80,11 @@ void LDRManager_::recalculateVariables() {
 void LDRManager_::processLDRValue() {
   int calculatedLDRValTube = 0;
   int calculatedLDRValBL = 0;
+
   _rawLDRValue = analogRead(LDRPin);
 
   #ifdef LDR_EXTENDED_DEBUG
-  debugMsgLdr("Using raw LDR reading: " + String(rawLDR));
+  debugMsgLdr("Using raw LDR reading: " + String(_rawLDRValue));
   #endif
 
   if (_setMinDim) {
@@ -127,7 +134,7 @@ void LDRManager_::processLDRValue() {
     _isMaxDim = false;
   }
 
-  // calculate the bound BL value and set the
+  // calculate the bound BL value
   if (_ldrValueBL >= _minDimBL) {
     _ldrValueBL = _minDimBL;
   } else if (_ldrValueBL <= _maxDimBL) {
@@ -138,8 +145,8 @@ void LDRManager_::processLDRValue() {
   if (_isMinDim) debugMsgLdr("MIN LDR");
   if (_isMaxDim) debugMsgLdr("MAX LDR");
   debugMsgLdr("Sensordiff: " + String(sensorDiff));
-  debugMsgLdr("sensorLDRSmoothed: " + String(sensorLDRSmoothed));
-  debugMsgLdr("Smoothed LDR reading: " + String(localLDRValue));
+  debugMsgLdr("_sensorLDRSmoothedTube: " + String(_sensorLDRSmoothedTube));
+  debugMsgLdr("Smoothed LDR reading: " + String(_sensorLDRSmoothedTube));
   #endif
 }
 
@@ -195,11 +202,18 @@ void LDRManager_::setLDRValueToMaxACP(bool newState) {
 }
 
 // ************************************************************
-// Set the dimmest LDR value.. Next regular update will
+// Set the dimmest LDR value. Next regular update will
 // reset any previous max dim state.
 // ************************************************************
 void LDRManager_::setLDRValueToMin(bool newState) {
   _setMinDim = newState;
+}
+
+// ************************************************************
+// Returns if we have an imposed mn dim
+// ************************************************************
+bool LDRManager_::getLDRValueSetToMin() {
+  return _setMinDim;
 }
 
 // ************************************************************

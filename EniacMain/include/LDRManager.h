@@ -61,6 +61,7 @@ class LDRManager_
     bool  isMaxDim();
 
     void  setLDRValueToMin(bool newState);
+    bool  getLDRValueSetToMin();
     void  setLDRValueToMax(bool newState);
     void  setLDRValueToMaxACP(bool newState);
     

@@ -720,6 +720,7 @@
         handleDayBlankingChange();
         handleDayBacklightModeChange();
         handleCountdownDisplayOption();
+        handleTickerDisplayOption();
     };
 
     postConfig = function postConfig() {
@@ -1060,6 +1061,19 @@
             console.log("Enabling countdown options");
             $("#pModeCountdown").prop('disabled', false);
             $("#sModeCountdown").prop('disabled', false);
+        }
+    }
+
+    function handleTickerDisplayOption() {
+        // If the ticker feature is not on, disable the option
+        if ((typeof localConfig.tickerFeature === 'undefined')) {
+            console.log("Disabling countdown options");
+            $("#pModeTicker").prop('disabled', true);
+            $("#sModeTicker").prop('disabled', true);
+        } else {
+            console.log("Enabling countdown options");
+            $("#pModeTicker").prop('disabled', false);
+            $("#sModeTicker").prop('disabled', false);
         }
     }
 

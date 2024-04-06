@@ -17,9 +17,9 @@
 #define SW_NONE                 0
 #define SW_SLAVE_INHIBIT        1
 #define SW_MIN_DIM              2
-#define SW_DIM_LEDS             3
+#define SW_BLANK_LEDS           3
 #define SW_COUNTDOWN_INHIBIT    4
-#define SW1_DEFAULT             SW_DIM_LEDS
+#define SW1_DEFAULT             SW_MIN_DIM
 #define SW2_DEFAULT             SW_SLAVE_INHIBIT
 
 // ************************************************************

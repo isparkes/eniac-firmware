@@ -501,16 +501,16 @@ void handleSwitchChange(byte mode, bool state) {
     }
     case SW_MIN_DIM: {
       // The switch "on" imposes min dimming
-      if ((state) && !ldrManager.isMinDim()) {
+      if ((state) && !ldrManager.getLDRValueSetToMin()) {
         ldrManager.setLDRValueToMin(true);
       }
       // Switch off resets it
-      if ((!state) && ldrManager.isMinDim()) {
+      if ((!state) && ldrManager.getLDRValueSetToMin()) {
         ldrManager.setLDRValueToMin(false);
       }
       break;
     }
-    case SW_DIM_LEDS: {
+    case SW_BLANK_LEDS: {
       blankingManager.setCurrentLEDBlankingOverride(state);
       break;
     }
@@ -544,22 +544,23 @@ void handleSwitchChanges() {
   #endif
 
   bool sw1State = (digitalRead(Switch1Pin) == BTNOnstate);
-
-  handleSwitchChange(cc->sw1Mode, sw1State);
-
   bool sw2State = (digitalRead(Switch2Pin) == BTNOnstate);
 
-  handleSwitchChange(cc->sw2Mode, sw2State);
+  bool switchvalues[4] = {false, false, false, false};
 
-  // If neither of the switches is set to "inhibit" something undo the inhibits
-  // This is needed because we can change the meaning of the switches and
-  // end up leaving the old state unchanged.
-  if (!((cc->sw1Mode == SW_SLAVE_INHIBIT) || (cc->sw2Mode == SW_SLAVE_INHIBIT))) {
-    handleSwitchChange(SW_SLAVE_INHIBIT, false);
+  if (sw1State) {
+    switchvalues[cc->sw1Mode] = true;
   }
-  if (!((cc->sw1Mode == SW_COUNTDOWN_INHIBIT) || (cc->sw2Mode == SW_COUNTDOWN_INHIBIT))) {
-    handleSwitchChange(SW_COUNTDOWN_INHIBIT, false);
+
+  if (sw2State) {
+    switchvalues[cc->sw2Mode] = true;
   }
+  
+  // Skip the "none" value
+  handleSwitchChange(SW_SLAVE_INHIBIT    , switchvalues[SW_SLAVE_INHIBIT    ]);
+  handleSwitchChange(SW_MIN_DIM          , switchvalues[SW_MIN_DIM          ]);
+  handleSwitchChange(SW_BLANK_LEDS       , switchvalues[SW_BLANK_LEDS       ]);
+  handleSwitchChange(SW_COUNTDOWN_INHIBIT, switchvalues[SW_COUNTDOWN_INHIBIT]);
 }
 
 // ************************************************************

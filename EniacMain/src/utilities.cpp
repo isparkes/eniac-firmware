@@ -641,10 +641,30 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["countdownTarget"] = cc->countdownTarget;
   #endif
 
+  #ifdef FEATURE_TICKER
+  root["tickerFeature"] = "1";
+  #endif
+
+
   response->setLength();
   request->send(response);
 }
 
+// ************************************************************
+// Check if a key is present in the JSON
+// ************************************************************
+bool elementPresent(JsonObject& json, const char* key) {
+  if (json.containsKey(key)) {
+    debugMsgUtl(String(key) + " is present");
+    return true;
+  } else {
+    return false;
+  }
+}
+
+// ************************************************************
+// Check if a key is present in the JSON, update the value
+// ************************************************************
 void compareAndUpdateByte(JsonObject& json, const char* key, byte* variable) {
   if (json.containsKey(key)) {
     byte newVal = json[key];
@@ -721,6 +741,10 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateByte(json, "sw2Mode",      &cc->sw2Mode);
     compareAndUpdateByte(json, "pMode",        &cc->pMode);
     compareAndUpdateByte(json, "sMode",        &cc->sMode);
+
+    if(elementPresent(json, "sw1Mode") || elementPresent(json, "sw2Mode")) {
+      switchEventWaiting = true;
+    }
 
     // ------------------------------------------------------------
 

@@ -17,6 +17,10 @@ void LEDManager_::setUp()
 // ************************************************************
 void LEDManager_::updateOncePerSecond() {
   recalculateVariables();
+  #ifdef LED_EXTENDED_DEBUG
+  debugMsgLed("_overallBLDimFactorPBL: " + String(_overallBLDimFactorPBL,2));
+  debugMsgLed("_ledRb[0]: " + String(_ledRb[0]));
+  #endif
 }
 
 // ************************************************************
@@ -93,20 +97,14 @@ void LEDManager_::recalculateVariables() {
   // We don't need to set these each loop if we are blanked
   // so we set once here
   if (_blanked) {
-    setBacklightLEDs( getLEDAdjustedBL(0),
-                      getLEDAdjustedBL(0),
-                      getLEDAdjustedBL(0));
+    setBacklightLEDs(0, 0, 0);
 #ifdef FEATURE_EXT_LEDS                      
-    setUnderlightLEDs(getLEDAdjustedUL(0),
-                      getLEDAdjustedUL(0),
-                      getLEDAdjustedUL(0));
+    setUnderlightLEDs(0, 0, 0);
 #endif
   }
 
   if (_towersBlanked) {
-    setTowerLEDs(   getLEDAdjustedBL(0),
-                    getLEDAdjustedBL(0),
-                    getLEDAdjustedBL(0));
+    setTowerLEDs(0, 0, 0);
   }
 }
 
