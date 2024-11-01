@@ -227,23 +227,24 @@ void LEDManager_::setUnderlightLED(byte index, byte red, byte green, byte blue) 
 // Put the led buffers out
 // ************************************************************
 void LEDManager_::outputLEDBuffer() {
-  for (int i = 0 ; i < NUM_PIXELS_TOTAL - NUM_UL_PIXELS ; i++) {
+  for (int i = 0 ; i < NUM_BL_PIXELS + NUM_SEP_LED ; i++) {
 #ifdef REVERSE_BL_OUTPUT
-    RgbColor color(ledRb[NUM_BL_PIXELS - i - 1], ledGb[NUM_BL_PIXELS - i - 1], ledBb[NUM_BL_PIXELS - i - 1]);
+    int ledIdx = NUM_BL_PIXELS + NUM_SEP_LED - i;
 #else
-    RgbColor color(_ledRb[i], _ledGb[i], _ledBb[i]);
+    int ledIdx = i;
 #endif
-    leds.SetPixelColor(i, color);
+    RgbColor color(_ledRb[ledIdx], _ledGb[ledIdx], _ledBb[ledIdx]);
+    leds.SetPixelColor(ledIdx, color);
   }
 
 #ifdef FEATURE_EXT_LEDS                      
   for (int i = 0 ; i < NUM_UL_PIXELS ; i++) {
 #ifdef REVERSE_UL_OUTPUT
-    RgbColor color(ledRu[DIGIT_COUNT - i - 1], ledGu[DIGIT_COUNT - i - 1], ledBu[DIGIT_COUNT - i - 1]);
+    RgbColor color(_ledRu[NUM_UL_PIXELS - i], _ledGu[NUM_UL_PIXELS - i], _ledBu[NUM_UL_PIXELS - i]);
 #else
     RgbColor color(_ledRu[i], _ledGu[i], _ledBu[i]);
 #endif
-    leds.SetPixelColor(i + NUM_BL_PIXELS, color);
+    leds.SetPixelColor(i + NUM_BL_PIXELS + NUM_SEP_LED, color);
   }
 #endif
 
@@ -638,4 +639,7 @@ LEDManager_ &LEDManager_::getInstance() {
   return instance;
 }
 
+// ************************************************************
+// Create singleton instance
+// ************************************************************
 LEDManager_ &ledManager = ledManager.getInstance();

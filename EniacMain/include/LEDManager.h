@@ -22,10 +22,12 @@
 // DIGIT_COUNT Backlights and DIGIT_COUNT underlights + 2 separators in towers
 // The array LED_ADDR spreads the neopixels out if needed
 #ifdef FEATURE_SEP_LED
-  #define NUM_PIXELS_TOTAL NUM_BL_PIXELS+NUM_UL_PIXELS+2
+  #define NUM_SEP_LED 2
+  #define NUM_PIXELS_TOTAL NUM_BL_PIXELS+NUM_UL_PIXELS + NUM_SEP_LED
   #define TOWER_1 4
   #define TOWER_2 9
 #else
+  #define NUM_SEP_LED 0
   #define NUM_PIXELS_TOTAL NUM_BL_PIXELS+NUM_UL_PIXELS
 #endif
 
@@ -301,6 +303,6 @@ const byte LED_ADDR[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
 // 1 extra element at array index 0 to make the conversion from
 // user range 1 - 10 easier
-const byte CYCLE_SPEED_MAP[] = { 64, 64, 54, 42, 30, 20, 13, 9, 4, 2, 1 };
+const byte CYCLE_SPEED_MAP[] = { 64, 60, 54, 42, 30, 20, 13, 9, 4, 2, 1 };
 
 extern LEDManager_ &ledManager;
