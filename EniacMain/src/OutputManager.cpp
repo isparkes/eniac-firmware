@@ -424,10 +424,18 @@ void OutputManager_::outputDisplay() {
   if (tmpSwitchTime > 0) {
     // Only need to calculate the switch values if we are going to switch
     tmpval1 = decodeFromNumberArray(
+                                  #ifdef NORMAL_DIGIT_OUTPUT
                                   tmpNumberArray[H10], 
                                   tmpNumberArray[H1],
                                   digitBlanked[H10],
                                   digitBlanked[H1],
+                                  #endif
+                                  #ifdef REVERSE_DIGIT_OUTPUT
+                                  tmpNumberArray[S1], 
+                                  tmpNumberArray[S10],
+                                  digitBlanked[S1],
+                                  digitBlanked[S10],
+                                  #endif
                                   _blankSeparators,
                                   #ifdef FEATURE_BLINKENLIGHTS
                                   #ifdef NORMAL_DIGIT_OUTPUT
@@ -445,10 +453,18 @@ void OutputManager_::outputDisplay() {
                                   _sep1State,
                                   _sep2State);
     tmpval2 = decodeFromNumberArray(
+                                  #ifdef NORMAL_DIGIT_OUTPUT
                                   tmpNumberArray[M10], 
                                   tmpNumberArray[M1],
                                   digitBlanked[M10],
                                   digitBlanked[M1],
+                                  #endif
+                                  #ifdef REVERSE_DIGIT_OUTPUT
+                                  tmpNumberArray[M1], 
+                                  tmpNumberArray[M10],
+                                  digitBlanked[M1],
+                                  digitBlanked[M10],
+                                  #endif
                                   _blankSeparators,
                                   #ifdef FEATURE_BLINKENLIGHTS
                                   #ifdef NORMAL_DIGIT_OUTPUT
@@ -466,10 +482,18 @@ void OutputManager_::outputDisplay() {
                                   _sep3State,
                                   _sep4State);
     tmpval3 = decodeFromNumberArray(
+                                  #ifdef NORMAL_DIGIT_OUTPUT
                                   tmpNumberArray[S10], 
                                   tmpNumberArray[S1],
                                   digitBlanked[S10],
                                   digitBlanked[S1],
+                                  #endif
+                                  #ifdef REVERSE_DIGIT_OUTPUT
+                                  tmpNumberArray[H1], 
+                                  tmpNumberArray[H10],
+                                  digitBlanked[H1],
+                                  digitBlanked[H10],
+                                  #endif
                                   _blankSeparators,
                                   #ifdef FEATURE_BLINKENLIGHTS
                                   #ifdef NORMAL_DIGIT_OUTPUT
