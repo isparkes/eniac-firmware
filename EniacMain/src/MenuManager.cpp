@@ -53,19 +53,19 @@ void MenuManager_::nixieClockMenu() {
   byte menuCount = 1;
   oledMenu.menuTitle = "Nixie Clock";
   String status = cc->useLDRTube ? "off" : "on";
-  oledMenu.menuItems[menuCount] = "Tube Dimming " + status;     oledMenu.menuActions[menuCount++] = toggleTubeDimming;
+  oledMenu.menuItems[menuCount] = "Tube Dimming " + status;      oledMenu.menuActions[menuCount++] = toggleTubeDimming;
   status =  cc->useBLDim ? "off" : "on";
-  oledMenu.menuItems[menuCount] = "BL Dimming " + status;       oledMenu.menuActions[menuCount++] = toggleBLDimming;
+  oledMenu.menuItems[menuCount] = "BL Dimming " + status;        oledMenu.menuActions[menuCount++] = toggleBLDimming;
   if (cc->hourMode) {
-    oledMenu.menuItems[menuCount] = "Set 24h mode";             oledMenu.menuActions[menuCount++] = toggleHourMode;
+    oledMenu.menuItems[menuCount] = "Set 24h mode";              oledMenu.menuActions[menuCount++] = toggleHourMode;
   } else {
-    oledMenu.menuItems[menuCount] = "Set 12h mode";             oledMenu.menuActions[menuCount++] = toggleHourMode;
+    oledMenu.menuItems[menuCount] = "Set 12h mode";              oledMenu.menuActions[menuCount++] = toggleHourMode;
   }
   status = cc->fade ? "off" : "on";
-  oledMenu.menuItems[menuCount] = "Digit Fade " + status;       oledMenu.menuActions[menuCount++] = toggleFade;
+  oledMenu.menuItems[menuCount] = "Digit Fade " + status;        oledMenu.menuActions[menuCount++] = toggleFade;
   status = cc->scrollback ? "off" : "on";
-  oledMenu.menuItems[menuCount] = "Scrollback " + status;       oledMenu.menuActions[menuCount++] = toggleScrollback;
-  oledMenu.menuItems[menuCount] = "Set Dimming value";          oledMenu.menuActions[menuCount++] = setDimming;
+  oledMenu.menuItems[menuCount] = "Scrollback " + status;        oledMenu.menuActions[menuCount++] = toggleScrollback;
+  oledMenu.menuItems[menuCount] = "Set Dimming value";           oledMenu.menuActions[menuCount++] = setDimming;
   #ifdef FEATURE_BLINKENLIGHTS
   String nextBLModeName = blinkenlightsManager.getNextBlinkenlightsModeName();
   oledMenu.menuItems[menuCount] = "IND mode: " + nextBLModeName; oledMenu.menuActions[menuCount++] = nextBlnknMode;
@@ -76,20 +76,20 @@ void MenuManager_::nixieClockMenu() {
   #endif
 
   String nextACPMode = outputManager.getNextACPModeName();
-  oledMenu.menuItems[menuCount] = "ACP: " + nextACPMode;        oledMenu.menuActions[menuCount++] = setNextACPMode;
+  oledMenu.menuItems[menuCount] = "ACP: " + nextACPMode;         oledMenu.menuActions[menuCount++] = setNextACPMode;
 
   String nextSlotsMode = outputManager.getNextSlotsModeName();
-  oledMenu.menuItems[menuCount] = "Date: " + nextSlotsMode;     oledMenu.menuActions[menuCount++] = setNextSlotsMode;
+  oledMenu.menuItems[menuCount] = "Date: " + nextSlotsMode;      oledMenu.menuActions[menuCount++] = setNextSlotsMode;
 
   String nextBlankMode = blankingManager.getNextBlankingModeName();
-  oledMenu.menuItems[menuCount] = "Blank: " + nextBlankMode;    oledMenu.menuActions[menuCount++] = setNextBlankingMode;
+  oledMenu.menuItems[menuCount] = "Blank: " + nextBlankMode;     oledMenu.menuActions[menuCount++] = setNextBlankingMode;
 
   if(blankingManager.getCurrentModeWantsHours()) {
     oledMenu.menuItems[menuCount] = "Blank start hour";          oledMenu.menuActions[menuCount++] = setBlankingHourStart;
     oledMenu.menuItems[menuCount] = "Blank end hour";            oledMenu.menuActions[menuCount++] = setBlankingHourEnd;
   }
 
-  oledMenu.menuItems[menuCount] = "Back";                       oledMenu.menuActions[menuCount++] = backToMain;
+  oledMenu.menuItems[menuCount] = "Back";                        oledMenu.menuActions[menuCount++] = backToMain;
   oledMenu.noOfmenuItems = --menuCount;
 }
 

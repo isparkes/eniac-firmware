@@ -489,6 +489,10 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   featureString += "APA ";
   #endif
   
+  #ifdef REVERSE_DIGIT_OUTPUT
+  featureString += "RD ";
+  #endif
+
   #ifdef REVERSE_BL_OUTPUT
   featureString += "BLR ";
   #endif

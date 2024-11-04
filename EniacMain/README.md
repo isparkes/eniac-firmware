@@ -16,3 +16,16 @@ curl -v -X POST -d '{"SSID":"TESTSSID","password":"1234"}' "http://esp32-612ce4.
 Release versions
 v0.6.0.0
 Add Decatron slave type
+
+v0.6.0.1
+Allow split dimming of tubes and LEDs
+
+v0.6.0.2
+Fix tower dimming
+Event driven switch handling
+
+v0.6.0.3
+Correct backlights
+
+v0.6.0.4
+Add Reverse Digit "RD" tag to Features string
