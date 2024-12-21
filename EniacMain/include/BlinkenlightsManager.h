@@ -26,8 +26,6 @@ typedef struct {
   bool bl4;
   bool bl5;
   bool bl6;
-  bool in1;
-  bool in2;
 } blinkenlights_t;
 
 class BlinkenlightsManager_ {

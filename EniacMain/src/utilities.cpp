@@ -90,11 +90,13 @@ String getStatusString() {
     connectionInfo += "b";
   }
 
+#ifdef FEATURE_MENU
   if (!menuManager.getOledIsBlanked()) {
     connectionInfo += "O";
   } else {
     connectionInfo += "o";
   }
+#endif
 
 #ifdef DEBUG
   if (debugManager.isDebugOn()) { 
@@ -196,7 +198,13 @@ void resetOptions() {
 
   cc->WiFiSSID = "";
   cc->WiFiPassword = "";
+
+  // If we don't have an OLED, we default to having the WiFi On at start
+  #ifdef FEATURE_MENU
   cc->WifiOnAtStart = false;
+  #else
+  cc->WifiOnAtStart = true;
+  #endif
   cc->sw1Mode = SW1_DEFAULT;
   cc->sw2Mode = SW2_DEFAULT;
   cc->pMode = DISPLAY_TIME;

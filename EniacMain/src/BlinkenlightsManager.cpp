@@ -58,8 +58,6 @@ void BlinkenlightsManager_::setBlinkenlightsStatus() {
   bl->bl4 = getBlinkenlightStatusValue(BLNKN_STATUS_NTP);
   bl->bl5 = getBlinkenlightStatusValue(BLNKN_STATUS_WIFI);
   bl->bl6 = getBlinkenlightStatusValue(BLNKN_STATUS_PIR_INST);
-  bl->in1 = getBlinkenlightStatusValue(BLNKN_STATUS_UP_DOWN);
-  bl->in2 = getBlinkenlightStatusValue(BLNKN_STATUS_1PPS);
 }
 
 bool BlinkenlightsManager_::getBlinkenlightStatusValue(int blValue) {
