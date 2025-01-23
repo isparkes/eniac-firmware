@@ -8,7 +8,10 @@
 #include "TransitionManager.h"
 #include "DebugManager.h"
 #include "CountdownManager.h"
-#include "QuoteManager.h"
+
+#ifdef FEATURE_TICKER
+  #include "QuoteManager.h"
+#endif
 
 // -------------------------------------------------------------------------------
 

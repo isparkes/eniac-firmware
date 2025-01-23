@@ -6,8 +6,6 @@
 #include "DebugManager.h"
 #include "OutputManager.h"
 
-#include "QuoteManager.h"
-
 #include <NeoPixelBus.h>            // https://github.com/Makuna/NeoPixelBus (Makuna 2.6.6)
 
 #define NUM_BL_PIXELS DIGIT_COUNT*PIXELS_PER_TUBE

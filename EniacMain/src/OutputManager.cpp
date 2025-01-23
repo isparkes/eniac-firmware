@@ -115,9 +115,13 @@ void OutputManager_::loadNumberArrayTime() {
 // Load the last acquired ticker value
 // ************************************************************
 void OutputManager_::loadNumberArrayTicker() {
+  #ifdef FEATURE_TICKER
   if (quoteManager.getIsQuoteValid()) {
     loadNumberArrayIntegerValue(quoteManager.getLastQuote());
   }
+  #else
+  loadNumberArrayIntegerValue(0);
+  #endif
 }
 
 // ************************************************************
