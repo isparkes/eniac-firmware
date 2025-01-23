@@ -256,7 +256,7 @@ void dumpArgs(AsyncWebServerRequest *request) {
   int headers = request->headers();
   int i;
   for(i=0;i<headers;i++){
-    AsyncWebHeader* h = request->getHeader(i);
+    const AsyncWebHeader* h = request->getHeader(i);
     String message = "HEADER[" + h->name() + ":" + h->value();
     debugMsgUtl(message);
   }
@@ -306,10 +306,12 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
     absNextUpdate = -absNextUpdate;
   }
 
-  AsyncJsonResponse * response = new AsyncJsonResponse();
-  response->addHeader("Server", "ESP Async Web Server");
-  JsonObject& root = response->getRoot();
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &root = jsonBuffer.createObject();  
+
   root["ip"] = WiFi.localIP().toString();
+  debugMsgUtl("5");
   root["mac"] = WiFi.macAddress();
   root["ssid"] = WiFi.SSID();
   root["tz"] = tzManager.getTZS();
@@ -366,7 +368,8 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   root["status"] = getStatusString();
   root["version"] = SOFTWARE_VERSION;
 
-  response->setLength();
+  root.printTo(*response);
+
   request->send(response);
 }
 
@@ -376,9 +379,9 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
 void getDiagsDataHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api diagnostics GET request");
   
-  AsyncJsonResponse * response = new AsyncJsonResponse();
-  response->addHeader("Server", "ESP Async Web Server");
-  JsonObject& root = response->getRoot();
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &root = jsonBuffer.createObject();  
 
   const char compile_date[] = __DATE__ " " __TIME__;
   // Total ontime for the life of the clock
@@ -537,7 +540,7 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
 
   root["partitions"] = partitionStr;
 
-  response->setLength();
+  root.printTo(*response);
   request->send(response);
 }
 
@@ -560,11 +563,13 @@ void postDiagsDataHandler(AsyncWebServerRequest *request) {
     #endif
   }
    
-  AsyncJsonResponse * response = new AsyncJsonResponse();
-  response->addHeader("Server", "ESP Async Web Server");
-  JsonObject& root = response->getRoot();
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
+  JsonObject &root = jsonBuffer.createObject();
+
   root["diagsMode"] = cc->diagsMode;
-  response->setLength();
+
+  root.printTo(*response);
+
   request->send(response);
 }
 
@@ -585,9 +590,10 @@ void saveStatsHandler(AsyncWebServerRequest *request) {
 void getConfigDataHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api config GET request");
   
-  AsyncJsonResponse * response = new AsyncJsonResponse();
-  response->addHeader("Server", "ESP Async Web Server");
-  JsonObject& root = response->getRoot();
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &root = jsonBuffer.createObject();
+
   root["hourMode"] = cc->hourMode;
   root["blankLeading"] = cc->blankLeading;
   root["dateFormat"] = cc->dateFormat;
@@ -657,8 +663,7 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["tickerFeature"] = "1";
   #endif
 
-
-  response->setLength();
+  root.printTo(*response);
   request->send(response);
 }
 
@@ -871,13 +876,14 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
     debugMsgUtl("Json parse failure: " + String(request->arg("body")));
   }
 
-  AsyncJsonResponse * response = new AsyncJsonResponse();
-  response->addHeader("Server", "ESP Async Web Server");
-  JsonObject& root = response->getRoot();
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
+  JsonObject &root = jsonBuffer.createObject();
+
   root["ntpPool"] = cc->ntpPool;
   root["ntpUpdateInterval"] = cc->ntpUpdateInterval;
   root["tzs"] = cc->tzs;
-  response->setLength();
+
+  root.printTo(*response);
   request->send(response);
 }
 

@@ -11,7 +11,6 @@
 #ifdef FEATURE_MENU
 #include "MenuManager.h"
 #endif
-#include "StringArray.h"
 #include <DNSServer.h>
 
 const byte    DNS_PORT                = 53;
@@ -53,7 +52,6 @@ class WiFiManager_ {
     void manageDNSInOpenAP();
 
   private:
-    StringArray _ssidList;
     bool _isOpenAP = false;
     std::unique_ptr<DNSServer>        dnsServer;    
 

@@ -229,12 +229,12 @@ void LEDManager_::setUnderlightLED(byte index, byte red, byte green, byte blue) 
 void LEDManager_::outputLEDBuffer() {
   for (int i = 0 ; i < NUM_BL_PIXELS + NUM_SEP_LED ; i++) {
 #ifdef REVERSE_BL_OUTPUT
-    int ledIdx = NUM_BL_PIXELS + NUM_SEP_LED - i;
+    int ledIdx = NUM_BL_PIXELS + NUM_SEP_LED - i - 1;
 #else
     int ledIdx = i;
 #endif
     RgbColor color(_ledRb[ledIdx], _ledGb[ledIdx], _ledBb[ledIdx]);
-    leds.SetPixelColor(ledIdx, color);
+    leds.SetPixelColor(i, color);
   }
 
 #ifdef FEATURE_EXT_LEDS                      

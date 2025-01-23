@@ -73,6 +73,9 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info)
     debugMsgWfm("Scan complete");
     wifiManager.processScanResults();
     break;
+  case ARDUINO_EVENT_WIFI_READY:
+    debugMsgWfm("WiFi ready");
+    break;
   default:
     debugMsgWfm("Wifi event (not mapped): " + String(event));
     break;
@@ -93,6 +96,9 @@ void WiFiManager_::setUpWiFi() {
   WiFi.setHostname(uniqHostname.c_str());
 }
 
+// ************************************************************
+// Process the results of the SSID scan
+// ************************************************************
 void WiFiManager_::startScanWiFiNetworks() {
   debugMsgWfm("Start wifi scan");
   WiFi.onEvent(WiFiEvent, ARDUINO_EVENT_SC_SCAN_DONE);
@@ -116,48 +122,50 @@ void WiFiManager_::processScanResults() {
     debugMsgWfm("");
     debugMsgWfm(String(n) + " networks found");
     flashMenuEvent("Scan Done", "Found " + String(n) + " networks.");
-    String result = "";
-    for (int i = 0; i < n; ++i) {
-      if (_ssidList.containsIgnoreCase(WiFi.SSID(i))) {
-        debugMsgWfm("Already have: " + WiFi.SSID(i));
-      } else {
-        debugMsgWfm("Add: " + WiFi.SSID(i));
-        _ssidList.add(WiFi.SSID(i));
-      }
-      #ifdef WFM_EXTENDED_DEBUG
-      // Print SSID and RSSI for each network found
-      bool encrypted = WiFi.encryptionType(i) == WIFI_AUTH_OPEN;
-      String msg = String(i) + " : " + WiFi.SSID(i) + " (" + WiFi.RSSI(i) + ")";
-      if (encrypted) {
-        msg = msg + " *";
-      }
-      debugMsgWfm(msg);
-      #endif
-      if (result.length() > 0) {
-        result = result + ",";
-      }
-      result = result + WiFi.SSID(i);
-    }
-    #ifdef WFM_EXTENDED_DEBUG
-    debugMsgWfm("Returning network list: " + result);
-    #endif
-    lastWiFiScan = result;
   }
 }
+
+//     String result = "";
+//     for (int i = 0; i < n; ++i) {
+//       if (_ssidList.indexOf(WiFi.SSID(i)) > 0) {
+//         debugMsgWfm("Already have: " + WiFi.SSID(i));
+//       } else {
+//         debugMsgWfm("Add: " + WiFi.SSID(i));
+//         _ssidList = _ssidList + "," + String(WiFi.SSID(i));
+//       }
+//       #ifdef WFM_EXTENDED_DEBUG
+//       // Print SSID and RSSI for each network found
+//       bool encrypted = WiFi.encryptionType(i) == WIFI_AUTH_OPEN;
+//       String msg = String(i) + " : " + WiFi.SSID(i) + " (" + WiFi.RSSI(i) + ")";
+//       if (encrypted) {
+//         msg = msg + " *";
+//       }
+//       debugMsgWfm(msg);
+//       #endif
+//       if (result.length() > 0) {
+//         result = result + ",";
+//       }
+//       result = result + WiFi.SSID(i);
+//     }
+//     #ifdef WFM_EXTENDED_DEBUG
+//     debugMsgWfm("Returning network list: " + result);
+//     #endif
+//     lastWiFiScan = result;
+//   }
+// }
 
 // ************************************************************
 // Get the number of SSIDs we found so far
 // ************************************************************
 int WiFiManager_::getLastScanResultCount() {
-  return _ssidList.length();
+  return WiFi.scanComplete();
 }
 
 // ************************************************************
 // Get the nth entry in the SSID list
 // ************************************************************
 String WiFiManager_::getLastScanResultSSID(int index) {
-  auto ssid = _ssidList.nth(index);
-  return *ssid;
+  return String(WiFi.SSID(index));
 }
 
 // ************************************************************
@@ -178,7 +186,7 @@ void WiFiManager_::startSmartConfig() {
 // ************************************************************
 void WiFiManager_::connectToLastAP() {
   if(wifiCredentialsReceived()) {
-    debugMsgWfm("Trying to reconnect to last known AP");
+    debugMsgWfm("Trying to reconnect to last known AP: " + String(cc->WiFiSSID) + ":" + String(cc->WiFiPassword));
     flashMenuEvent("Reconnect","Reconnecting to:\n" + cc->WiFiSSID + "\n");
     wifiBeginWithCredentials();
   }
