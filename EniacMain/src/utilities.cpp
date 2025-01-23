@@ -311,7 +311,6 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
   JsonObject &root = jsonBuffer.createObject();  
 
   root["ip"] = WiFi.localIP().toString();
-  debugMsgUtl("5");
   root["mac"] = WiFi.macAddress();
   root["ssid"] = WiFi.SSID();
   root["tz"] = tzManager.getTZS();
@@ -693,6 +692,8 @@ void compareAndUpdateByte(JsonObject& json, const char* key, byte* variable) {
   }
 }
 
+// ------------------------------------------------------------
+
 void compareAndUpdateInt(JsonObject& json, const char* key, int* variable) {
   if (json.containsKey(key)) {
     int newVal = json[key];
@@ -703,6 +704,8 @@ void compareAndUpdateInt(JsonObject& json, const char* key, int* variable) {
     }
   }
 }
+
+// ------------------------------------------------------------
 
 void compareAndUpdateBool(JsonObject& json, const char* key, bool* variable) {
   if (json.containsKey(key)) {
@@ -715,6 +718,8 @@ void compareAndUpdateBool(JsonObject& json, const char* key, bool* variable) {
   }
 }
 
+// ------------------------------------------------------------
+
 void compareAndUpdateString(JsonObject& json, const char* key, String* variable) {
   if (json.containsKey(key)) {
     String newVal = json[key];
@@ -726,10 +731,16 @@ void compareAndUpdateString(JsonObject& json, const char* key, String* variable)
   }
 }
 
+// ************************************************************
+// See if a key exists
+// ************************************************************
 bool checkPresence(JsonObject& json, const char* key) {
   return  json.containsKey(key);
 }
 
+// ************************************************************
+// Process the post for changing the config
+// ************************************************************
 void postConfigDataHandler(AsyncWebServerRequest *request) {
   debugMsgUtl("Got api config POST request");
 
