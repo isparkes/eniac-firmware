@@ -238,6 +238,12 @@ bool SpiffsStorage_::getConfigFromSpiffs()
         debugMsgSpfX("Loaded countdownTarget: " + String(cc->countdownTarget));
         #endif
 
+        // Check basics that can crash things later:
+        if (cc->mdTimeout == 0) {
+          debugMsgSpf("JSON config invalid");
+          resetOptions();
+        }
+        
         loaded = true;
       }
       else
