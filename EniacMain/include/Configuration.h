@@ -8,7 +8,7 @@
 
 
 // Config sets
-#define CONFIG_MINIAC               // CONFIG_ENIAC | CONFIG_MINIAC
+#define CONFIG_ENIAC               // CONFIG_ENIAC | CONFIG_MINIAC
 
 // -------------------------------------------------------------------------------
 #define SOFTWARE_VERSION "LTC-ESP32 0.6.0.5"
