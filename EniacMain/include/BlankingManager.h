@@ -5,65 +5,54 @@
 #include "Globals.h"
 #include "DebugManager.h"
 #include "TimeLib.h"
-
-// For access to blanking triggers
 #include "OutputManager.h"
 #include "SlaveManagerNixie.h"
 #include "LEDManager.h"
 
 // -------------------------------------------------------------------------------
-#define MD_TIMEOUT_MIN                 60    // 1 minute in seconds
-#define MD_TIMEOUT_MAX                 3600  // 1 hour in seconds
-#define MD_TIMEOUT_DEFAULT             300   // 5 minutes in seconds
+enum MotionDetectionMode {
+    MD_OVERRIDE_BLANK = 0,  // Motion detection overrides blanking period
+    MD_RESPECT_BLANK = 1,   // Motion detection will not trigger during blanking period
+    MD_DISABLE = 2          // Motion detection disabled
+};
+
+enum DayBlankingMode {
+    DAY_BLANKING_NEVER = 0,              // Don't blank ever (default)
+    DAY_BLANKING_WEEKEND = 1,            // Blank during the weekend
+    DAY_BLANKING_WEEKDAY = 2,            // Blank during weekdays
+    DAY_BLANKING_ALWAYS = 3,             // Always blank
+    DAY_BLANKING_HOURS = 4,              // Blank between start and end hour every day
+    DAY_BLANKING_WEEKEND_OR_HOURS = 5,   // Blank between start and end hour during the week AND all day on the weekend
+    DAY_BLANKING_WEEKDAY_OR_HOURS = 6,   // Blank between start and end hour during the weekends AND all day on weekdays
+    DAY_BLANKING_WEEKEND_AND_HOURS = 7,  // Blank between start and end hour during the weekend
+    DAY_BLANKING_WEEKDAY_AND_HOURS = 8   // Blank between start and end hour during weekdays
+};
+
+enum BlankingMode {
+    BLANK_MODE_TUBES = 0,       // Use blanking for tubes only
+    BLANK_MODE_LEDS = 1,        // Use blanking for LEDs only
+    BLANK_MODE_TUBES_LEDS = 2,  // Use blanking for tubes and LEDs
+    BLANK_MODE_ALL = 3          // Use blanking for tubes, LEDs, and towers
+};
 
 // -------------------------------------------------------------------------------
-#define MD_BLANK_MIN                   0
-#define MD_OVERRIDE_BLANK              0     // Motion detection overrides blanking period
-#define MD_RESPECT_BLANK               1     // Motion detection will not trigger during blanking period
-#define MD_DISABLE                     2     // Motion detection disabled
-#define MD_BLANK_MAX                   2
-#define MD_BLANK_DEFAULT               0
+#define MD_TIMEOUT_MIN       60    // 1 minute in seconds
+#define MD_TIMEOUT_MAX       3600  // 1 hour in seconds
+#define MD_TIMEOUT_DEFAULT   300   // 5 minutes in seconds
 
-// -------------------------------------------------------------------------------
-#define DAY_BLANKING_MIN                0
-#define DAY_BLANKING_NEVER              0  // Don't blank ever (default)
-#define DAY_BLANKING_WEEKEND            1  // Blank during the weekend
-#define DAY_BLANKING_WEEKDAY            2  // Blank during weekdays
-#define DAY_BLANKING_ALWAYS             3  // Always blank
-#define DAY_BLANKING_HOURS              4  // Blank between start and end hour every day
-#define DAY_BLANKING_WEEKEND_OR_HOURS   5  // Blank between start and end hour during the week AND all day on the weekend
-#define DAY_BLANKING_WEEKDAY_OR_HOURS   6  // Blank between start and end hour during the weekends AND all day on week days
-#define DAY_BLANKING_WEEKEND_AND_HOURS  7  // Blank between start and end hour during the weekend
-#define DAY_BLANKING_WEEKDAY_AND_HOURS  8  // Blank between start and end hour during week days
-#define DAY_BLANKING_MAX                8
-#define DAY_BLANKING_DEFAULT            0
-
-// -------------------------------------------------------------------------------
-#define BLANK_MODE_MIN                  0
-#define BLANK_MODE_TUBES                0  // Use blanking for tubes only 
-#define BLANK_MODE_LEDS                 1  // Use blanking for LEDs only
-#define BLANK_MODE_TUBES_LEDS           2  // Use blanking for tubes and LEDs
-#define BLANK_MODE_ALL                  3  // Use blanking for tubes, LEDs and towers
-#define BLANK_MODE_MAX                  
-#define BLANK_MODE_DEFAULT              2
-
-// -------------------------------------------------------------------------------
-#define PIR_TIMEOUT_MIN                 60    // 1 minute in seconds
-#define PIR_TIMEOUT_MAX                 3600  // 1 hour in seconds
-#define PIR_TIMEOUT_DEFAULT             300   // 5 minutes in seconds
-
-// #define USE_PIR_PULLUP_DEFAULT          true
-
-// -------------------------------------------------------------------------------
+#define PIR_TIMEOUT_MIN       60    // 1 minute in seconds
+#define PIR_TIMEOUT_MAX       3600  // 1 hour in seconds
+#define PIR_TIMEOUT_DEFAULT   300   // 5 minutes in seconds
 
 class BlankingManager_ {
   public:
     static BlankingManager_ &getInstance(); // Accessor for singleton instance
 
-    BlankingManager_(const BlankingManager_ &) = delete; // no copying
+    BlankingManager_(const BlankingManager_ &) = delete; // No copying
     BlankingManager_ &operator=(const BlankingManager_ &) = delete;
+
   private:
-    BlankingManager_() = default; // Make constructor private
+    BlankingManager_() = default; // Private constructor
 
   public:
     void begin();
@@ -74,10 +63,11 @@ class BlankingManager_ {
     bool getCurrentBlankingIndicator();
     void setCurrentLEDBlankingOverride(bool newLEDOverrideStatus);
     String getNextBlankingModeName();
-    byte getNextBlankingMode();
+    DayBlankingMode getNextBlankingMode();
     bool getCurrentModeWantsHours();
-    int  getBlankAge();
+    int getBlankAge();
     String getBlankingReason();
+
   private:
     unsigned long _mdTimeout = PIR_TIMEOUT_DEFAULT;
     unsigned long _pirLastSeen = 0;
@@ -90,21 +80,18 @@ class BlankingManager_ {
 
     bool _blankLEDoverride = false;
 
-    // Newly calculated
-    bool _blankTubes  = false;
-    bool _blankLEDs   = false;
+    bool _blankTubes = false;
+    bool _blankLEDs = false;
     bool _blankTowers = false;
 
-    // Previous - for detecting changes
-    bool _PrevBlankTubes  = false;
-    bool _PrevBlankLEDs   = false;
+    bool _PrevBlankTubes = false;
+    bool _PrevBlankLEDs = false;
     bool _PrevBlankTowers = false;
 
     bool checkPIR();
     bool checkTimeBasedBlanking(byte currentWeekday, byte currentHour);
-    bool getHoursBlanked(byte currentHou);
+    bool getHoursBlanked(byte currentHour);
 
-    // Cascade blanking changes to other components
     void triggerTubeBlankChange(bool newStatus);
     void triggerLEDBlankChange(bool newStatus);
     void triggerTowerBlankChange(bool newStatus);

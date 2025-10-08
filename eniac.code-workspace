@@ -9,6 +9,9 @@
 		},
 		{
 			"path": "EniacDecatron"
+		},
+		{
+			"path": "UDPServer"
 		}
 	],
 	"settings": {

@@ -290,10 +290,10 @@ bool BlankingManager_::getCurrentModeWantsHours() {
 // ************************************************************
 // The next mode
 // ************************************************************
-byte BlankingManager_::getNextBlankingMode() {
+DayBlankingMode BlankingManager_::getNextBlankingMode() {
   byte nextMode = cc->dayBlanking + 1;
-  if (nextMode > DAY_BLANKING_MAX) nextMode = DAY_BLANKING_MIN;
-  return nextMode;
+  if (nextMode > DAY_BLANKING_WEEKDAY_AND_HOURS) nextMode = DAY_BLANKING_NEVER;
+  return static_cast<DayBlankingMode>(nextMode);
 }
 
 // ************************************************************

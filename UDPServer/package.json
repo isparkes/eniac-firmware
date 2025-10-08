@@ -1,0 +1,17 @@
+{
+  "name": "udp-quote-server",
+  "version": "0.0.1",
+  "description": "Quote server to offer non binding quotes over UDP",
+  "main": "server.js",
+  "scripts": {
+    "server": "node server.js",
+    "client": "node client.js"
+  },
+  "author": "Ian",
+  "license": "public domain",
+  "dependencies": {
+    "axios": "^1.6.1",
+    "buffer": "^6.0.3",
+    "dgram": "^1.0.1"
+  }
+}

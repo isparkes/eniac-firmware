@@ -4,6 +4,25 @@
 // ----------------------------------------  Utility functions  -------------------------------------------
 // --------------------------------------------------------------------------------------------------------
 
+enum ConnectionStatus {
+    WIFI_CONNECTED = 'W',
+    WIFI_DISCONNECTED = 'w',
+    NTP_VALID = 'N',
+    NTP_INVALID = 'n',
+    OTA_AVAILABLE = 'U',
+    AUTH_ENABLED = 'A',
+    AUTH_DISABLED = 'a',
+    BLANKING_ACTIVE = 'B',
+    BLANKING_INACTIVE = 'b',
+    OLED_ACTIVE = 'O',
+    OLED_BLANKED = 'o',
+    DEBUG_DISP_ON = 'D',
+    DEBUG_DISP_OFF = 'd',
+    GPS_VALID = 'G',
+    GPS_INVALID = 'g',
+    DEBUG_UNAVAILABLE = '-'
+};
+
 // ************************************************************
 // Format a time into an output string
 // ************************************************************
@@ -22,31 +41,17 @@ String timeToReadableStringFromTm(tm timeToFormat) {
 // ************************************************************
 // Format a duration into an output string
 // ************************************************************
-String secsToReadableString (long secsValue) {
+String secsToReadableString(long secsValue) {
   long upDays = secsValue / 86400;
-  long upHours = (secsValue - (upDays * 86400)) / 3600;
-  long upMins = (secsValue - (upDays * 86400) - (upHours * 3600)) / 60;
-  secsValue = secsValue - (upDays * 86400) - (upHours * 3600) - (upMins * 60);
+  long upHours = (secsValue % 86400) / 3600;
+  long upMins = (secsValue % 3600) / 60;
+  long upSecs = secsValue % 60;
+
   String uptimeString = "";
-  if (upDays > 0) {
-    uptimeString += upDays; 
-    uptimeString += " d ";
-  }
-  if (upHours > 0) {
-    uptimeString += upHours;
-    uptimeString += " h "; 
-  }
-  if (upMins > 0) {
-    uptimeString += upMins; 
-    uptimeString += " m ";
-  }
-  if (secsValue > 0) {
-    uptimeString += secsValue; 
-    uptimeString += " s";
-  }
-  if (uptimeString == "") {
-    uptimeString = "0 s";
-  }
+  if (upDays > 0) uptimeString += String(upDays) + " d ";
+  if (upHours > 0) uptimeString += String(upHours) + " h ";
+  if (upMins > 0) uptimeString += String(upMins) + " m ";
+  if (upSecs > 0 || uptimeString == "") uptimeString += String(upSecs) + " s";
 
   return uptimeString;
 }
@@ -57,62 +62,23 @@ String secsToReadableString (long secsValue) {
 String getStatusString() {
   String connectionInfo = "";
 
-  bool connected = (WiFi.status() == WL_CONNECTED);
-  if (connected) {
-    connectionInfo += "W";
-  } else {
-    connectionInfo += "w";
-  }
-  if (ntpManager.ntpTimeValid()) {
-    connectionInfo += "N";
-  } else {
-    connectionInfo += "n";
-  }
-  // if (spiffsStorage.testMountSpiffs()) {
-  //   connectionInfo += "S";
-  // } else {
-  //   connectionInfo += "s";
-  // }
-  // On the ESP32 we always have enough space for OTA
-  // 4MB default = 1310720 for program and the same for OTA
-  // More info .platformio/packages/framework-arduinoespressif32/tools/partitions/default.csv
-  connectionInfo += "U";
-  
-  if (cc->webAuthentication) {
-    connectionInfo += "A";
-  } else {
-    connectionInfo += "a";
-  }
-
-  if (blankingManager.getCurrentBlankingStatus()) {
-    connectionInfo += "B";
-  } else {
-    connectionInfo += "b";
-  }
+  connectionInfo += (WiFi.status() == WL_CONNECTED) ? WIFI_CONNECTED : WIFI_DISCONNECTED;
+  connectionInfo += ntpManager.ntpTimeValid() ? NTP_VALID : NTP_INVALID;
+  connectionInfo += OTA_AVAILABLE;
+  connectionInfo += cc->webAuthentication ? AUTH_ENABLED : AUTH_DISABLED;
+  connectionInfo += blankingManager.getCurrentBlankingStatus() ? BLANKING_ACTIVE : BLANKING_INACTIVE;
 
 #ifdef FEATURE_MENU
-  if (!menuManager.getOledIsBlanked()) {
-    connectionInfo += "O";
-  } else {
-    connectionInfo += "o";
-  }
+  connectionInfo += menuManager.getOledIsBlanked() ? OLED_BLANKED : OLED_ACTIVE;
 #endif
 
 #ifdef DEBUG
-  if (debugManager.isDebugOn()) { 
-    connectionInfo += "D";
-  } else {
-    connectionInfo += "d";
-  }
+  connectionInfo += debugManager.isDebugOn() ? DEBUG_DISP_ON : DEBUG_DISP_OFF;
 #else
-  connectionInfo += "-";
+  connectionInfo += DEBUG_UNAVAILABLE;
 #endif
 
-  if (gpsManager.getGPSTimeValid()) {
-    connectionInfo += "G";
-  } else {
-    connectionInfo += "g";
-  }
+  connectionInfo += gpsManager.getGPSTimeValid() ? GPS_VALID : GPS_INVALID;
 
   return connectionInfo;
 }
@@ -128,8 +94,8 @@ void resetOptions() {
   cc->hourMode = HOUR_MODE_DEFAULT;
   cc->blankLeading = LEAD_BLANK_DEFAULT;
   cc->dateFormat = DATE_FORMAT_DEFAULT;
-  cc->dayBlanking = DAY_BLANKING_DEFAULT;
-  
+  cc->dayBlanking = DAY_BLANKING_NEVER;
+
   cc->useLDRTube = USE_LDR_DEFAULT;
   cc->useLDRBL = USE_LDR_DEFAULT;
   cc->useLDRSep = USE_LDR_DEFAULT;
@@ -142,7 +108,7 @@ void resetOptions() {
   cc->minBLDim = DIM_DEFAULT;
   cc->maxBLDim = DIM_MAX;
   cc->setBLDim = DIM_DEFAULT;
-  
+
   cc->fade = FADE_DEFAULT;
   cc->fadeSteps = FADE_STEPS_DEFAULT;
   cc->scrollback = SCROLLBACK_DEFAULT;
@@ -150,13 +116,11 @@ void resetOptions() {
   cc->slotsMode = SLOTS_MODE_DEFAULT;
   cc->acpMode = ACP_MODE_DEFAULT;
   cc->suppressACP = SUPPRESS_ACP_DEFAULT;
-  
+
   cc->useBLDim = true;
   cc->useBLPulse = false;
 
-  // --------------------------------------------------------------------------
-
-  #ifdef FEATURE_BACKLIGHTS
+#ifdef FEATURE_BACKLIGHTS
   cc->backlightMode = BACKLIGHT_DEFAULT;
   cc->redCnl = COLOUR_RED_CNL_DEFAULT;
   cc->grnCnl = COLOUR_GRN_CNL_DEFAULT;
@@ -165,63 +129,54 @@ void resetOptions() {
   cc->backlightDimFactor = BACKLIGHT_DIM_FACTOR_DEFAULT;
   cc->ledMode = LED_BLINK_DEFAULT;
   cc->hueOffset = HUE_OFFSET_DEFAULT;
-  #else
-  cc->backlightMode      = 0;
-  cc->redCnl             = 0;
-  cc->grnCnl             = 0;
-  cc->bluCnl             = 0;
-  cc->cycleSpeed         = 0;
+#else
+  cc->backlightMode = 0;
+  cc->redCnl = 0;
+  cc->grnCnl = 0;
+  cc->bluCnl = 0;
+  cc->cycleSpeed = 0;
   cc->backlightDimFactor = 0;
-  cc->ledMode            = 0;
-  cc->hueOffset          = 0;
-  #endif
+  cc->ledMode = 0;
+  cc->hueOffset = 0;
+#endif
 
-  // --------------------------------------------------------------------------
-
-  cc->blankMode = BLANK_MODE_DEFAULT;
+  cc->blankMode = BLANK_MODE_TUBES_LEDS;
   cc->blankHourStart = 0;
   cc->blankHourEnd = 7;
   cc->sepMode = SEP_BLINK_DEFAULT;
 
   cc->mdTimeout = PIR_TIMEOUT_DEFAULT;
-  
-  // ToDo implement these
-  // cc->webAuthentication = getWebAuthentication();
-  // cc->webUsername = getWebUserName();
-  // cc->webPassword = getWebPassword();
-  // setWebAuthentication(WEB_AUTH_DEFAULT);
-  // setWebUserName(WEB_USERNAME_DEFAULT);
-  // setWebPassword(WEB_PASSWORD_DEFAULT);
-  
+
   cc->testMode = true;
   cc->wasSetup = true;
 
   cc->WiFiSSID = "";
   cc->WiFiPassword = "";
 
-  // If we don't have an OLED, we default to having the WiFi On at start
-  #ifdef FEATURE_MENU
+#ifdef FEATURE_MENU
   cc->WifiOnAtStart = false;
-  #else
+#else
   cc->WifiOnAtStart = true;
-  #endif
+#endif
+
   cc->sw1Mode = SW1_DEFAULT;
   cc->sw2Mode = SW2_DEFAULT;
   cc->pMode = DISPLAY_TIME;
   cc->sMode = DISPLAY_DATE;
-  
-  #ifdef FEATURE_BLINKENLIGHTS
-  cc->blinkenLightsMode = BLNKN_MODE_DEFAULT;
-  #else
-  cc->blinkenLightsMode = 0;
-  #endif
-  #ifdef NIXIE_SLAVE
-  cc->slaveMode = SLAVE_MODE_DEFAULT;
-  #endif
 
-  #ifdef COUNTDOWN
+#ifdef FEATURE_BLINKENLIGHTS
+  cc->blinkenLightsMode = BLNKN_MODE_DEFAULT;
+#else
+  cc->blinkenLightsMode = 0;
+#endif
+
+#ifdef NIXIE_SLAVE
+  cc->slaveMode = SLAVE_MODE_DEFAULT;
+#endif
+
+#ifdef COUNTDOWN
   cc->countdownTarget = "";
-  #endif
+#endif
 
   spiffsStorage.saveConfigToSpiffs();
   debugMsgUtl("Saved factory config");

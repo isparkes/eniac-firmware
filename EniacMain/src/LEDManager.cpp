@@ -356,7 +356,6 @@ void LEDManager_::processLedStatusLoop() {
 
   // ----------------------------------------- Towers ----------------------------------------
 
-
   if (!_towersBlanked) {
     if(cc->useLDRSep) {
       setTowerLEDs(   getLEDAdjustedBL(255),
