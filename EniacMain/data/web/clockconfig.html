@@ -1067,11 +1067,11 @@
     function handleTickerDisplayOption() {
         // If the ticker feature is not on, disable the option
         if ((typeof localConfig.tickerFeature === 'undefined')) {
-            console.log("Disabling countdown options");
+            console.log("Disabling ticker options");
             $("#pModeTicker").prop('disabled', true);
             $("#sModeTicker").prop('disabled', true);
         } else {
-            console.log("Enabling countdown options");
+            console.log("Enabling ticker options");
             $("#pModeTicker").prop('disabled', false);
             $("#sModeTicker").prop('disabled', false);
         }

@@ -11,7 +11,7 @@
 #define CONFIG_ENIAC               // CONFIG_ENIAC | CONFIG_MINIAC
 
 // -------------------------------------------------------------------------------
-#define SOFTWARE_VERSION "LTC-ESP32 0.6.0.5"
+#define SOFTWARE_VERSION "LTC-ESP32 0.6.0.6"
 
 #ifdef CONFIG_ENIAC
     // Add debug statments to code - needs extra space
@@ -89,7 +89,7 @@
     // -------------------------------------------------------------------------------
 
     // Access to Crypto/FX tickers
-    #define FEATURE_TICKER_OFF             // FEATURE_TICKER | FEATURE_TICKER_OFF
+    #define FEATURE_TICKER             // FEATURE_TICKER | FEATURE_TICKER_OFF
 
     // -------------------------------------------------------------------------------
 #endif

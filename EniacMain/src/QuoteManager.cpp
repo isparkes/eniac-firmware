@@ -74,7 +74,7 @@ void QuoteManager_::getQuote() {
       // dddddd = 6 digit quote value
       // i = direction indicator: "U" Up, "D" Down, "-" Unchanged
       if (quoteStr.length() == 8) {
-        _quoteValue = quoteStr.substring(1,6).toInt();
+        _quoteValue = quoteStr.substring(0,5).toInt();
         debugMsgQte("Quote: " + String(_quoteValue));  
         _quoteDirection = (quote_direction) quoteStr.charAt(7);
         debugMsgQte("Quote dir: " + String(_quoteDirection));  

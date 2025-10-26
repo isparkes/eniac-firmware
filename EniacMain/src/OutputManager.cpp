@@ -933,7 +933,7 @@ void OutputManager_::forceBlanking() {
 // Set the tube blanking status of the tubes
 // ************************************************************
 void OutputManager_::setBlankingStatusTowers(bool newStatus) {
-  _blankTubes = newStatus;
+  _blankSeparators = newStatus;
 }
 
 // ************************************************************

@@ -6,6 +6,10 @@
 #include "DebugManager.h"
 #include "OutputManager.h"
 
+#ifdef FEATURE_TICKER
+  #include "QuoteManager.h"
+#endif
+
 #include <NeoPixelBus.h>            // https://github.com/Makuna/NeoPixelBus (Makuna 2.6.6)
 
 #define NUM_BL_PIXELS DIGIT_COUNT*PIXELS_PER_TUBE
@@ -132,7 +136,7 @@ class LEDManager_
 
     #ifdef FEATURE_TICKER
     // Allow the ticker to control the colours
-    void setTickerOverrideValue(quote_direction newValue);
+    void setTickerOverrideValue(quote_direction_t newValue);
     #endif
 
     void setSyncColourTime(boolean value);
@@ -169,9 +173,8 @@ class LEDManager_
     // Cached final float dim value excluding LDR
     float _overallBLDimFactorPB;
 
-
     #ifdef FEATURE_TICKER
-    quote_direction  _tickerOverride = unchanged;
+    quote_direction  _tickerOverride = none;
     #endif
 
     bool _blanked = false;

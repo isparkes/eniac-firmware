@@ -558,7 +558,7 @@ void LEDManager_::setTowerBlanking(boolean newStatus) {
 // ************************************************************
 // Allow temporary override of the normal program
 // ************************************************************
-void LEDManager_::setTickerOverrideValue(quote_direction newValue) {
+void LEDManager_::setTickerOverrideValue(quote_direction_t newValue) {
   _tickerOverride = newValue;
 }
 #endif

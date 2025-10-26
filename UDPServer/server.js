@@ -7,7 +7,7 @@ const axios = require('axios');
 var server = udp.createSocket('udp4');
 
 let btcprice = 0;
-let previousbtcprice = 0;
+let btcpriceyesterday = 0;
 
 // emits when any error occurs
 server.on('error', function (error) {
@@ -47,12 +47,12 @@ server.on('message', function (msg, info) {
     if (digits > 6) {
       response = Buffer.from("ERROR");
     } else {
-      console.log(btcprice + ":" + previousbtcprice);
+      console.log(btcprice + ":" + btcpriceyesterday);
       let fixedWidthReturn = splitup[0];
       fixedWidthReturn = fixedWidthReturn.padStart(6, '0');
-      if (btcprice > previousbtcprice) {
+      if (btcprice > btcpriceyesterday) {
         fixedWidthReturn = fixedWidthReturn + ";U"
-      } else if (btcprice < previousbtcprice) {
+      } else if (btcprice < btcpriceyesterday) {
         fixedWidthReturn = fixedWidthReturn + ";D"
       } else {
         fixedWidthReturn = fixedWidthReturn + ";-"
@@ -102,11 +102,11 @@ function getBTCPrice() {
     url
   })
     .then(function (response) {
-      console.log(response.data);
-      previousbtcprice = btcprice;
-      console.log(btcprice);
+//      console.log(response.data);
+//      console.log("Price: " + btcprice);
       btcprice = Math.round(response.data.Price * 100) / 100;
-      console.log(btcprice);
+      btcpriceyesterday = Math.round(response.data.PriceYesterday * 100) / 100;
+//      console.log("Price yesterday: " + btcpriceyesterday);
     })
     .catch(function (error) {
       console.log(error);

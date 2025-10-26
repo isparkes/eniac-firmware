@@ -325,6 +325,7 @@ void BlankingManager_::triggerLEDBlankChange(bool newStatus) {
 // ************************************************************
 void BlankingManager_::triggerTowerBlankChange(bool newStatus) {
   ledManager.setTowerBlanking(newStatus);
+  outputManager.setBlankingStatusTowers(newStatus);
 }
 
 BlankingManager_ &BlankingManager_::getInstance() {
