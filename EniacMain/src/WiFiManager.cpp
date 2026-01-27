@@ -45,7 +45,7 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info)
     flashMenuEvent("WiFi Status", "WiFi connected to\n"+String(WiFi.SSID()));
     break;
   case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
-    debugMsgWfm("Disconnected from station");
+    debugMsgWfm("Disconnected from station, reason: " + String(info.wifi_sta_disconnected.reason));
     if (doAutoReconnect) {
       debugMsgWfm("autoreconnect on, trying reconnect");
       WiFi.reconnect();
@@ -70,7 +70,7 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info)
     esp_wifi_wps_start(0);
     break;
   case ARDUINO_EVENT_WIFI_SCAN_DONE:
-    debugMsgWfm("Scan complete");
+    debugMsgWfm("Scan complete, found " + String(info.wifi_scan_done.number) + " networks");
     wifiManager.processScanResults();
     break;
   case ARDUINO_EVENT_WIFI_READY:
