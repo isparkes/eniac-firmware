@@ -165,7 +165,7 @@ void OutputManager_::loadNumberArrayIntegerValue(unsigned int value) {
 void OutputManager_::loadNumberArrayBurn(byte value) {
   allBlanked();
   loadNumberArraySameValue(value);
-  displayType[_arbitraryValue / 10] = NORMAL;
+  displayType[(_arbitraryValue / 10) % DIGIT_COUNT] = NORMAL;
 }
 
 // ************************************************************

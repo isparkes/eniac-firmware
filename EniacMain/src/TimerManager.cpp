@@ -9,7 +9,7 @@ extern portMUX_TYPE timerMux1;
 hw_timer_t * timer2 = NULL;
 portMUX_TYPE timerMux2 = portMUX_INITIALIZER_UNLOCKED;
 
-volatile int count0;
+volatile int count0 = 0;
 volatile int count0Max = COUNT0_MAX;
 volatile int count0Off = COUNT0_OFF;
 

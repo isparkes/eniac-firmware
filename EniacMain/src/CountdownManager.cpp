@@ -30,7 +30,7 @@ bool CountdownManager_::getCountdownActiveInternal() {
 void CountdownManager_::setCountdownInhibit(bool newInhibitValue) {
   #ifdef CDM_EXTENDED_DEBUG
   if (_suppressCountdown != newInhibitValue) {
-    debugMsgCdm("Setting countdown inhibit via switch to: " + newInhibitValue ? "true" : "false");
+    debugMsgCdm("Setting countdown inhibit via switch to: " + String(newInhibitValue ? "true" : "false"));
   }
   #endif
   _suppressCountdown = newInhibitValue;

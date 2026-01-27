@@ -31,7 +31,7 @@ class GPSManager_ {
     time_t getLastGPSTime();
     String getLastGPSTimeRaw();
   private:
-    char _msgBuffer[37];
+    char _msgBuffer[37] = {0};
     byte _bufferOffset = 0;
 
     time_t _lastGPSTime = 0;

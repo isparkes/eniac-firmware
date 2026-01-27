@@ -68,7 +68,8 @@ String lastWiFiScan = "";
 // We don't want to handle switch processing in an interrupt,
 // so we set a flag to trigger processing
 // Set true to trigger initialisation
-bool switchEventWaiting = true;
+// volatile for safe ISR access
+volatile bool switchEventWaiting = true;
 
 // ------------------ Global functions -----------------
 

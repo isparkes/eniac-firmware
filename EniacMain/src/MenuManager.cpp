@@ -132,13 +132,16 @@ void MenuManager_::wifiSelectMenu() {
   byte menuCount = 1;
   oledMenu.menuTitle = "Select network";
 
-  int numberOfEntries = wifiManager.getLastScanResultCount() < maxmenuItems ? wifiManager.getLastScanResultCount() : maxmenuItems;
-  
-  // Leave some room for the "Back" option
-  numberOfEntries--;
+  int scanCount = wifiManager.getLastScanResultCount();
+  int numberOfEntries = scanCount < maxmenuItems ? scanCount : maxmenuItems;
+
+  // Leave some room for the "Back" option, but ensure we don't go negative
+  if (numberOfEntries > 0) {
+    numberOfEntries--;
+  }
   debugMsgMnm("Showing entries: " + String(numberOfEntries));
 
-  if (wifiManager.getLastScanResultCount() < numberOfEntries) numberOfEntries = wifiManager.getLastScanResultCount();
+  if (scanCount < numberOfEntries) numberOfEntries = scanCount;
   for (int i = 0; i < numberOfEntries ; i++) {
     oledMenu.menuItems[menuCount] = wifiManager.getLastScanResultSSID(i); oledMenu.menuActions[menuCount++] = selectWiFiSSID;
   }

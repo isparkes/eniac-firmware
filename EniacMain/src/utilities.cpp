@@ -212,6 +212,7 @@ void dumpArgs(AsyncWebServerRequest *request) {
   int i;
   for(i=0;i<headers;i++){
     const AsyncWebHeader* h = request->getHeader(i);
+    if (h == nullptr) continue;
     String message = "HEADER[" + h->name() + ":" + h->value();
     debugMsgUtl(message);
   }
@@ -393,19 +394,19 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   while (iter != nullptr)
   {
     const esp_partition_t *partition = esp_partition_get(iter);
-    char buffer[60];
-    sprintf(buffer, "%s,app,%d,0x%x,0x%x,(%d);", partition->label, partition->subtype, partition->address, partition->size, partition->size);
+    char buffer[80];
+    snprintf(buffer, sizeof(buffer), "%s,app,%d,0x%x,0x%x,(%d);", partition->label, partition->subtype, partition->address, partition->size, partition->size);
     partitionStr = partitionStr + String(buffer);
     iter = esp_partition_next(iter);
   }
-  
+
   esp_partition_iterator_release(iter);
   iter = esp_partition_find(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_ANY, NULL);
   while (iter != nullptr)
   {
     const esp_partition_t *partition = esp_partition_get(iter);
-    char buffer[60];
-    sprintf(buffer, "%s,data,%d,0x%x,0x%x,(%d);", partition->label, partition->subtype, partition->address, partition->size, partition->size);
+    char buffer[80];
+    snprintf(buffer, sizeof(buffer), "%s,data,%d,0x%x,0x%x,(%d);", partition->label, partition->subtype, partition->address, partition->size, partition->size);
     partitionStr = partitionStr + String(buffer);
     iter = esp_partition_next(iter);
   }
@@ -711,7 +712,6 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateBool(json, "hourMode",     &cc->hourMode);
     compareAndUpdateBool(json, "blankLeading", &cc->blankLeading);
     compareAndUpdateByte(json, "dateFormat",   &cc->dateFormat);
-    compareAndUpdateBool(json, "blankLeading", &cc->blankLeading);
     compareAndUpdateBool(json, "scrollback",   &cc->scrollback);
     compareAndUpdateByte(json, "scrollSteps",  &cc->scrollSteps);
     compareAndUpdateBool(json, "fade",         &cc->fade);
@@ -733,11 +733,11 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
 
     compareAndUpdateBool(json, "useLDRTube",      &cc->useLDRTube);
     compareAndUpdateInt (json, "minTubeDim",      &cc->minTubeDim);
-    compareAndUpdateInt (json, "maxTubeDim",      &cc->minTubeDim);
+    compareAndUpdateInt (json, "maxTubeDim",      &cc->maxTubeDim);
     compareAndUpdateInt (json, "setTubeDim",      &cc->setTubeDim);
     compareAndUpdateBool(json, "useLDRBL",        &cc->useLDRBL);
     compareAndUpdateInt (json, "minBLDim",        &cc->minBLDim);
-    compareAndUpdateInt (json, "maxBLDim",        &cc->minBLDim);
+    compareAndUpdateInt (json, "maxBLDim",        &cc->maxBLDim);
     compareAndUpdateInt (json, "setBLDim",        &cc->setBLDim);
     compareAndUpdateInt (json, "thresholdBright", &cc->thresholdBright);
     compareAndUpdateInt (json, "sensitivityLDR",  &cc->sensitivityLDR);
@@ -929,6 +929,18 @@ void postWiFiCredentialsHandler(AsyncWebServerRequest *request) {
     newPassword = request->arg("password");
   }
 
+  // Validate WiFi credential lengths (SSID max 32, password max 64)
+  if (newSSID.length() > 32) {
+    AsyncWebServerResponse* response = request->beginResponse(400, "text/json", "{\"status\": \"SSID too long (max 32 chars)\"}");
+    request->send(response);
+    return;
+  }
+  if (newPassword.length() > 64) {
+    AsyncWebServerResponse* response = request->beginResponse(400, "text/json", "{\"status\": \"Password too long (max 64 chars)\"}");
+    request->send(response);
+    return;
+  }
+
   if (newSSID.length() > 0 && newPassword.length() > 0) {
     debugMsgUtl("Setting new WiFi credentials - " + newSSID + ":" + newPassword);
 
@@ -1058,13 +1070,15 @@ void getSPIFFSScanHandler(AsyncWebServerRequest *request) {
   responseRoot["FILE Listing"] = "";
   File root = SPIFFS.open("/");
   File file = root.openNextFile();
- 
+
   int i = 1;
-  while(file){ 
+  while(file){
       responseRoot["FILE " + String(i) + ": "] = String(file.name());
+      file.close();
       file = root.openNextFile();
       i++;
   }
+  root.close();
 
   debugMsgUtl("done");
 
