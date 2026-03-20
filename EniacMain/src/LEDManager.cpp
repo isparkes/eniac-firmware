@@ -272,15 +272,9 @@ void LEDManager_::processLedStatusLoop() {
     byte tmpMode = cc->backlightMode;
 
     #ifdef FEATURE_TICKER
-    if (_tickerOverride == up) {
-      tmpMode = BACKLIGHT_UP;
-//      debugMsgLed("Using override LED mode: " + String(_tickerOverride));
-    } else if (_tickerOverride == down) {
-      tmpMode = BACKLIGHT_DOWN;
-//      debugMsgLed("Using override LED mode: " + String(_tickerOverride));
-    } else if (_tickerOverride == unchanged) {
-      tmpMode = BACKLIGHT_UNCHANGED;
-//      debugMsgLed("Using override LED mode: " + String(_tickerOverride));
+    // Check if ticker display is active (first indicator not 'none')
+    if (_tickerOverrides[0] != none) {
+      tmpMode = BACKLIGHT_UP;  // Use BACKLIGHT_UP as the trigger for ticker mode
     }
     #endif
 
@@ -339,17 +333,30 @@ void LEDManager_::processLedStatusLoop() {
         }
       #ifdef FEATURE_TICKER
       case BACKLIGHT_UP: {
-          setTestValue(1);
+          // Ticker mode: Set each digit's LEDs based on its corresponding indicator
+          // Indicator positions: 0=Yesterday, 1=Today, 2=4h, 3=1h, 4=15m, 5=1m
+          // Digit positions: 0=H10, 1=H1, 2=M10, 3=M1, 4=S10, 5=S1
+          for (byte digit = 0; digit < DIGIT_COUNT; digit++) {
+            byte colorIndex;
+            switch (_tickerOverrides[digit]) {
+              case up:        colorIndex = 1; break;  // Green
+              case down:      colorIndex = 3; break;  // Red
+              case unchanged: colorIndex = 9; break;  // Off/dim
+              default:        colorIndex = 9; break;  // Off/dim for 'none'
+            }
+            // Set both LEDs for this digit
+            for (byte led = 0; led < PIXELS_PER_TUBE; led++) {
+              byte ledIndex = digit * PIXELS_PER_TUBE + led;
+              setBacklightLEDUnadjusted(ledIndex,
+                                        testColoursR[colorIndex],
+                                        testColoursG[colorIndex],
+                                        testColoursB[colorIndex]);
+            }
+          }
           break;
         }
-      case BACKLIGHT_DOWN: {
-          setTestValue(3);
-          break;
-        }
-      case BACKLIGHT_UNCHANGED: {
-          setTestValue(9);
-          break;
-        }
+      // BACKLIGHT_DOWN and BACKLIGHT_UNCHANGED are no longer used separately
+      // They're handled above via the _tickerOverrides array
       #endif
     }
   }
@@ -558,8 +565,10 @@ void LEDManager_::setTowerBlanking(boolean newStatus) {
 // ************************************************************
 // Allow temporary override of the normal program
 // ************************************************************
-void LEDManager_::setTickerOverrideValue(quote_direction_t newValue) {
-  _tickerOverride = newValue;
+void LEDManager_::setTickerOverrideValues(const quote_direction_t* values) {
+  for (int i = 0; i < QUOTE_INDICATOR_COUNT; i++) {
+    _tickerOverrides[i] = values[i];
+  }
 }
 #endif
 

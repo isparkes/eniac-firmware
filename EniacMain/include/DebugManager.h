@@ -67,6 +67,12 @@ typedef void (*DebugCallback) (String);
 #define debugMsgSpfX(message)
 #endif
 
+#ifdef MNM_EXTENDED_DEBUG
+#define debugMsgMnmX(message) debugManager.debugMsg("[MNM]", message);
+#else
+#define debugMsgMnmX(message)
+#endif
+
 
 class DebugManager_ {
   private:

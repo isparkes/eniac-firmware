@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "server": "node server.js",
-    "client": "node client.js"
+    "client": "node client.js",
+    "test": "node --test priceTracker.test.js"
   },
   "author": "Ian",
   "license": "public domain",

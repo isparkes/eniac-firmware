@@ -70,14 +70,17 @@ void QuoteManager_::getQuote() {
       debugMsgQte("QuoteStr: " + quoteStr);
 
       // The format of the quote should be:
-      // dddddd;i
+      // dddddd;iiiiii
       // dddddd = 6 digit quote value
-      // i = direction indicator: "U" Up, "D" Down, "-" Unchanged
-      if (quoteStr.length() == 8) {
-        _quoteValue = quoteStr.substring(0,5).toInt();
-        debugMsgQte("Quote: " + String(_quoteValue));  
-        _quoteDirection = (quote_direction) quoteStr.charAt(7);
-        debugMsgQte("Quote dir: " + String(_quoteDirection));  
+      // iiiiii = 6 direction indicators: "U" Up, "D" Down, "-" Unchanged
+      //   Position meanings: 0=Yesterday, 1=Today, 2=4h, 3=1h, 4=15m, 5=1m
+      if (quoteStr.length() >= 13) {
+        _quoteValue = quoteStr.substring(0,6).toInt();
+        debugMsgQte("Quote: " + String(_quoteValue));
+        for (int i = 0; i < QUOTE_INDICATOR_COUNT; i++) {
+          _quoteDirections[i] = (quote_direction) quoteStr.charAt(7 + i);
+        }
+        debugMsgQte("Quote dirs: " + quoteStr.substring(7, 13));
         _quoteValid = true;
       }
 
@@ -114,10 +117,20 @@ int QuoteManager_::getLastQuote() {
 }
 
 // ************************************************************
-// see if the NTP we got is still to be condsidered valid
+// Get a single direction indicator by index
 // ************************************************************
-quote_direction QuoteManager_::getLastQuoteDirection() {
-  return _quoteDirection;
+quote_direction QuoteManager_::getLastQuoteDirection(byte index) {
+  if (index >= QUOTE_INDICATOR_COUNT) {
+    return unchanged;
+  }
+  return _quoteDirections[index];
+}
+
+// ************************************************************
+// Get all direction indicators
+// ************************************************************
+const quote_direction_t* QuoteManager_::getLastQuoteDirections() {
+  return _quoteDirections;
 }
 
 // ************************************************************

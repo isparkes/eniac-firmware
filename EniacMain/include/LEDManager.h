@@ -135,8 +135,8 @@ class LEDManager_
     void setLDRRange(unsigned int ldrRange);
 
     #ifdef FEATURE_TICKER
-    // Allow the ticker to control the colours
-    void setTickerOverrideValue(quote_direction_t newValue);
+    // Allow the ticker to control the colours (6 indicators for different time periods)
+    void setTickerOverrideValues(const quote_direction_t* values);
     #endif
 
     void setSyncColourTime(boolean value);
@@ -174,7 +174,7 @@ class LEDManager_
     float _overallBLDimFactorPB;
 
     #ifdef FEATURE_TICKER
-    quote_direction  _tickerOverride = none;
+    quote_direction_t _tickerOverrides[QUOTE_INDICATOR_COUNT] = {none, none, none, none, none, none};
     #endif
 
     bool _blanked = false;

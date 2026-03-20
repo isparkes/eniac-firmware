@@ -1,13 +1,13 @@
 var udp = require('dgram');
 var buffer = require('buffer');
 const axios = require('axios');
+const { getIndicator, updateSnapshots } = require('./priceTracker');
 
 // --------------------creating a udp server --------------------
 
 var server = udp.createSocket('udp4');
 
 let btcprice = 0;
-let btcpriceyesterday = 0;
 
 // emits when any error occurs
 server.on('error', function (error) {
@@ -47,16 +47,9 @@ server.on('message', function (msg, info) {
     if (digits > 6) {
       response = Buffer.from("ERROR");
     } else {
-      console.log(btcprice + ":" + btcpriceyesterday);
       let fixedWidthReturn = splitup[0];
       fixedWidthReturn = fixedWidthReturn.padStart(6, '0');
-      if (btcprice > btcpriceyesterday) {
-        fixedWidthReturn = fixedWidthReturn + ";U"
-      } else if (btcprice < btcpriceyesterday) {
-        fixedWidthReturn = fixedWidthReturn + ";D"
-      } else {
-        fixedWidthReturn = fixedWidthReturn + ";-"
-      }
+      fixedWidthReturn = fixedWidthReturn + ";" + getIndicator(btcprice);
       console.log('Formatted return: |' + fixedWidthReturn + '|');
       response = Buffer.from(fixedWidthReturn.padEnd(16, "\0"));
     }
@@ -105,8 +98,7 @@ function getBTCPrice() {
 //      console.log(response.data);
 //      console.log("Price: " + btcprice);
       btcprice = Math.round(response.data.Price * 100) / 100;
-      btcpriceyesterday = Math.round(response.data.PriceYesterday * 100) / 100;
-//      console.log("Price yesterday: " + btcpriceyesterday);
+      updateSnapshots(btcprice, response.data.Time);
     })
     .catch(function (error) {
       console.log(error);

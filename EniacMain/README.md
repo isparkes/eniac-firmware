@@ -29,3 +29,15 @@ Correct backlights
 
 v0.6.0.4
 Add Reverse Digit "RD" tag to Features string
+
+v0.6.0.5
+Add UDP server, update blanking mode manager
+
+v0.6.0.6
+Fix tower blanking, fix quote server
+
+v0.6.0.7
+Enhanced ticker display with 6 trend indicators
+- Each digit now shows its own trend indicator via LED backlight color
+- Indicator periods: Yesterday, Today, 4h, 1h, 15m, 1m
+- Colors: Green=Up, Red=Down, Off=Unchanged

@@ -15,6 +15,10 @@ typedef enum quote_direction {
   unchanged = '-'
 } quote_direction_t;
 
+// Number of trend indicators returned by the UDP server
+// Position meanings: 0=Yesterday, 1=Today, 2=4h, 3=1h, 4=15m, 5=1m
+#define QUOTE_INDICATOR_COUNT 6
+
 #include "Globals.h"
 
 // ------------------------ Types ------------------------
@@ -44,7 +48,8 @@ class QuoteManager_
     void getQuote();
     bool getIsQuoteValid();
     int  getLastQuote();
-    quote_direction_t getLastQuoteDirection();
+    quote_direction_t getLastQuoteDirection(byte index = 0);
+    const quote_direction_t* getLastQuoteDirections();
     
     // callbacks
     void setNewQuoteCallback(NewQuoteCallback nqcb);
@@ -55,7 +60,7 @@ class QuoteManager_
     unsigned long _lastUpdateFromServer = 0;              // The last millis() we got an update at
     bool _quoteValid = false;                             // Tells us if the quote has been retrieved
     int _quoteValue = 0;                                  // The value of the last quote
-    quote_direction_t _quoteDirection = unchanged;          // The value of the last quote is below MA
+    quote_direction_t _quoteDirections[QUOTE_INDICATOR_COUNT] = {unchanged, unchanged, unchanged, unchanged, unchanged, unchanged};
 
     AsyncUDP _udp;
     NewQuoteCallback _nqcb;

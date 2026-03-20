@@ -605,13 +605,8 @@ void OutputManager_::triggerStunts() {
       #ifdef FEATURE_TICKER
       if (cc->sMode == DISPLAY_TICKER) {
         if (quoteManager.getIsQuoteValid()) {
-
-          byte randomMode = BACKLIGHT_UP;
-          if (nowMillis % 2 == 0) {
-            ledManager.setTickerOverrideValue(down);
-          } else {
-            ledManager.setTickerOverrideValue(up);
-          }
+          // Pass all 6 trend indicators to the LED manager
+          ledManager.setTickerOverrideValues(quoteManager.getLastQuoteDirections());
         } else {
           debugMsgOtm("Skip displaying quote because no quote is valid");
           return;
@@ -702,7 +697,9 @@ void OutputManager_::processStunts() {
         #endif
 
         #ifdef FEATURE_TICKER
-        ledManager.setTickerOverrideValue(none);
+        // Clear ticker override by passing array of 'none' values
+        static const quote_direction_t clearOverrides[QUOTE_INDICATOR_COUNT] = {none, none, none, none, none, none};
+        ledManager.setTickerOverrideValues(clearOverrides);
         #endif
 
         _outputMode = primaryMode;
