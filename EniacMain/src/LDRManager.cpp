@@ -96,14 +96,14 @@ void LDRManager_::processLDRValue() {
   } else {
     calculatedLDRValTube = _setDimTube;
     calculatedLDRValBL   = _setDimBL;
-  }
 
-  if (cc->useLDRTube) {
-    calculatedLDRValTube = ((double)_rawLDRValue - _offset) * _factor;
-  }
+    if (cc->useLDRTube) {
+      calculatedLDRValTube = ((double)_rawLDRValue - _offset) * _factor;
+    }
 
-  if (cc->useLDRBL) {
-    calculatedLDRValBL = ((double)_rawLDRValue - _offset) * _factor;
+    if (cc->useLDRBL) {
+      calculatedLDRValBL = ((double)_rawLDRValue - _offset) * _factor;
+    }
   }
 
   // Tube calculation with ACP

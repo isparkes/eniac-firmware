@@ -62,23 +62,23 @@ String secsToReadableString(long secsValue) {
 String getStatusString() {
   String connectionInfo = "";
 
-  connectionInfo += (WiFi.status() == WL_CONNECTED) ? WIFI_CONNECTED : WIFI_DISCONNECTED;
-  connectionInfo += ntpManager.ntpTimeValid() ? NTP_VALID : NTP_INVALID;
-  connectionInfo += OTA_AVAILABLE;
-  connectionInfo += cc->webAuthentication ? AUTH_ENABLED : AUTH_DISABLED;
-  connectionInfo += blankingManager.getCurrentBlankingStatus() ? BLANKING_ACTIVE : BLANKING_INACTIVE;
+  connectionInfo += (char)((WiFi.status() == WL_CONNECTED) ? WIFI_CONNECTED : WIFI_DISCONNECTED);
+  connectionInfo += (char)(ntpManager.ntpTimeValid() ? NTP_VALID : NTP_INVALID);
+  connectionInfo += (char)OTA_AVAILABLE;
+  connectionInfo += (char)(cc->webAuthentication ? AUTH_ENABLED : AUTH_DISABLED);
+  connectionInfo += (char)(blankingManager.getCurrentBlankingStatus() ? BLANKING_ACTIVE : BLANKING_INACTIVE);
 
 #ifdef FEATURE_MENU
-  connectionInfo += menuManager.getOledIsBlanked() ? OLED_BLANKED : OLED_ACTIVE;
+  connectionInfo += (char)(menuManager.getOledIsBlanked() ? OLED_BLANKED : OLED_ACTIVE);
 #endif
 
 #ifdef DEBUG
-  connectionInfo += debugManager.isDebugOn() ? DEBUG_DISP_ON : DEBUG_DISP_OFF;
+  connectionInfo += (char)(debugManager.isDebugOn() ? DEBUG_DISP_ON : DEBUG_DISP_OFF);
 #else
-  connectionInfo += DEBUG_UNAVAILABLE;
+  connectionInfo += (char)DEBUG_UNAVAILABLE;
 #endif
 
-  connectionInfo += gpsManager.getGPSTimeValid() ? GPS_VALID : GPS_INVALID;
+  connectionInfo += (char)(gpsManager.getGPSTimeValid() ? GPS_VALID : GPS_INVALID);
 
   return connectionInfo;
 }
