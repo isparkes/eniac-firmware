@@ -12,6 +12,7 @@ let last4h = -1;
 let lastHour = -1;
 let last15m = -1;
 let lastMinute = -1;
+let previousPrice = 0;  // price from the previous updateSnapshots call
 
 function compare(current, reference) {
   if (reference === 0) return '-';
@@ -37,6 +38,8 @@ function updateSnapshots(price, apiTime) {
   const minute = t.getUTCMinutes();
   const fifteenMinBlock = Math.floor(minute / 15);
 
+  console.log(`Snapshots: now=${price} yesterday=${priceYesterday}, today=${priceToday}, 4h=${price4h}, 1h=${price1h}, 15m=${price15m}, 1m=${price1m}`);
+
   if (lastDay === -1) {
     // First run: initialise all snapshots to current price
     priceYesterday = price;
@@ -60,7 +63,7 @@ function updateSnapshots(price, apiTime) {
       price15m = price;
     }
     if (minute !== lastMinute) {
-      price1m = price;
+      price1m = previousPrice;
     }
   }
 
@@ -69,6 +72,7 @@ function updateSnapshots(price, apiTime) {
   lastHour = hour;
   last15m = fifteenMinBlock;
   lastMinute = minute;
+  previousPrice = price;
 }
 
 function reset() {
@@ -83,6 +87,7 @@ function reset() {
   lastHour = -1;
   last15m = -1;
   lastMinute = -1;
+  previousPrice = 0;
 }
 
 function getSnapshots() {

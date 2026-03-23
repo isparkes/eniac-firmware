@@ -53,7 +53,7 @@ describe('updateSnapshots', () => {
     updateSnapshots(50000, '2026-02-01T10:30:00Z');
     updateSnapshots(51000, '2026-02-01T10:31:00Z');
     const s = getSnapshots();
-    assert.equal(s.price1m, 51000);
+    assert.equal(s.price1m, 50000); // snapshot holds the previous minute's price
     // Others unchanged
     assert.equal(s.price15m, 50000);
     assert.equal(s.price1h, 50000);
@@ -118,7 +118,7 @@ describe('updateSnapshots', () => {
     assert.equal(s.price4h, 51000);
     assert.equal(s.price1h, 51000);
     assert.equal(s.price15m, 51000);
-    assert.equal(s.price1m, 51000);
+    assert.equal(s.price1m, 50000); // holds previous minute's price
   });
 });
 
@@ -155,25 +155,25 @@ describe('getIndicator', () => {
   it('shows mixed indicators when snapshots differ', () => {
     // Set initial snapshots at 50000
     updateSnapshots(50000, '2026-02-01T10:30:00Z');
-    // Advance 1 minute - price1m updates to 51000
+    // Advance 1 minute - price1m holds previous price (50000)
     updateSnapshots(51000, '2026-02-01T10:31:00Z');
-    // Current price is 50500 - above initial 50000, below minute snapshot 51000
+    // Current price is 50500 - above all snapshots (all anchored at 50000)
     const indicator = getIndicator(50500);
-    // yesterday=50000(U), today=50000(U), 4h=50000(U), 1h=50000(U), 15m=50000(U), 1m=51000(D)
-    assert.equal(indicator, 'UUUUUD');
+    // yesterday=50000(U), today=50000(U), 4h=50000(U), 1h=50000(U), 15m=50000(U), 1m=50000(U)
+    assert.equal(indicator, 'UUUUUU');
   });
 
   it('tracks price movement across multiple time boundaries', () => {
     // Initial price
     updateSnapshots(50000, '2026-02-01T10:30:00Z');
-    // Price drops, minute changes
+    // Price drops, minute changes - price1m holds 50000 (previous)
     updateSnapshots(49000, '2026-02-01T10:31:00Z');
-    // Price rises, 15-min block changes
+    // Price rises, 15-min block changes - price15m=51000, price1m holds 49000 (previous)
     updateSnapshots(51000, '2026-02-01T10:45:00Z');
 
     // Current price 50000:
-    // yesterday=50000(-), today=50000(-), 4h=50000(-), 1h=50000(-), 15m=51000(D), 1m=51000(D)
-    assert.equal(getIndicator(50000), '----DD');
+    // yesterday=50000(-), today=50000(-), 4h=50000(-), 1h=50000(-), 15m=51000(D), 1m=49000(U)
+    assert.equal(getIndicator(50000), '----DU');
   });
 });
 
@@ -233,6 +233,6 @@ describe('edge cases', () => {
     assert.equal(s.price4h, 51000);
     assert.equal(s.price1h, 51000);
     assert.equal(s.price15m, 51000);
-    assert.equal(s.price1m, 51000);
+    assert.equal(s.price1m, 50000); // holds previous minute's price
   });
 });
