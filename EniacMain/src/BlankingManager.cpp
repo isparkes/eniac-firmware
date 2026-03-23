@@ -1,4 +1,5 @@
 #include "BlankingManager.h"
+#include "LDRManager.h"
 
 // ************************************************************
 // Set up
@@ -138,58 +139,49 @@ void BlankingManager_::updateBlankingStatus() {
     }
   }
 
-  // decide if we are blanked or dimmed
+  // Determine the effective action per output
   if (_blanked) {
-    switch(cc->blankMode) {
-      case BLANK_MODE_TUBES: {
-        _blankTubes = true;
-        _blankLEDs = false;
-        _blankTowers = false;
-        break;
-      }
-      case BLANK_MODE_LEDS: {
-        _blankTubes = false;
-        _blankLEDs = true;
-        _blankTowers = false;
-        break;
-      }
-      case BLANK_MODE_TUBES_LEDS: {
-        _blankTubes = true;
-        _blankLEDs = true;
-        _blankTowers = false;
-        break;
-      }
-      case BLANK_MODE_ALL: {
-        _blankTubes = true;
-        _blankLEDs = true;
-        _blankTowers = true;
-        break;
-      }
-    }
+    _actionTubes    = static_cast<BlankingAction>(cc->blankModeTubes);
+    _actionLEDs     = static_cast<BlankingAction>(cc->blankModeLEDs);
+    _actionSepNeon  = static_cast<BlankingAction>(cc->blankModeSepNeon);
+    _actionSlave    = static_cast<BlankingAction>(cc->blankModeSlave);
+    _actionSepTower = static_cast<BlankingAction>(cc->blankModeSepTower);
   } else {
-    _blankTubes = false;
-    _blankLEDs = false;
-    _blankTowers = false;
+    _actionTubes    = BLANKING_ACTION_NORMAL;
+    _actionLEDs     = BLANKING_ACTION_NORMAL;
+    _actionSepNeon  = BLANKING_ACTION_NORMAL;
+    _actionSlave    = BLANKING_ACTION_NORMAL;
+    _actionSepTower = BLANKING_ACTION_NORMAL;
   }
 
   if (_blankLEDoverride) {
-    _blankLEDs = true;
+    _actionLEDs = BLANKING_ACTION_BLANK;
   }
 
-  // Trigger events
-  if (_blankTubes != _PrevBlankTubes) {
-    triggerTubeBlankChange(_blankTubes);
-    _PrevBlankTubes = _blankTubes;
+  // Trigger events on change
+  if (_actionTubes != _prevActionTubes) {
+    triggerTubeActionChange(_actionTubes);
+    _prevActionTubes = _actionTubes;
   }
 
-  if (_blankLEDs != _PrevBlankLEDs) {
-    triggerLEDBlankChange(_blankLEDs);
-    _PrevBlankLEDs = _blankLEDs;
+  if (_actionLEDs != _prevActionLEDs) {
+    triggerLEDActionChange(_actionLEDs);
+    _prevActionLEDs = _actionLEDs;
   }
 
-  if (_blankTowers != _PrevBlankTowers) {
-    triggerTowerBlankChange(_blankTowers);
-    _PrevBlankTowers = _blankTowers;
+  if (_actionSepNeon != _prevActionSepNeon) {
+    triggerSepNeonActionChange(_actionSepNeon);
+    _prevActionSepNeon = _actionSepNeon;
+  }
+
+  if (_actionSlave != _prevActionSlave) {
+    triggerSlaveActionChange(_actionSlave);
+    _prevActionSlave = _actionSlave;
+  }
+
+  if (_actionSepTower != _prevActionSepTower) {
+    triggerSepTowerActionChange(_actionSepTower);
+    _prevActionSepTower = _actionSepTower;
   }
 }
 
@@ -306,26 +298,52 @@ int BlankingManager_::getBlankAge()
 }
 
 // ************************************************************
-// Send blanking triggers to affected components - tubes
+// Return the effective slave action (for decatron slave)
 // ************************************************************
-void BlankingManager_::triggerTubeBlankChange(bool newStatus) {
-  outputManager.setBlankingStatusTubes(newStatus);
-  slaveManagerNixie.setBlankingStatus(newStatus);
+BlankingAction BlankingManager_::getSlaveAction() {
+  return _actionSlave;
 }
 
 // ************************************************************
-// Send blanking triggers to affected components - LEDs
+// Send blanking/dim triggers to tubes and nixie slave
 // ************************************************************
-void BlankingManager_::triggerLEDBlankChange(bool newStatus) {
-  ledManager.setLEDBlanking(newStatus);
+void BlankingManager_::triggerTubeActionChange(BlankingAction newAction) {
+  outputManager.setBlankingStatusTubes(newAction == BLANKING_ACTION_BLANK);
+  ldrManager.setBlankingDim(newAction == BLANKING_ACTION_DIM);
+  slaveManagerNixie.setBlankingStatus(newAction == BLANKING_ACTION_BLANK);
+  slaveManagerNixie.setDimmingStatus(newAction == BLANKING_ACTION_DIM);
 }
 
 // ************************************************************
-// Send blanking triggers to affected components - Towers
+// Send blanking/dim triggers to NeoPixel backlights
 // ************************************************************
-void BlankingManager_::triggerTowerBlankChange(bool newStatus) {
-  ledManager.setTowerBlanking(newStatus);
-  outputManager.setBlankingStatusTowers(newStatus);
+void BlankingManager_::triggerLEDActionChange(BlankingAction newAction) {
+  ledManager.setLEDBlanking(newAction == BLANKING_ACTION_BLANK);
+  ledManager.setLEDDimmingStatus(newAction == BLANKING_ACTION_DIM);
+}
+
+// ************************************************************
+// Send blanking triggers to separator neons (on/off only: DIM=BLANK)
+// ************************************************************
+void BlankingManager_::triggerSepNeonActionChange(BlankingAction newAction) {
+  outputManager.setBlankingStatusTowers(newAction != BLANKING_ACTION_NORMAL);
+}
+
+// ************************************************************
+// Send blanking triggers for slave action changes (nixie slave handled
+// in triggerTubeActionChange; this is a no-op as decatron reads directly)
+// ************************************************************
+void BlankingManager_::triggerSlaveActionChange(BlankingAction newAction) {
+  // Decatron slave reads getSlaveAction() directly each second
+  // Nixie slave is driven alongside tube action (triggerTubeActionChange)
+}
+
+// ************************************************************
+// Send blanking/dim triggers to separator tower NeoPixels
+// ************************************************************
+void BlankingManager_::triggerSepTowerActionChange(BlankingAction newAction) {
+  ledManager.setTowerBlanking(newAction == BLANKING_ACTION_BLANK);
+  ledManager.setTowerDimmingStatus(newAction == BLANKING_ACTION_DIM);
 }
 
 BlankingManager_ &BlankingManager_::getInstance() {

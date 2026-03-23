@@ -268,7 +268,7 @@ void LEDManager_::processLedStatusLoop() {
 
   // -------------------------------- Backlights / Underlights -------------------------------
 
-  if (!_blanked) {
+  if (!_blanked || _blankingDimmed) {
     byte tmpMode = cc->backlightMode;
 
     #ifdef FEATURE_TICKER
@@ -359,12 +359,25 @@ void LEDManager_::processLedStatusLoop() {
       // They're handled above via the _tickerOverrides array
       #endif
     }
+
+    // Post-process: scale backlight buffer down for blanking dim
+    if (_blankingDimmed) {
+      for (int i = 0; i < NUM_BL_PIXELS; i++) {
+        _ledRb[LED_ADDR[i]] = (byte)(_ledRb[LED_ADDR[i]] * BLANKING_DIM_FACTOR);
+        _ledGb[LED_ADDR[i]] = (byte)(_ledGb[LED_ADDR[i]] * BLANKING_DIM_FACTOR);
+        _ledBb[LED_ADDR[i]] = (byte)(_ledBb[LED_ADDR[i]] * BLANKING_DIM_FACTOR);
+      }
+    }
   }
 
   // ----------------------------------------- Towers ----------------------------------------
 
   if (!_towersBlanked) {
-    if(cc->useLDRSep) {
+    if (_towersBlankingDimmed) {
+      byte dimR = cc->useLDRSep ? (byte)(getLEDAdjustedBL(255) * BLANKING_DIM_FACTOR)
+                                : (byte)(getLEDAdjustedBLNoLDR(255) * BLANKING_DIM_FACTOR);
+      setTowerLEDs(dimR, 0, 0);
+    } else if (cc->useLDRSep) {
       setTowerLEDs(   getLEDAdjustedBL(255),
                       getLEDAdjustedBL(0),
                       getLEDAdjustedBL(0));
@@ -559,6 +572,20 @@ void LEDManager_::setLEDBlanking(boolean newStatus) {
 // ************************************************************
 void LEDManager_::setTowerBlanking(boolean newStatus) {
   _towersBlanked = newStatus;
+}
+
+// ************************************************************
+// Set dim-during-blanking for NeoPixel backlights
+// ************************************************************
+void LEDManager_::setLEDDimmingStatus(boolean newStatus) {
+  _blankingDimmed = newStatus;
+}
+
+// ************************************************************
+// Set dim-during-blanking for separator tower NeoPixels
+// ************************************************************
+void LEDManager_::setTowerDimmingStatus(boolean newStatus) {
+  _towersBlankingDimmed = newStatus;
 }
 
 #ifdef FEATURE_TICKER

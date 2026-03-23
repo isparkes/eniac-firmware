@@ -28,11 +28,10 @@ enum DayBlankingMode {
     DAY_BLANKING_WEEKDAY_AND_HOURS = 8   // Blank between start and end hour during weekdays
 };
 
-enum BlankingMode {
-    BLANK_MODE_TUBES = 0,       // Use blanking for tubes only
-    BLANK_MODE_LEDS = 1,        // Use blanking for LEDs only
-    BLANK_MODE_TUBES_LEDS = 2,  // Use blanking for tubes and LEDs
-    BLANK_MODE_ALL = 3          // Use blanking for tubes, LEDs, and towers
+enum BlankingAction {
+    BLANKING_ACTION_NORMAL = 0,  // Output unaffected during blanking
+    BLANKING_ACTION_DIM    = 1,  // Output dimmed during blanking
+    BLANKING_ACTION_BLANK  = 2   // Output fully blanked during blanking
 };
 
 // -------------------------------------------------------------------------------
@@ -67,6 +66,7 @@ class BlankingManager_ {
     bool getCurrentModeWantsHours();
     int getBlankAge();
     String getBlankingReason();
+    BlankingAction getSlaveAction();
 
   private:
     unsigned long _mdTimeout = PIR_TIMEOUT_DEFAULT;
@@ -80,21 +80,27 @@ class BlankingManager_ {
 
     bool _blankLEDoverride = false;
 
-    bool _blankTubes = false;
-    bool _blankLEDs = false;
-    bool _blankTowers = false;
+    BlankingAction _actionTubes    = BLANKING_ACTION_NORMAL;
+    BlankingAction _actionLEDs     = BLANKING_ACTION_NORMAL;
+    BlankingAction _actionSepNeon  = BLANKING_ACTION_NORMAL;
+    BlankingAction _actionSlave    = BLANKING_ACTION_NORMAL;
+    BlankingAction _actionSepTower = BLANKING_ACTION_NORMAL;
 
-    bool _PrevBlankTubes = false;
-    bool _PrevBlankLEDs = false;
-    bool _PrevBlankTowers = false;
+    BlankingAction _prevActionTubes    = BLANKING_ACTION_NORMAL;
+    BlankingAction _prevActionLEDs     = BLANKING_ACTION_NORMAL;
+    BlankingAction _prevActionSepNeon  = BLANKING_ACTION_NORMAL;
+    BlankingAction _prevActionSlave    = BLANKING_ACTION_NORMAL;
+    BlankingAction _prevActionSepTower = BLANKING_ACTION_NORMAL;
 
     bool checkPIR();
     bool checkTimeBasedBlanking(byte currentWeekday, byte currentHour);
     bool getHoursBlanked(byte currentHour);
 
-    void triggerTubeBlankChange(bool newStatus);
-    void triggerLEDBlankChange(bool newStatus);
-    void triggerTowerBlankChange(bool newStatus);
+    void triggerTubeActionChange(BlankingAction newAction);
+    void triggerLEDActionChange(BlankingAction newAction);
+    void triggerSepNeonActionChange(BlankingAction newAction);
+    void triggerSlaveActionChange(BlankingAction newAction);
+    void triggerSepTowerActionChange(BlankingAction newAction);
 };
 
 extern BlankingManager_ &blankingManager;

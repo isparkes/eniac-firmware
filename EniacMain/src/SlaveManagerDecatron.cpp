@@ -48,7 +48,8 @@ void SlaveManagerDecatron_::updateOncePerMinute() {
 // ************************************************************
 void SlaveManagerDecatron_::sendUpdateToSlaveI2C() {
   byte control = 0;
-  if (blankingManager.getCurrentBlankingStatus()) {
+  // DIM maps to blanked for decatron (protocol has no partial brightness)
+  if (blankingManager.getSlaveAction() != BLANKING_ACTION_NORMAL) {
     control |= DECATRON_CTRL_BLANKED;
   }
   control |= (cc->pMode & 0x0F) << DECATRON_CTRL_MODE_SHIFT;

@@ -71,6 +71,10 @@
 #define BACKLIGHT_DIM_FACTOR_DEFAULT    100
 
 // -------------------------------------------------------------------------------
+// Dim factor applied to LEDs and tower NeoPixels when in blanking dim mode
+#define BLANKING_DIM_FACTOR             0.15f
+
+// -------------------------------------------------------------------------------
 #define EXT_DIM_FACTOR_MIN              10
 #define EXT_DIM_FACTOR_MAX              100
 #define EXT_DIM_FACTOR_DEFAULT          100
@@ -152,6 +156,10 @@ class LEDManager_
     void setLEDBlanking(boolean newStatus);
     void setTowerBlanking(boolean newStatus);
 
+    // Set the dim-during-blanking status
+    void setLEDDimmingStatus(boolean newStatus);
+    void setTowerDimmingStatus(boolean newStatus);
+
     void updateOncePerLoop();
     void updateOncePerSecond();
   private:
@@ -179,6 +187,8 @@ class LEDManager_
 
     bool _blanked = false;
     bool _towersBlanked = false;
+    bool _blankingDimmed = false;
+    bool _towersBlankingDimmed = false;
 
     // Strategy 3
     int _changeSteps = 0;

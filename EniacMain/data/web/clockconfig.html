@@ -407,14 +407,63 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="control-label col-xs-3">Blank Mode:</label>
-                    <div class="col-xs-4">
-                        <select class="form-control" name="blankMode" id="blankMode">
-                            <option value="0">Blank tubes only</option>
-                            <option value="1">Blank LEDs only</option>
-                            <option selected value="2">Blank tubes and LEDs</option>
-                            <option value="3">Blank tubes and LEDs and separators</option>
-                        </select>
+                    <label class="control-label col-xs-3">Output blanking:</label>
+                    <div class="col-xs-9">
+                        <table class="table table-condensed table-bordered" style="margin-bottom:0">
+                            <thead><tr><th>Output</th><th>Behaviour during blanking period</th></tr></thead>
+                            <tbody>
+                                <tr>
+                                    <td style="vertical-align:middle;width:40%">Tubes</td>
+                                    <td>
+                                        <select class="form-control input-sm" name="blankModeTubes" id="blankModeTubes">
+                                            <option value="0">Normal</option>
+                                            <option value="1">Dim</option>
+                                            <option value="2" selected>Blank</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align:middle">LEDs</td>
+                                    <td>
+                                        <select class="form-control input-sm" name="blankModeLEDs" id="blankModeLEDs">
+                                            <option value="0">Normal</option>
+                                            <option value="1">Dim</option>
+                                            <option value="2" selected>Blank</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align:middle">Separator neons</td>
+                                    <td>
+                                        <select class="form-control input-sm" name="blankModeSepNeon" id="blankModeSepNeon">
+                                            <option value="0" selected>Normal</option>
+                                            <option value="1">Dim</option>
+                                            <option value="2">Blank</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align:middle">Slave display</td>
+                                    <td>
+                                        <select class="form-control input-sm" name="blankModeSlave" id="blankModeSlave">
+                                            <option value="0">Normal</option>
+                                            <option value="1">Dim</option>
+                                            <option value="2" selected>Blank</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align:middle">Separator tower LEDs</td>
+                                    <td>
+                                        <select class="form-control input-sm" name="blankModeSepTower" id="blankModeSepTower">
+                                            <option value="0" selected>Normal</option>
+                                            <option value="1">Dim</option>
+                                            <option value="2">Blank</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 <div class="form-group">
@@ -678,7 +727,11 @@
         $("#mdTimeout").val(config.mdTimeout);
         $("#mdBlankMode").val(config.mdBlankMode);
         $("#dayBlanking").val(config.dayBlanking);
-        $("#blankMode").val(config.blankMode);
+        $("#blankModeTubes").val(config.blankModeTubes);
+        $("#blankModeLEDs").val(config.blankModeLEDs);
+        $("#blankModeSepNeon").val(config.blankModeSepNeon);
+        $("#blankModeSlave").val(config.blankModeSlave);
+        $("#blankModeSepTower").val(config.blankModeSepTower);
         $("#blankHourStart").val(config.blankHourStart);
         $("#blankHourEnd").val(config.blankHourEnd);
         $("#oledOnTime").val(config.oledOnTime);
@@ -842,8 +895,24 @@
             postBody["dayBlanking"] = $("#dayBlanking").val();
         }
 
-        if (localConfig.blankMode!=$("#blankMode").val()) {
-            postBody["blankMode"] = $("#blankMode").val();
+        if (localConfig.blankModeTubes!=$("#blankModeTubes").val()) {
+            postBody["blankModeTubes"] = $("#blankModeTubes").val();
+        }
+
+        if (localConfig.blankModeLEDs!=$("#blankModeLEDs").val()) {
+            postBody["blankModeLEDs"] = $("#blankModeLEDs").val();
+        }
+
+        if (localConfig.blankModeSepNeon!=$("#blankModeSepNeon").val()) {
+            postBody["blankModeSepNeon"] = $("#blankModeSepNeon").val();
+        }
+
+        if (localConfig.blankModeSlave!=$("#blankModeSlave").val()) {
+            postBody["blankModeSlave"] = $("#blankModeSlave").val();
+        }
+
+        if (localConfig.blankModeSepTower!=$("#blankModeSepTower").val()) {
+            postBody["blankModeSepTower"] = $("#blankModeSepTower").val();
         }
 
         if (localConfig.blankHourStart!=$("#blankHourStart").val()) {

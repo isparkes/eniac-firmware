@@ -64,6 +64,7 @@ class LDRManager_
     bool  getLDRValueSetToMin();
     void  setLDRValueToMax(bool newState);
     void  setLDRValueToMaxACP(bool newState);
+    void  setBlankingDim(bool newState);
     
     bool  getIsFixedLDRValue();
 
@@ -88,6 +89,7 @@ class LDRManager_
     bool  _setMinDim;
     bool  _setMaxDim;
     bool  _setMaxDimACP;
+    bool  _blankingDim = false;
 
     int   _minDimTube;
     int   _maxDimTube;

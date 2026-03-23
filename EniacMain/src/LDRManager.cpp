@@ -106,6 +106,11 @@ void LDRManager_::processLDRValue() {
     }
   }
 
+  // Blanking dim: force tube to min dim without affecting BL
+  if (_blankingDim) {
+    calculatedLDRValTube = _minDimTube;
+  }
+
   // Tube calculation with ACP
   if (_setMaxDimACP) {
     calculatedLDRValTube = _maxDimTube;
@@ -214,6 +219,13 @@ void LDRManager_::setLDRValueToMin(bool newState) {
 // ************************************************************
 bool LDRManager_::getLDRValueSetToMin() {
   return _setMinDim;
+}
+
+// ************************************************************
+// Set tube dim from blanking period (does not affect BL)
+// ************************************************************
+void LDRManager_::setBlankingDim(bool newState) {
+  _blankingDim = newState;
 }
 
 // ************************************************************

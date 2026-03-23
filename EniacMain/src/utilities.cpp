@@ -140,12 +140,37 @@ void resetOptions() {
   cc->hueOffset = 0;
 #endif
 
-  cc->blankMode = BLANK_MODE_TUBES_LEDS;
+  cc->blankModeTubes    = BLANKING_ACTION_BLANK;
+  cc->blankModeLEDs     = BLANKING_ACTION_BLANK;
+  cc->blankModeSepNeon  = BLANKING_ACTION_NORMAL;
+  cc->blankModeSlave    = BLANKING_ACTION_BLANK;
+  cc->blankModeSepTower = BLANKING_ACTION_NORMAL;
   cc->blankHourStart = 0;
   cc->blankHourEnd = 7;
   cc->sepMode = SEP_BLINK_DEFAULT;
 
   cc->mdTimeout = PIR_TIMEOUT_DEFAULT;
+  cc->mdBlankMode = MD_OVERRIDE_BLANK;
+
+  cc->alarmMode = 0;
+  cc->alarmHour = 0;
+  cc->alarmMinute = 0;
+
+  cc->oledOnTime = 1; // OLED_ON_DEF: blank after 1 minute
+  cc->outputOnTime = 0;
+
+  cc->towerHueOffset = 0;
+  cc->backlightGradient = 0;
+
+#ifdef FEATURE_EXT_LEDS
+  cc->extDimFactor = EXT_DIM_FACTOR_DEFAULT;
+#else
+  cc->extDimFactor = 0;
+#endif
+
+  cc->webAuthentication = false;
+  cc->webUsername = "";
+  cc->webPassword = "";
 
   cc->testMode = true;
   cc->wasSetup = true;
@@ -579,7 +604,11 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["mdTimeout"] = cc->mdTimeout;
   root["mdBlankMode"] = cc->mdBlankMode;
   root["dayBlanking"] = cc->dayBlanking;
-  root["blankMode"] = cc->blankMode;
+  root["blankModeTubes"]    = cc->blankModeTubes;
+  root["blankModeLEDs"]     = cc->blankModeLEDs;
+  root["blankModeSepNeon"]  = cc->blankModeSepNeon;
+  root["blankModeSlave"]    = cc->blankModeSlave;
+  root["blankModeSepTower"] = cc->blankModeSepTower;
   root["blankHourStart"] = cc->blankHourStart;
   root["blankHourEnd"] = cc->blankHourEnd;
   root["sepMode"] = cc->sepMode;
@@ -748,7 +777,11 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateInt (json, "mdTimeout",      &cc->mdTimeout);
     compareAndUpdateByte(json, "mdBlankMode",    &cc->mdBlankMode);
     compareAndUpdateByte(json, "dayBlanking",    &cc->dayBlanking);
-    compareAndUpdateByte(json, "blankMode",      &cc->blankMode);
+    compareAndUpdateByte(json, "blankModeTubes",    &cc->blankModeTubes);
+    compareAndUpdateByte(json, "blankModeLEDs",     &cc->blankModeLEDs);
+    compareAndUpdateByte(json, "blankModeSepNeon",  &cc->blankModeSepNeon);
+    compareAndUpdateByte(json, "blankModeSlave",    &cc->blankModeSlave);
+    compareAndUpdateByte(json, "blankModeSepTower", &cc->blankModeSepTower);
     compareAndUpdateByte(json, "blankHourStart", &cc->blankHourStart);
     compareAndUpdateByte(json, "blankHourEnd",   &cc->blankHourEnd);
     compareAndUpdateByte(json, "sepMode",        &cc->sepMode);
