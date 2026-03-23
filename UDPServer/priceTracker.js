@@ -1,3 +1,5 @@
+const log = require('./logger');
+
 // Price snapshots for up/down indicators
 let priceYesterday = 0;  // snapshotted at midnight crossing
 let priceToday = 0;      // snapshotted at midnight crossing
@@ -5,6 +7,8 @@ let price4h = 0;         // snapshotted every 4 hours
 let price1h = 0;         // snapshotted every hour
 let price15m = 0;        // snapshotted every 15 minutes
 let price1m = 0;         // snapshotted every minute
+
+let cachedIndicator = '------';
 
 // Track which periods we've last seen to detect boundary crossings
 let lastDay = -1;
@@ -38,7 +42,7 @@ function updateSnapshots(price, apiTime) {
   const minute = t.getUTCMinutes();
   const fifteenMinBlock = Math.floor(minute / 15);
 
-  console.log(`Snapshots: now=${price} yesterday=${priceYesterday}, today=${priceToday}, 4h=${price4h}, 1h=${price1h}, 15m=${price15m}, 1m=${price1m}`);
+  log.debug(`Snapshots: now=${price} yesterday=${priceYesterday}, today=${priceToday}, 4h=${price4h}, 1h=${price1h}, 15m=${price15m}, 1m=${price1m}`);
 
   if (lastDay === -1) {
     // First run: initialise all snapshots to current price
@@ -73,6 +77,9 @@ function updateSnapshots(price, apiTime) {
   last15m = fifteenMinBlock;
   lastMinute = minute;
   previousPrice = price;
+
+  cachedIndicator = getIndicator(price);
+  log.debug(`Indicator: ${cachedIndicator} (yesterday=${priceYesterday}, today=${priceToday}, 4h=${price4h}, 1h=${price1h}, 15m=${price15m}, 1m=${price1m})`);
 }
 
 function reset() {
@@ -88,10 +95,15 @@ function reset() {
   last15m = -1;
   lastMinute = -1;
   previousPrice = 0;
+  cachedIndicator = '------';
 }
 
 function getSnapshots() {
   return { priceYesterday, priceToday, price4h, price1h, price15m, price1m };
 }
 
-module.exports = { compare, getIndicator, updateSnapshots, reset, getSnapshots };
+function getCachedIndicator() {
+  return cachedIndicator;
+}
+
+module.exports = { compare, getIndicator, getCachedIndicator, updateSnapshots, reset, getSnapshots };

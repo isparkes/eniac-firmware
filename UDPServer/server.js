@@ -1,7 +1,8 @@
 var udp = require('dgram');
 var buffer = require('buffer');
 const axios = require('axios');
-const { getIndicator, updateSnapshots } = require('./priceTracker');
+const { getCachedIndicator, updateSnapshots } = require('./priceTracker');
+const log = require('./logger');
 
 // --------------------creating a udp server --------------------
 
@@ -11,13 +12,13 @@ let btcprice = 0;
 
 // emits when any error occurs
 server.on('error', function (error) {
-  console.log('Error: ' + error);
+  log.info('Error: ' + error);
 });
 
 // emits on new datagram msg
 server.on('message', function (msg, info) {
-  console.log('Data received from client : |' + msg.toString() + '|');
-  console.log('Received %d bytes from %s\n', msg.length, info.address);
+  log.debug(`Data received from client : |${msg.toString()}|`);
+  log.debug(`Received ${msg.length} bytes from ${info.address}`);
 
   if (msg.toString() === "RBTCUSDT") {
     response = Buffer.from(("" + btcprice).padEnd(16, "\0"));
@@ -27,14 +28,14 @@ server.on('message', function (msg, info) {
     // Format for easy processing in a clock
     const splitup = btcprice.toString().split('.');
     const digits = splitup[0].length;
-    console.log("Digits: " + digits)
+    log.debug("Digits: " + digits)
     if (digits > 6) {
       response = Buffer.from("ERROR");
     } else {
       let fixedWidthReturn = btcprice.toString().replace('.', '').substring(0, 6);
       fixedWidthReturn = fixedWidthReturn.padStart(6, '0');
       fixedWidthReturn = digits + fixedWidthReturn;
-      console.log('Formatted return: |' + fixedWidthReturn + '|');
+      log.debug('Formatted return: |' + fixedWidthReturn + '|');
       response = Buffer.from(fixedWidthReturn.padEnd(16, "\0"));
     }
   }
@@ -43,14 +44,14 @@ server.on('message', function (msg, info) {
     // Format for easy processing in a clock
     const splitup = btcprice.toString().split('.');
     const digits = splitup[0].length;
-    // console.log("Digits: " + digits)
+    log.debug("Digits: " + digits)
     if (digits > 6) {
       response = Buffer.from("ERROR");
     } else {
       let fixedWidthReturn = splitup[0];
       fixedWidthReturn = fixedWidthReturn.padStart(6, '0');
-      fixedWidthReturn = fixedWidthReturn + ";" + getIndicator(btcprice);
-      console.log('Formatted return: |' + fixedWidthReturn + '|');
+      fixedWidthReturn = fixedWidthReturn + ";" + getCachedIndicator();
+      log.debug('Formatted return: |' + fixedWidthReturn + '|');
       response = Buffer.from(fixedWidthReturn.padEnd(16, "\0"));
     }
   }
@@ -64,7 +65,7 @@ server.on('message', function (msg, info) {
     if (error) {
       client.close();
     } else {
-      console.log('Sent ' + response.toString());
+      log.debug('Sent ' + response.toString());
     }
   });
 });
@@ -75,14 +76,14 @@ server.on('listening', function () {
   var port = address.port;
   var family = address.family;
   var ipaddr = address.address;
-  console.log('Server is listening at port ' + port);
-  console.log('Server ip :' + ipaddr);
-  console.log('Server is IP4/IP6 : ' + family);
+  log.info('Server is listening at port ' + port);
+  log.info('Server ip :' + ipaddr);
+  log.info('Server is IP4/IP6 : ' + family);
 });
 
 //emits after the socket is closed using socket.close();
 server.on('close', function () {
-  console.log('Socket is closed !');
+  log.info('Socket is closed !');
 });
 
 server.bind(2222);
@@ -101,7 +102,7 @@ function getBTCPrice() {
       updateSnapshots(btcprice, response.data.Time);
     })
     .catch(function (error) {
-      console.log(error);
+      log.info('Price fetch error: ' + error);
     });
 }
 

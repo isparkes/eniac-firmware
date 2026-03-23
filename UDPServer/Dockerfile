@@ -8,5 +8,6 @@ RUN npm ci
 
 COPY server.js .
 COPY priceTracker.js .
+COPY logger.js .
 
 CMD ["node", "server.js"]
