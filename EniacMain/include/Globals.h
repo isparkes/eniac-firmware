@@ -74,10 +74,6 @@ extern String lastWiFiScan;
 
 extern volatile bool switchEventWaiting;
 
-#ifdef COG_CRANK_OUTPUT
-extern byte cogCrankSecsLeft;
-#endif
-
 // ------------------ Global functions -----------------
 
 void updateNowMillis();

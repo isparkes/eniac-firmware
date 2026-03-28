@@ -6,9 +6,6 @@ portMUX_TYPE timerMux0 = portMUX_INITIALIZER_UNLOCKED;
 hw_timer_t * timer1 = NULL;
 extern portMUX_TYPE timerMux1;
 
-hw_timer_t * timer2 = NULL;
-portMUX_TYPE timerMux2 = portMUX_INITIALIZER_UNLOCKED;
-
 volatile int count0 = 0;
 volatile int count0Max = COUNT0_MAX;
 volatile int count0Off = COUNT0_OFF;
@@ -186,41 +183,6 @@ void IRAM_ATTR onTimer1() {
 }
 
 // ************************************************************
-// ISR for 1PPS output
-// ************************************************************
-void IRAM_ATTR onTimer2() {
-  #ifndef COG_CRANK_OUTPUT
-  portENTER_CRITICAL_ISR(&timerMux2);
-  digitalWrite(PPSPin, LOW);
-  portEXIT_CRITICAL_ISR(&timerMux2);
-  #endif
-}
-
-// ************************************************************
-// Trigger 1PPS output
-// ************************************************************
-void triggerOnePulsePerSecShort() {
-  #ifndef COG_CRANK_OUTPUT
-  digitalWrite(PPSPin, HIGH);
-  timerAlarmWrite(timer2, 50000, false);
-  timerRestart(timer2);
-  timerAlarmEnable(timer2);
-  #endif
-}
-
-// ************************************************************
-// Set the 1PPS pulse length
-// ************************************************************
-void triggerOnePulsePerSecLong() {
-  #ifndef COG_CRANK_OUTPUT
-  digitalWrite(PPSPin, HIGH);
-  timerAlarmWrite(timer2, 100000, false);
-  timerRestart(timer2);
-  timerAlarmEnable(timer2);
-  #endif
-}
-
-// ************************************************************
 // Start the timers
 // ************************************************************
 void startTimers() {
@@ -239,14 +201,6 @@ void startTimers() {
   // https://community.platformio.org/t/hardware-timer-issue-with-esp32/22047/10
   delayMicroseconds(0);
   timerAlarmEnable(timer1);
-
-  // 1PPS timer
-  timer2 = timerBegin(2, 80, true);
-  timerAttachInterrupt(timer2, &onTimer2, true);
-  // https://community.platformio.org/t/hardware-timer-issue-with-esp32/22047/10
-  timerAlarmWrite(timer2, 50000, false);
-  delayMicroseconds(0);
-  timerAlarmEnable(timer2);
 
   // Set default LED flash type
   setLedFlashType(1);

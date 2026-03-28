@@ -76,7 +76,3 @@ volatile bool switchEventWaiting = true;
 void updateNowMillis() {
     nowMillis = millis();
 }
-
-#ifdef COG_CRANK_OUTPUT
-byte cogCrankSecsLeft = 0;
-#endif

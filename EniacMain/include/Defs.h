@@ -59,8 +59,6 @@
 #define LDRPin    34
 #define PIRPin    35
 
-#define PPSPin    0
-
 #define LED_DOUT  13
 
 // -------------------------------------------------------------------------------

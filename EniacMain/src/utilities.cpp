@@ -159,7 +159,6 @@ void resetOptions() {
   cc->alarmMinute = 0;
 
   cc->oledOnTime = 1; // OLED_ON_DEF: blank after 1 minute
-  cc->outputOnTime = 0;
 
   cc->towerHueOffset = 0;
   cc->backlightGradient = 0;
@@ -523,10 +522,6 @@ void getDiagsDataHandler(AsyncWebServerRequest *request) {
   featureString += "MENU ";
   #endif
 
-  #ifdef COG_CRANK_OUTPUT
-  featureString += "COG ";
-  #endif
-
   #ifdef INVERT_SWITCHES
   featureString += "INV ";
   #endif
@@ -654,10 +649,6 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["pMode"] = cc->pMode;
   root["sMode"] = cc->sMode;
   root["oledOnTime"] = cc->oledOnTime;
-
-  #ifdef COG_CRANK_OUTPUT
-  root["outputOnTime"] = cc->outputOnTime;
-  #endif
 
   #ifdef COUNTDOWN
   root["countdownTarget"] = cc->countdownTarget;
@@ -825,10 +816,6 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateInt (json, "backlightGradient",  &cc->backlightGradient);
     compareAndUpdateByte(json, "blinkenLightsMode",  &cc->blinkenLightsMode);
     compareAndUpdateByte(json, "slaveMode",          &cc->slaveMode);
-
-    #ifdef COG_CRANK_OUTPUT
-    compareAndUpdateByte(json, "outputOnTime",       &cc->outputOnTime);
-    #endif
 
     #ifdef COUNTDOWN
     compareAndUpdateString(json, "countdownTarget",  &cc->countdownTarget);

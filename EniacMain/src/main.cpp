@@ -58,8 +58,6 @@ void setup()
   pinMode(LATCH3Pin, OUTPUT);
 
   pinMode(BLANKPin, OUTPUT);
-  pinMode(PPSPin, OUTPUT);
-  digitalWrite(PPSPin, LOW);
   
   pinMode(Switch1Pin, INPUT_PULLUP);
   pinMode(Switch2Pin, INPUT_PULLUP);
@@ -372,18 +370,6 @@ void performOncePerSecondProcessing() {
 
   // -------------------------------------------------------------------------------
   
-  #ifdef COG_CRANK_OUTPUT
-  if (cogCrankSecsLeft > 0) {
-    cogCrankSecsLeft--;
-    if (cogCrankSecsLeft == 0) {
-      digitalWrite(PPSPin, LOW);
-      debugMsgMain("Aux output OFF");
-    }
-  }
-  #endif
-
-  // -------------------------------------------------------------------------------
-
   ldrManager.updateOncePerSecond();
     
   // -------------------------------------------------------------------------------
@@ -587,16 +573,6 @@ void performOncePerHourProcessing() {
   tzManager.tzmOncePerHour();
 
   rtcManager.testRTCTimeProvider();
-
-  #ifdef COG_CRANK_OUTPUT
-  // Don't crank if we're blanked or we're configured not to
-  debugMsgMain("Crank time:" + String(cc->outputOnTime));
-  if (!blankingManager.getCurrentBlankingStatus() && (cc->outputOnTime > 0)) {
-    cogCrankSecsLeft = cc->outputOnTime;
-    digitalWrite(PPSPin, HIGH);
-    debugMsgMain("Aux output  ON");
-  }
-  #endif
 }
 
 // ************************************************************

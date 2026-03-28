@@ -74,7 +74,7 @@ volatile uint8_t rxMinute  = 0;
 volatile uint8_t rxSecond  = 0;
 volatile uint8_t rxControl = 0;
 volatile uint8_t rxMode    = 0;  // extracted from control bits 1-4
-volatile bool    i2cDataReceived = false;
+volatile bool    uartDataReceived = false;
 volatile unsigned long lastI2CMillis = 0;
 
 // --------------------- Misc ----------------------
@@ -239,7 +239,12 @@ void G2StepForwards() {
 }
 
 // ************************************************************
-// Find the index mark
+// Find the index mark. The dot can appear in any of the 30 
+// positions, so we step forward until we find it, then step 
+// backward until we find it again. This way we can be sure to 
+// find it even if it's in a position where we don't detect it
+// for a few steps. We also set the TDC and expected position
+// to the index mark, so that we are correctly aligned at startup.
 // ************************************************************
 void findIndexMarks() {
   debugManager.debugMsg("findIndexMarks: searching...");
@@ -443,7 +448,7 @@ void readSerial() {
         rxSecond  = buf[2];
         rxControl = buf[3];
         rxMode    = (rxControl >> DECATRON_CTRL_MODE_SHIFT) & 0x0F;
-        i2cDataReceived = true;
+        uartDataReceived = true;
         inPacket = false;
         bufPos = 0;
       }
@@ -528,14 +533,14 @@ void loop() {
   // ------------------- Handle received serial data ---------------------
   // Mode 0: Dec1 = minutes/2 (0-29), Dec2 = seconds/2 (0-29)
 
-  if (i2cDataReceived) {
+  if (uartDataReceived) {
     lastI2CMillis = nowMillis;
     expPos1 = (tdc1 + rxMinute / 2) % 30;
     expPos2 = (tdc2 + rxSecond / 2) % 30;
     debugManager.debugMsg("RX: " + String(rxHour) + ":" + String(rxMinute) + ":" + String(rxSecond) +
       " mode=" + String(rxMode) + " blanked=" + String(rxControl & DECATRON_CTRL_BLANKED) +
       " -> expPos1=" + String(expPos1) + " expPos2=" + String(expPos2));
-    i2cDataReceived = false;
+    uartDataReceived = false;
   }
 
   align1toExpPos();

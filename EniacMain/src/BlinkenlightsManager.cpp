@@ -83,8 +83,6 @@ bool BlinkenlightsManager_::getBlinkenlightStatusValue(int blValue) {
       return blankingManager.getCurrentPIRInstalled();
     case BLNKN_STATUS_UP_DOWN:
       return !upOrDown;
-    case BLNKN_STATUS_1PPS:
-      return digitalRead(PPSPin);
     default:
       return false;
   }

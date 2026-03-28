@@ -419,7 +419,7 @@ void OutputManager_::outputDisplay() {
                                 false,
                                 #endif
                                 !upOrDown,
-                                digitalRead(PPSPin));
+                                !upOrDown);
   uint32_t tmpval1 = tmpnextVal1;
   uint32_t tmpval2 = tmpnextVal2;
   uint32_t tmpval3 = tmpnextVal3;
@@ -512,7 +512,7 @@ void OutputManager_::outputDisplay() {
                                   false,
                                   #endif
                                   !upOrDown,
-                                  digitalRead(PPSPin));
+                                  !upOrDown);
   }
 
   // move the values over, respect the MUTEX on the interrupt, otherwise we get visible glitches

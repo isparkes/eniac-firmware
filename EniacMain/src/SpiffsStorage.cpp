@@ -248,9 +248,6 @@ bool SpiffsStorage_::getConfigFromSpiffs()
         cc->slaveMode = json["slaveMode"];
         debugMsgSpfX("Loaded slaveMode: " + String(cc->slaveMode));
 
-        cc->outputOnTime = json["outputOnTime"];
-        debugMsgSpfX("Loaded outputOnTime: " + String(cc->outputOnTime));
-
         cc->backlightGradient = json["backlightGradient"];
         debugMsgSpfX("Loaded backlightGradient: " + String(cc->backlightGradient));
 
@@ -364,7 +361,6 @@ void SpiffsStorage_::saveConfigToSpiffs()
   json["WifiOnAtStart"] = cc->WifiOnAtStart;
   json["blinkenLightsMode"] = cc->blinkenLightsMode;
   json["slaveMode"] = cc->slaveMode;
-  json["outputOnTime"] = cc->outputOnTime;
   json["backlightGradient"] = cc->backlightGradient;
   json["sw1Mode"] = cc->sw1Mode;
   json["sw2Mode"] = cc->sw2Mode;

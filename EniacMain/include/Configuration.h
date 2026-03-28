@@ -83,11 +83,6 @@
 
     // -------------------------------------------------------------------------------
 
-    // Paul's special thing
-    #define COG_CRANK_OUTPUT_OFF        // COG_CRANK_OUTPUT | COG_CRANK_OUTPUT_OFF
-
-    // -------------------------------------------------------------------------------
-
     // Access to Crypto/FX tickers
     #define FEATURE_TICKER             // FEATURE_TICKER | FEATURE_TICKER_OFF
 

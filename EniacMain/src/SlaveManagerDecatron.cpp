@@ -62,8 +62,9 @@ void SlaveManagerDecatron_::sendUpdateToSlaveSerial() {
   Serial2.write((uint8_t)minute());
   Serial2.write((uint8_t)second());
   Serial2.write((uint8_t)control);
+  Serial2.flush();
 
-  debugMsgSlv("Sent Decatron slave update");
+  debugMsgSlvX("Sent Decatron slave update");
 }
 
 // ************************************************************

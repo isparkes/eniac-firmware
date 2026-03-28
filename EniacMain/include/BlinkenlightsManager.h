@@ -16,8 +16,7 @@
 #define BLNKN_STATUS_WIFI     4
 #define BLNKN_STATUS_PIR_INST 5
 #define BLNKN_STATUS_UP_DOWN  6
-#define BLNKN_STATUS_1PPS     7
-#define BLNKN_STATUS_MAX      7
+#define BLNKN_STATUS_MAX      6
 
 typedef struct {
   bool bl1;

@@ -148,19 +148,11 @@ void OLED_::drawGInd() {
 void OLED_::drawAuxOutInd() {
   _display->setCursor(Y_IND_X,STATUS_LINE_Y);
 
-  #ifdef COG_CRANK_OUTPUT
-  if (cogCrankSecsLeft > 0) {
-    _display->print("C");
-  } else {
-    _display->print("-");
-  }
-  #else
   if (digitalRead(Switch1Pin) == LOW) {
     _display->print("1");
   } else {
     _display->print("-");
   }
-  #endif
 }
 
 void OLED_::drawBTN2Ind() {

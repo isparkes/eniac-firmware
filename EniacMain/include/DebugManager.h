@@ -73,6 +73,12 @@ typedef void (*DebugCallback) (String);
 #define debugMsgMnmX(message)
 #endif
 
+#ifdef SLV_EXTENDED_DEBUG
+#define debugMsgSlvX(message) debugManager.debugMsg("[SLV]", message);
+#else
+#define debugMsgSlvX(message)
+#endif
+
 
 class DebugManager_ {
   private:

@@ -71,7 +71,6 @@ typedef struct {
   bool WifiOnAtStart;
   byte blinkenLightsMode;
   byte slaveMode;
-  byte outputOnTime;
   int  backlightGradient;
   byte sw1Mode;
   byte sw2Mode;
