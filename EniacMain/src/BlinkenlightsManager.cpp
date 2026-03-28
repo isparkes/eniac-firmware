@@ -119,6 +119,10 @@ void BlinkenlightsManager_::setBlinkenlightsChase() {
   }
 }
 
+void BlinkenlightsManager_::setBlanked(bool blanked) {
+  _blanked = blanked;
+}
+
 void BlinkenlightsManager_::updateBlinkenlights() {
   switch (cc->blinkenLightsMode) {
     case BLNKN_MODE_STATUS:
@@ -127,6 +131,9 @@ void BlinkenlightsManager_::updateBlinkenlights() {
     case BLNKN_MODE_CHASE:
       setBlinkenlightsChase();
       break;
+  }
+  if (_blanked) {
+    bl->bl1 = bl->bl2 = bl->bl3 = bl->bl4 = bl->bl5 = bl->bl6 = false;
   }
 }
 

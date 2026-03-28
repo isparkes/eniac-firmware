@@ -31,11 +31,13 @@ typedef struct {
   int sensorSmoothCountLDR;
   byte blankHourStart;
   byte blankHourEnd;
-  byte blankModeTubes;    // BlankingAction for nixie tubes
-  byte blankModeLEDs;     // BlankingAction for NeoPixel backlights
-  byte blankModeSepNeon;  // BlankingAction for separator neons (on/off only: DIM=BLANK)
-  byte blankModeSlave;    // BlankingAction for slave module
-  byte blankModeSepTower; // BlankingAction for separator tower NeoPixels
+  byte blankModeNeon;       // BlankingAction (Normal/Dim) shared brightness for all neon outputs
+  bool blankTubes;          // Blank nixie tubes during blanking period
+  bool blankSepNeon;        // Blank separator neons during blanking period
+  bool blankBlinkenLights;  // Blank neon indicators during blanking period
+  byte blankModeLEDs;       // BlankingAction for NeoPixel backlights
+  byte blankModeSlave;      // BlankingAction for slave module
+  byte blankModeSepTower;   // BlankingAction for separator tower NeoPixels
   bool useLDRTube;
   bool useLDRBL;
   bool useLDRSep;

@@ -140,11 +140,13 @@ void resetOptions() {
   cc->hueOffset = 0;
 #endif
 
-  cc->blankModeTubes    = BLANKING_ACTION_BLANK;
-  cc->blankModeLEDs     = BLANKING_ACTION_BLANK;
-  cc->blankModeSepNeon  = BLANKING_ACTION_NORMAL;
-  cc->blankModeSlave    = BLANKING_ACTION_BLANK;
-  cc->blankModeSepTower = BLANKING_ACTION_NORMAL;
+  cc->blankModeNeon      = BLANKING_ACTION_NORMAL;
+  cc->blankTubes         = true;
+  cc->blankSepNeon       = false;
+  cc->blankBlinkenLights = false;
+  cc->blankModeLEDs      = BLANKING_ACTION_BLANK;
+  cc->blankModeSlave     = BLANKING_ACTION_BLANK;
+  cc->blankModeSepTower  = BLANKING_ACTION_NORMAL;
   cc->blankHourStart = 0;
   cc->blankHourEnd = 7;
   cc->sepMode = SEP_BLINK_DEFAULT;
@@ -334,7 +336,10 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
 
   float ldrPercTube = ldrManager.getLDRValueTubePct();
   float ldrPercBL   = ldrManager.getLDRValueBLPct();
-  root["ldrvalue"] = String(ldrPercTube, 2) + "% / " + String(ldrPercBL, 2) + "% (" + String(ldrManager.getRawLDRValue()) + ")";
+  root["ldrvaluet"] = String(ldrPercTube, 2);
+  root["ldrvaluebl"] = String(ldrPercBL, 2);
+  root["ldrvalueraw"] = ldrManager.getRawLDRValue();
+  root["ldrswtichdim"] = ldrManager.getLDRValueSetToMin();
 
   bool pirInstalled = blankingManager.getCurrentPIRInstalled();
   root["mdInstalled"] = pirInstalled;
@@ -347,6 +352,16 @@ void getSummaryDataHandler(AsyncWebServerRequest *request) {
 
   root["status"] = getStatusString();
   root["version"] = SOFTWARE_VERSION;
+
+  root["sw1Mode"] = cc->sw1Mode;
+  root["sw2Mode"] = cc->sw2Mode;
+  #ifdef NORMAL_SWITCHES
+  root["sw1val"] = (digitalRead(Switch1Pin) == LOW)  ? "1" : "0";
+  root["sw2val"] = (digitalRead(Switch2Pin) == LOW)  ? "1" : "0";
+  #else
+  root["sw1val"] = (digitalRead(Switch1Pin) == HIGH) ? "1" : "0";
+  root["sw2val"] = (digitalRead(Switch2Pin) == HIGH) ? "1" : "0";
+  #endif
 
   root.printTo(*response);
 
@@ -604,11 +619,13 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["mdTimeout"] = cc->mdTimeout;
   root["mdBlankMode"] = cc->mdBlankMode;
   root["dayBlanking"] = cc->dayBlanking;
-  root["blankModeTubes"]    = cc->blankModeTubes;
-  root["blankModeLEDs"]     = cc->blankModeLEDs;
-  root["blankModeSepNeon"]  = cc->blankModeSepNeon;
-  root["blankModeSlave"]    = cc->blankModeSlave;
-  root["blankModeSepTower"] = cc->blankModeSepTower;
+  root["blankModeNeon"]      = cc->blankModeNeon;
+  root["blankTubes"]         = cc->blankTubes;
+  root["blankSepNeon"]       = cc->blankSepNeon;
+  root["blankBlinkenLights"] = cc->blankBlinkenLights;
+  root["blankModeLEDs"]      = cc->blankModeLEDs;
+  root["blankModeSlave"]     = cc->blankModeSlave;
+  root["blankModeSepTower"]  = cc->blankModeSepTower;
   root["blankHourStart"] = cc->blankHourStart;
   root["blankHourEnd"] = cc->blankHourEnd;
   root["sepMode"] = cc->sepMode;
@@ -627,6 +644,9 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["blinkenLightsMode"] = cc->blinkenLightsMode;
   #ifdef NIXIE_SLAVE
   root["slaveMode"] = cc->slaveMode;
+  #endif
+  #ifdef DECATRON_SLAVE
+  root["decatronSlave"] = true;
   #endif
   root["WifiOnAtStart"] = cc->WifiOnAtStart;
   root["sw1Mode"] = cc->sw1Mode;
@@ -777,11 +797,13 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateInt (json, "mdTimeout",      &cc->mdTimeout);
     compareAndUpdateByte(json, "mdBlankMode",    &cc->mdBlankMode);
     compareAndUpdateByte(json, "dayBlanking",    &cc->dayBlanking);
-    compareAndUpdateByte(json, "blankModeTubes",    &cc->blankModeTubes);
-    compareAndUpdateByte(json, "blankModeLEDs",     &cc->blankModeLEDs);
-    compareAndUpdateByte(json, "blankModeSepNeon",  &cc->blankModeSepNeon);
-    compareAndUpdateByte(json, "blankModeSlave",    &cc->blankModeSlave);
-    compareAndUpdateByte(json, "blankModeSepTower", &cc->blankModeSepTower);
+    compareAndUpdateByte(json, "blankModeNeon",      &cc->blankModeNeon);
+    compareAndUpdateBool(json, "blankTubes",         &cc->blankTubes);
+    compareAndUpdateBool(json, "blankSepNeon",       &cc->blankSepNeon);
+    compareAndUpdateBool(json, "blankBlinkenLights", &cc->blankBlinkenLights);
+    compareAndUpdateByte(json, "blankModeLEDs",      &cc->blankModeLEDs);
+    compareAndUpdateByte(json, "blankModeSlave",     &cc->blankModeSlave);
+    compareAndUpdateByte(json, "blankModeSepTower",  &cc->blankModeSepTower);
     compareAndUpdateByte(json, "blankHourStart", &cc->blankHourStart);
     compareAndUpdateByte(json, "blankHourEnd",   &cc->blankHourEnd);
     compareAndUpdateByte(json, "sepMode",        &cc->sepMode);

@@ -141,17 +141,20 @@ void BlankingManager_::updateBlankingStatus() {
 
   // Determine the effective action per output
   if (_blanked) {
-    _actionTubes    = static_cast<BlankingAction>(cc->blankModeTubes);
-    _actionLEDs     = static_cast<BlankingAction>(cc->blankModeLEDs);
-    _actionSepNeon  = static_cast<BlankingAction>(cc->blankModeSepNeon);
-    _actionSlave    = static_cast<BlankingAction>(cc->blankModeSlave);
-    _actionSepTower = static_cast<BlankingAction>(cc->blankModeSepTower);
+    BlankingAction neonBrightness = static_cast<BlankingAction>(cc->blankModeNeon);
+    _actionTubes         = cc->blankTubes         ? BLANKING_ACTION_BLANK : neonBrightness;
+    _actionSepNeon       = cc->blankSepNeon       ? BLANKING_ACTION_BLANK : BLANKING_ACTION_NORMAL;
+    _actionBlinkenLights = cc->blankBlinkenLights ? BLANKING_ACTION_BLANK : BLANKING_ACTION_NORMAL;
+    _actionLEDs          = static_cast<BlankingAction>(cc->blankModeLEDs);
+    _actionSlave         = static_cast<BlankingAction>(cc->blankModeSlave);
+    _actionSepTower      = static_cast<BlankingAction>(cc->blankModeSepTower);
   } else {
-    _actionTubes    = BLANKING_ACTION_NORMAL;
-    _actionLEDs     = BLANKING_ACTION_NORMAL;
-    _actionSepNeon  = BLANKING_ACTION_NORMAL;
-    _actionSlave    = BLANKING_ACTION_NORMAL;
-    _actionSepTower = BLANKING_ACTION_NORMAL;
+    _actionTubes         = BLANKING_ACTION_NORMAL;
+    _actionLEDs          = BLANKING_ACTION_NORMAL;
+    _actionSepNeon       = BLANKING_ACTION_NORMAL;
+    _actionSlave         = BLANKING_ACTION_NORMAL;
+    _actionSepTower      = BLANKING_ACTION_NORMAL;
+    _actionBlinkenLights = BLANKING_ACTION_NORMAL;
   }
 
   if (_blankLEDoverride) {
@@ -182,6 +185,11 @@ void BlankingManager_::updateBlankingStatus() {
   if (_actionSepTower != _prevActionSepTower) {
     triggerSepTowerActionChange(_actionSepTower);
     _prevActionSepTower = _actionSepTower;
+  }
+
+  if (_actionBlinkenLights != _prevActionBlinkenLights) {
+    triggerBlinkenLightsActionChange(_actionBlinkenLights);
+    _prevActionBlinkenLights = _actionBlinkenLights;
   }
 }
 
@@ -344,6 +352,13 @@ void BlankingManager_::triggerSlaveActionChange(BlankingAction newAction) {
 void BlankingManager_::triggerSepTowerActionChange(BlankingAction newAction) {
   ledManager.setTowerBlanking(newAction == BLANKING_ACTION_BLANK);
   ledManager.setTowerDimmingStatus(newAction == BLANKING_ACTION_DIM);
+}
+
+// ************************************************************
+// Send blanking triggers to blinkenlights (on/off only: DIM=BLANK)
+// ************************************************************
+void BlankingManager_::triggerBlinkenLightsActionChange(BlankingAction newAction) {
+  blinkenlightsManager.setBlanked(newAction != BLANKING_ACTION_NORMAL);
 }
 
 BlankingManager_ &BlankingManager_::getInstance() {

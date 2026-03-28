@@ -80,17 +80,19 @@ class BlankingManager_ {
 
     bool _blankLEDoverride = false;
 
-    BlankingAction _actionTubes    = BLANKING_ACTION_NORMAL;
-    BlankingAction _actionLEDs     = BLANKING_ACTION_NORMAL;
-    BlankingAction _actionSepNeon  = BLANKING_ACTION_NORMAL;
-    BlankingAction _actionSlave    = BLANKING_ACTION_NORMAL;
-    BlankingAction _actionSepTower = BLANKING_ACTION_NORMAL;
+    BlankingAction _actionTubes          = BLANKING_ACTION_NORMAL;
+    BlankingAction _actionLEDs           = BLANKING_ACTION_NORMAL;
+    BlankingAction _actionSepNeon        = BLANKING_ACTION_NORMAL;
+    BlankingAction _actionSlave          = BLANKING_ACTION_NORMAL;
+    BlankingAction _actionSepTower       = BLANKING_ACTION_NORMAL;
+    BlankingAction _actionBlinkenLights  = BLANKING_ACTION_NORMAL;
 
-    BlankingAction _prevActionTubes    = BLANKING_ACTION_NORMAL;
-    BlankingAction _prevActionLEDs     = BLANKING_ACTION_NORMAL;
-    BlankingAction _prevActionSepNeon  = BLANKING_ACTION_NORMAL;
-    BlankingAction _prevActionSlave    = BLANKING_ACTION_NORMAL;
-    BlankingAction _prevActionSepTower = BLANKING_ACTION_NORMAL;
+    BlankingAction _prevActionTubes          = BLANKING_ACTION_NORMAL;
+    BlankingAction _prevActionLEDs           = BLANKING_ACTION_NORMAL;
+    BlankingAction _prevActionSepNeon        = BLANKING_ACTION_NORMAL;
+    BlankingAction _prevActionSlave          = BLANKING_ACTION_NORMAL;
+    BlankingAction _prevActionSepTower       = BLANKING_ACTION_NORMAL;
+    BlankingAction _prevActionBlinkenLights  = BLANKING_ACTION_NORMAL;
 
     bool checkPIR();
     bool checkTimeBasedBlanking(byte currentWeekday, byte currentHour);
@@ -101,6 +103,7 @@ class BlankingManager_ {
     void triggerSepNeonActionChange(BlankingAction newAction);
     void triggerSlaveActionChange(BlankingAction newAction);
     void triggerSepTowerActionChange(BlankingAction newAction);
+    void triggerBlinkenLightsActionChange(BlankingAction newAction);
 };
 
 extern BlankingManager_ &blankingManager;

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-        <script src="http://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ=" crossorigin="anonymous"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <script src="js/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
         <link href="css/clock-custom.css" rel="stylesheet">
         <title>Nixie Clock</title>
     </head>
@@ -105,6 +105,14 @@
                             <td id="mdLastSeen"></td>
                         </tr>
                         <tr>
+                            <td>Switch 1</td>
+                            <td id="sw1"></td>
+                        </tr>
+                        <tr>
+                            <td>Switch 2</td>
+                            <td id="sw2"></td>
+                        </tr>
+                        <tr>
                             <td>Version</td>
                             <td id="version"></td>
                         </tr>
@@ -180,9 +188,15 @@
             } else {
                 $("#lastgpstime").text("No GPS Receiver installed");
             }
+            $("#sw1").text(decodeSwitchMeaning(summary.sw1Mode, summary.sw1val));
+            $("#sw2").text(decodeSwitchMeaning(summary.sw2Mode, summary.sw2val));
             $("#status").text(summary.status);
             $("#version").text(summary.version);
-            $("#ldrvalue").text(summary.ldrvalue);
+            let ldrText = 'Tubes: ' + summary.ldrvaluet + '%' + ' / Backlights: ' + summary.ldrvaluebl + ' (' + summary.ldrvalueraw + ')';
+            if (summary.ldrswtichdim) {
+                ldrText += ' / Dimmed by switch';
+            }
+            $("#ldrvalue").text(ldrText);
             if (summary.mdInstalled) {
                 if (summary.blankingReason != 'Not blanked') {
                     $("#mdLastSeen").text(summary.mdLastSeen  + ' ago (' + summary.blankingReason + ')');
@@ -195,6 +209,17 @@
         })
         .then(() => removeLoader());
     };
+
+    function decodeSwitchMeaning(switchValue, currentValue) {
+        var valString = ' (OFF)';
+        if (currentValue == '1') valString = ' (ON)';
+        if (switchValue == 0)      return 'Off';
+        else if (switchValue == 1) return 'Inhibit slave' + valString;
+        else if (switchValue == 2) return 'Dim clock' + valString;
+        else if (switchValue == 3) return 'Disable backlights' + valString;
+        else if (switchValue == 4) return 'Inhibit countdown' + valString;
+        return 'Unknown';
+    }
 
     $('body').append('<div style="" id="loadingDiv"><div class="loader">Loading...</div></div>');
 

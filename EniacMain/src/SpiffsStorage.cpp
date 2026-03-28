@@ -125,24 +125,42 @@ bool SpiffsStorage_::getConfigFromSpiffs()
         cc->bluCnl = json["bluCnl"];
         debugMsgSpfX("Loaded bluCnl: " + String(cc->bluCnl));
 
-        if (json.containsKey("blankModeTubes")) {
-          cc->blankModeTubes    = json["blankModeTubes"];
-          cc->blankModeLEDs     = json["blankModeLEDs"];
-          cc->blankModeSepNeon  = json["blankModeSepNeon"];
-          cc->blankModeSlave    = json["blankModeSlave"];
-          cc->blankModeSepTower = json["blankModeSepTower"];
+        if (json.containsKey("blankModeNeon")) {
+          cc->blankModeNeon      = json["blankModeNeon"];
+          cc->blankTubes         = json["blankTubes"];
+          cc->blankSepNeon       = json["blankSepNeon"];
+          cc->blankBlinkenLights = json["blankBlinkenLights"];
+          cc->blankModeLEDs      = json["blankModeLEDs"];
+          cc->blankModeSlave     = json["blankModeSlave"];
+          cc->blankModeSepTower  = json["blankModeSepTower"];
           debugMsgSpfX("Loaded blankMode fields");
+        } else if (json.containsKey("blankModeTubes")) {
+          // Migrate from per-element blankMode encoding
+          byte oldTubes  = json["blankModeTubes"];
+          byte oldSep    = json["blankModeSepNeon"];
+          byte oldBl     = json.containsKey("blankModeBlinkenLights") ? (byte)json["blankModeBlinkenLights"] : 0;
+          byte neonBr    = (oldTubes < 2) ? oldTubes : (oldSep < 2) ? oldSep : (oldBl < 2) ? oldBl : 0;
+          cc->blankModeNeon      = neonBr;
+          cc->blankTubes         = (oldTubes == BLANKING_ACTION_BLANK);
+          cc->blankSepNeon       = (oldSep   == BLANKING_ACTION_BLANK);
+          cc->blankBlinkenLights = (oldBl    == BLANKING_ACTION_BLANK);
+          cc->blankModeLEDs      = json["blankModeLEDs"];
+          cc->blankModeSlave     = json["blankModeSlave"];
+          cc->blankModeSepTower  = json["blankModeSepTower"];
+          debugMsgSpfX("Migrated per-element blankMode fields");
         } else {
-          // Migrate from old blankMode field
-          byte oldMode = json.containsKey("blankMode") ? (byte)json["blankMode"] : 2; // default TUBES_LEDS
-          bool blankTubes = (oldMode == 0 || oldMode == 2 || oldMode == 3);
-          bool blankLEDs  = (oldMode == 1 || oldMode == 2 || oldMode == 3);
-          bool blankAll   = (oldMode == 3);
-          cc->blankModeTubes    = blankTubes ? BLANKING_ACTION_BLANK : BLANKING_ACTION_NORMAL;
-          cc->blankModeLEDs     = blankLEDs  ? BLANKING_ACTION_BLANK : BLANKING_ACTION_NORMAL;
-          cc->blankModeSepNeon  = blankAll   ? BLANKING_ACTION_BLANK : BLANKING_ACTION_NORMAL;
-          cc->blankModeSlave    = blankTubes ? BLANKING_ACTION_BLANK : BLANKING_ACTION_NORMAL;
-          cc->blankModeSepTower = blankAll   ? BLANKING_ACTION_BLANK : BLANKING_ACTION_NORMAL;
+          // Migrate from original single blankMode field
+          byte oldMode = json.containsKey("blankMode") ? (byte)json["blankMode"] : 2;
+          bool blkTubes = (oldMode == 0 || oldMode == 2 || oldMode == 3);
+          bool blkLEDs  = (oldMode == 1 || oldMode == 2 || oldMode == 3);
+          bool blkAll   = (oldMode == 3);
+          cc->blankModeNeon      = BLANKING_ACTION_NORMAL;
+          cc->blankTubes         = blkTubes;
+          cc->blankSepNeon       = blkAll;
+          cc->blankBlinkenLights = false;
+          cc->blankModeLEDs      = blkLEDs  ? BLANKING_ACTION_BLANK : BLANKING_ACTION_NORMAL;
+          cc->blankModeSlave     = blkTubes ? BLANKING_ACTION_BLANK : BLANKING_ACTION_NORMAL;
+          cc->blankModeSepTower  = blkAll   ? BLANKING_ACTION_BLANK : BLANKING_ACTION_NORMAL;
           debugMsgSpfX("Migrated blankMode: " + String(oldMode));
         }
 
@@ -309,11 +327,13 @@ void SpiffsStorage_::saveConfigToSpiffs()
   json["redCnl"] = cc->redCnl;
   json["grnCnl"] = cc->grnCnl;
   json["bluCnl"] = cc->bluCnl;
-  json["blankModeTubes"]    = cc->blankModeTubes;
-  json["blankModeLEDs"]     = cc->blankModeLEDs;
-  json["blankModeSepNeon"]  = cc->blankModeSepNeon;
-  json["blankModeSlave"]    = cc->blankModeSlave;
-  json["blankModeSepTower"] = cc->blankModeSepTower;
+  json["blankModeNeon"]      = cc->blankModeNeon;
+  json["blankTubes"]         = cc->blankTubes;
+  json["blankSepNeon"]       = cc->blankSepNeon;
+  json["blankBlinkenLights"] = cc->blankBlinkenLights;
+  json["blankModeLEDs"]      = cc->blankModeLEDs;
+  json["blankModeSlave"]     = cc->blankModeSlave;
+  json["blankModeSepTower"]  = cc->blankModeSepTower;
   json["blankHourStart"] = cc->blankHourStart;
   json["blankHourEnd"] = cc->blankHourEnd;
   json["cycleSpeed"] = cc->cycleSpeed;

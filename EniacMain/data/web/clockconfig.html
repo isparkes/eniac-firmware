@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-        <script src="http://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ=" crossorigin="anonymous"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <script src="js/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
         <link href="css/clock-custom.css" rel="stylesheet">
         <title>Nixie Clock</title>
     </head>
@@ -410,20 +410,35 @@
                     <label class="control-label col-xs-3">Output blanking:</label>
                     <div class="col-xs-9">
                         <table class="table table-condensed table-bordered" style="margin-bottom:0">
-                            <thead><tr><th>Output</th><th>Behaviour during blanking period</th></tr></thead>
+                            <thead><tr><th style="width:40%">Output</th><th>Behaviour during blanking period</th></tr></thead>
                             <tbody>
-                                <tr>
-                                    <td style="vertical-align:middle;width:40%">Tubes</td>
-                                    <td>
-                                        <select class="form-control input-sm" name="blankModeTubes" id="blankModeTubes">
+                                <tr class="active">
+                                    <td style="vertical-align:middle"><strong>Neons</strong></td>
+                                    <td style="vertical-align:middle">
+                                        Brightness:&nbsp;
+                                        <select class="form-control input-sm" id="neonBrightness" style="display:inline-block;width:auto">
                                             <option value="0">Normal</option>
                                             <option value="1">Dim</option>
-                                            <option value="2" selected>Blank</option>
                                         </select>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style="vertical-align:middle">LEDs</td>
+                                    <td style="vertical-align:middle;padding-left:26px">Tubes</td>
+                                    <td style="vertical-align:middle"><label class="checkbox-inline" style="font-weight:normal"><input type="checkbox" id="neonBlankTubes">&nbsp;Blank during blanking period</label></td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align:middle;padding-left:26px">Separator neons</td>
+                                    <td style="vertical-align:middle"><label class="checkbox-inline" style="font-weight:normal"><input type="checkbox" id="neonBlankSepNeon">&nbsp;Blank during blanking period</label></td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align:middle;padding-left:26px">Neon indicators</td>
+                                    <td style="vertical-align:middle"><label class="checkbox-inline" style="font-weight:normal"><input type="checkbox" id="neonBlankBlinkenLights">&nbsp;Blank during blanking period</label></td>
+                                </tr>
+                                <tr class="active">
+                                    <td colspan="2"><strong>LEDs</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align:middle;padding-left:26px">Backlights</td>
                                     <td>
                                         <select class="form-control input-sm" name="blankModeLEDs" id="blankModeLEDs">
                                             <option value="0">Normal</option>
@@ -433,32 +448,25 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style="vertical-align:middle">Separator neons</td>
-                                    <td>
-                                        <select class="form-control input-sm" name="blankModeSepNeon" id="blankModeSepNeon">
-                                            <option value="0" selected>Normal</option>
-                                            <option value="1">Dim</option>
-                                            <option value="2">Blank</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="vertical-align:middle">Slave display</td>
-                                    <td>
-                                        <select class="form-control input-sm" name="blankModeSlave" id="blankModeSlave">
-                                            <option value="0">Normal</option>
-                                            <option value="1">Dim</option>
-                                            <option value="2" selected>Blank</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="vertical-align:middle">Separator tower LEDs</td>
+                                    <td style="vertical-align:middle;padding-left:26px">Separator tower LEDs</td>
                                     <td>
                                         <select class="form-control input-sm" name="blankModeSepTower" id="blankModeSepTower">
                                             <option value="0" selected>Normal</option>
                                             <option value="1">Dim</option>
                                             <option value="2">Blank</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr class="active">
+                                    <td colspan="2"><strong>Slave display</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align:middle;padding-left:26px">Slave</td>
+                                    <td>
+                                        <select class="form-control input-sm" name="blankModeSlave" id="blankModeSlave">
+                                            <option value="0">Normal</option>
+                                            <option value="1">Dim</option>
+                                            <option value="2" selected>Blank</option>
                                         </select>
                                     </td>
                                 </tr>
@@ -727,9 +735,11 @@
         $("#mdTimeout").val(config.mdTimeout);
         $("#mdBlankMode").val(config.mdBlankMode);
         $("#dayBlanking").val(config.dayBlanking);
-        $("#blankModeTubes").val(config.blankModeTubes);
+        $("#neonBrightness").val(config.blankModeNeon);
+        $("#neonBlankTubes").prop('checked', config.blankTubes);
+        $("#neonBlankSepNeon").prop('checked', config.blankSepNeon);
+        $("#neonBlankBlinkenLights").prop('checked', config.blankBlinkenLights);
         $("#blankModeLEDs").val(config.blankModeLEDs);
-        $("#blankModeSepNeon").val(config.blankModeSepNeon);
         $("#blankModeSlave").val(config.blankModeSlave);
         $("#blankModeSepTower").val(config.blankModeSepTower);
         $("#blankHourStart").val(config.blankHourStart);
@@ -763,6 +773,13 @@
         if (typeof config.slaveMode !== 'undefined') {
             $("#slaveModeContainer").prop('hidden', false);
             $("#slaveMode").val(config.slaveMode);
+        }
+
+        if (config.decatronSlave) {
+            $("#blankModeSlave option[value='1']").remove();
+            if ($("#blankModeSlave").val() === null) {
+                $("#blankModeSlave").val('0');
+            }
         }
 
         // -- Triggers for dependent settings --
@@ -866,7 +883,7 @@
             postBody["minBLDim"] = $("#minBLDim").val();
         }
 
-        if (localConfig.setTubeDim!=$("#setBLDim").val()) {
+        if (localConfig.setBLDim!=$("#setBLDim").val()) {
             postBody["setBLDim"] = $("#setBLDim").val();
         }
 
@@ -895,16 +912,13 @@
             postBody["dayBlanking"] = $("#dayBlanking").val();
         }
 
-        if (localConfig.blankModeTubes!=$("#blankModeTubes").val()) {
-            postBody["blankModeTubes"] = $("#blankModeTubes").val();
-        }
+        if (localConfig.blankModeNeon      != $("#neonBrightness").val())               postBody["blankModeNeon"]      = parseInt($("#neonBrightness").val());
+        if (localConfig.blankTubes         != $("#neonBlankTubes").prop('checked'))     postBody["blankTubes"]         = $("#neonBlankTubes").prop('checked');
+        if (localConfig.blankSepNeon       != $("#neonBlankSepNeon").prop('checked'))   postBody["blankSepNeon"]       = $("#neonBlankSepNeon").prop('checked');
+        if (localConfig.blankBlinkenLights != $("#neonBlankBlinkenLights").prop('checked')) postBody["blankBlinkenLights"] = $("#neonBlankBlinkenLights").prop('checked');
 
         if (localConfig.blankModeLEDs!=$("#blankModeLEDs").val()) {
             postBody["blankModeLEDs"] = $("#blankModeLEDs").val();
-        }
-
-        if (localConfig.blankModeSepNeon!=$("#blankModeSepNeon").val()) {
-            postBody["blankModeSepNeon"] = $("#blankModeSepNeon").val();
         }
 
         if (localConfig.blankModeSlave!=$("#blankModeSlave").val()) {

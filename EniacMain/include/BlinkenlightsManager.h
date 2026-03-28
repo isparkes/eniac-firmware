@@ -45,9 +45,11 @@ class BlinkenlightsManager_ {
     byte getNextBlinkenlightsMode();
     String getNextBlinkenlightsModeName();
     blinkenlights_t* getBlinkenlights();
+    void setBlanked(bool blanked);
   private:
     blinkenlights_t blinkenLights;
     blinkenlights_t *bl = &blinkenLights;
+    bool _blanked = false;
     void setBlinkenlightsChase();
     void setBlinkenlightsStatus();
     bool getBlinkenlightStatusValue(int blValue);

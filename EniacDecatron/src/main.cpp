@@ -12,13 +12,29 @@
 //**********************************************************************************
 //**********************************************************************************
 
-#include <TimeLib.h>            // http://playground.arduino.cc/code/time (Margolis 1.5.0) // https://github.com/michaelmargolis/arduino_time
-
 #include "defs.h"
 #include "DebugManager.h"
 
 #define DEBUG     true
 #define DEBUG_OFF false
+
+// --------------------------------- Protocol ------------------------------------
+// Serial communication once per second (UART0, 115200 baud)
+//   Byte 0: Start byte (0xAA)
+//   Byte 1: Hours   (0-23)
+//   Byte 2: Minutes (0-59)
+//   Byte 3: Seconds (0-59)
+//   Byte 4: Control
+//     Bit 0:   Blanked (1 = display is blanked)
+//     Bits 1-4: Primary display mode (cc->pMode)
+// -------------------------------------------------------------------------------
+
+#define SERIAL_START_BYTE             0xAA
+#define SERIAL_PACKET_SIZE            4
+
+// Control byte bit masks
+#define DECATRON_CTRL_BLANKED         0x01  // Bit 0: display is blanked
+#define DECATRON_CTRL_MODE_SHIFT      1     // Bits 1-4: primary display mode
 
 // ------------------ Decatron Control ----------------
 
@@ -36,36 +52,35 @@ int indexMark2 = -1;
 int tdc2 = 0;
 int expPos2 = 0;
 
-int millisInSecond = 0;
+byte receivedHour = 0;
+byte receivedMinute = 0;
+byte receivedSecond = 0;
+byte receivedControl = 0;
+bool receivedData = false;
 
 // ------------- Time management variables -------------
 
 volatile unsigned long nowMillis = 0;
-unsigned long lastCheckMillis = 0;
-unsigned long lastSecMillis = nowMillis;
-unsigned long hundredthsMillis = 0;
-int lastSecond = second();
-boolean secondsChanged = false;
-boolean triggeredThisSec = false;
+unsigned long lastSecMillis = 0;
 
- // --------------------- Blanking ----------------------
+// --------------------- Blanking ----------------------
 
 boolean blanked = false;
 
-// --------------------- Protocol ----------------------
+// --------------------- I2C Received Data ----------------------
 
-volatile unsigned long lastInterrupt = 0;
-volatile unsigned long lastHigh = 0;
-volatile unsigned long lastLow = 0;
-volatile unsigned long pulseLength = 0;
-volatile bool shortPulseWasTriggered = false;
-volatile bool longPulseWasTriggered = false;
+volatile uint8_t rxHour    = 0;
+volatile uint8_t rxMinute  = 0;
+volatile uint8_t rxSecond  = 0;
+volatile uint8_t rxControl = 0;
+volatile uint8_t rxMode    = 0;  // extracted from control bits 1-4
+volatile bool    i2cDataReceived = false;
+volatile unsigned long lastI2CMillis = 0;
 
 // --------------------- Misc ----------------------
 
 bool debugVal = DEBUG;
-
-const int interruptPin = RX; // GPIO3
+bool lastBlanked = false;
 
 // -------------------------------------------------
 
@@ -227,6 +242,7 @@ void G2StepForwards() {
 // Find the index mark
 // ************************************************************
 void findIndexMarks() {
+  debugManager.debugMsg("findIndexMarks: searching...");
   indexMark1 = -1;
   indexMark2 = -1;
 
@@ -292,6 +308,7 @@ void findIndexMarks() {
   tdc2 = currentPos2;
   expPos1 = currentPos1;
   expPos2 = currentPos2;
+  debugManager.debugMsg("findIndexMarks: done, tdc1=" + String(tdc1) + " tdc2=" + String(tdc2));
 }
 
 // ************************************************************
@@ -343,10 +360,13 @@ void align2toTDC() {
 // Called once per second
 // ************************************************************
 void performOncePerSecondProcessing() {
-//  debugManager.debugMsg("Last interrupt: " + String(lastInterrupt) + ", now: " + String(nowMillis));
-  debugManager.debugMsg("pos: " + String(currentPos1) + "/" + String(currentPos2) + " tdc: " + String(tdc1) + "/" + String(tdc2));
-//  debugManager.debugMsg("tdc1: " + String(tdc1) + ", tdc2: " + String(tdc2));
-//  debugManager.debugMsg("idx1: " + String(indexMark1) + ", idx2: " + String(indexMark2));
+  debugManager.debugMsg(
+    "time=" + String(rxHour) + ":" + String(rxMinute) + ":" + String(rxSecond) +
+    " mode=" + String(rxMode) +
+    " pos=" + String(currentPos1) + "/" + String(currentPos2) +
+    " exp=" + String(expPos1) + "/" + String(expPos2) +
+    " tdc=" + String(tdc1) + "/" + String(tdc2)
+  );
 }
 
 // ************************************************************
@@ -377,34 +397,37 @@ void debugMsgLocal(String message) {
   debugManager.debugMsg(message);
 }
 
-// ----------------------------------------------------------------------------------------------------
-// --------------------------------------- Fast spinner animation -------------------------------------
-// ----------------------------------------------------------------------------------------------------
-void fastAnimationSpinner() {
-  // Spin the fast one
-  G2StepForwards();
-}
-
 // ************************************************************
-// Interrupt handler: Read both edges of the interrupt pulse
-// and measure the pulse length. Set the "long or short pulse
-// triggerd" flag (consumer resets) and note the leading edge
-// time for blanking purposes.
+// Read incoming serial data
+// Protocol: 0xAA, Hours, Minutes, Seconds, Control
+//   Control bit 0: blanked
+//   Control bits 1-4: primary display mode
 // ************************************************************
-void IRAM_ATTR handleInterrupt() {
-  lastInterrupt = nowMillis;
+void readSerial() {
+  static uint8_t buf[SERIAL_PACKET_SIZE];
+  static int bufPos = 0;
+  static bool inPacket = false;
 
-  bool pinState = digitalRead(interruptPin);
+  while (Serial.available()) {
+    uint8_t b = Serial.read();
 
-  if (pinState) {
-    lastHigh = nowMillis;
-  } else {
-    lastLow = nowMillis;
-    pulseLength = lastLow - lastHigh;
-    if (pulseLength < 90) {
-      shortPulseWasTriggered = true;  
+    if (!inPacket) {
+      if (b == SERIAL_START_BYTE) {
+        inPacket = true;
+        bufPos = 0;
+      }
     } else {
-      longPulseWasTriggered = true;
+      buf[bufPos++] = b;
+      if (bufPos == SERIAL_PACKET_SIZE) {
+        rxHour    = buf[0];
+        rxMinute  = buf[1];
+        rxSecond  = buf[2];
+        rxControl = buf[3];
+        rxMode    = (rxControl >> DECATRON_CTRL_MODE_SHIFT) & 0x0F;
+        i2cDataReceived = true;
+        inPacket = false;
+        bufPos = 0;
+      }
     }
   }
 }
@@ -413,8 +436,6 @@ void IRAM_ATTR handleInterrupt() {
 // ----------------------------------------------  Set up  --------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 void setup() {
-  debugManager.setUp(debugVal);
-
   pinMode(Guide1_1, OUTPUT);
   pinMode(Guide2_1, OUTPUT);
   pinMode(Index1, INPUT);
@@ -425,10 +446,13 @@ void setup() {
 
   pinMode(HVEnable, OUTPUT);
 
+  Serial.begin(115200);
+  debugManager.setUp(debugVal);
+
   debugManager.debugMsg("Started");
 
-  // initialise the internal time (in case we don't find the time provider)
   nowMillis = millis();
+  lastSecMillis = nowMillis;
 
   enableHV();
 
@@ -438,10 +462,9 @@ void setup() {
   // Show us the index marks!!
   delay(1000);
 
-  debugManager.debugMsg("Start interrupt handler");
+  debugManager.debugMsg("Start Serial");
 
-  pinMode(interruptPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(interruptPin), handleInterrupt, CHANGE);  
+  lastI2CMillis = millis(); // prevent immediate blanking on startup
 
   debugManager.debugMsg("Startup done");
 }
@@ -452,60 +475,48 @@ void setup() {
 void loop() {
   nowMillis = millis();
 
-  // -------------------------------------------------------------------------------
+  // ------------------- Read incoming serial data -----------------------
+  readSerial();
 
-  if (lastSecond != second()) {
-    lastSecond = second();
+  // ------------------- Once-per-second debug logging -------------------
+
+  if (nowMillis - lastSecMillis >= 1000) {
     lastSecMillis = nowMillis;
-    secondsChanged = true;
     performOncePerSecondProcessing();
-
-    if ((second() == 0) && (!triggeredThisSec)) {
-      if ((minute() == 0)) {
-        if (hour() == 0) {
-          performOncePerDayProcessing();
-        }
-        performOncePerHourProcessing();
-      }
-      performOncePerMinuteProcessing();
-    }
-
-    // Make sure we don't call multiple times
-    triggeredThisSec = true;
-
-    if ((second() > 0) && triggeredThisSec) {
-      triggeredThisSec = false;
-    }
   }
 
-  // How far we are through the second - may be used in animations
-  // But maybe not...
-  millisInSecond = nowMillis - lastSecMillis;
+  // ------------------- Blanking ----------------------------------------
+  // Blank if the master says to, or if we haven't heard from it in 5s
 
-  // Manage the state based on the interrupt readings
-  // If we last received a pulse more than a second ago, then blank
-  blanked = ((nowMillis - lastInterrupt) > 5000);
+  blanked = (rxControl & DECATRON_CTRL_BLANKED) || ((nowMillis - lastI2CMillis) > 5000);
+
+  if (blanked != lastBlanked) {
+    debugManager.debugMsg(blanked ? "Blanked" : "Unblanked");
+    lastBlanked = blanked;
+  }
 
   if (blanked) {
     disableHV();
   } else {
     if (enableHV()) {
+      // HV was just re-enabled — re-home the decatrons
       findIndexMarks();
       align1toTDC();
       align2toTDC();
-      handleInterrupt();
     }
   }
 
-  if (shortPulseWasTriggered) {
-    decExpPos1();
-    shortPulseWasTriggered = false;
-  }
+  // ------------------- Handle received serial data ---------------------
+  // Mode 0: Dec1 = minutes/2 (0-29), Dec2 = seconds/2 (0-29)
 
-  if (longPulseWasTriggered) {
-    align1toTDC();
-    decExpPos2();
-    longPulseWasTriggered = false;
+  if (i2cDataReceived) {
+    lastI2CMillis = nowMillis;
+    expPos1 = (tdc1 + rxMinute / 2) % 30;
+    expPos2 = (tdc2 + rxSecond / 2) % 30;
+    debugManager.debugMsg("RX: " + String(rxHour) + ":" + String(rxMinute) + ":" + String(rxSecond) +
+      " mode=" + String(rxMode) + " blanked=" + String(rxControl & DECATRON_CTRL_BLANKED) +
+      " -> expPos1=" + String(expPos1) + " expPos2=" + String(expPos2));
+    i2cDataReceived = false;
   }
 
   align1toExpPos();
