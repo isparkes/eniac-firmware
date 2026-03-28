@@ -1,12 +1,13 @@
 #pragma once
 
 #include <Arduino.h>
-#include <Wire.h>
+#include <HardwareSerial.h>
 #include "Globals.h"
 #include "BlankingManager.h"
 
 // --------------------------------- Protocol ------------------------------------
-// I2C communication once per second
+// Serial communication once per second (UART2, 115200 baud, TX on GPIO0)
+//   Byte 0: Start byte (0xAA)
 //   Byte 1: Hours   (0-23)
 //   Byte 2: Minutes (0-59)
 //   Byte 3: Seconds (0-59)
@@ -15,7 +16,8 @@
 //     Bits 1-4: Primary display mode (cc->pMode)
 // -------------------------------------------------------------------------------
 
-#define DECATRON_SLAVE_I2C_ADDRESS    106
+#define DECATRON_SERIAL_TX_PIN        0     // GPIO0 (D0)
+#define DECATRON_SERIAL_BAUD          115200
 
 #define MAX_DECATRON_SLAVE_FAIL_COUNT 20
 
@@ -45,7 +47,7 @@ class SlaveManagerDecatron_ {
     bool _slaveEnabled = true;
     unsigned int _slaveTryCount = 0;
     unsigned int _slaveFailCount = 0;
-    void sendUpdateToSlaveI2C();
+    void sendUpdateToSlaveSerial();
 };
 
 extern SlaveManagerDecatron_ &slaveManagerDecatron;

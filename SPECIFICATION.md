@@ -102,12 +102,15 @@ The CPU runs at 160 MHz. Each Decatron has 10 cathodes × 3 guide phases = 30 st
 
 ---
 
-## I2C Protocol (EniacMain → EniacDecatron)
+## Serial Protocol (EniacMain → EniacDecatron)
 
-Transmitted once per second. 4 bytes:
+Transmitted once per second over UART2 (ESP32) → UART0 (D1 Mini). Baud rate 115200 8N1. TX on ESP32 GPIO0 (D0), RX on D1 Mini `RX` pin.
 
-| Byte | Content         | Range  |
+5-byte packet:
+
+| Byte | Content         | Value  |
 |------|-----------------|--------|
+| 0    | Start byte      | 0xAA   |
 | 1    | Hours           | 0–23   |
 | 2    | Minutes         | 0–59   |
 | 3    | Seconds         | 0–59   |
@@ -120,7 +123,7 @@ Control byte bit fields:
 | 0    | 0x01  | Blanked (1 = display is blanked)   |
 | 1–4  | 0x1E  | Primary display mode (`cc->pMode`) |
 
-If no I2C packet is received for >5 seconds, the Decatron slave self-blanks and disables the HV generator.
+If no packet is received for >5 seconds, the Decatron slave self-blanks and disables the HV generator.
 
 ---
 

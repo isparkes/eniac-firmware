@@ -4,6 +4,7 @@
 // Initialise
 // ************************************************************
 void SlaveManagerDecatron_::begin() {
+  Serial2.begin(DECATRON_SERIAL_BAUD, SERIAL_8N1, -1, DECATRON_SERIAL_TX_PIN);
 }
 
 // ************************************************************
@@ -14,14 +15,14 @@ void SlaveManagerDecatron_::setSlaveEnabled(bool newSlaveStatus) {
 }
 
 // ************************************************************
-// Slave I2C attempts to date
+// Slave serial transmit attempts to date
 // ************************************************************
 unsigned int SlaveManagerDecatron_::getTryCount() {
   return _slaveTryCount;
 }
 
 // ************************************************************
-// Slave I2C attempts that failed to date
+// Slave serial transmit attempts that failed to date
 // ************************************************************
 unsigned int SlaveManagerDecatron_::getFailCount() {
   return _slaveFailCount;
@@ -32,7 +33,7 @@ unsigned int SlaveManagerDecatron_::getFailCount() {
 // ************************************************************
 void SlaveManagerDecatron_::updateOncePerSecond() {
   if (_slaveEnabled) {
-    sendUpdateToSlaveI2C();
+    sendUpdateToSlaveSerial();
   }
 }
 
@@ -44,9 +45,9 @@ void SlaveManagerDecatron_::updateOncePerMinute() {
 }
 
 // ************************************************************
-// Send time and control data to the Decatron slave over I2C
+// Send time and control data to the Decatron slave over serial
 // ************************************************************
-void SlaveManagerDecatron_::sendUpdateToSlaveI2C() {
+void SlaveManagerDecatron_::sendUpdateToSlaveSerial() {
   byte control = 0;
   // DIM maps to blanked for decatron (protocol has no partial brightness)
   if (blankingManager.getSlaveAction() != BLANKING_ACTION_NORMAL) {
@@ -56,19 +57,13 @@ void SlaveManagerDecatron_::sendUpdateToSlaveI2C() {
 
   _slaveTryCount++;
 
-  Wire.beginTransmission(DECATRON_SLAVE_I2C_ADDRESS);
-  Wire.write((uint8_t)hour());
-  Wire.write((uint8_t)minute());
-  Wire.write((uint8_t)second());
-  Wire.write((uint8_t)control);
-  byte error = Wire.endTransmission();
+  Serial2.write((uint8_t)0xAA);
+  Serial2.write((uint8_t)hour());
+  Serial2.write((uint8_t)minute());
+  Serial2.write((uint8_t)second());
+  Serial2.write((uint8_t)control);
 
-  if (error == 0) {
-    debugMsgSlv("Sent Decatron slave update");
-  } else {
-    debugMsgSlv("Failed Decatron slave update: " + String(error));
-    _slaveFailCount++;
-  }
+  debugMsgSlv("Sent Decatron slave update");
 }
 
 // ************************************************************

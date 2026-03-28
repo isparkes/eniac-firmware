@@ -243,15 +243,18 @@ void G2StepForwards() {
 // ************************************************************
 void findIndexMarks() {
   debugManager.debugMsg("findIndexMarks: searching...");
+  int stepsDone = 0;
+  bool found1, found2, found3, found4 = false;
   indexMark1 = -1;
   indexMark2 = -1;
 
-  while ((indexMark1 < 0) | (indexMark2 < 0)) {
+  while (((indexMark1 < 0) | (indexMark2 < 0)) && (stepsDone < 100)) {
     if(indexMark1 < 0) {
       G1StepForwards();
       delay(10);
       if (digitalRead(Index1) == LOW) {
         indexMark1 = 0;
+        found1 = true;
       }
     }
 
@@ -260,14 +263,18 @@ void findIndexMarks() {
       delay(10);
       if (digitalRead(Index2) == LOW) {
         indexMark2 = 0;
+        found2 = true;
       }
     }
+
+    stepsDone++;
   }
 
   indexMark1 = -1;
   indexMark2 = -1;
+  stepsDone = 0;
 
-  while ((indexMark1 < 0) | (indexMark2 < 0)) {
+  while (((indexMark1 < 0) | (indexMark2 < 0)) && (stepsDone < 100)) {
     if(indexMark1 < 0) {
       G1StepBackwards();
       delay(10);
@@ -275,6 +282,7 @@ void findIndexMarks() {
         digitStep1 = 0;
         phaseStep1 = 0;
         indexMark1 = 0;
+        found3 = true;
       }
     }
 
@@ -285,8 +293,11 @@ void findIndexMarks() {
         digitStep2 = 0;
         phaseStep2 = 0;
         indexMark2 = 0;
+        found4 = true;
       }
     }
+
+    stepsDone++;
   }
 
   G1StepForwards();
@@ -308,7 +319,15 @@ void findIndexMarks() {
   tdc2 = currentPos2;
   expPos1 = currentPos1;
   expPos2 = currentPos2;
-  debugManager.debugMsg("findIndexMarks: done, tdc1=" + String(tdc1) + " tdc2=" + String(tdc2));
+
+  boolean foundAll = (found1 && found2) && (found3 && found4);
+
+  if (!foundAll) {
+    debugManager.debugMsg("findIndexMarks: WARNING - not all index marks found! found1=" + String(found1) + " found2=" + String(found2) + " found3=" + String(found3) + " found4=" + String(found4));
+  } else {
+    debugManager.debugMsg("findIndexMarks: all index marks found successfully");
+    debugManager.debugMsg("findIndexMarks: done, tdc1=" + String(tdc1) + " tdc2=" + String(tdc2));
+  }
 }
 
 // ************************************************************
