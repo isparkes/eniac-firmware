@@ -259,6 +259,7 @@ void setup()
   #endif
   #ifdef DECATRON_SLAVE
   debugMsgMain("Start up Decatron Slave");
+  slaveManagerDecatron.begin();
   #endif
 
 }
