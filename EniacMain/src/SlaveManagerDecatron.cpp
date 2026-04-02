@@ -48,12 +48,13 @@ void SlaveManagerDecatron_::updateOncePerMinute() {
 // Send time and control data to the Decatron slave over serial
 // ************************************************************
 void SlaveManagerDecatron_::sendUpdateToSlaveSerial() {
-  byte control = 0;
+  // Send the mode
+  byte control = (cc->slaveMode & 0x0F) << DECATRON_CTRL_MODE_SHIFT;
+
   // DIM maps to blanked for decatron (protocol has no partial brightness)
   if (blankingManager.getSlaveAction() != BLANKING_ACTION_NORMAL) {
     control |= DECATRON_CTRL_BLANKED;
   }
-  control |= (cc->pMode & 0x0F) << DECATRON_CTRL_MODE_SHIFT;
 
   _slaveTryCount++;
 

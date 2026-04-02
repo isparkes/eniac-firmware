@@ -36,7 +36,7 @@ void SlaveManagerNixie_::setSlaveEnabled(bool newSlaveStatus) {
 // return current mode
 // ************************************************************
 bool SlaveManagerNixie_::getSlaveMode() {
-  return _slaveEnabled && (cc->slaveMode != SLAVE_MODE_OFF);
+  return _slaveEnabled && (cc->slaveMode != SLAVE_NIX_MODE_OFF);
 }
 
 // ************************************************************
@@ -59,8 +59,8 @@ unsigned int SlaveManagerNixie_::getFailCount() {
 void SlaveManagerNixie_::updateOncePerSecond() {
   // If we change to a per minute update, update the display anyway
   if ((previousMode != cc->slaveMode) ||
-      (cc->slaveMode == SLAVE_MODE_100THS) || 
-      (cc->slaveMode == SLAVE_MODE_SECS)) {
+      (cc->slaveMode == SLAVE_NIX_MODE_100THS) || 
+      (cc->slaveMode == SLAVE_NIX_MODE_SECS)) {
     sendUpdateToSlaveI2C();
   }
 }
@@ -69,7 +69,7 @@ void SlaveManagerNixie_::updateOncePerSecond() {
 // Once per minute update for the modes that need it
 // ************************************************************
 void SlaveManagerNixie_::updateOncePerMinute() {
-  if (cc->slaveMode == SLAVE_MODE_DATE) {
+  if (cc->slaveMode == SLAVE_NIX_MODE_DATE) {
     sendUpdateToSlaveI2C();
   }
 }
@@ -80,7 +80,7 @@ void SlaveManagerNixie_::updateOncePerMinute() {
 void SlaveManagerNixie_::sendUpdateToSlaveI2C() {
   // deal with blanking the display
   if (previousMode != cc->slaveMode) {
-    if (cc->slaveMode == SLAVE_MODE_OFF) {
+    if (cc->slaveMode == SLAVE_NIX_MODE_OFF) {
       blankSlaveI2C();
     }
     previousMode = cc->slaveMode;
@@ -121,7 +121,7 @@ void SlaveManagerNixie_::blankSlaveI2C() {
   _slaveModeTryCount++;
 
   Wire.beginTransmission(SLAVE_MODULE_I2C_ADDRESS);
-  Wire.write((uint8_t)SLAVE_MODE_OFF);
+  Wire.write((uint8_t)SLAVE_NIX_MODE_OFF);
   Wire.write((uint8_t)0);
   Wire.write((uint8_t)second());
   Wire.write((uint8_t)day());
@@ -142,16 +142,16 @@ void SlaveManagerNixie_::blankSlaveI2C() {
 // ************************************************************
 String SlaveManagerNixie_::getNextSlaveModeName() {
   switch (getNextSlaveMode()) {
-  case SLAVE_MODE_100THS:
+  case SLAVE_NIX_MODE_100THS:
     return "100ths";
     break;
-  case SLAVE_MODE_DATE:
+  case SLAVE_NIX_MODE_DATE:
     return "Date";
     break;
-  case SLAVE_MODE_SECS:
+  case SLAVE_NIX_MODE_SECS:
     return "Secs";
     break;
-  case SLAVE_MODE_OFF:
+  case SLAVE_NIX_MODE_OFF:
     return "Off";
     break;
   default:
@@ -178,8 +178,8 @@ void SlaveManagerNixie_::setSlaveMode(byte newMode) {
 // ************************************************************
 byte SlaveManagerNixie_::getNextSlaveMode() {
   byte nextMode = cc->slaveMode + 1;
-  if (nextMode > SLAVE_MODE_MAX) {
-    nextMode = SLAVE_MODE_MIN;
+  if (nextMode > SLAVE_NIX_MODE_MAX) {
+    nextMode = SLAVE_NIX_MODE_MIN;
   }
   return nextMode;
 }

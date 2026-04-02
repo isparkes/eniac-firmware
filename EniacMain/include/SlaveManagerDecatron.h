@@ -19,11 +19,18 @@
 #define DECATRON_SERIAL_TX_PIN        0     // GPIO0 (D0)
 #define DECATRON_SERIAL_BAUD          115200
 
-#define MAX_DECATRON_SLAVE_FAIL_COUNT 20
-
 // Control byte bit masks
 #define DECATRON_CTRL_BLANKED         0x01  // Bit 0: display is blanked
 #define DECATRON_CTRL_MODE_SHIFT      1     // Bits 1-4: primary display mode
+
+// -------------------------------------------------------------------------------
+#define SLAVE_DECA_MODE_MIN                  0
+#define SLAVE_DECA_MODE_MINS_SECS            0
+#define SLAVE_DECA_MODE_HOURS_MINS           1
+#define SLAVE_DECA_MODE_SPINNER              2
+#define SLAVE_DECA_MODE_OFF                  3
+#define SLAVE_DECA_MODE_MAX                  3
+#define SLAVE_DECA_MODE_DEFAULT              1
 
 // -------------------------------------------------------------------------------
 class SlaveManagerDecatron_ {

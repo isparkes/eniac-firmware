@@ -52,6 +52,10 @@ int indexMark2 = -1;
 int tdc2 = 0;
 int expPos2 = 0;
 
+bool forwards = true;
+int stepsD1 = 0;
+int stepsD2 = 0;
+
 byte receivedHour = 0;
 byte receivedMinute = 0;
 byte receivedSecond = 0;
@@ -75,7 +79,7 @@ volatile uint8_t rxSecond  = 0;
 volatile uint8_t rxControl = 0;
 volatile uint8_t rxMode    = 0;  // extracted from control bits 1-4
 volatile bool    uartDataReceived = false;
-volatile unsigned long lastI2CMillis = 0;
+volatile unsigned long lastUARTMillis = 0;
 
 // --------------------- Misc ----------------------
 
@@ -157,8 +161,8 @@ void G_step2(int CINT)
 // ************************************************************
 // step forward on Decatron 1
 // ************************************************************
-void G1StepBackwards() {
-//  debugManager.debugMsg("G1B");
+void G1StepForwards() {
+//  debugManager.debugMsg("G1F");
   phaseStep1++;
 
   if (phaseStep1 > 2) {
@@ -178,8 +182,8 @@ void G1StepBackwards() {
 // ************************************************************
 // step forward on Decatron 2
 // ************************************************************
-void G2StepBackwards() {
-//  debugManager.debugMsg("G2B");
+void G2StepForwards() {
+//  debugManager.debugMsg("G2F");
   phaseStep2++;
 
   if (phaseStep2 > 2) {
@@ -199,8 +203,8 @@ void G2StepBackwards() {
 // ************************************************************
 // step backward on Decatron 1
 // ************************************************************
-void G1StepForwards() {
-//  debugManager.debugMsg("G1F");
+void G1StepBackwards() {
+//  debugManager.debugMsg("G1B");
   phaseStep1--;
 
   if (phaseStep1 < 0) {
@@ -220,8 +224,8 @@ void G1StepForwards() {
 // ************************************************************
 // step backward on Decatron 2
 // ************************************************************
-void G2StepForwards() {
-//  debugManager.debugMsg("G2F");
+void G2StepBackwards() {
+//  debugManager.debugMsg("G2B");
   phaseStep2--;
 
   if (phaseStep2 < 0) {
@@ -305,19 +309,15 @@ void findIndexMarks() {
     stepsDone++;
   }
 
-  G1StepForwards();
-  delay(10);
-  G1StepForwards();
-  delay(10);
-  G1StepForwards();
-  delay(10);
+  for (int i = 0; i < DECATRON_1_TDC_OFFSET; i++) {
+    G1StepForwards();
+    delay(3);
+  }
 
-  G2StepForwards();
-  delay(10);
-  G2StepForwards();
-  delay(10);
-  G2StepForwards();
-  delay(10);
+  for (int i = 0; i < DECATRON_2_TDC_OFFSET; i++) {
+    G2StepForwards();
+    delay(10);
+  }
 
   // We are at TDC and we want to be, so set the variables
   tdc1 = currentPos1;
@@ -336,33 +336,62 @@ void findIndexMarks() {
 }
 
 // ************************************************************
+// Move the expected position of Dec 2 forwards
+// ************************************************************
+void incExpPos2() {
+  expPos2 = expPos2 + 1;
+  if (expPos2 > 29) expPos2 = 0;
+}
+
+// ************************************************************
+// Move the expected position of Dec 1 forwards
+// ************************************************************
+void incExpPos1() {
+  expPos1 = expPos1 + 1;
+  if (expPos1 > 29) expPos1 = 0;
+}
+
+// ************************************************************
 // Move the expected position of Dec 1 back
 // ************************************************************
 void decExpPos1() {
-  expPos1 = expPos1 + 1;
-  if (expPos1 > 29) expPos1 = 0;
+  expPos1 = expPos1 - 1;
+  if (expPos1 < 0) expPos1 = 29;
 }
 
 // ************************************************************
 // Move the expected position of Dec 2 back
 // ************************************************************
 void decExpPos2() {
-  expPos2 = expPos2 + 1;
-  if (expPos2 > 29) expPos2 = 0;
+  expPos2 = expPos2 - 1;
+  if (expPos2 < 0) expPos2 = 29;
 }
-
 
 // ************************************************************
 // Move the current position of Dec 1 to the expected position
 // ************************************************************
-void align1toExpPos() {
+void align1toExpPosBackwards() {
   if (currentPos1 != expPos1) G1StepForwards();
 }
 
 // ************************************************************
 // Move the current position of Dec 1 to the expected position
 // ************************************************************
-void align2toExpPos() {
+void align2toExpPosBackwards() {
+  if (currentPos2 != expPos2) G2StepForwards();
+}
+
+// ************************************************************
+// Move the current position of Dec 1 to the expected position
+// ************************************************************
+void align1toExpPosForward() {
+  if (currentPos1 != expPos1) G1StepForwards();
+}
+
+// ************************************************************
+// Move the current position of Dec 1 to the expected position
+// ************************************************************
+void align2toExpPosForward() {
   if (currentPos2 != expPos2) G2StepForwards();
 }
 
@@ -488,7 +517,7 @@ void setup() {
 
   debugManager.debugMsg("Start Serial");
 
-  lastI2CMillis = millis(); // prevent immediate blanking on startup
+  lastUARTMillis = millis(); // prevent immediate blanking on startup
 
   debugManager.debugMsg("Startup done");
 }
@@ -512,7 +541,7 @@ void loop() {
   // ------------------- Blanking ----------------------------------------
   // Blank if the master says to, or if we haven't heard from it in 5s
 
-  blanked = (rxControl & DECATRON_CTRL_BLANKED) || ((nowMillis - lastI2CMillis) > 5000);
+  blanked = (rxControl & DECATRON_CTRL_BLANKED) || ((nowMillis - lastUARTMillis) > 5000);
 
   if (blanked != lastBlanked) {
     debugManager.debugMsg(blanked ? "Blanked" : "Unblanked");
@@ -532,19 +561,52 @@ void loop() {
 
   // ------------------- Handle received serial data ---------------------
   // Mode 0: Dec1 = minutes/2 (0-29), Dec2 = seconds/2 (0-29)
+  // Mode 1: Dec1 = hours*2.5 (0-12), Dec2 = seconds/2 (0-29)
 
   if (uartDataReceived) {
-    lastI2CMillis = nowMillis;
-    expPos1 = (tdc1 + rxMinute / 2) % 30;
-    expPos2 = (tdc2 + rxSecond / 2) % 30;
+    lastUARTMillis = nowMillis;
+
     debugManager.debugMsg("RX: " + String(rxHour) + ":" + String(rxMinute) + ":" + String(rxSecond) +
-      " mode=" + String(rxMode) + " blanked=" + String(rxControl & DECATRON_CTRL_BLANKED) +
-      " -> expPos1=" + String(expPos1) + " expPos2=" + String(expPos2));
+    " mode=" + String(rxMode) + " blanked=" + String(rxControl & DECATRON_CTRL_BLANKED) +
+    " -> expPos1=" + String(expPos1) + " expPos2=" + String(expPos2));
     uartDataReceived = false;
   }
 
-  align1toExpPos();
-  align2toExpPos();
+  switch (rxMode) {
+    case SLAVE_DECA_MODE_MINS_SECS: 
+      expPos1 = (tdc1 + rxMinute / 2) % 30;
+      expPos2 = (tdc2 + rxSecond / 2) % 30;
+      uartDataReceived = false;
+      forwards = false;
+      break;
+    case SLAVE_DECA_MODE_HOURS_MINS:
+      expPos1 = (tdc1 + (rxHour * 5) / 2) % 30;
+      expPos2 = (tdc2 + rxMinute / 2) % 30;
+      break;
+    case SLAVE_DECA_MODE_SPINNER:
+      stepsD1++;
+      if (stepsD1 > SPINNER_COUNTS_PER_STEP) {
+        stepsD1 = 0;
+        incExpPos1();
+        stepsD2++;
+        if (stepsD2 > 10) {
+          stepsD2 = 0;
+          incExpPos2();
+        }
+      }
+      break;
+    default:
+      debugManager.debugMsg("Unknown mode: " + String(rxMode));
+      break;
+  }
+
+  if (forwards) {
+    align1toExpPosForward();
+    align2toExpPosForward();
+  } else {
+    align1toExpPosBackwards();
+    align2toExpPosBackwards();
+  }
 
   // This is the speed of the animation
   delay(3);

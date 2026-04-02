@@ -158,13 +158,24 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-group" id="slaveModeContainer" hidden>
+                <div class="form-group" id="slaveModeNixieContainer" hidden>
                     <label class="control-label col-xs-3">Slave Mode:</label>
                     <div class="col-xs-4">
-                        <select class="form-control" name="slaveMode" id="slaveMode">
+                        <select class="form-control" name="slaveModeNixie" id="slaveModeNixie">
                             <option value="0">Show 100ths</option>
                             <option value="1">Show day of month</option>
                             <option value="2">Show seconds</option>
+                            <option value="3">Off</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" id="slaveModeDecatronContainer" hidden>
+                    <label class="control-label col-xs-3">Slave Mode:</label>
+                    <div class="col-xs-4">
+                        <select class="form-control" name="slaveModeDecatron" id="slaveModeDecatron">
+                            <option value="0">Show minutes and seconds</option>
+                            <option value="1">Show hours and minutes</option>
+                            <option value="2">Show spinner</option>
                             <option value="3">Off</option>
                         </select>
                     </div>
@@ -695,6 +706,7 @@
         $("#slotsMode").val(config.slotsMode);
         $("#acpMode").val(config.acpMode);
         setCurrentRadioValue("#suppressACP", "#suppressACPOff", config.suppressACP);
+        setCurrentRadioValue("#WifiOnAtStartOn", "#WifiOnAtStartOff", config.WifiOnAtStart);
         $("#blinkenLightsMode").val(config.blinkenLightsMode);
         $("#sepMode").val(config.sepMode);
         $("#sw1Mode").val(config.sw1Mode);
@@ -759,9 +771,14 @@
             $("#countdownTarget").val(config.countdownTarget);
         }
 
-        if (typeof config.slaveMode !== 'undefined') {
-            $("#slaveModeContainer").prop('hidden', false);
-            $("#slaveMode").val(config.slaveMode);
+        if (typeof config.slaveModeNixie !== 'undefined') {
+            $("#slaveModeNixieContainer").prop('hidden', false);
+            $("#slaveModeNixie").val(config.slaveModeNixie);
+        }
+
+        if (typeof config.slaveModeDecatron !== 'undefined') {
+            $("#slaveModeDecatronContainer").prop('hidden', false);
+            $("#slaveModeDecatron").val(config.slaveModeDecatron);
         }
 
         if (config.decatronSlave) {
@@ -830,8 +847,8 @@
             postBody["suppressACP"] = getCurrentRadioValue("#suppressACP");
         }
 
-        if (compareRadioChanged("#WifiOnAtStart", localConfig.WifiOnAtStart)) {
-            postBody["WifiOnAtStart"] = getCurrentRadioValue("#WifiOnAtStart");
+        if (compareRadioChanged("#WifiOnAtStartOn", localConfig.WifiOnAtStart)) {
+            postBody["WifiOnAtStart"] = getCurrentRadioValue("#WifiOnAtStartOn");
         }
 
         if (localConfig.sw1Mode!=$("#sw1Mode").val()) {
@@ -979,8 +996,14 @@
             postBody["blinkenLightsMode"] = $("#blinkenLightsMode").val();
         }
 
-        if ((typeof localConfig.slaveMode!=='undefined') && (localConfig.slaveMode!=$("#slaveMode").val())) {
-            postBody["slaveMode"] = $("#slaveMode").val();
+        var configSlaveMode = (typeof localConfig.slaveModeNixie !== 'undefined') ? localConfig.slaveModeNixie : localConfig.slaveModeDecatron;
+        if ((typeof configSlaveMode !== 'undefined') && (configSlaveMode != $("#slaveModeNixie").val())) {
+            postBody["slaveModeNixie"] = $("#slaveModeNixie").val();
+        }
+
+        var configSlaveMode = (typeof localConfig.slaveModeDecatron !== 'undefined') ? localConfig.slaveModeDecatron : localConfig.slaveModeDecatron;
+        if ((typeof configSlaveMode !== 'undefined') && (configSlaveMode != $("#slaveModeDecatron").val())) {
+            postBody["slaveModeDecatron"] = $("#slaveModeDecatron").val();
         }
 
         if (localConfig.sepMode!=$("#sepMode").val()) {

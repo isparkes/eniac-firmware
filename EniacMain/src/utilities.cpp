@@ -197,7 +197,11 @@ void resetOptions() {
 #endif
 
 #ifdef NIXIE_SLAVE
-  cc->slaveMode = SLAVE_MODE_DEFAULT;
+  cc->slaveMode = SLAVE_NIX_MODE_DEFAULT;
+#endif
+
+#ifdef DECATRON_SLAVE
+  cc->slaveMode = SLAVE_DECA_MODE_DEFAULT;
 #endif
 
 #ifdef COUNTDOWN
@@ -638,10 +642,10 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["backlightGradient"] = cc->backlightGradient;
   root["blinkenLightsMode"] = cc->blinkenLightsMode;
   #ifdef NIXIE_SLAVE
-  root["slaveMode"] = cc->slaveMode;
+  root["slaveModeNixie"] = cc->slaveMode;
   #endif
   #ifdef DECATRON_SLAVE
-  root["decatronSlave"] = true;
+  root["slaveModeDecatron"] = cc->slaveMode;
   #endif
   root["WifiOnAtStart"] = cc->WifiOnAtStart;
   root["sw1Mode"] = cc->sw1Mode;
@@ -815,7 +819,12 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateInt (json, "towerHueOffset",     &cc->towerHueOffset);
     compareAndUpdateInt (json, "backlightGradient",  &cc->backlightGradient);
     compareAndUpdateByte(json, "blinkenLightsMode",  &cc->blinkenLightsMode);
-    compareAndUpdateByte(json, "slaveMode",          &cc->slaveMode);
+    #ifdef NIXIE_SLAVE
+    compareAndUpdateByte(json, "slaveModeNixie",     &cc->slaveMode);
+    #endif
+    #ifdef DECATRON_SLAVE
+    compareAndUpdateByte(json, "slaveModeDecatron",  &cc->slaveMode);
+    #endif
 
     #ifdef COUNTDOWN
     compareAndUpdateString(json, "countdownTarget",  &cc->countdownTarget);
