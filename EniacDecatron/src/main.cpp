@@ -548,6 +548,19 @@ void loop() {
     lastBlanked = blanked;
   }
 
+  // ------------------- Handle received serial data ---------------------
+  // Mode 0: Dec1 = minutes/2 (0-29), Dec2 = seconds/2 (0-29)
+  // Mode 1: Dec1 = hours*2.5 (0-12), Dec2 = seconds/2 (0-29)
+  // Mode 2: Dec1 = spin fast, Dec2 = spin slow
+  if (uartDataReceived) {
+    lastUARTMillis = nowMillis;
+
+    debugManager.debugMsg("RX: " + String(rxHour) + ":" + String(rxMinute) + ":" + String(rxSecond) +
+    " mode=" + String(rxMode) + " blanked=" + String(rxControl & DECATRON_CTRL_BLANKED) +
+    " -> expPos1=" + String(expPos1) + " expPos2=" + String(expPos2));
+    uartDataReceived = false;
+  }
+
   if (blanked) {
     disableHV();
   } else {
@@ -559,53 +572,43 @@ void loop() {
     }
   }
 
-  // ------------------- Handle received serial data ---------------------
-  // Mode 0: Dec1 = minutes/2 (0-29), Dec2 = seconds/2 (0-29)
-  // Mode 1: Dec1 = hours*2.5 (0-12), Dec2 = seconds/2 (0-29)
-
-  if (uartDataReceived) {
-    lastUARTMillis = nowMillis;
-
-    debugManager.debugMsg("RX: " + String(rxHour) + ":" + String(rxMinute) + ":" + String(rxSecond) +
-    " mode=" + String(rxMode) + " blanked=" + String(rxControl & DECATRON_CTRL_BLANKED) +
-    " -> expPos1=" + String(expPos1) + " expPos2=" + String(expPos2));
-    uartDataReceived = false;
-  }
-
-  switch (rxMode) {
-    case SLAVE_DECA_MODE_MINS_SECS: 
-      expPos1 = (tdc1 + rxMinute / 2) % 30;
-      expPos2 = (tdc2 + rxSecond / 2) % 30;
-      uartDataReceived = false;
-      forwards = false;
-      break;
-    case SLAVE_DECA_MODE_HOURS_MINS:
-      expPos1 = (tdc1 + (rxHour * 5) / 2) % 30;
-      expPos2 = (tdc2 + rxMinute / 2) % 30;
-      break;
-    case SLAVE_DECA_MODE_SPINNER:
-      stepsD1++;
-      if (stepsD1 > SPINNER_COUNTS_PER_STEP) {
-        stepsD1 = 0;
-        incExpPos1();
-        stepsD2++;
-        if (stepsD2 > 10) {
-          stepsD2 = 0;
-          incExpPos2();
+  // If we are blanked, disable all movement to avoid the blue LED flashing
+  if (!blanked) {
+    switch (rxMode) {
+      case SLAVE_DECA_MODE_MINS_SECS: 
+        expPos1 = (tdc1 + rxMinute / 2) % 30;
+        expPos2 = (tdc2 + rxSecond / 2) % 30;
+        uartDataReceived = false;
+        forwards = false;
+        break;
+      case SLAVE_DECA_MODE_HOURS_MINS:
+        expPos1 = (tdc1 + (rxHour * 5) / 2) % 30;
+        expPos2 = (tdc2 + rxMinute / 2) % 30;
+        break;
+      case SLAVE_DECA_MODE_SPINNER:
+        stepsD1++;
+        if (stepsD1 > SPINNER_COUNTS_PER_STEP) {
+          stepsD1 = 0;
+          incExpPos1();
+          stepsD2++;
+          if (stepsD2 > 10) {
+            stepsD2 = 0;
+            incExpPos2();
+          }
         }
-      }
-      break;
-    default:
-      debugManager.debugMsg("Unknown mode: " + String(rxMode));
-      break;
-  }
+        break;
+      default:
+        debugManager.debugMsg("Unknown mode: " + String(rxMode));
+        break;
+    }
 
-  if (forwards) {
-    align1toExpPosForward();
-    align2toExpPosForward();
-  } else {
-    align1toExpPosBackwards();
-    align2toExpPosBackwards();
+    if (forwards) {
+      align1toExpPosForward();
+      align2toExpPosForward();
+    } else {
+      align1toExpPosBackwards();
+      align2toExpPosBackwards();
+    }
   }
 
   // This is the speed of the animation
