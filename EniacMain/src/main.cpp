@@ -255,6 +255,7 @@ void setup()
   
   #ifdef NIXIE_SLAVE
   debugMsgMain("Start up Nixie Slave");
+  slaveManagerNixie.begin();
   slaveManagerNixie.testSlave();
   #endif
   #ifdef DECATRON_SLAVE

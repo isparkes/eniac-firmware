@@ -4,6 +4,7 @@
 // Get the numeric value of the next slave mode
 // ************************************************************
 void SlaveManagerNixie_::begin() {
+  Serial2.begin(NIXIE_SERIAL_BAUD, SERIAL_8N1, -1, NIXIE_SERIAL_TX_PIN);
 }
 
 // ************************************************************
@@ -12,8 +13,8 @@ void SlaveManagerNixie_::begin() {
 void SlaveManagerNixie_::testSlave() {
   // we only want to try once on the startup test
   _slaveEnabled = true;
-  sendUpdateToSlaveI2C();
-  
+  sendUpdateToSlaveSerial();
+
   #ifdef DEBUG
   if (_slaveModeFailCount == 0)
     debugMsgSlv("Slave detected")
@@ -27,7 +28,7 @@ void SlaveManagerNixie_::testSlave() {
 // ************************************************************
 void SlaveManagerNixie_::setSlaveEnabled(bool newSlaveStatus) {
   if ((_slaveEnabled != newSlaveStatus) && (!newSlaveStatus)) {
-    blankSlaveI2C();
+    blankSlaveSerial();
   }
   _slaveEnabled = newSlaveStatus;
 }
@@ -40,14 +41,14 @@ bool SlaveManagerNixie_::getSlaveMode() {
 }
 
 // ************************************************************
-// Slave I2C attempts to date
+// Slave serial attempts to date
 // ************************************************************
 unsigned int SlaveManagerNixie_::getTryCount() {
   return _slaveModeTryCount;
 }
 
 // ************************************************************
-// Slave I2C attempts that failed to date
+// Slave serial attempts that failed to date
 // ************************************************************
 unsigned int SlaveManagerNixie_::getFailCount() {
   return _slaveModeFailCount;
@@ -59,9 +60,9 @@ unsigned int SlaveManagerNixie_::getFailCount() {
 void SlaveManagerNixie_::updateOncePerSecond() {
   // If we change to a per minute update, update the display anyway
   if ((previousMode != cc->slaveMode) ||
-      (cc->slaveMode == SLAVE_NIX_MODE_100THS) || 
+      (cc->slaveMode == SLAVE_NIX_MODE_100THS) ||
       (cc->slaveMode == SLAVE_NIX_MODE_SECS)) {
-    sendUpdateToSlaveI2C();
+    sendUpdateToSlaveSerial();
   }
 }
 
@@ -70,18 +71,18 @@ void SlaveManagerNixie_::updateOncePerSecond() {
 // ************************************************************
 void SlaveManagerNixie_::updateOncePerMinute() {
   if (cc->slaveMode == SLAVE_NIX_MODE_DATE) {
-    sendUpdateToSlaveI2C();
+    sendUpdateToSlaveSerial();
   }
 }
 
 // ************************************************************
-// Called once per second with update info
+// Send current state to the Nixie slave over serial
 // ************************************************************
-void SlaveManagerNixie_::sendUpdateToSlaveI2C() {
+void SlaveManagerNixie_::sendUpdateToSlaveSerial() {
   // deal with blanking the display
   if (previousMode != cc->slaveMode) {
     if (cc->slaveMode == SLAVE_NIX_MODE_OFF) {
-      blankSlaveI2C();
+      blankSlaveSerial();
     }
     previousMode = cc->slaveMode;
   }
@@ -97,44 +98,34 @@ void SlaveManagerNixie_::sendUpdateToSlaveI2C() {
 
     _slaveModeTryCount++;
 
-    Wire.beginTransmission(SLAVE_MODULE_I2C_ADDRESS);
-    Wire.write((uint8_t)cc->slaveMode);
-    Wire.write((uint8_t)dimmingPct);
-    Wire.write((uint8_t)second());
-    Wire.write((uint8_t)day());
-    Wire.write((uint8_t)month());
-    byte error = Wire.endTransmission();
+    Serial2.write((uint8_t)NIXIE_SERIAL_HEADER);
+    Serial2.write((uint8_t)cc->slaveMode);
+    Serial2.write((uint8_t)dimmingPct);
+    Serial2.write((uint8_t)second());
+    Serial2.write((uint8_t)day());
+    Serial2.write((uint8_t)month());
+    Serial2.flush();
 
-    if (error == 0) {
-      debugMsgSlv("Sent slave update");
-    } else {
-      debugMsgSlv("Failed sending slave update: " + String(error));
-      _slaveModeFailCount++;
-    }
+    debugMsgSlv("Sent slave update");
   }
 }
 
 // ************************************************************
-// Called once per second with update info
+// Blank the Nixie slave display
 // ************************************************************
-void SlaveManagerNixie_::blankSlaveI2C() {
+void SlaveManagerNixie_::blankSlaveSerial() {
   _slaveModeTryCount++;
 
-  Wire.beginTransmission(SLAVE_MODULE_I2C_ADDRESS);
-  Wire.write((uint8_t)SLAVE_NIX_MODE_OFF);
-  Wire.write((uint8_t)0);
-  Wire.write((uint8_t)second());
-  Wire.write((uint8_t)day());
-  Wire.write((uint8_t)month());
-  byte error = Wire.endTransmission();
+  Serial2.write((uint8_t)NIXIE_SERIAL_HEADER);
+  Serial2.write((uint8_t)SLAVE_NIX_MODE_OFF);
+  Serial2.write((uint8_t)0);
+  Serial2.write((uint8_t)second());
+  Serial2.write((uint8_t)day());
+  Serial2.write((uint8_t)month());
+  Serial2.flush();
 
-  if (error == 0) {
-    debugMsgSlv("Sent slave update");
-    _slaveModeFailCount = 0;
-  } else {
-    debugMsgSlv("Failed sending slave update: " + String(error));
-    _slaveModeFailCount++;
-  }
+  debugMsgSlv("Sent slave blank");
+  _slaveModeFailCount = 0;
 }
 
 // ************************************************************

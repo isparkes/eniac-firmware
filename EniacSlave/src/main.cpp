@@ -3,7 +3,6 @@
 //**********************************************************************************
 // Standard Libraries
 #include <avr/io.h>
-#include <Wire.h>
 //#include <avr/wdt.h>
 #include <TimeLib.h>            // https://playground.arduino.cc/Code/Time/ (Margolis 1.5.0)
 
@@ -12,7 +11,7 @@
 // Other parts of the code, broken out for clarity
 #include "DisplayDefs.h"
 
-// Use the NeoPixels to tell us about the I2C status
+// Use the NeoPixels to tell us about the serial status
 #define DIAG_BACKLIGHTS_OFF
 
 #define WS2812                  // WS2812, APA106
@@ -21,7 +20,9 @@
 // Software version shown in config menu
 #define SOFTWARE_VERSION      001
 
-#define I2C_SLAVE_ADDR                0x69
+#define SERIAL_BAUD_RATE              115200
+#define SERIAL_HEADER                 0xAA
+#define SERIAL_PACKET_LEN             5
 
 // Display handling
 #define DIGIT_DISPLAY_COUNT   1000 // The number of times to traverse inner fade loop per digit
@@ -630,7 +631,7 @@ void outputDisplay()
 
 //**********************************************************************************
 //**********************************************************************************
-//*                                 I2C interface                                  *
+//*                               Serial interface                                 *
 //**********************************************************************************
 //**********************************************************************************
 
@@ -639,71 +640,71 @@ void outputDisplay()
 #define SLAVE_MODE_SECS                 2
 #define SLAVE_MODE_OFF                  3
 
+// Serial receive state
+byte serialBuf[SERIAL_PACKET_LEN];
+byte serialBufIdx = 0;
+boolean waitingForHeader = true;
+
 /**
- * receive information from the master
+ * Process a fully received 5-byte packet from the master
  */
-void receiveEvent(int receivedBytes) {
+void processPacket() {
+  byte mode     = serialBuf[0];
+  byte dimming  = serialBuf[1];
+  secondToShow  = serialBuf[2];
+  dateToShow    = serialBuf[3];
+  monthToShow   = serialBuf[4];
+
+  // if we got an update, just say that it is a new second for the 100ths
+  hundredthsMillis = nowMillis;
+
+  // resync the per second update, so that the "seconds" align
+  // between main and slave
+  lastCheckMillis = nowMillis;
+
+  // detect the blanking status
+  blanked = (dimming == 0);
+
+  // set the dimming
+  digitOffCount = dimming * 10;
+  if (digitOffCount > DIGIT_DISPLAY_OFF) digitOffCount = DIGIT_DISPLAY_OFF;
+
+  switch (mode) {
+    case SLAVE_MODE_100THS: { slaveDisplayMode = hundredthsMode; break; }
+    case SLAVE_MODE_SECS:   { slaveDisplayMode = secondsMode;    break; }
+    case SLAVE_MODE_DATE:   { slaveDisplayMode = dateMode;       break; }
+    case SLAVE_MODE_OFF:    { slaveDisplayMode = offMode;        break; }
+  }
 
   #ifdef DIAG_BACKLIGHTS
-  setLED(3,0,255,0);
+  setLED(0,0,255,0);
   #endif
+}
 
-  if (receivedBytes == 5) {
-    #ifdef DIAG_BACKLIGHTS
-    setLED(2,0,255,0);
-    #endif
+/**
+ * Poll serial RX (PD0) and assemble packets.
+ * Packet format: [0xAA header] [mode] [dimming] [second] [day] [month]
+ */
+void processSerialData() {
+  while (Serial.available()) {
+    byte b = (byte)Serial.read();
 
-    // if we got an update, just say that it is a new second
-    // for the 100ths
-    hundredthsMillis = nowMillis;
+    if (waitingForHeader) {
+      if (b == SERIAL_HEADER) {
+        waitingForHeader = false;
+        serialBufIdx = 0;
 
-    // resync the per second update, so that the "seconds" align 
-    // between main and slave
-    lastCheckMillis = nowMillis;
-
-    byte mode = Wire.read();
-    byte dimming  = Wire.read();
-    secondToShow = Wire.read();
-    dateToShow = Wire.read();
-    monthToShow = Wire.read();
-
-    #ifdef DIAG_BACKLIGHTS
-    setLED(1,0,255,0);
-    #endif
-
-    // detect the blanking status
-    blanked = (dimming == 0);
-
-    // set the dimming
-    digitOffCount = dimming * 10;
-    if (digitOffCount > DIGIT_DISPLAY_OFF) digitOffCount = DIGIT_DISPLAY_OFF;
-
-    // we got a transmission
-    switch (mode) {
-      case SLAVE_MODE_100THS: {
-        slaveDisplayMode = hundredthsMode;
-        break;      
+        #ifdef DIAG_BACKLIGHTS
+        setLED(3,0,255,0);
+        #endif
       }
-      case SLAVE_MODE_SECS: {
-        slaveDisplayMode = secondsMode;
-        break;      
-      }
-      case SLAVE_MODE_DATE: {
-        slaveDisplayMode = dateMode;
-        break;      
-      }
-      case SLAVE_MODE_OFF: {
-        slaveDisplayMode = offMode;
-        break;      
+    } else {
+      serialBuf[serialBufIdx++] = b;
+      if (serialBufIdx == SERIAL_PACKET_LEN) {
+        waitingForHeader = true;
+        processPacket();
       }
     }
-    #ifdef DIAG_BACKLIGHTS
-    setLED(0,0,255,0);
-    #endif
-  } else {
-    #ifdef DIAG_BACKLIGHTS
-    setLED(2,255,0,0);
-    #endif
   }
 }
 
@@ -763,8 +764,7 @@ void setup()
 
   setAllLEDs(0,0,0);
 
-  Wire.begin(I2C_SLAVE_ADDR);
-  Wire.onReceive(receiveEvent);
+  Serial.begin(SERIAL_BAUD_RATE);
 
   // enable watchdog
 //  wdt_enable(WDTO_8S);
@@ -778,6 +778,10 @@ void setup()
 void loop()
 {
   nowMillis = millis();
+
+  // -------------------------------------------------------------------------------
+
+  processSerialData();
 
   // -------------------------------------------------------------------------------
 

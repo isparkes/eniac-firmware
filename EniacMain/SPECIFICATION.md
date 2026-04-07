@@ -1,6 +1,6 @@
 # LTC-ESP32 ENIAC Firmware Specification
 
-**Version:** 0.6.0.7
+**Version:** 0.6.0.8
 **Platform:** ESP32 (DOIT DevKit v1)
 **Framework:** Arduino / PlatformIO
 
@@ -69,7 +69,7 @@ The LTC-ESP32 ENIAC firmware is embedded software for a WiFi-connected Nixie tub
 | Signal | GPIO | Description |
 |--------|------|-------------|
 | NEOPIXEL | 13 | LED data output |
-| 1PPS | 0 | Pulse-per-second output |
+| DECATRON_TX | 0 | UART2 TX — serial link to Decatron slave |
 | I2C_SDA | 21 | I2C data |
 | I2C_SCL | 22 | I2C clock |
 | STATUS_LED | 2 | Onboard status LED |
@@ -124,7 +124,7 @@ Main Loop (setup/loop)
 | WebManager | REST API and web server |
 | TimerManager | Hardware timer interrupts |
 | SlaveManagerNixie | I2C slave display control |
-| SlaveManagerDecatron | GPIO-based slave control |
+| SlaveManagerDecatron | UART serial control of Decatron slave (Serial2 on GPIO0) |
 
 ### 3.3 Initialization Sequence
 
@@ -417,7 +417,7 @@ Device accessible via `esp32-xxxxx.local` where `xxxxx` is derived from MAC addr
 | PIXELS_PER_TUBE | LEDs per Nixie tube |
 | BLINKENLIGHTS | Enable status indicators |
 | MENU | Enable OLED menu system |
-| SLAVE_DECATRON | Enable Decatron slave |
+| SLAVE_DECATRON | Enable Decatron slave (UART serial) |
 | TICKER | Enable financial ticker |
 
 ### 10.2 Runtime Configuration (SPIFFS)
@@ -446,11 +446,12 @@ Configuration stored as JSON in SPIFFS filesystem:
 - Packet Format: `Mode | Second | DoM | Month | Dimming%`
 - Modes: 100ths, date, seconds, off
 
-### 11.2 Decatron Slave (GPIO)
+### 11.2 Decatron Slave (UART)
 
-- 1PPS protocol via GPIO 0
-- 10ms pulse per second
-- 100ms pulse for minute marker
+- UART serial via ESP32 Serial2, TX on GPIO0 at 115200 baud 8N1
+- 5-byte packet sent once per second: `0xAA | Hour | Minute | Second | Control`
+- Control byte: bit 0 = blanked; bits 1–4 = primary display mode
+- Slave auto-blanks and disables HV if no packet received for >5 seconds
 
 ---
 
@@ -566,6 +567,7 @@ Automatic fallback through GPS -> NTP -> RTC -> Internal clock.
 
 | Version | Changes |
 |---------|---------|
+| 0.6.0.8 | New UART serial protocol for Decatron slave; more Decatron display options; stop blue LED flashing when blanked; remove cog crank output (GPIO0 repurposed as UART TX) |
 | 0.6.0.7 | Enhanced ticker with 6 per-digit trend indicators |
 | 0.6.0.6 | Fix tower blanking, fix quote server |
 | 0.6.0.5 | Add UDP server, update blanking mode manager |

@@ -2,7 +2,7 @@
 
 ## Overview
 
-EniacDecatron is the firmware for a dual Decatron cold-cathode decade counter tube slave display. It runs on a Wemos D1 Mini (ESP8266) and acts as an I2C slave, receiving time and status from the EniacMain ESP32 master. The two Decatron tubes are driven to display seconds as a rotating glow.
+EniacDecatron is the firmware for a dual Decatron cold-cathode decade counter tube slave display. It runs on a Wemos D1 Mini (ESP8266) and receives time and status from the EniacMain ESP32 master over a unidirectional UART serial link. The two Decatron tubes are driven to display seconds as a rotating glow.
 
 ---
 
@@ -30,31 +30,35 @@ EniacDecatron is the firmware for a dual Decatron cold-cathode decade counter tu
 | Index2    | D7  | Input     | Tube 2 index mark (LOW when at K0)        |
 | HVEnable  | D8  | Output    | High-voltage generator enable (HIGH = on) |
 
-I2C uses the default D1 Mini pins (SDA = D2, SCL = D1) in slave mode.
+Serial data is received on the D1 Mini's default UART0 RX pin (D9 / GPIO3).
 
-| Signal    | Pin | Direction     | Description                           |
-|-----------|-----|---------------|---------------------------------------|
-| I2C SCL   | D1  | Bidirectional | I2C Clock                             |
-| I2C SDA   | D2  | Bidirectional | I2C Data                              |
+| Signal    | Pin | Direction | Description                                        |
+|-----------|-----|-----------|----------------------------------------------------|
+| UART RX   | D9  | Input     | Serial data from EniacMain GPIO0 (115200 8N1)      |
 
 ---
 
-## I2C Interface
+## Serial Interface
 
-| Property        | Value |
-|-----------------|-------|
-| Role            | Slave |
-| Address         | 106   |
-| Packet size     | 4 bytes, received once per second from master |
+| Property    | Value                                             |
+|-------------|---------------------------------------------------|
+| Role        | Receiver (unidirectional)                         |
+| Source      | EniacMain ESP32 Serial2, TX on GPIO0              |
+| Baud rate   | 115200 8N1                                        |
+| Packet size | 5 bytes total (1 start byte + 4 payload bytes)    |
+| Rate        | Once per second                                   |
 
 ### Packet Format
 
-| Byte | Content  | Range |
-|------|----------|-------|
-| 1    | Hours    | 0–23  |
-| 2    | Minutes  | 0–59  |
-| 3    | Seconds  | 0–59  |
-| 4    | Control  | —     |
+| Byte | Content     | Value / Range |
+|------|-------------|---------------|
+| 0    | Start byte  | 0xAA          |
+| 1    | Hours       | 0–23          |
+| 2    | Minutes     | 0–59          |
+| 3    | Seconds     | 0–59          |
+| 4    | Control     | —             |
+
+The start byte is detected first; the four payload bytes are then buffered.
 
 ### Control Byte
 
@@ -62,8 +66,6 @@ I2C uses the default D1 Mini pins (SDA = D2, SCL = D1) in slave mode.
 |------|-------|------------------------------------------|
 | 0    | 0x01  | Blanked (1 = display should be blanked)  |
 | 1–4  | 0x1E  | Primary display mode from master         |
-
-Extra bytes beyond 4 are drained and discarded.
 
 ---
 
@@ -114,7 +116,7 @@ Both tubes are homed in parallel within the same loop to minimise startup time.
 Blanking is asserted if either condition is true:
 
 - Control byte bit 0 is set (master requests blanking).
-- No I2C packet received for more than **5000 ms** (master timeout / disconnected).
+- No serial packet received for more than **5000 ms** (master timeout / disconnected).
 
 When blanked: HV generator is disabled (`HVEnable` LOW).
 When unblanking: HV generator is re-enabled, then the full homing sequence runs before normal stepping resumes.
@@ -127,7 +129,7 @@ Each loop iteration runs with a **3 ms delay**, giving a maximum step rate of ~3
 
 ### Seconds Display (Tube 1)
 
-On each received I2C packet, the target position for Tube 1 is calculated:
+On each received serial packet, the target position for Tube 1 is calculated:
 
 ```
 targetPos = (seconds × 30) / 60     // maps 0–59 s → 0–29 steps
@@ -177,22 +179,22 @@ Serial is initialised at 115200 baud when debug is enabled. All debug output goe
 
 ### Key Global Variables
 
-| Variable       | Type              | Description                                      |
-|----------------|-------------------|--------------------------------------------------|
-| `digitStep1/2` | `int`             | Current cathode index for each tube (0–9)        |
-| `phaseStep1/2` | `int`             | Current guide phase for each tube (0–2)          |
-| `currentPos1/2`| `int`             | Absolute step position for each tube (0–29)      |
-| `tdc1/2`       | `int`             | Top Dead Centre reference position for each tube |
-| `expPos1/2`    | `int`             | Target position each tube is stepping toward     |
-| `indexMark1/2` | `int`             | Index mark detection state during homing (-1 = not found) |
-| `blanked`      | `boolean`         | Current blanking state                           |
-| `rxHour`       | `volatile uint8_t`| Last received hour from master                   |
-| `rxMinute`     | `volatile uint8_t`| Last received minute from master                 |
-| `rxSecond`     | `volatile uint8_t`| Last received second from master                 |
-| `rxControl`    | `volatile uint8_t`| Last received control byte from master           |
-| `rxMode`       | `volatile uint8_t`| Primary mode extracted from control byte bits 1–4|
-| `i2cDataReceived` | `volatile bool`| Flag set by I2C ISR when new packet arrives      |
-| `lastI2CMillis`| `volatile unsigned long` | Timestamp of last received I2C packet   |
+| Variable          | Type                     | Description                                       |
+|-------------------|--------------------------|---------------------------------------------------|
+| `digitStep1/2`    | `int`                    | Current cathode index for each tube (0–9)         |
+| `phaseStep1/2`    | `int`                    | Current guide phase for each tube (0–2)           |
+| `currentPos1/2`   | `int`                    | Absolute step position for each tube (0–29)       |
+| `tdc1/2`          | `int`                    | Top Dead Centre reference position for each tube  |
+| `expPos1/2`       | `int`                    | Target position each tube is stepping toward      |
+| `indexMark1/2`    | `int`                    | Index mark detection state during homing (-1 = not found) |
+| `blanked`         | `boolean`                | Current blanking state                            |
+| `rxHour`          | `volatile uint8_t`       | Last received hour from master                    |
+| `rxMinute`        | `volatile uint8_t`       | Last received minute from master                  |
+| `rxSecond`        | `volatile uint8_t`       | Last received second from master                  |
+| `rxControl`       | `volatile uint8_t`       | Last received control byte from master            |
+| `rxMode`          | `volatile uint8_t`       | Primary mode extracted from control byte bits 1–4 |
+| `uartDataReceived`| `volatile bool`          | Flag set when a complete serial packet is parsed  |
+| `lastUARTMillis`  | `volatile unsigned long` | Timestamp of last received serial packet          |
 
 ---
 
@@ -220,7 +222,7 @@ Upload and monitor ports are configured for Linux (`/dev/ttyUSB*`); change to `/
 2. Enable HV generator
 3. Home both Decatrons (find index marks, step to TDC)
 4. Wait 1 second (TDC visible for inspection)
-5. Register I2C slave at address 106, install onReceive callback
-6. Record lastI2CMillis = millis() (prevents immediate timeout blank on startup)
+5. Initialise UART0 serial at 115200 baud for incoming packets
+6. Record lastUARTMillis = millis() (prevents immediate timeout blank on startup)
 7. Enter main loop
 ```

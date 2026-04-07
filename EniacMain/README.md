@@ -36,6 +36,14 @@ Add UDP server, update blanking mode manager
 v0.6.0.6
 Fix tower blanking, fix quote server
 
+v0.6.0.8
+New UART serial protocol for Decatron slave
+- Replaces I2C with unidirectional UART (Serial2, 115200 8N1, TX on GPIO0)
+- 5-byte framed packet: 0xAA | Hour | Minute | Second | Control
+- More Decatron display options via control byte mode field
+- Stop blue status LED flashing when display is blanked
+- Remove cog crank output (GPIO0 repurposed as UART TX to Decatron)
+
 v0.6.0.7
 Enhanced ticker display with 6 trend indicators
 - Each digit now shows its own trend indicator via LED backlight color
