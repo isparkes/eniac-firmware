@@ -589,11 +589,11 @@ void loop() {
         stepsD2++;
         if (stepsD2 > SPINNER_COUNTS_PER_STEP) {
           stepsD2 = 0;
-          incExpPos1();
+          incExpPos2();
           stepsD1++;
           if (stepsD1 > 10) {
             stepsD1 = 0;
-            incExpPos2();
+            incExpPos1();
           }
         }
         break;
