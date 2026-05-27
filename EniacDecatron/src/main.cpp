@@ -586,13 +586,13 @@ void loop() {
         expPos2 = (tdc2 + rxMinute / 2) % 30;
         break;
       case SLAVE_DECA_MODE_SPINNER:
-        stepsD1++;
-        if (stepsD1 > SPINNER_COUNTS_PER_STEP) {
-          stepsD1 = 0;
+        stepsD2++;
+        if (stepsD2 > SPINNER_COUNTS_PER_STEP) {
+          stepsD2 = 0;
           incExpPos1();
-          stepsD2++;
-          if (stepsD2 > 10) {
-            stepsD2 = 0;
+          stepsD1++;
+          if (stepsD1 > 10) {
+            stepsD1 = 0;
             incExpPos2();
           }
         }
