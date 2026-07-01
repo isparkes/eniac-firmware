@@ -74,6 +74,7 @@ bool BlinkenlightsManager_::getBlinkenlightStatusValue(int blValue) {
         } else if (gpsManager.getGPSSyncStarted()) {
           return (second() % 2 == 0);
         }
+        return false;
       }
     case BLNKN_STATUS_NTP:
       return ntpManager.ntpTimeValid();

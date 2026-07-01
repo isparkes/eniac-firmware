@@ -13,6 +13,8 @@
 
 #define WDT_TIMEOUT 5
 
+// This is the GPS baud rate - the GPS module is set to 115200 on the RX pin
+// The UART TX is used for logging and is set to 115200 as well
 #define SERIAL_BAUD_RATE 115200
 
 // Onboard LED 

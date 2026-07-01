@@ -209,6 +209,7 @@ class LEDManager_
 
     float _underlightDim = 1.0;
     float _overallULDimFactor;
+    double _underlightHueOffset = 0.0;
 #endif
 
     // hue offsets

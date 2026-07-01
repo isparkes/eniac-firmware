@@ -11,7 +11,7 @@
 #define CONFIG_ENIAC               // CONFIG_ENIAC | CONFIG_MINIAC
 
 // -------------------------------------------------------------------------------
-#define SOFTWARE_VERSION "LTC-ESP32 0.6.0.8"
+#define SOFTWARE_VERSION "LTC-ESP32 0.6.0.9"
 
 #ifdef CONFIG_ENIAC
     // Add debug statments to code - needs extra space

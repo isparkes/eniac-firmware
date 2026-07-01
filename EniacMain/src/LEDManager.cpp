@@ -40,6 +40,7 @@ void LEDManager_::recalculateVariables() {
 
   #ifdef FEATURE_EXT_LEDS
   _underlightDim = (float) cc->extDimFactor / 100.0;
+  _underlightHueOffset = (cc->hueOffset % 360) / 360.0;
   #endif
 
   // cache the weekday - native range is 1..7, we need 0..6
@@ -217,9 +218,13 @@ void LEDManager_::setUnderlightLEDs(byte red, byte green, byte blue) {
 // Set under light LEDs to the same colour
 // ************************************************************
 void LEDManager_::setUnderlightLED(byte index, byte red, byte green, byte blue) {
-  _ledRu[index] = red;
-  _ledGu[index] = green;
-  _ledBu[index] = blue;
+  uint8_t inv_red = 0;
+  uint8_t inv_green = 0;
+  uint8_t inv_blue = 0;
+  adjustRGB(red, green, blue, inv_red, inv_green, inv_blue, _underlightHueOffset);
+  _ledRu[index] = inv_red;
+  _ledGu[index] = inv_green;
+  _ledBu[index] = inv_blue;
 }
 #endif
 
