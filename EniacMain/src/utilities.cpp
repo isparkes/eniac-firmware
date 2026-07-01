@@ -646,6 +646,7 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   #endif
   #ifdef DECATRON_SLAVE
   root["slaveModeDecatron"] = cc->slaveMode;
+  root["decatronSlave"] = true;
   #endif
   root["WifiOnAtStart"] = cc->WifiOnAtStart;
   root["sw1Mode"] = cc->sw1Mode;
