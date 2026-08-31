@@ -80,3 +80,9 @@ pio device monitor     # serial monitor
 - [`EniacMain/FEATURES.md`](EniacMain/FEATURES.md) — detailed feature list for the main firmware
 - [`EniacMain/README.md`](EniacMain/README.md) — web API examples and release notes
 - Per-subproject `SPECIFICATION.md` files for `EniacMain` and `EniacDecatron`
+
+## License
+
+This project is licensed under a strict Attribution-NonCommercial license — see
+[`LICENSE`](LICENSE) for the full text. In short: attribution to Ian Sparkes is required, and
+commercial use is not permitted without a separate written license.
