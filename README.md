@@ -31,6 +31,34 @@ web interface.
 - The web UI served by `EniacMain` is used to provision Wi-Fi and configure the clock's many
   display/behaviour options.
 
+## Highlights
+
+Some of the more interesting problems this firmware solves:
+
+- **Multi-source time arbitration** — GPS (NMEA) → NTP → battery-backed RTC → internal clock,
+  with automatic priority failover, hourly DST recalculation from a POSIX TZ string, and RTC
+  drift correction validated on every boot.
+- **Custom slave protocol with mechanical self-recovery** — a compact 5-byte framed UART
+  protocol drives the Decatron seconds display; the slave self-blanks within 5 s of link loss
+  and re-homes each Decatron tube by stepping to its index mark to recover exact rotational
+  position after every re-enable.
+- **Perceptual brightness compensation** — LDR-driven auto-dimming for both tubes and NeoPixels
+  runs through a non-linear PWM curve tuned to human brightness perception, rather than a raw
+  linear ADC-to-PWM mapping.
+- **Singleton subsystem architecture with tiered scheduling** — 17 independent managers (time,
+  display, transitions, LEDs, blanking, networking, menu, storage, diagnostics) coordinate
+  through a ~100 Hz main loop with per-second/minute/hour/day cadences, backed by a 5 s hardware
+  watchdog.
+- **Fully async REST API** — 24+ endpoints over ESPAsyncWebServer expose live configuration,
+  diagnostics, OTA firmware updates, and factory reset without ever blocking the ~10 ms
+  display/LED refresh interrupt.
+- **Real-time cryptocurrency ticker** — a custom UDP protocol fetches BTC price plus six
+  independent trend windows (1 m/15 m/1 h/4 h/today/yesterday), each driving its own per-digit
+  LED trend colour.
+- **Independent per-element blanking matrix** — every output (tubes, backlights, separators,
+  blinkenlights, slave display) can be blanked, dimmed, or left alone independently, driven by
+  nine time-based schedule modes plus PIR motion override.
+
 ## Building
 
 Each firmware directory is an independent [PlatformIO](https://platformio.org/) project.
