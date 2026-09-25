@@ -31,6 +31,10 @@
 #define SENSOR_SMOOTH_READINGS_MAX     255
 #define SENSOR_SMOOTH_READINGS_DEFAULT 100  // Speed at which the brighness adapts to changes
 
+// Rate at which the tubes fade in/out when blanking (or blanking dim) starts or ends,
+// in % of full brightness per second. e.g. 25 = full brightness to off in 4 seconds
+#define BLANKING_FADE_RATE    25
+
 class LDRManager_
 {
   private:
@@ -65,6 +69,8 @@ class LDRManager_
     void  setLDRValueToMax(bool newState);
     void  setLDRValueToMaxACP(bool newState);
     void  setBlankingDim(bool newState);
+    void  setBlankingOff(bool newState);
+    bool  isBlankingFadeComplete();
     
     bool  getIsFixedLDRValue();
 
@@ -90,6 +96,13 @@ class LDRManager_
     bool  _setMaxDim;
     bool  _setMaxDimACP;
     bool  _blankingDim = false;
+    bool  _blankingOff = false;
+
+    // Blanking fade progress: 0.0 = no effect, 1.0 = fully dimmed/off
+    float _dimFade = 0.0;
+    float _offFade = 0.0;
+    unsigned long _lastFadeMillis = 0;
+    int   _pwmValueTube = 0;
 
     int   _minDimTube;
     int   _maxDimTube;
@@ -106,6 +119,8 @@ class LDRManager_
 
     void setUpPWM();
     void recalculateVariables();
+    void updateBlankingFade(int baseTube);
+    float stepFade(float fade, bool target, int span, float stepUnits);
 };
 
 extern LDRManager_ &ldrManager;

@@ -94,19 +94,6 @@ void LEDManager_::recalculateVariables() {
 
   // Invert the sense of the cycle speed
   _cycleSpeed = CYCLE_SPEED_MAP[cc->cycleSpeed];
-
-  // We don't need to set these each loop if we are blanked
-  // so we set once here
-  if (_blanked) {
-    setBacklightLEDs(0, 0, 0);
-#ifdef FEATURE_EXT_LEDS                      
-    setUnderlightLEDs(0, 0, 0);
-#endif
-  }
-
-  if (_towersBlanked) {
-    setTowerLEDs(0, 0, 0);
-  }
 }
 
 // ************************************************************
@@ -261,6 +248,8 @@ void LEDManager_::outputLEDBuffer() {
 // ************************************************************
 void LEDManager_::processLedStatusLoop() {
 
+  updateBlankingFade();
+
   // Recalculate the LED factors including pulse, fixed dim
   _overallBLDimFactorPB = _pulseFactor * _backlightDim;
 
@@ -273,7 +262,7 @@ void LEDManager_::processLedStatusLoop() {
 
   // -------------------------------- Backlights / Underlights -------------------------------
 
-  if (!_blanked || _blankingDimmed) {
+  if (_blankScale > 0.0) {
     byte tmpMode = cc->backlightMode;
 
     #ifdef FEATURE_TICKER
@@ -365,35 +354,75 @@ void LEDManager_::processLedStatusLoop() {
       #endif
     }
 
-    // Post-process: scale backlight buffer down for blanking dim
-    if (_blankingDimmed) {
+    // Post-process: scale buffers down for blanking dim/fade
+    if (_blankScale < 1.0) {
       for (int i = 0; i < NUM_BL_PIXELS; i++) {
-        _ledRb[LED_ADDR[i]] = (byte)(_ledRb[LED_ADDR[i]] * BLANKING_DIM_FACTOR);
-        _ledGb[LED_ADDR[i]] = (byte)(_ledGb[LED_ADDR[i]] * BLANKING_DIM_FACTOR);
-        _ledBb[LED_ADDR[i]] = (byte)(_ledBb[LED_ADDR[i]] * BLANKING_DIM_FACTOR);
+        _ledRb[LED_ADDR[i]] = (byte)(_ledRb[LED_ADDR[i]] * _blankScale);
+        _ledGb[LED_ADDR[i]] = (byte)(_ledGb[LED_ADDR[i]] * _blankScale);
+        _ledBb[LED_ADDR[i]] = (byte)(_ledBb[LED_ADDR[i]] * _blankScale);
       }
+#ifdef FEATURE_EXT_LEDS
+      for (int i = 0; i < DIGIT_COUNT; i++) {
+        _ledRu[i] = (byte)(_ledRu[i] * _blankScale);
+        _ledGu[i] = (byte)(_ledGu[i] * _blankScale);
+        _ledBu[i] = (byte)(_ledBu[i] * _blankScale);
+      }
+#endif
     }
+  } else {
+    setBacklightLEDs(0, 0, 0);
+#ifdef FEATURE_EXT_LEDS
+    setUnderlightLEDs(0, 0, 0);
+#endif
   }
 
   // ----------------------------------------- Towers ----------------------------------------
 
-  if (!_towersBlanked) {
-    if (_towersBlankingDimmed) {
-      byte dimR = cc->useLDRSep ? (byte)(getLEDAdjustedBL(255) * BLANKING_DIM_FACTOR)
-                                : (byte)(getLEDAdjustedBLNoLDR(255) * BLANKING_DIM_FACTOR);
-      setTowerLEDs(dimR, 0, 0);
-    } else if (cc->useLDRSep) {
-      setTowerLEDs(   getLEDAdjustedBL(255),
-                      getLEDAdjustedBL(0),
-                      getLEDAdjustedBL(0));
+  if (_towerBlankScale > 0.0) {
+    if (cc->useLDRSep) {
+      setTowerLEDs(   (byte)(getLEDAdjustedBL(255) * _towerBlankScale),
+                      (byte)(getLEDAdjustedBL(0)   * _towerBlankScale),
+                      (byte)(getLEDAdjustedBL(0)   * _towerBlankScale));
     } else {
-      setTowerLEDs(   getLEDAdjustedBLNoLDR(255),
-                      getLEDAdjustedBLNoLDR(0),
-                      getLEDAdjustedBLNoLDR(0));
+      setTowerLEDs(   (byte)(getLEDAdjustedBLNoLDR(255) * _towerBlankScale),
+                      (byte)(getLEDAdjustedBLNoLDR(0)   * _towerBlankScale),
+                      (byte)(getLEDAdjustedBLNoLDR(0)   * _towerBlankScale));
     }
+  } else {
+    setTowerLEDs(0, 0, 0);
   }
 
   outputLEDBuffer();
+}
+
+// ************************************************************
+// Move the blanking brightness scales towards their targets
+// at BLANKING_FADE_RATE, independent of the loop speed
+// ************************************************************
+void LEDManager_::updateBlankingFade() {
+  unsigned long now = millis();
+  float step = (float)(now - _lastFadeMillis) * BLANKING_FADE_RATE / 100000.0;
+  _lastFadeMillis = now;
+
+  float target = _blanked ? 0.0 : (_blankingDimmed ? BLANKING_DIM_FACTOR : 1.0);
+  _blankScale = stepBlankScale(_blankScale, target, step);
+
+  float towerTarget = _towersBlanked ? 0.0 : (_towersBlankingDimmed ? BLANKING_DIM_FACTOR : 1.0);
+  _towerBlankScale = stepBlankScale(_towerBlankScale, towerTarget, step);
+}
+
+// ************************************************************
+// Step a brightness scale towards the target
+// ************************************************************
+float LEDManager_::stepBlankScale(float scale, float target, float step) {
+  if (scale < target) {
+    scale += step;
+    if (scale > target) scale = target;
+  } else if (scale > target) {
+    scale -= step;
+    if (scale < target) scale = target;
+  }
+  return scale;
 }
 
 // ************************************************************

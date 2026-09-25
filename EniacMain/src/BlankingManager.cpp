@@ -317,6 +317,7 @@ BlankingAction BlankingManager_::getSlaveAction() {
 // ************************************************************
 void BlankingManager_::triggerTubeActionChange(BlankingAction newAction) {
   outputManager.setBlankingStatusTubes(newAction == BLANKING_ACTION_BLANK);
+  ldrManager.setBlankingOff(newAction == BLANKING_ACTION_BLANK);
   ldrManager.setBlankingDim(newAction == BLANKING_ACTION_DIM);
   slaveManagerNixie.setBlankingStatus(newAction == BLANKING_ACTION_BLANK);
   slaveManagerNixie.setDimmingStatus(newAction == BLANKING_ACTION_DIM);

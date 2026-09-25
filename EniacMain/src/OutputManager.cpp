@@ -279,8 +279,8 @@ void OutputManager_::outputDisplay() {
     digitBlanked[i] = (displayType[i] == BLANKED) ||
       // Digit blinking
       ((displayType[i] == BLINK) && !upOrDown) ||
-      // display blanking
-      _blankTubes ||
+      // display blanking, once the tubes have faded out
+      (_blankTubes && ldrManager.isBlankingFadeComplete()) ||
       // forced blanking for transitions
       _blankTubesTemp;
 

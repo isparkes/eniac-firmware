@@ -41,7 +41,7 @@ void LDRManager_::updateOncePerLoop() {
   processLDRValue();
 
   // Set the PWM value based on the new values
-  ledcWrite(LDRPWMChannel, _ldrValueTube);
+  ledcWrite(LDRPWMChannel, _pwmValueTube);
 }
 
 // ************************************************************
@@ -106,11 +106,6 @@ void LDRManager_::processLDRValue() {
     }
   }
 
-  // Blanking dim: force tube to min dim without affecting BL
-  if (_blankingDim) {
-    calculatedLDRValTube = _minDimTube;
-  }
-
   // Tube calculation with ACP
   if (_setMaxDimACP) {
     calculatedLDRValTube = _maxDimTube;
@@ -119,6 +114,14 @@ void LDRManager_::processLDRValue() {
   double sensorDiff = (double)calculatedLDRValTube - _sensorLDRSmoothedTube;
   _sensorLDRSmoothedTube += (sensorDiff / (double) cc->sensorSmoothCountLDR);
   _ldrValueTube = (int) _sensorLDRSmoothedTube;
+
+  // Blanking dim/off fades - tube only, does not affect BL
+  updateBlankingFade(_ldrValueTube);
+
+  // Blanking dim: fade tube towards min dim (ACP overrides)
+  if (!_setMaxDimACP) {
+    _ldrValueTube += (int)((_minDimTube - _ldrValueTube) * _dimFade);
+  }
 
   sensorDiff = (double)calculatedLDRValBL - _sensorLDRSmoothedBL;
   _sensorLDRSmoothedBL += (sensorDiff / (double) cc->sensorSmoothCountLDR);
@@ -139,6 +142,9 @@ void LDRManager_::processLDRValue() {
     _isMaxDim = false;
   }
 
+  // Blanking off: fade tube output towards fully off
+  _pwmValueTube = _ldrValueTube + (int)((LDR_VALUE_MAX - _ldrValueTube) * _offFade);
+
   // calculate the bound BL value
   if (_ldrValueBL >= _minDimBL) {
     _ldrValueBL = _minDimBL;
@@ -153,6 +159,41 @@ void LDRManager_::processLDRValue() {
   debugMsgLdr("_sensorLDRSmoothedTube: " + String(_sensorLDRSmoothedTube));
   debugMsgLdr("Smoothed LDR reading: " + String(_sensorLDRSmoothedTube));
   #endif
+}
+
+// ************************************************************
+// Move the blanking fades towards their targets at
+// BLANKING_FADE_RATE, independent of the loop speed
+// ************************************************************
+void LDRManager_::updateBlankingFade(int baseTube) {
+  unsigned long now = millis();
+  unsigned long elapsed = now - _lastFadeMillis;
+  _lastFadeMillis = now;
+
+  // PWM units we may move in this step
+  float stepUnits = (float)elapsed * BLANKING_FADE_RATE * LDR_VALUE_MAX / 100000.0;
+
+  _dimFade = stepFade(_dimFade, _blankingDim, abs(_minDimTube - baseTube), stepUnits);
+
+  int dimmedTube = baseTube + (int)((_minDimTube - baseTube) * _dimFade);
+  _offFade = stepFade(_offFade, _blankingOff, LDR_VALUE_MAX - dimmedTube, stepUnits);
+}
+
+// ************************************************************
+// Step a fade fraction towards its target (1.0 if target is
+// true, else 0.0). Span is the PWM distance the full fade
+// covers, so the brightness changes at a constant rate.
+// ************************************************************
+float LDRManager_::stepFade(float fade, bool target, int span, float stepUnits) {
+  float step = (span > 0) ? stepUnits / span : 1.0;
+  if (target) {
+    fade += step;
+    if (fade > 1.0) fade = 1.0;
+  } else {
+    fade -= step;
+    if (fade < 0.0) fade = 0.0;
+  }
+  return fade;
 }
 
 // ************************************************************
@@ -226,6 +267,20 @@ bool LDRManager_::getLDRValueSetToMin() {
 // ************************************************************
 void LDRManager_::setBlankingDim(bool newState) {
   _blankingDim = newState;
+}
+
+// ************************************************************
+// Set tube fade to off from blanking period (does not affect BL)
+// ************************************************************
+void LDRManager_::setBlankingOff(bool newState) {
+  _blankingOff = newState;
+}
+
+// ************************************************************
+// True once the tubes have fully faded out for blanking
+// ************************************************************
+bool LDRManager_::isBlankingFadeComplete() {
+  return _offFade >= 1.0;
 }
 
 // ************************************************************

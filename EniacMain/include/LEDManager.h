@@ -190,6 +190,12 @@ class LEDManager_
     bool _blankingDimmed = false;
     bool _towersBlankingDimmed = false;
 
+    // Blanking fade: brightness scale, moves towards 1.0 (normal),
+    // BLANKING_DIM_FACTOR (dim) or 0.0 (blank) at BLANKING_FADE_RATE
+    float _blankScale = 1.0;
+    float _towerBlankScale = 1.0;
+    unsigned long _lastFadeMillis = 0;
+
     // Strategy 3
     int _changeSteps = 0;
     byte _currentColour = 0;
@@ -248,6 +254,10 @@ class LEDManager_
 
     // recalculate internal values based on the pulsing factor
     void setPulseValue();
+
+    // Move the blanking fades towards their targets
+    void updateBlankingFade();
+    float stepBlankScale(float scale, float target, float step);
 };
 
 // ************************************************************
