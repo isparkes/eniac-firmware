@@ -1,4 +1,5 @@
 #include "MenuManager.h"
+#include "LoopTasks.h"
 
 // -------------------------------------------------------------------------------------------------
 //                                         menus below here
@@ -554,16 +555,28 @@ void MenuManager_::setStringValue(String title, menuTargets target, String initi
   oledMenu.enteredString = initialValue;
 }
 
-void MenuManager_::flashMenuMessage(String heading, String message) {
+void MenuManager_::flashMenuMessage(String heading, String message, int flashSecs) {
+  // The OLED, I2C and the menu state belong to the loop task
+  if (!onLoopTask()) {
+    debugMsgMnm("flashMenuMessage called off the loop task, dropped: " + heading);
+    return;
+  }
+
   // Only flash the message if the display is already on
   if (!oled.getBlanked()) {
     resetTimeouts();
-    flashTimeout = FLASH_TIME;
+    flashTimeout = flashSecs;
     displayMessage(heading, message);
   }
 } 
 
 void MenuManager_::scrollMenuMessage(String message) {
+  // The OLED, I2C and the menu state belong to the loop task
+  if (!onLoopTask()) {
+    debugMsgMnm("scrollMenuMessage called off the loop task, dropped");
+    return;
+  }
+
   // Only show the message if the display is already on
   if (!oled.getBlanked()) {
     resetTimeouts();
@@ -581,6 +594,7 @@ void MenuManager_::scrollMenuMessage(String message) {
 // called from main loop
 
 void MenuManager_::menuLoop() {
+  serviceEncoderMovement();       // act on any rotary encoder movement since the last loop
   reUpdateButton();               // update rotary encoder button status (if pressed activate default menu)
   if (menuMode == off) return;    // if menu system is turned off do nothing more
 
@@ -668,18 +682,17 @@ void MenuManager_::reUpdateButton() {
 // ----------------------------------------------------------------
 
 void MenuManager_::serviceMenu() {
-  if (rotaryEncoder.encoder0Pos >= itemTrigger) {
-    rotaryEncoder.encoder0Pos -= itemTrigger;
-    oledMenu.highlightedMenuItem++;
+  int step = takeEncoderStep();
+  if (step != 0) {
+    oledMenu.highlightedMenuItem += step;
     oledMenu.lastMenuActivity = nowMillis;
     oledMenu.needUpdate = true;
   }
-  if (rotaryEncoder.encoder0Pos <= -itemTrigger) {
-    rotaryEncoder.encoder0Pos += itemTrigger;
-    oledMenu.highlightedMenuItem--;
-    oledMenu.lastMenuActivity = nowMillis;
-    oledMenu.needUpdate = true;
-  }
+
+  // verify valid highlighted item - before it is used as an index below
+  if (oledMenu.highlightedMenuItem > oledMenu.noOfmenuItems) oledMenu.highlightedMenuItem = oledMenu.noOfmenuItems;
+  if (oledMenu.highlightedMenuItem < 1) oledMenu.highlightedMenuItem = 1;
+
   if (rotaryEncoder.reButtonPressed == 1) {
     oledMenu.selectedMenuItem = oledMenu.highlightedMenuItem;
     oledMenu.lastMenuActivity = nowMillis;
@@ -691,10 +704,6 @@ void MenuManager_::serviceMenu() {
     const int _centreLine = displayMaxLines / 2 + 1;    // mid list point
     oled.clearDisplay();
     oled.setTextColor(WHITE);
-
-    // verify valid highlighted item
-    if (oledMenu.highlightedMenuItem > oledMenu.noOfmenuItems) oledMenu.highlightedMenuItem = oledMenu.noOfmenuItems;
-    if (oledMenu.highlightedMenuItem < 1) oledMenu.highlightedMenuItem = 1;
 
     // title
     oled.setCursor(0, 0);
@@ -734,15 +743,10 @@ void MenuManager_::serviceValue() {
     resetMenu();
   }
 
-  if (rotaryEncoder.encoder0Pos >= itemTrigger) {
-    rotaryEncoder.encoder0Pos -= itemTrigger;
-    oledMenu.mValueEntered-= oledMenu.mValueStep;
-    oledMenu.lastMenuActivity = nowMillis;
-    oledMenu.needUpdate = true;
-  }
-  if (rotaryEncoder.encoder0Pos <= -itemTrigger) {
-    rotaryEncoder.encoder0Pos += itemTrigger;
-    oledMenu.mValueEntered+= oledMenu.mValueStep;
+  int step = takeEncoderStep();
+  if (step != 0) {
+    // Turning "forwards" through a menu decreases a value
+    oledMenu.mValueEntered -= step * oledMenu.mValueStep;
     oledMenu.lastMenuActivity = nowMillis;
     oledMenu.needUpdate = true;
   }
@@ -959,6 +963,45 @@ void ICACHE_RAM_ATTR MenuManager_::doEncoder() {
   rotaryEncoder.encoderPrevA = pinA;
   rotaryEncoder.encoderPrevB = pinB;
 
+  // Hand the movement over to menuLoop. resetTimeouts() and the hue
+  // changes must not run here: they can print debug output, allocate
+  // Strings and touch shared config, none of which is safe in an ISR
+  rotaryEncoder.pendingDelta += delta;
+  rotaryEncoder.moved = true;
+}
+
+// ----------------------------------------------------------------
+// Take one detent (itemTrigger counts) off the encoder position,
+// under the lock so that a count from the ISR is not lost.
+// Returns +1, -1 or 0 if not moved far enough.
+// ----------------------------------------------------------------
+int MenuManager_::takeEncoderStep() {
+  int step = 0;
+  portENTER_CRITICAL(&encoderMux);
+  if (rotaryEncoder.encoder0Pos >= itemTrigger) {
+    rotaryEncoder.encoder0Pos -= itemTrigger;
+    step = 1;
+  } else if (rotaryEncoder.encoder0Pos <= -itemTrigger) {
+    rotaryEncoder.encoder0Pos += itemTrigger;
+    step = -1;
+  }
+  portEXIT_CRITICAL(&encoderMux);
+  return step;
+}
+
+// ----------------------------------------------------------------
+// Handle encoder movement recorded by the interrupt routine
+// ----------------------------------------------------------------
+void MenuManager_::serviceEncoderMovement() {
+  portENTER_CRITICAL(&encoderMux);
+  bool moved = rotaryEncoder.moved;
+  int delta = rotaryEncoder.pendingDelta;
+  rotaryEncoder.moved = false;
+  rotaryEncoder.pendingDelta = 0;
+  portEXIT_CRITICAL(&encoderMux);
+
+  if (!moved) return;
+
   // Reset the display timeouts if we have movement
   resetTimeouts();
 
@@ -1066,7 +1109,7 @@ void MenuManager_::menuOncePerSecond() {
     oled.showStatusLine();
     // Show the info menu
     char time_c[11];
-    sprintf(time_c, "%02d:%02d:%02d", hour(), minute(), second());
+    snprintf(time_c, sizeof(time_c), "%02d:%02d:%02d", hour(), minute(), second());
     oled.setTimeString(String(time_c));
 
     oled.clearScrollingMessage();

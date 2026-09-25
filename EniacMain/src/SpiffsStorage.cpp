@@ -33,11 +33,9 @@ bool SpiffsStorage_::getConfigFromSpiffs()
     if (configFile)
     {
       debugMsgSpfX("opened config file");
-      size_t size = configFile.size();
-      // Allocate a buffer to store contents of the file.
-      std::unique_ptr<char[]> buf(new char[size]);
-      configFile.readBytes(buf.get(), size);
+      std::unique_ptr<char[]> buf = readFileToBuffer(configFile);
       DynamicJsonBuffer jsonBuffer;
+      // parseObject(nullptr) returns an object with success() == false
       JsonObject &json = jsonBuffer.parseObject(buf.get());
       // // Dump the raw JSON
       // if (_debug) json.printTo(Serial);
@@ -276,6 +274,11 @@ bool SpiffsStorage_::getConfigFromSpiffs()
           debugMsgSpf("JSON config invalid");
           resetOptions();
         }
+
+        // Pull anything else out of range (old or corrupt file) back into range
+        if (validateConfig()) {
+          debugMsgSpf("JSON config had out of range values - corrected");
+        }
         
         loaded = true;
       }
@@ -400,11 +403,9 @@ bool SpiffsStorage_::getStatsFromSpiffs()
     {
       debugMsgSpfX("opened stats file");
 
-      size_t size = statsFile.size();
-      // Allocate a buffer to store contents of the file.
-      std::unique_ptr<char[]> buf(new char[size]);
-      statsFile.readBytes(buf.get(), size);
+      std::unique_ptr<char[]> buf = readFileToBuffer(statsFile);
       DynamicJsonBuffer jsonBuffer;
+      // parseObject(nullptr) returns an object with success() == false
       JsonObject &json = jsonBuffer.parseObject(buf.get());
       if (json.success())
       {
@@ -456,6 +457,12 @@ void SpiffsStorage_::saveStatsToSpiffs()
 // Get the zones object from SPIFFS
 // ************************************************************
 void SpiffsStorage_::getZoneInfoFromSpiffs() {
+  // Drop the previous parse before freeing the text it points into,
+  // otherwise the buffer grows every time the zones are read
+  _cachedZonesObj = nullptr;
+  _jsonBuffer.clear();
+  _zonesText.reset();
+
   if (SPIFFS.exists("/config/zones.json"))
   {
     // file exists, reading and loading
@@ -465,11 +472,8 @@ void SpiffsStorage_::getZoneInfoFromSpiffs() {
     if (zonesFile) {
       debugMsgSpfX("Opened zones file");
 
-      size_t size = zonesFile.size();
-      // Allocate a buffer to store contents of the file.
-      std::unique_ptr<char[]> buf(new char[size]);
-      zonesFile.readBytes(buf.get(), size);
-      JsonObject &zonesJson = _jsonBuffer.parseObject(buf.get());
+      _zonesText = readFileToBuffer(zonesFile);
+      JsonObject &zonesJson = _jsonBuffer.parseObject(_zonesText.get());
 
       #ifdef SPF_EXTENDED_DEBUG
       debugMsgSpfX("DUMP cacheZonesFromSpiffs");
@@ -524,6 +528,7 @@ int SpiffsStorage_::getZoneAreaCountFromSpiffs() {
   debugMsgSpfX("getZoneAreaCountFromSpiffs");
   getZoneInfoFromSpiffs();
   int count = 0;
+  if (_cachedZonesObj == nullptr) return 0;
   for (JsonPair keyValue : *_cachedZonesObj) {
     String key = String(keyValue.key);
     count++;
@@ -539,6 +544,7 @@ String SpiffsStorage_::getZoneAreaFromSpiffs(int index) {
   debugMsgSpfX("getZoneAreaFromSpiffs idx: " + String(index));
   getZoneInfoFromSpiffs();
   int count = 0;
+  if (_cachedZonesObj == nullptr) return String();
   String result = "";
   for (JsonPair keyValue : *_cachedZonesObj) {
     String key = String(keyValue.key);
@@ -558,6 +564,7 @@ int SpiffsStorage_::getZoneLocationCountFromSpiffs(String location) {
   debugMsgSpfX("getZoneLocationCountFromSpiffs for location: " + location);
   getZoneInfoFromSpiffs();
   int count = 0;
+  if (_cachedZonesObj == nullptr) return 0;
 
   for (JsonPair keyValue : *_cachedZonesObj) {
     String key = String(keyValue.key);
@@ -590,6 +597,7 @@ String SpiffsStorage_::getZoneLocationFromSpiffs(String location, int index) {
   debugMsgSpfX("getZoneLocationFromSpiffs for location: " + location + " and index: " + String(index));
   getZoneInfoFromSpiffs();
   int count = 0;
+  if (_cachedZonesObj == nullptr) return String();
   String result = "";
 
   for (JsonPair keyValue : *_cachedZonesObj) {
@@ -626,6 +634,7 @@ String SpiffsStorage_::getLocationTZFromSpiffs(String location, int index) {
   debugMsgSpfX("getLocationTZFromSpiffs for location: " + location + " and index: " + String(index));
   getZoneInfoFromSpiffs();
   int count = 0;
+  if (_cachedZonesObj == nullptr) return String();
   String result = "";
 
   for (JsonPair keyValue : *_cachedZonesObj) {
@@ -657,6 +666,32 @@ String SpiffsStorage_::getLocationTZFromSpiffs(String location, int index) {
 // ************************************************************
 // Internal plumbing
 // ************************************************************
+
+// ************************************************************
+// Read a whole file into a null terminated buffer. Returns an
+// empty pointer if the file is empty or could not be fully read.
+// ************************************************************
+std::unique_ptr<char[]> SpiffsStorage_::readFileToBuffer(File &file) {
+  size_t size = file.size();
+  if (size == 0) {
+    debugMsgSpf("File is empty: " + String(file.name()));
+    return nullptr;
+  }
+
+  std::unique_ptr<char[]> buf(new (std::nothrow) char[size + 1]);
+  if (!buf) {
+    debugMsgSpf("Out of memory reading: " + String(file.name()));
+    return nullptr;
+  }
+
+  if (file.readBytes(buf.get(), size) != size) {
+    debugMsgSpf("Short read on: " + String(file.name()));
+    return nullptr;
+  }
+
+  buf[size] = '\0';
+  return buf;
+}
 
 SpiffsStorage_ &SpiffsStorage_::getInstance() {
   static SpiffsStorage_ instance;

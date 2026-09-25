@@ -33,13 +33,16 @@ bool BlankingManager_::checkPIR() {
   } else {
     // Note that we have a pir
     _pirInstalled = true;
+    // mdTimeout comes from config: never divide by 0
+    unsigned int mdTimeout = (cc->mdTimeout > 0) ? cc->mdTimeout : 1;
     unsigned int lastMotionDetection = (nowMillis - _pirLastSeen) / 1000;
     if (lastMotionDetection > 0) {
-      _pirBlankingPct = lastMotionDetection  * 1000 / cc->mdTimeout;
+      _pirBlankingPct = lastMotionDetection  * 1000 / mdTimeout;
     } else {
       _pirBlankingPct = 0;
     }
-    if (nowMillis > (_pirLastSeen + (cc->mdTimeout * 1000))) {
+    // Compare elapsed time, not end time, so that this still works when millis() wraps
+    if ((nowMillis - _pirLastSeen) > (mdTimeout * 1000UL)) {
       pirBlanked = true;
     }
   }

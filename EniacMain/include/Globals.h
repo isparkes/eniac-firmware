@@ -19,6 +19,7 @@
 #define SW_MIN_DIM              2
 #define SW_BLANK_LEDS           3
 #define SW_COUNTDOWN_INHIBIT    4
+#define SW_MODE_COUNT           5   // number of switch meanings - keep this last
 #define SW1_DEFAULT             SW_MIN_DIM
 #define SW2_DEFAULT             SW_SLAVE_INHIBIT
 

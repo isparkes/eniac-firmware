@@ -18,9 +18,17 @@
 #include "CountdownManager.h"
 
 #include "QuoteManager.h"
+#include "LoopTasks.h"
+
+#ifdef FEATURE_MENU
+bool waitForEmergencyAPRequest();  // Forward declaration
+#endif
 
 void setup()
 {
+  // Must be first: work handed over from other tasks runs on this task
+  loopTasksBegin();
+
   // Show that we booted - useful for remote debugging
   pinMode(LED_PIN, OUTPUT);
   for (int i = 0; i < 10 ; i++) {
@@ -238,12 +246,25 @@ void setup()
   // -------------------------------------------------------------------------
 
   // Emergency WiFi start
-  if ((WiFi.isConnected() == false) && (ENC_BTN) == LOW) {
+  if (WiFi.isConnected() == false) {
+    #ifdef FEATURE_MENU
+    bool emergencyAPRequested = waitForEmergencyAPRequest();
+    #else
+    // No OLED to prompt with: the button must already be held
+    bool emergencyAPRequested = (digitalRead(ENC_BTN) == LOW);
+    #endif
+
+    if (emergencyAPRequested) {
       debugMsgMain("Start emergency open AP");
       #ifdef FEATURE_MENU
-      menuManager.flashMenuMessage("WiFi Start", "Start open access point");
+      menuManager.flashMenuMessage("WiFi Setup", "Opening the setup\naccess point...");
       #endif
       wifiManager.openAccessPortal();
+      #ifdef FEATURE_MENU
+      // Leave the instructions up long enough to follow them
+      menuManager.flashMenuMessage("WiFi Setup", "Join WiFi network:\n" + uniqHostname + "\nthen browse to\nhttp://" + WiFi.softAPIP().toString(), EMERGENCY_AP_INFO_SECS);
+      #endif
+    }
   }
   
   // -------------------------------------------------------------------------
@@ -428,6 +449,52 @@ void performOncePerSecondProcessing() {
   feedWatchdog();
 }
 
+#ifdef FEATURE_MENU
+// ************************************************************
+// At start up, when WiFi is not connected, prompt the user on
+// the OLED that they can hold the encoder button to open the
+// setup access point. Returns true if the button was held for
+// EMERGENCY_AP_HOLD_MS within the window. Returns early if WiFi
+// connects in the meantime.
+// ************************************************************
+bool waitForEmergencyAPRequest() {
+  unsigned long windowStart = millis();
+  unsigned long pressedSince = 0;
+  bool pressed = false;
+  long lastSecsLeft = -1;
+
+  while ((millis() - windowStart) < EMERGENCY_AP_WINDOW_MS) {
+    if (WiFi.isConnected()) {
+      oled.clearDisplay();
+      return false;
+    }
+
+    // Count down in whole seconds, only redraw when it changes
+    long secsLeft = (EMERGENCY_AP_WINDOW_MS - (millis() - windowStart) + 999) / 1000;
+    if (secsLeft != lastSecsLeft) {
+      lastSecsLeft = secsLeft;
+      menuManager.flashMenuMessage("WiFi Setup", "No WiFi connection.\nTo open the setup\naccess point, hold\nthe button now: " + String(secsLeft));
+    }
+
+    if (digitalRead(ENC_BTN) == LOW) {
+      if (!pressed) {
+        pressed = true;
+        pressedSince = millis();
+      } else if ((millis() - pressedSince) >= EMERGENCY_AP_HOLD_MS) {
+        return true;
+      }
+    } else {
+      pressed = false;
+    }
+
+    delay(20);
+  }
+
+  oled.clearDisplay();
+  return false;
+}
+#endif
+
 // ************************************************************
 // called to process switch changes. An interrupt sets a 
 // trigger and the mail loop calls this to process the 
@@ -509,13 +576,14 @@ void handleSwitchChanges() {
   bool sw1State = (digitalRead(Switch1Pin) == BTNOnstate);
   bool sw2State = (digitalRead(Switch2Pin) == BTNOnstate);
 
-  bool switchvalues[4] = {false, false, false, false};
+  bool switchvalues[SW_MODE_COUNT] = {};
 
-  if (sw1State) {
+  // The modes come from stored config, so guard the index
+  if (sw1State && (cc->sw1Mode < SW_MODE_COUNT)) {
     switchvalues[cc->sw1Mode] = true;
   }
 
-  if (sw2State) {
+  if (sw2State && (cc->sw2Mode < SW_MODE_COUNT)) {
     switchvalues[cc->sw2Mode] = true;
   }
   
@@ -592,6 +660,11 @@ void performOncePerDayProcessing() {
 void loop()
 {
   nowMillis = millis();
+
+  // Work handed over from the web, WiFi event and UDP tasks
+  serviceLoopJobs();
+  wifiManager.serviceEvents();
+  ntpManager.serviceTimeUpdate();
 
   if (lastSecondStartMillis > nowMillis) {
     // rollover

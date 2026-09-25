@@ -84,6 +84,7 @@ bool gotCredentials();
 
 void resetWiFi();
 void resetOptions();
+bool validateConfig();
 void resetAll();
 
 void enableWatchdog();

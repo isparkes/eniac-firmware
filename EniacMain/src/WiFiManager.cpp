@@ -33,16 +33,14 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info)
     break;
   case ARDUINO_EVENT_WIFI_AP_START:
     debugMsgWfm("AP Mode Started");
-    wifiManager.startWiFiServicesPortal();
+    wifiManager.pendingAPStart = true;
     break;
   case ARDUINO_EVENT_WIFI_STA_GOT_IP:
     debugMsgWfm("Connected to:" + WiFi.SSID() + ", password: " + WiFi.psk());
     debugMsgWfm("IP Address: " + WiFi.localIP().toString());
     debugMsgWfm("MAC Address: " + WiFi.macAddress());
     debugMsgWfm("Host name: " + String(WiFi.getHostname()));
-    wifiManager.saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
-    wifiManager.startWiFiServices();
-    flashMenuEvent("WiFi Status", "WiFi connected to\n"+String(WiFi.SSID()));
+    wifiManager.pendingGotIP = true;
     break;
   case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
     debugMsgWfm("Disconnected from station, reason: " + String(info.wifi_sta_disconnected.reason));
@@ -53,9 +51,8 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info)
     break;
   case ARDUINO_EVENT_WPS_ER_SUCCESS:
     debugMsgWfm("WPS Successfull, saving credentials. SSID: |" + WiFi.SSID() + "| password: |" + WiFi.psk() + "|");
-    wifiManager.saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
     esp_wifi_wps_disable();
-    flashMenuEvent("WPS Status", "WPS was successful\nPassword:\n"+WiFi.psk());
+    wifiManager.pendingWPSSuccess = true;
     break;
   case ARDUINO_EVENT_WPS_ER_FAILED:
     debugMsgWfm("WPS Failed, retrying");
@@ -71,7 +68,7 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info)
     break;
   case ARDUINO_EVENT_WIFI_SCAN_DONE:
     debugMsgWfm("Scan complete, found " + String(info.wifi_scan_done.number) + " networks");
-    wifiManager.processScanResults();
+    wifiManager.pendingScanDone = true;
     break;
   case ARDUINO_EVENT_WIFI_READY:
     debugMsgWfm("WiFi ready");
@@ -79,6 +76,34 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info)
   default:
     debugMsgWfm("Wifi event (not mapped): " + String(event));
     break;
+  }
+}
+
+// ************************************************************
+// Do the work for WiFi events, on the loop task. See WiFiEvent().
+// ************************************************************
+void WiFiManager_::serviceEvents() {
+  if (pendingAPStart) {
+    pendingAPStart = false;
+    startWiFiServicesPortal();
+  }
+
+  if (pendingWPSSuccess) {
+    pendingWPSSuccess = false;
+    saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
+    flashMenuEvent("WPS Status", "WPS was successful\nPassword:\n" + WiFi.psk());
+  }
+
+  if (pendingGotIP) {
+    pendingGotIP = false;
+    saveWiFiCredentials(WiFi.SSID(), WiFi.psk());
+    startWiFiServices();
+    flashMenuEvent("WiFi Status", "WiFi connected to\n" + String(WiFi.SSID()));
+  }
+
+  if (pendingScanDone) {
+    pendingScanDone = false;
+    processScanResults();
   }
 }
 
@@ -276,8 +301,10 @@ void WiFiManager_::startDNSD() {
 // Stop DNS for captive portal capture
 // ************************************************************
 void WiFiManager_::stopDNSD() {
-  dnsServer->stop();
-  dnsServer.reset();
+  if (dnsServer) {
+    dnsServer->stop();
+    dnsServer.reset();
+  }
 }
 
 // ************************************************************
@@ -285,7 +312,9 @@ void WiFiManager_::stopDNSD() {
 // Captive Portal mode
 // ************************************************************
 void WiFiManager_::manageDNSInOpenAP() {
-  if (_isOpenAP) {
+  // _isOpenAP is set as soon as the AP is requested, but dnsServer is only
+  // created when the AP_START event arrives on the WiFi event task
+  if (_isOpenAP && dnsServer) {
     dnsServer->processNextRequest();
   }
 }

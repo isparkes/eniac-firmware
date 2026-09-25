@@ -94,6 +94,12 @@
 #define TEMP_DISPLAY_MODE_DUR_MS        5000
 
 // -------------------------------------------------------------------------------
+// Emergency setup access point - offered at start up when WiFi is not connected
+#define EMERGENCY_AP_WINDOW_MS          5000 // how long the "hold the button" prompt is shown for
+#define EMERGENCY_AP_HOLD_MS             500 // how long the button must be held to open the access point
+#define EMERGENCY_AP_INFO_SECS            60 // how long the connection instructions are shown for
+
+// -------------------------------------------------------------------------------
 #define DATE_FORMAT_MIN                 0
 #define DATE_FORMAT_YYMMDD              0
 #define DATE_FORMAT_MMDDYY              1

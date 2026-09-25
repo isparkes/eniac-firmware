@@ -1,4 +1,5 @@
 #include "utilities.h"
+#include "LoopTasks.h"
 
 // --------------------------------------------------------------------------------------------------------
 // ----------------------------------------  Utility functions  -------------------------------------------
@@ -28,7 +29,7 @@ enum ConnectionStatus {
 // ************************************************************
 String timeToReadableStringFromTm(tm timeToFormat) {
   char buf1[20];
-  sprintf(buf1, "%04d-%02d-%02d %02d:%02d:%02d",
+  snprintf(buf1, sizeof(buf1), "%04d-%02d-%02d %02d:%02d:%02d",
     timeToFormat.tm_year + 1900,
     timeToFormat.tm_mon + 1,
     timeToFormat.tm_mday,
@@ -210,6 +211,128 @@ void resetOptions() {
 
   spiffsStorage.saveConfigToSpiffs();
   debugMsgUtl("Saved factory config");
+}
+
+// ************************************************************
+// Clamp a config value into [minVal, maxVal], logging any change
+// ************************************************************
+template <typename T>
+static bool clampConfigValue(T &value, long minVal, long maxVal, const char *name) {
+  long oldVal = (long) value;
+  long newVal = constrain(oldVal, minVal, maxVal);
+  if (newVal != oldVal) {
+    debugMsgUtl("Config " + String(name) + " out of range: " + String(oldVal) + " -> " + String(newVal));
+    value = (T) newVal;
+    return true;
+  }
+  return false;
+}
+
+// ************************************************************
+// Wrap a hue into [0, 360)
+// ************************************************************
+static bool wrapHueValue(int &value, const char *name) {
+  int newVal = ((value % 360) + 360) % 360;
+  if (newVal != value) {
+    debugMsgUtl("Config " + String(name) + " wrapped: " + String(value) + " -> " + String(newVal));
+    value = newVal;
+    return true;
+  }
+  return false;
+}
+
+// ************************************************************
+// Force every config value into its valid range.
+//
+// Config comes from SPIFFS (possibly an old or corrupt file) and
+// from web POSTs, and many values are used as array indexes,
+// divisors or enums, so an out of range value can crash the
+// clock. Call this after loading and after every change.
+//
+// Returns true if anything had to be changed.
+// ************************************************************
+bool validateConfig() {
+  bool changed = false;
+
+  changed |= clampConfigValue(cc->ntpUpdateInterval,    NTP_UPDATE_INTERVAL_MIN,    NTP_UPDATE_INTERVAL_MAX,    "ntpUpdateInterval");
+  if (cc->ntpPool.length() == 0) {
+    debugMsgUtl("Config ntpPool empty, using default");
+    cc->ntpPool = NTP_POOL_DEFAULT;
+    changed = true;
+  }
+
+  changed |= clampConfigValue(cc->dateFormat,           DATE_FORMAT_MIN,            DATE_FORMAT_MAX,            "dateFormat");
+  changed |= clampConfigValue(cc->pMode,                DISPLAY_TIME,               DISPLAY_TICKER,             "pMode");
+  changed |= clampConfigValue(cc->sMode,                DISPLAY_TIME,               DISPLAY_TICKER,             "sMode");
+  changed |= clampConfigValue(cc->sw1Mode,              SW_NONE,                    SW_MODE_COUNT - 1,          "sw1Mode");
+  changed |= clampConfigValue(cc->sw2Mode,              SW_NONE,                    SW_MODE_COUNT - 1,          "sw2Mode");
+
+  // Dimming
+  changed |= clampConfigValue(cc->minTubeDim,           DIM_MIN,                    DIM_MAX,                    "minTubeDim");
+  changed |= clampConfigValue(cc->maxTubeDim,           DIM_MIN,                    DIM_MAX,                    "maxTubeDim");
+  changed |= clampConfigValue(cc->setTubeDim,           DIM_MIN,                    DIM_MAX,                    "setTubeDim");
+  changed |= clampConfigValue(cc->minBLDim,             DIM_MIN,                    DIM_MAX,                    "minBLDim");
+  changed |= clampConfigValue(cc->maxBLDim,             DIM_MIN,                    DIM_MAX,                    "maxBLDim");
+  changed |= clampConfigValue(cc->setBLDim,             DIM_MIN,                    DIM_MAX,                    "setBLDim");
+  changed |= clampConfigValue(cc->thresholdBright,      SENSOR_THRSH_MIN,           SENSOR_THRSH_MAX,           "thresholdBright");
+  changed |= clampConfigValue(cc->sensitivityLDR,       SENSOR_SENSIT_MIN,          SENSOR_SENSIT_MAX,          "sensitivityLDR");
+  changed |= clampConfigValue(cc->sensorSmoothCountLDR, SENSOR_SMOOTH_READINGS_MIN, SENSOR_SMOOTH_READINGS_MAX, "sensorSmoothCountLDR");
+
+  // Digit effects
+  changed |= clampConfigValue(cc->fadeSteps,            FADE_STEPS_MIN,             FADE_STEPS_MAX,             "fadeSteps");
+  changed |= clampConfigValue(cc->scrollSteps,          SCROLL_STEPS_MIN,           SCROLL_STEPS_MAX,           "scrollSteps");
+  changed |= clampConfigValue(cc->slotsMode,            SLOTS_MODE_MIN,             SLOTS_MODE_MAX,             "slotsMode");
+  changed |= clampConfigValue(cc->acpMode,              ACP_MODE_MIN,               ACP_MODE_MAX,               "acpMode");
+  changed |= clampConfigValue(cc->sepMode,              SEP_MODE_MIN,               SEP_MODE_MAX,               "sepMode");
+
+  // Blanking and motion detection
+  changed |= clampConfigValue(cc->mdTimeout,            MD_TIMEOUT_MIN,             MD_TIMEOUT_MAX,             "mdTimeout");
+  changed |= clampConfigValue(cc->mdBlankMode,          MD_OVERRIDE_BLANK,          MD_DISABLE,                 "mdBlankMode");
+  changed |= clampConfigValue(cc->dayBlanking,          DAY_BLANKING_NEVER,         DAY_BLANKING_WEEKDAY_AND_HOURS, "dayBlanking");
+  changed |= clampConfigValue(cc->blankHourStart,       0,                          23,                         "blankHourStart");
+  changed |= clampConfigValue(cc->blankHourEnd,         0,                          23,                         "blankHourEnd");
+  changed |= clampConfigValue(cc->blankModeNeon,        BLANKING_ACTION_NORMAL,     BLANKING_ACTION_BLANK,      "blankModeNeon");
+  changed |= clampConfigValue(cc->blankModeLEDs,        BLANKING_ACTION_NORMAL,     BLANKING_ACTION_BLANK,      "blankModeLEDs");
+  changed |= clampConfigValue(cc->blankModeSlave,       BLANKING_ACTION_NORMAL,     BLANKING_ACTION_BLANK,      "blankModeSlave");
+  changed |= clampConfigValue(cc->blankModeSepTower,    BLANKING_ACTION_NORMAL,     BLANKING_ACTION_BLANK,      "blankModeSepTower");
+
+  // Alarm
+  changed |= clampConfigValue(cc->alarmHour,            0,                          23,                         "alarmHour");
+  changed |= clampConfigValue(cc->alarmMinute,          0,                          59,                         "alarmMinute");
+
+  // OLED
+  changed |= clampConfigValue(cc->oledOnTime,           OLED_ON_ALWAYS,             OLED_ON_LONG,               "oledOnTime");
+
+  // Backlights: these index lookup tables (CYCLE_SPEED_MAP, rgb_backlight_curve)
+#ifdef FEATURE_BACKLIGHTS
+  changed |= clampConfigValue(cc->backlightMode,        BACKLIGHT_MIN,              BACKLIGHT_MAX,              "backlightMode");
+  changed |= clampConfigValue(cc->redCnl,               COLOUR_CNL_MIN,             COLOUR_CNL_MAX,             "redCnl");
+  changed |= clampConfigValue(cc->grnCnl,               COLOUR_CNL_MIN,             COLOUR_CNL_MAX,             "grnCnl");
+  changed |= clampConfigValue(cc->bluCnl,               COLOUR_CNL_MIN,             COLOUR_CNL_MAX,             "bluCnl");
+  changed |= clampConfigValue(cc->cycleSpeed,           CYCLE_SPEED_MIN,            CYCLE_SPEED_MAX,            "cycleSpeed");
+  changed |= clampConfigValue(cc->backlightDimFactor,   BACKLIGHT_DIM_FACTOR_MIN,   BACKLIGHT_DIM_FACTOR_MAX,   "backlightDimFactor");
+  changed |= clampConfigValue(cc->ledMode,              LED_MODE_MIN,               LED_MODE_MAX,               "ledMode");
+  changed |= wrapHueValue(cc->hueOffset,                                                                        "hueOffset");
+#endif
+  changed |= wrapHueValue(cc->towerHueOffset,                                                                   "towerHueOffset");
+  changed |= clampConfigValue(cc->backlightGradient,    0,                          360,                        "backlightGradient");
+
+#ifdef FEATURE_EXT_LEDS
+  changed |= clampConfigValue(cc->extDimFactor,         EXT_DIM_FACTOR_MIN,         EXT_DIM_FACTOR_MAX,         "extDimFactor");
+#endif
+
+#ifdef FEATURE_BLINKENLIGHTS
+  changed |= clampConfigValue(cc->blinkenLightsMode,    BLNKN_MODE_MIN,             BLNKN_MODE_MAX,             "blinkenLightsMode");
+#endif
+
+#ifdef NIXIE_SLAVE
+  changed |= clampConfigValue(cc->slaveMode,            SLAVE_NIX_MODE_MIN,         SLAVE_NIX_MODE_MAX,         "slaveMode");
+#endif
+#ifdef DECATRON_SLAVE
+  changed |= clampConfigValue(cc->slaveMode,            SLAVE_DECA_MODE_MIN,        SLAVE_DECA_MODE_MAX,        "slaveMode");
+#endif
+
+  return changed;
 }
 
 //**********************************************************************************
@@ -684,7 +807,8 @@ bool elementPresent(JsonObject& json, const char* key) {
 // ************************************************************
 void compareAndUpdateByte(JsonObject& json, const char* key, byte* variable) {
   if (json.containsKey(key)) {
-    byte newVal = json[key];
+    // Read wide and clamp: a plain byte conversion truncates, so 300 would become 44
+    byte newVal = (byte) constrain(json[key].as<long>(), 0L, 255L);
     if (*variable != newVal) {
       debugMsgUtl(String(key) + " old: " + String(*variable));
       *variable = newVal;
@@ -834,6 +958,9 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
 
     // ------------------------------------------------------------
 
+    // Never store or use a value the web page (or anyone else) sent out of range
+    validateConfig();
+
     spiffsStorage.saveConfigToSpiffs();
     debugMsgUtl("Saved new config");
   } else {
@@ -881,6 +1008,8 @@ void postTimeserverDataHandler(AsyncWebServerRequest *request) {
 
     cc->tzs = json["tzs"].as<String>();
     debugMsgUtl("Loaded time zone string: " + cc->tzs);
+
+    validateConfig();
 
     // Now apply the new confog
     ntpManager.setNtpPool(cc->ntpPool);
@@ -1005,10 +1134,8 @@ void postWiFiCredentialsHandler(AsyncWebServerRequest *request) {
     request->send(response);
   }
 
-  // Autorestart
-  delay(1000);
-
-  ESP.restart();
+  // Autorestart, once the response has gone out
+  requestRestart(1000);
 }
 
 // ************************************************************
@@ -1043,8 +1170,8 @@ void restartHandler(AsyncWebServerRequest *request) {
   // preserve the uptime over restarts, especially after OTA
   spiffsStorage.saveStatsToSpiffs();
 
-  delay(1000);
-  ESP.restart();
+  // Restart from loop(), once the response has gone out
+  requestRestart(1000);
 }
 
 // ************************************************************

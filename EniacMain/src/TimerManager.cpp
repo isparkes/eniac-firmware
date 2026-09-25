@@ -286,15 +286,20 @@ void IRAM_ATTR onTimer1() {
 void startTimers() {
   // LED flash timer
   timer0 = timerBegin(0, 80, true);
-  timerAttachInterrupt(timer0, &onTimer0, true);
+  timerAttachInterruptFlag(timer0, &onTimer0, false, ESP_INTR_FLAG_IRAM);
   timerAlarmWrite(timer0, 10000, true);
   // https://community.platformio.org/t/hardware-timer-issue-with-esp32/22047/10
   delayMicroseconds(0);
   timerAlarmEnable(timer0);
 
   // Display time
+  // ESP_INTR_FLAG_IRAM lets the ISR keep running while the flash cache
+  // is disabled (SPIFFS saves, OTA, NVS writes). Without it the display
+  // freezes on the current phase for the duration, which shows as
+  // flicker. This is only safe because everything the ISR touches is
+  // in IRAM/DRAM: no flash code or flash constants.
   timer1 = timerBegin(1, 80, true);
-  timerAttachInterrupt(timer1, &onTimer1, true);
+  timerAttachInterruptFlag(timer1, &onTimer1, false, ESP_INTR_FLAG_IRAM);
   timerAlarmWrite(timer1, 500, true);
   // https://community.platformio.org/t/hardware-timer-issue-with-esp32/22047/10
   delayMicroseconds(0);

@@ -197,14 +197,26 @@ void NtpManager_::getTimeFromNTP() {
       // Reset when we last started.
       _ntpStarted = 0;
 
-      // Notify the outside world that we have updated
-      if (_ntcb != NULL) {
-        _ntcb();
-      }
+      // Notify the outside world that we have updated. This runs on the
+      // async_udp task, and the callback sets the time and writes the RTC
+      // over I2C, so leave that to loop(): see serviceTimeUpdate()
+      _timeUpdatePending = true;
     }
   });
 
   debugMsgNtp("Async GET Time out");
+}
+
+// ************************************************************
+// Pass on a new time from the UDP callback, on the loop task
+// ************************************************************
+void NtpManager_::serviceTimeUpdate() {
+  if (_timeUpdatePending) {
+    _timeUpdatePending = false;
+    if (_ntcb != NULL) {
+      _ntcb();
+    }
+  }
 }
 
 // ************************************************************

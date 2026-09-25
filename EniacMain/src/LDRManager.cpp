@@ -111,8 +111,12 @@ void LDRManager_::processLDRValue() {
     calculatedLDRValTube = _maxDimTube;
   }
 
+  // sensorSmoothCountLDR comes from config: 0 would give 0/0 = NaN,
+  // which never recovers and locks the brightness
+  double smoothCount = (cc->sensorSmoothCountLDR > 0) ? (double) cc->sensorSmoothCountLDR : 1.0;
+
   double sensorDiff = (double)calculatedLDRValTube - _sensorLDRSmoothedTube;
-  _sensorLDRSmoothedTube += (sensorDiff / (double) cc->sensorSmoothCountLDR);
+  _sensorLDRSmoothedTube += (sensorDiff / smoothCount);
   _ldrValueTube = (int) _sensorLDRSmoothedTube;
 
   // Blanking dim/off fades - tube only, does not affect BL
@@ -124,7 +128,7 @@ void LDRManager_::processLDRValue() {
   }
 
   sensorDiff = (double)calculatedLDRValBL - _sensorLDRSmoothedBL;
-  _sensorLDRSmoothedBL += (sensorDiff / (double) cc->sensorSmoothCountLDR);
+  _sensorLDRSmoothedBL += (sensorDiff / smoothCount);
   _ldrValueBL = (int) _sensorLDRSmoothedBL;
 
   // calculate the bound tube value and set the

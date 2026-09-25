@@ -51,6 +51,15 @@ class WiFiManager_ {
     void stopDNSD();
     void manageDNSInOpenAP();
 
+    // WiFi events are handled on the arduino_events task, which must
+    // not block and must not touch shared state. The event handler
+    // just sets these, and serviceEvents() does the work in loop()
+    volatile bool pendingAPStart = false;
+    volatile bool pendingGotIP = false;
+    volatile bool pendingWPSSuccess = false;
+    volatile bool pendingScanDone = false;
+    void serviceEvents();
+
   private:
     bool _isOpenAP = false;
     std::unique_ptr<DNSServer>        dnsServer;    

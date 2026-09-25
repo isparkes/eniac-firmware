@@ -302,7 +302,8 @@ void OutputManager_::outputDisplay() {
 
         if (scrollCounter[i] > 0) {
           scrollCounter[i] = scrollCounter[i] - 1;
-          currNumberArray[i] = convertToDigit(scrollCounter[i]/cc->scrollSteps);
+          // scrollSteps comes from config: never divide by 0
+          currNumberArray[i] = convertToDigit(scrollCounter[i] / max(cc->scrollSteps, (byte) 1));
           tmpNumberArray[i] = currNumberArray[i];
         } else {
           tmpNumberArray[i] = numberArray[i];
@@ -330,7 +331,8 @@ void OutputManager_::outputDisplay() {
     }
   } else if (fadeState > 0) {
     fadeState--;
-    tmpSwitchTime = PHASE_MAX - (PHASE_MAX * fadeState / cc->fadeSteps);
+    // fadeSteps comes from config: never divide by 0
+    tmpSwitchTime = PHASE_MAX - (PHASE_MAX * fadeState / max(cc->fadeSteps, (byte) 1));
   }
 
   uint32_t tmpnextVal1 = decodeFromNumberArray(

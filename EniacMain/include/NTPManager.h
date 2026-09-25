@@ -55,7 +55,12 @@ class NtpManager_
     
     // callbacks
     void setNewTimeCallback(NewTimeCallback ntcb);
+
+    // Call from loop(): runs the new time callback for a reply that
+    // arrived on the async_udp task
+    void serviceTimeUpdate();
   private:
+    volatile bool _timeUpdatePending = false;             // set by the UDP callback, cleared by serviceTimeUpdate()
     String _ntpPool = NTP_POOL_DEFAULT;                   // The pool name we are using
     unsigned long _ntpStarted = 0;                        // the millis the request was sent at
     time_t _ntpTime;                                      // The time we retrieved

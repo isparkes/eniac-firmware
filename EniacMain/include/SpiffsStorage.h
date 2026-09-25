@@ -44,10 +44,14 @@ class SpiffsStorage_
     JsonObject& getConfigAsJsonObject();
   private:
     bool _spiffsMounted = false;
+    // ArduinoJson 5 parses a char* in place: the parsed object points
+    // into _zonesText, so the text must live as long as _cachedZonesObj
     DynamicJsonBuffer _jsonBuffer;
-    JsonObject* _cachedZonesObj;
+    std::unique_ptr<char[]> _zonesText;
+    JsonObject* _cachedZonesObj = nullptr;
 
     void getZoneInfoFromSpiffs();
+    std::unique_ptr<char[]> readFileToBuffer(File &file);
 
 };
 

@@ -146,6 +146,12 @@ void TZManager_::setUTCTimeFromTimeSource(byte timesource, unsigned long readTim
     // Make sure that the offset is right
     calculateCurrentOffsetFromTimeT(getRawUTCTimeFromTimeSource(getPrimaryTimeSource()));
   } else if (timesource == TIME_SOURCE_RTC) {
+    // getRTCTimeAsTimeT() returns 0 when there is no RTC or it could
+    // not be read: don't let that reset the clock to 1970
+    if (utcTime == 0) {
+      debugMsgTzm("Ignoring invalid RTC time");
+      return;
+    }
     _utctime[timesource] = utcTime;
     _lastupdatetime[timesource] = readTime;
 

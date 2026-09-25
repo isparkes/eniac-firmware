@@ -118,6 +118,8 @@ struct rotaryEncoders {
   volatile int encoder0Pos = 0;                          // current value selected with rotary encoder (updated by interrupt routine)
   volatile bool encoderPrevA;                            // used to debounced rotary encoder
   volatile bool encoderPrevB;                            // used to debounced rotary encoder
+  volatile int pendingDelta = 0;                         // movement not yet handled by menuLoop (updated by interrupt routine)
+  volatile bool moved = false;                           // set by interrupt routine on any encoder change, cleared by menuLoop
   uint32_t reLastButtonChange = 0;                       // last time state of button changed (for debouncing)
   bool encoderPrevButton = 0;                            // used to debounce button
   int reButtonDebounced = 0;                             // debounced current button state (1 when pressed)
@@ -152,7 +154,7 @@ class MenuManager_ {
   public:
     void setupMenuManager();
     void ICACHE_RAM_ATTR doEncoder();
-    void flashMenuMessage(String heading, String message);
+    void flashMenuMessage(String heading, String message, int flashSecs = FLASH_TIME);
     void scrollMenuMessage(String message);
     int  getCurrentEncoderPos();
     void menuOncePerSecond();
@@ -197,6 +199,8 @@ class MenuManager_ {
     void displayMessage(String _title, String _message);
     void resetMenu();
     void resetTimeouts();
+    void serviceEncoderMovement();
+    int takeEncoderStep();
     void countdownMenuTimeouts();
     void manageMenu();
 

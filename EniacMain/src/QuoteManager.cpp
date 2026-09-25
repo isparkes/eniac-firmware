@@ -59,9 +59,10 @@ void QuoteManager_::getQuote() {
     if (packet.length() != QTE_RESPONSE_PACKET_SIZE) {
       debugMsgQte("Received data, but got invalid length: " + String(packet.length()));
     } else {
-      uint8_t buffer[QTE_RESPONSE_PACKET_SIZE];
-      memset(buffer, 0, QTE_RESPONSE_PACKET_SIZE);
-      memcpy(&buffer, packet.data(), packet.length());
+      // One extra byte so that a full packet is still null terminated
+      uint8_t buffer[QTE_RESPONSE_PACKET_SIZE + 1];
+      memset(buffer, 0, sizeof(buffer));
+      memcpy(buffer, packet.data(), QTE_RESPONSE_PACKET_SIZE);
 
       _lastUpdateFromServer = nowMillis;
 
@@ -78,7 +79,9 @@ void QuoteManager_::getQuote() {
         _quoteValue = quoteStr.substring(0,6).toInt();
         debugMsgQte("Quote: " + String(_quoteValue));
         for (int i = 0; i < QUOTE_INDICATOR_COUNT; i++) {
-          _quoteDirections[i] = (quote_direction) quoteStr.charAt(7 + i);
+          // Only accept known indicators, anything else from the network is "unchanged"
+          char dir = quoteStr.charAt(7 + i);
+          _quoteDirections[i] = (dir == up || dir == down || dir == none) ? (quote_direction_t) dir : unchanged;
         }
         debugMsgQte("Quote dirs: " + quoteStr.substring(7, 13));
         _quoteValid = true;
