@@ -396,12 +396,14 @@ void LEDManager_::processLedStatusLoop() {
 }
 
 // ************************************************************
-// Move the blanking brightness scales towards their targets
-// at BLANKING_FADE_RATE, independent of the loop speed
+// Move the blanking brightness scales towards their targets at
+// the configured blanking fade speed, independent of the loop speed
 // ************************************************************
 void LEDManager_::updateBlankingFade() {
   unsigned long now = millis();
-  float step = (float)(now - _lastFadeMillis) * BLANKING_FADE_RATE / 100000.0;
+  unsigned long fadeDurationMs = getBlankFadeDurationMs();
+  // A scale of 1.0 is the full fade: "immediate" jumps straight to the target
+  float step = (fadeDurationMs == 0) ? 1.0 : (float)(now - _lastFadeMillis) / fadeDurationMs;
   _lastFadeMillis = now;
 
   float target = _blanked ? 0.0 : (_blankingDimmed ? BLANKING_DIM_FACTOR : 1.0);

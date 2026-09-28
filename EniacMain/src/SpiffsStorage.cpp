@@ -162,6 +162,10 @@ bool SpiffsStorage_::getConfigFromSpiffs()
           debugMsgSpfX("Migrated blankMode: " + String(oldMode));
         }
 
+        // Older config files don't have this: keep the original 4 second fade
+        cc->blankFadeSpeed = json.containsKey("blankFadeSpeed") ? (byte)json["blankFadeSpeed"] : BLANK_FADE_SPEED_DEFAULT;
+        debugMsgSpfX("Loaded blankFadeSpeed: " + String(cc->blankFadeSpeed));
+
         cc->blankHourStart = json["blankHourStart"];
         debugMsgSpfX("Loaded blankHourStart: " + String(cc->blankHourStart));
 
@@ -334,6 +338,7 @@ void SpiffsStorage_::saveConfigToSpiffs()
   json["blankModeLEDs"]      = cc->blankModeLEDs;
   json["blankModeSlave"]     = cc->blankModeSlave;
   json["blankModeSepTower"]  = cc->blankModeSepTower;
+  json["blankFadeSpeed"]     = cc->blankFadeSpeed;
   json["blankHourStart"] = cc->blankHourStart;
   json["blankHourEnd"] = cc->blankHourEnd;
   json["cycleSpeed"] = cc->cycleSpeed;

@@ -148,6 +148,7 @@ void resetOptions() {
   cc->blankModeLEDs      = BLANKING_ACTION_BLANK;
   cc->blankModeSlave     = BLANKING_ACTION_BLANK;
   cc->blankModeSepTower  = BLANKING_ACTION_NORMAL;
+  cc->blankFadeSpeed     = BLANK_FADE_SPEED_DEFAULT;
   cc->blankHourStart = 0;
   cc->blankHourEnd = 7;
   cc->sepMode = SEP_BLINK_DEFAULT;
@@ -295,6 +296,7 @@ bool validateConfig() {
   changed |= clampConfigValue(cc->blankModeLEDs,        BLANKING_ACTION_NORMAL,     BLANKING_ACTION_BLANK,      "blankModeLEDs");
   changed |= clampConfigValue(cc->blankModeSlave,       BLANKING_ACTION_NORMAL,     BLANKING_ACTION_BLANK,      "blankModeSlave");
   changed |= clampConfigValue(cc->blankModeSepTower,    BLANKING_ACTION_NORMAL,     BLANKING_ACTION_BLANK,      "blankModeSepTower");
+  changed |= clampConfigValue(cc->blankFadeSpeed,       BLANK_FADE_SPEED_MIN,       BLANK_FADE_SPEED_MAX,       "blankFadeSpeed");
 
   // Alarm
   changed |= clampConfigValue(cc->alarmHour,            0,                          23,                         "alarmHour");
@@ -748,6 +750,7 @@ void getConfigDataHandler(AsyncWebServerRequest *request) {
   root["blankModeLEDs"]      = cc->blankModeLEDs;
   root["blankModeSlave"]     = cc->blankModeSlave;
   root["blankModeSepTower"]  = cc->blankModeSepTower;
+  root["blankFadeSpeed"]     = cc->blankFadeSpeed;
   root["blankHourStart"] = cc->blankHourStart;
   root["blankHourEnd"] = cc->blankHourEnd;
   root["sepMode"] = cc->sepMode;
@@ -924,6 +927,7 @@ void postConfigDataHandler(AsyncWebServerRequest *request) {
     compareAndUpdateByte(json, "blankModeLEDs",      &cc->blankModeLEDs);
     compareAndUpdateByte(json, "blankModeSlave",     &cc->blankModeSlave);
     compareAndUpdateByte(json, "blankModeSepTower",  &cc->blankModeSepTower);
+    compareAndUpdateByte(json, "blankFadeSpeed",     &cc->blankFadeSpeed);
     compareAndUpdateByte(json, "blankHourStart", &cc->blankHourStart);
     compareAndUpdateByte(json, "blankHourEnd",   &cc->blankHourEnd);
     compareAndUpdateByte(json, "sepMode",        &cc->sepMode);

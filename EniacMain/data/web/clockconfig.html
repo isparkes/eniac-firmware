@@ -492,6 +492,19 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label class="control-label col-xs-3" for="blankFadeSpeed">Blanking fade:</label>
+                    <div class="col-xs-4">
+                        <select class="form-control" name="blankFadeSpeed" id="blankFadeSpeed">
+                            <option value="0">Immediate</option>
+                            <option value="1">Fast (1 second)</option>
+                            <option selected value="2">Normal (4 seconds)</option>
+                            <option value="3">Slow (15 seconds)</option>
+                            <option value="4">Extremely slow (60 seconds)</option>
+                        </select>
+                        <span class="help-block">How quickly the neons and LEDs fade out and back in when blanking starts and ends</span>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label class="control-label col-xs-3">OLED Timeout:</label>
                     <div class="col-xs-4">
                         <select class="form-control" name="oledOnTime" id="oledOnTime">
@@ -750,6 +763,7 @@
         $("#blankModeSepTower").val(config.blankModeSepTower);
         $("#blankHourStart").val(config.blankHourStart);
         $("#blankHourEnd").val(config.blankHourEnd);
+        $("#blankFadeSpeed").val(config.blankFadeSpeed);
         $("#oledOnTime").val(config.oledOnTime);
 
         // -------------- LEDs --------------
@@ -943,6 +957,9 @@
             postBody["blankHourEnd"] = $("#blankHourEnd").val();
         }
 
+        if (localConfig.blankFadeSpeed!=$("#blankFadeSpeed").val()) {
+            postBody["blankFadeSpeed"] = $("#blankFadeSpeed").val();
+        }
         if (localConfig.oledOnTime!=$("#oledOnTime").val()) {
             postBody["oledOnTime"] = $("#oledOnTime").val();
         }

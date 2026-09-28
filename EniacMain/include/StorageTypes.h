@@ -38,6 +38,7 @@ typedef struct {
   byte blankModeLEDs;       // BlankingAction for NeoPixel backlights
   byte blankModeSlave;      // BlankingAction for slave module
   byte blankModeSepTower;   // BlankingAction for separator tower NeoPixels
+  byte blankFadeSpeed;      // BLANK_FADE_SPEED_*: how fast the neons fade when blanking starts or ends
   bool useLDRTube;
   bool useLDRBL;
   bool useLDRSep;

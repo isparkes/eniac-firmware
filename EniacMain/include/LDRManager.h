@@ -31,9 +31,22 @@
 #define SENSOR_SMOOTH_READINGS_MAX     255
 #define SENSOR_SMOOTH_READINGS_DEFAULT 100  // Speed at which the brighness adapts to changes
 
-// Rate at which the tubes fade in/out when blanking (or blanking dim) starts or ends,
-// in % of full brightness per second. e.g. 25 = full brightness to off in 4 seconds
-#define BLANKING_FADE_RATE    25
+// Speed at which the neons fade in/out when blanking (or blanking dim) starts or ends.
+// BLANK_FADE_DURATIONS_MS gives the time for a full fade from full brightness to off.
+#define BLANK_FADE_SPEED_MIN            0
+#define BLANK_FADE_SPEED_IMMEDIATE      0  // no fade
+#define BLANK_FADE_SPEED_FAST           1  // 1 second
+#define BLANK_FADE_SPEED_NORMAL         2  // 4 seconds
+#define BLANK_FADE_SPEED_SLOW           3  // 15 seconds
+#define BLANK_FADE_SPEED_EXTRA_SLOW     4  // 60 seconds
+#define BLANK_FADE_SPEED_MAX            4
+#define BLANK_FADE_SPEED_DEFAULT        BLANK_FADE_SPEED_NORMAL
+
+const unsigned long BLANK_FADE_DURATIONS_MS[BLANK_FADE_SPEED_MAX + 1] = {0, 1000, 4000, 15000, 60000};
+
+// Full fade time for the configured blanking fade speed, 0 = immediate.
+// Shared by the neon (LDRManager) and LED (LEDManager) fades.
+unsigned long getBlankFadeDurationMs();
 
 class LDRManager_
 {

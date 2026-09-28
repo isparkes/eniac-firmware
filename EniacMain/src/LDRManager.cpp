@@ -166,16 +166,26 @@ void LDRManager_::processLDRValue() {
 }
 
 // ************************************************************
-// Move the blanking fades towards their targets at
-// BLANKING_FADE_RATE, independent of the loop speed
+// Full fade time for the configured blanking fade speed. The index
+// comes from config, so guard it.
+// ************************************************************
+unsigned long getBlankFadeDurationMs() {
+  byte fadeSpeed = (cc->blankFadeSpeed <= BLANK_FADE_SPEED_MAX) ? cc->blankFadeSpeed : BLANK_FADE_SPEED_DEFAULT;
+  return BLANK_FADE_DURATIONS_MS[fadeSpeed];
+}
+
+// ************************************************************
+// Move the blanking fades towards their targets at the rate set
+// by cc->blankFadeSpeed, independent of the loop speed
 // ************************************************************
 void LDRManager_::updateBlankingFade(int baseTube) {
   unsigned long now = millis();
   unsigned long elapsed = now - _lastFadeMillis;
   _lastFadeMillis = now;
 
-  // PWM units we may move in this step
-  float stepUnits = (float)elapsed * BLANKING_FADE_RATE * LDR_VALUE_MAX / 100000.0;
+  // PWM units we may move in this step: "immediate" moves the whole range at once
+  unsigned long fadeDurationMs = getBlankFadeDurationMs();
+  float stepUnits = (fadeDurationMs == 0) ? (float)LDR_VALUE_MAX : (float)elapsed * LDR_VALUE_MAX / fadeDurationMs;
 
   _dimFade = stepFade(_dimFade, _blankingDim, abs(_minDimTube - baseTube), stepUnits);
 

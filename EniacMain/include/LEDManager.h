@@ -191,7 +191,7 @@ class LEDManager_
     bool _towersBlankingDimmed = false;
 
     // Blanking fade: brightness scale, moves towards 1.0 (normal),
-    // BLANKING_DIM_FACTOR (dim) or 0.0 (blank) at BLANKING_FADE_RATE
+    // BLANKING_DIM_FACTOR (dim) or 0.0 (blank) at the configured blanking fade speed
     float _blankScale = 1.0;
     float _towerBlankScale = 1.0;
     unsigned long _lastFadeMillis = 0;
